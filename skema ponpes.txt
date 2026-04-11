@@ -1,0 +1,61 @@
+hidayatulamin-e6f22 (project)
+├── santri/
+│   ├── {santriId}/
+│   │   ├── data: {nama, kelas, waliId, ...}
+│   │   ├── hafalan/ [subcollection]
+│   │   ├── rapor/ [subcollection]
+│   │   └── spp/ [subcollection]
+│   │
+├── wali_santri/
+│   ├── {userId}/
+│   │   ├── email, nama, linkedSantriId
+│   │   └── piWallet: {address, connected}
+│   │
+├── ustadz/
+│   ├── {userId}/
+│   │   ├── nama, email, kelasDiampu[]
+│   │
+├── admins/
+│   ├── {userId}/
+│   │   ├── email, role: 'super' | 'keuangan'
+│   │
+├── pi_payments/ [NEW - untuk tracking semua transaksi Pi]
+│   ├── {paymentId}/
+│   │   ├── santriId, waliId, amount
+│   │   ├── status: 'pending' | 'approved' | 'completed' | 'cancelled'
+│   │   ├── txid (setelah completed)
+│   │   ├── createdAt, completedAt
+│   │   └── type: 'SPP' | 'donasi' | 'umkm' | 'beasiswa'
+│   │
+├── donasi/ [NEW]
+│   ├── {donasiId}/
+│   │   ├── donatur (bisa anonim)
+│   │   ├── amount, kategori, keterangan
+│   │   └── status
+│   │
+└── umkm_produk/ [NEW]
+    ├── {produkId}/
+    │   ├── nama, deskripsi, hargaPi, stok
+    │   ├── pembuat (santriId/umkmId)
+    │   └── terjual
+	
+	
+	
+	📁 hidayatullah-amin/
+├── 📄 index.html (existing)
+├── 📄 login.html (existing)
+├── 📄 dashboard-admin.html (existing)
+├── 📄 dashboard-wali.html (existing)
+├── 📄 dashboard-ustadz.html (existing)
+├── 📁 pages/
+│   ├── 📄 donasi.html (NEW - Donasi publik)
+│   ├── 📄 donasi-success.html (NEW - Konfirmasi)
+│   └── 📄 transparansi.html (NEW - Laporan donasi)
+├── 📁 js/
+│   ├── 📄 pi-donation.js (NEW - Logic Pi donation)
+│   └── 📄 firebase-config.js (NEW - Shared config)
+└── 📁 css/
+    └── 📄 donasi-style.css (NEW - Styling donasi)
+	
+	
+	Buatkan struktur project lengkap dengan folder dan file organization?

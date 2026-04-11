@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transparansi Donasi | Yayasan Hidayatullah Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --accent: #8b5cf6;
+            --dark: #0f172a;
+            --light: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .transactions-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-header h2 {
+            color: var(--dark);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: inherit;
+        }
+
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .transaction-table th {
+            text-align: left;
+            padding: 15px;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .transaction-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .tx-hash {
+            font-family: monospace;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-pi { background: #ede9fe; color: #7c3aed; }
+        .badge-qris { background: #dbeafe; color: #1e40af; }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-section { grid-template-columns: 1fr; }
+            .transaction-table { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="fas fa-chart-bar"></i> Transparansi Donasi</h1>
+        <p>Laporan real-time seluruh donasi masuk dan penggunaannya</p>
+    </div>
+
+    <div class="container">
+        <a href="donasi.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Kembali ke Halaman Donasi
+        </a>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3 id="totalDonasi">0</h3>
+                <p>Total Donasi (π + Rp)</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="totalPi">0 π</h3>
+                <p>Total dalam Pi</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="totalTransaksi">0</h3>
+                <p>Jumlah Transaksi</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="rataRata">0</h3>
+                <p>Rata-rata Donasi</p>
+            </div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3>Donasi per Program</h3>
+                <canvas id="programChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Trend Donasi (30 Hari)</h3>
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+
+        <div class="transactions-section">
+            <div class="section-header">
+                <h2>Riwayat Transaksi</h2>
+                <div class="filter-group">
+                    <select id="filterMethod" onchange="filterTransactions()">
+                        <option value="">Semua Metode</option>
+                        <option value="pi">Pi Network</option>
+                        <option value="qris">QRIS/Transfer</option>
+                    </select>
+                    <select id="filterStatus" onchange="filterTransactions()">
+                        <option value="">Semua Status</option>
+                        <option value="completed">Terverifikasi</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table class="transaction-table">
+                    <thead>
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Donatur</th>
+                            <th>Program</th>
+                            <th>Jumlah</th>
+                            <th>Metode</th>
+                            <th>Status</th>
+                            <th>Tx Hash</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionList">
+                        <!-- Diisi JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let allTransactions = [];
+        let programChart, trendChart;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            setupRealtime();
+        });
+
+        async function loadData() {
+            const snapshot = await db.collection('donasi')
+                .orderBy('createdAt', 'desc')
+                .limit(100)
+                .get();
+            
+            allTransactions = [];
+            snapshot.forEach(doc => {
+                allTransactions.push({ id: doc.id, ...doc.data() });
+            });
+            
+            updateStats();
+            renderCharts();
+            renderTable(allTransactions);
+        }
+
+        function updateStats() {
+            let totalPi = 0;
+            let totalRupiah = 0;
+            let count = allTransactions.length;
+            
+            allTransactions.forEach(tx => {
+                if (tx.method === 'pi' && tx.status === 'completed') {
+                    totalPi += tx.amount || 0;
+                } else if (tx.method === 'qris') {
+                    totalRupiah += tx.amount || 0;
+                }
+            });
+            
+            // Assume 1 Pi = Rp 15,000 for calculation
+            const totalEquivalent = (totalPi * 15000) + totalRupiah;
+            
+            document.getElementById('totalDonasi').textContent = 'Rp ' + totalEquivalent.toLocaleString();
+            document.getElementById('totalPi').textContent = totalPi.toFixed(2) + ' π';
+            document.getElementById('totalTransaksi').textContent = count;
+            document.getElementById('rataRata').textContent = count > 0 ? 'Rp ' + Math.floor(totalEquivalent / count).toLocaleString() : '0';
+        }
+
+        function renderCharts() {
+            // Program distribution
+            const programData = {};
+            allTransactions.forEach(tx => {
+                if (tx.status === 'completed') {
+                    const prog = tx.program || 'umum';
+                    programData[prog] = (programData[prog] || 0) + (tx.amount || 0);
+                }
+            });
+            
+            const ctx1 = document.getElementById('programChart').getContext('2d');
+            programChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(programData).map(p => getProgramLabel(p)),
+                    datasets: [{
+                        data: Object.values(programData),
+                        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+            
+            // Trend chart (last 30 days)
+            const trendData = {};
+            const now = new Date();
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date(now);
+                d.setDate(d.getDate() - i);
+                trendData[d.toISOString().slice(0, 10)] = 0;
+            }
+            
+            allTransactions.forEach(tx => {
+                if (tx.status === 'completed' && tx.createdAt) {
+                    const date = tx.createdAt.toDate ? tx.createdAt.toDate().toISOString().slice(0, 10) : new Date(tx.createdAt).toISOString().slice(0, 10);
+                    if (trendData[date] !== undefined) {
+                        trendData[date] += (tx.amount || 0) * (tx.method === 'pi' ? 15000 : 1);
+                    }
+                }
+            });
+            
+            const ctx2 = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(trendData).map(d => d.slice(8)),
+                    datasets: [{
+                        label: 'Donasi (Rp)',
+                        data: Object.values(trendData),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function renderTable(transactions) {
+            const tbody = document.getElementById('transactionList');
+            tbody.innerHTML = '';
+            
+            transactions.forEach(tx => {
+                const tr = document.createElement('tr');
+                
+                const time = tx.createdAt ? 
+                    (tx.createdAt.toDate ? tx.createdAt.toDate().toLocaleString('id-ID') : new Date(tx.createdAt).toLocaleString('id-ID')) 
+                    : '-';
+                
+                const amount = tx.method === 'pi' ? 
+                    `${tx.amount} π` : 
+                    `Rp ${(tx.amount || 0).toLocaleString()}`;
+                
+                const methodClass = tx.method === 'pi' ? 'badge-pi' : 'badge-qris';
+                const statusClass = tx.status === 'completed' ? 'badge-success' : 'badge-pending';
+                
+                const txHash = tx.txid || tx.paymentId || '-';
+                const txDisplay = txHash.length > 15 ? txHash.slice(0, 8) + '...' + txHash.slice(-4) : txHash;
+                
+                tr.innerHTML = `
+                    <td>${time}</td>
+                    <td>${tx.donorName || 'Hamba Allah'}</td>
+                    <td>${getProgramLabel(tx.program)}</td>
+                    <td><strong>${amount}</strong></td>
+                    <td><span class="badge ${methodClass}">${tx.method === 'pi' ? 'Pi' : 'QRIS'}</span></td>
+                    <td><span class="badge ${statusClass}">${tx.status === 'completed' ? '✓' : '⏳'}</span></td>
+                    <td><span class="tx-hash" title="${txHash}">${txDisplay}</span></td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterTransactions() {
+            const method = document.getElementById('filterMethod').value;
+            const status = document.getElementById('filterStatus').value;
+            
+            let filtered = allTransactions;
+            
+            if (method) {
+                filtered = filtered.filter(tx => tx.method === method);
+            }
+            
+            if (status) {
+                filtered = filtered.filter(tx => tx.status === status);
+            }
+            
+            renderTable(filtered);
+        }
+
+        function getProgramLabel(program) {
+            const labels = {
+                'beasiswa': 'Beasiswa',
+                'perpustakaan': 'Perpustakaan',
+                'asrama': 'Asrama',
+                'makan': 'Makan Gratis',
+                'umum': 'Umum'
+            };
+            return labels[program] || program;
+        }
+
+        function setupRealtime() {
+            db.collection('donasi')
+                .orderBy('createdAt', 'desc')
+                .limit(1)
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            loadData(); // Refresh all data
+                        }
+                    });
+                });
+        }
+    </script>
+
+</body>
+</html>
