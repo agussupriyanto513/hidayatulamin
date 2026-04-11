@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donasi Online | Yayasan Hidayatullah Amin</title>
+    <meta name="description" content="Donasi dan infaq online untuk pendidikan santri. Bisa via Pi Network atau QRIS. Transparan dan terpercaya.">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --accent: #8b5cf6;
+            --gold: #fbbf24;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --pi-purple: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #ede9fe 100%);
+            min-height: 100vh;
+            color: #334155;
+        }
+
+        /* Header */
+        .donasi-header {
+            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 50%, var(--primary-dark) 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .donasi-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--gold) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        .donasi-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .donasi-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stats Counter */
+        .stats-bar {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            margin: -40px auto 40px;
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-item p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+        }
+
+        /* Section Title */
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-title h2 {
+            font-size: 2rem;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .section-title p {
+            color: #64748b;
+        }
+
+        /* Donation Cards */
+        .donasi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .donasi-card {
+            background: white;
+            border-radius: 24px;
+            padding: 35px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .donasi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .donasi-card.pi::before { background: var(--pi-purple); }
+        .donasi-card.qris::before { background: var(--secondary); }
+        .donasi-card.program::before { background: var(--primary); }
+
+        .donasi-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .donasi-card.pi:hover { border-color: var(--pi-purple); }
+        .donasi-card.qris:hover { border-color: var(--secondary); }
+        .donasi-card.program:hover { border-color: var(--primary); }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .donasi-card.pi .card-icon {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+
+        .donasi-card.qris .card-icon {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .donasi-card.program .card-icon {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .card-header h3 {
+            font-size: 1.3rem;
+            color: var(--dark);
+        }
+
+        .card-header span {
+            display: block;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        /* Amount Selector */
+        .amount-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .amount-btn {
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .amount-btn:hover, .amount-btn.active {
+            border-color: var(--pi-purple);
+            background: #f5f3ff;
+            color: var(--pi-purple);
+        }
+
+        .amount-btn .pi-symbol {
+            font-size: 0.8rem;
+            color: #8b5cf6;
+        }
+
+        .custom-amount {
+            margin-top: 15px;
+        }
+
+        .custom-amount input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .custom-amount input:focus {
+            outline: none;
+            border-color: var(--pi-purple);
+        }
+
+        /* QR Section */
+        .qr-section {
+            text-align: center;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 16px;
+            margin-top: 20px;
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: white;
+            border-radius: 12px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .qr-code img {
+            max-width: 180px;
+            max-height: 180px;
+        }
+
+        /* Program List */
+        .program-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .program-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .program-item:hover, .program-item.active {
+            background: #f0fdf4;
+            border-color: var(--primary);
+        }
+
+        .program-info h4 {
+            font-size: 1rem;
+            color: var(--dark);
+            margin-bottom: 3px;
+        }
+
+        .program-info p {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .program-amount {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Action Button */
+        .btn-donate {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .donasi-card.pi .btn-donate {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .donasi-card.qris .btn-donate {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .donasi-card.program .btn-donate {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-donate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .btn-donate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Recent Donations */
+        .recent-donations {
+            background: white;
+            border-radius: 24px;
+            padding: 35px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .donation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .donation-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px;
+            background: #f8fafc;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .donation-item:hover {
+            background: #f1f5f9;
+        }
+
+        .donor-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .donor-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+
+        .donor-details h4 {
+            font-size: 1rem;
+            color: var(--dark);
+            margin-bottom: 3px;
+        }
+
+        .donor-details p {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .donation-amount {
+            text-align: right;
+        }
+
+        .donation-amount .amount {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .donation-amount .method {
+            font-size: 0.8rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            justify-content: flex-end;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--pi-purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px 25px;
+            border-radius: 14px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.show {
+            display: flex;
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .donasi-header h1 { font-size: 1.8rem; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); margin-top: -20px; }
+            .donasi-grid { grid-template-columns: 1fr; }
+            .amount-options { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; color: #64748b; font-weight: 500;">Memproses donasi...</p>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText">Operasi berhasil!</span>
+    </div>
+
+    <!-- Header -->
+    <header class="donasi-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="fas fa-mosque"></i>
+                </div>
+                <div style="text-align: left;">
+                    <h3 style="font-size: 1.2rem;">Yayasan Hidayatullah Amin</h3>
+                    <p style="font-size: 0.9rem; opacity: 0.8;">Pondok Pesantren Modern</p>
+                </div>
+            </div>
+            <h1>Donasi & Infaq Online</h1>
+            <p>Dukung pendidikan santri dengan teknologi Pi Network atau QRIS. Transparan, cepat, dan terpercaya.</p>
+        </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <h3 id="totalDonasiPi">0 π</h3>
+            <p>Total Donasi Pi</p>
+        </div>
+        <div class="stat-item">
+            <h3 id="totalDonasiRupiah">Rp 0</h3>
+            <p>Total Donasi QRIS</p>
+        </div>
+        <div class="stat-item">
+            <h3 id="jumlahDonatur">0</h3>
+            <p>Jumlah Donatur</p>
+        </div>
+        <div class="stat-item">
+            <h3 id="santriTerbantu">0</h3>
+            <p>Santri Terbantu</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        
+        <div class="section-title">
+            <h2>Pilih Metode Donasi</h2>
+            <p>Anda bisa berdonasi menggunakan Pi Network (cryptocurrency) atau QRIS (transfer bank)</p>
+        </div>
+
+        <div class="donasi-grid">
+            
+            <!-- Pi Network Card -->
+            <div class="donasi-card pi">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div>
+                        <h3>Pi Network</h3>
+                        <span>Donasi dengan cryptocurrency</span>
+                    </div>
+                </div>
+
+                <p style="color: #64748b; margin-bottom: 20px; line-height: 1.6;">
+                    Gunakan Pi Browser di HP Anda. Donasi akan tercatat di blockchain dan bisa diverifikasi publik.
+                </p>
+
+                <div class="amount-options">
+                    <button class="amount-btn active" onclick="selectAmount(this, 5)">
+                        5 <span class="pi-symbol">π</span>
+                    </button>
+                    <button class="amount-btn" onclick="selectAmount(this, 10)">
+                        10 <span class="pi-symbol">π</span>
+                    </button>
+                    <button class="amount-btn" onclick="selectAmount(this, 50)">
+                        50 <span class="pi-symbol">π</span>
+                    </button>
+                    <button class="amount-btn" onclick="selectAmount(this, 100)">
+                        100 <span class="pi-symbol">π</span>
+                    </button>
+                    <button class="amount-btn" onclick="selectAmount(this, 500)">
+                        500 <span class="pi-symbol">π</span>
+                    </button>
+                    <button class="amount-btn" onclick="selectAmount(this, 'custom')">
+                        Lainnya
+                    </button>
+                </div>
+
+                <div class="custom-amount" id="customPiAmount" style="display: none;">
+                    <input type="number" id="piCustomInput" placeholder="Masukkan jumlah π" min="0.1" step="0.1">
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <input type="text" id="piDonorName" placeholder="Nama Anda (opsional)" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                </div>
+
+                <div class="input-group" style="margin-top: 10px;">
+                    <input type="text" id="piMessage" placeholder="Pesan/doa (opsional)" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                </div>
+
+                <button class="btn-donate" onclick="donateWithPi()">
+                    <i class="fas fa-paper-plane"></i>
+                    Donasi dengan Pi
+                </button>
+
+                <p style="text-align: center; margin-top: 15px; font-size: 0.85rem; color: #64748b;">
+                    <i class="fas fa-info-circle"></i>
+                    Buka di Pi Browser untuk pengalaman terbaik
+                </p>
+            </div>
+
+            <!-- QRIS Card -->
+            <div class="donasi-card qris">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <div>
+                        <h3>QRIS / Transfer</h3>
+                        <span>Via BRI, GoPay, OVO, DANA, dll</span>
+                    </div>
+                </div>
+
+                <p style="color: #64748b; margin-bottom: 20px; line-height: 1.6;">
+                    Scan QRIS dengan aplikasi e-wallet atau mobile banking Anda. Konfirmasi otomatis dalam 1x24 jam.
+                </p>
+
+                <div class="qr-section">
+                    <div class="qr-code">
+                        <img src="../qris-yayasan.png" alt="QRIS Yayasan Hidayatullah Amin">
+                    </div>
+                    <p style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">Scan QRIS ini</p>
+                    <p style="font-size: 0.85rem; color: #64748b;">Atau transfer ke rekening BRI</p>
+                    <p style="font-family: monospace; background: #e2e8f0; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: 600;">
+                        1234-5678-9012-3456
+                    </p>
+                </div>
+
+                <div class="input-group" style="margin-top: 20px;">
+                    <input type="text" id="qrisDonorName" placeholder="Nama Anda" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                </div>
+
+                <div class="input-group" style="margin-top: 10px;">
+                    <input type="number" id="qrisAmount" placeholder="Jumlah donasi (Rp)" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                </div>
+
+                <div class="input-group" style="margin-top: 10px;">
+                    <input type="text" id="qrisMessage" placeholder="Pesan/doa (opsional)" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                </div>
+
+                <button class="btn-donate" onclick="submitQRIS()">
+                    <i class="fas fa-check-circle"></i>
+                    Konfirmasi Transfer
+                </button>
+            </div>
+
+            <!-- Program Card -->
+            <div class="donasi-card program">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-hand-holding-heart"></i>
+                    </div>
+                    <div>
+                        <h3>Program Spesifik</h3>
+                        <span>Pilih program yang ingin didukung</span>
+                    </div>
+                </div>
+
+                <p style="color: #64748b; margin-bottom: 20px; line-height: 1.6;">
+                    Donasi Anda akan dialokasikan ke program spesifik. Lihat progress dan laporan penggunaan dana.
+                </p>
+
+                <div class="program-list" id="programList">
+                    <div class="program-item active" onclick="selectProgram(this, 'beasiswa')">
+                        <div class="program-info">
+                            <h4>Beasiswa Santri Berprestasi</h4>
+                            <p>Bantu santri kurang mampu berprestasi</p>
+                        </div>
+                        <div class="program-amount">Min. 10 π</div>
+                    </div>
+                    <div class="program-item" onclick="selectProgram(this, 'perpustakaan')">
+                        <div class="program-info">
+                            <h4>Pembangunan Perpustakaan</h4>
+                            <p>Koleksi buku dan digital library</p>
+                        </div>
+                        <div class="program-amount">Min. 5 π</div>
+                    </div>
+                    <div class="program-item" onclick="selectProgram(this, 'asrama')">
+                        <div class="program-info">
+                            <h4>Renovasi Asrama</h4>
+                            <p>Fasilitas tidur dan belajar santri</p>
+                        </div>
+                        <div class="program-amount">Min. 20 π</div>
+                    </div>
+                    <div class="program-item" onclick="selectProgram(this, 'makan')">
+                        <div class="program-info">
+                            <h4>Program Makan Gratis</h4>
+                            <p>Satu hari makan untuk semua santri</p>
+                        </div>
+                        <div class="program-amount">50 π/hari</div>
+                    </div>
+                </div>
+
+                <button class="btn-donate" onclick="donateToProgram()">
+                    <i class="fas fa-heart"></i>
+                    Donasi ke Program
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Recent Donations -->
+        <div class="recent-donations">
+            <div class="section-title" style="text-align: left; margin-bottom: 25px;">
+                <h2 style="font-size: 1.5rem;">Donasi Terbaru</h2>
+                <p>Terima kasih kepada para donatur</p>
+            </div>
+            
+            <div class="donation-list" id="recentDonations">
+                <div class="donation-item">
+                    <div class="donor-info">
+                        <div class="donor-avatar">H</div>
+                        <div class="donor-details">
+                            <h4>Hamba Allah</h4>
+                            <p>Beasiswa Santri • 2 menit yang lalu</p>
+                        </div>
+                    </div>
+                    <div class="donation-amount">
+                        <div class="amount">25 π</div>
+                        <div class="method"><i class="fas fa-coins" style="color: #8b5cf6;"></i> Pi Network</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <a href="transparansi.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                    Lihat Semua Transaksi <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="../index.html"><i class="fas fa-home"></i> Beranda</a>
+            <a href="transparansi.html"><i class="fas fa-chart-bar"></i> Transparansi</a>
+            <a href="../login.html"><i class="fas fa-sign-in-alt"></i> Login</a>
+        </div>
+        <p style="opacity: 0.7; font-size: 0.9rem;">
+            &copy; 2024 Yayasan Hidayatullah Amin. Donasi tercatat di blockchain Pi Network & database terenkripsi.
+        </p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // ==========================================
+        // FIREBASE CONFIGURATION
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ==========================================
+        // GLOBAL VARIABLES
+        // ==========================================
+        let selectedPiAmount = 5;
+        let selectedProgram = 'beasiswa';
+        let piWallet = { connected: false, address: null };
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadRecentDonations();
+            setupRealtimeListeners();
+            
+            // Check if opened in Pi Browser
+            if (typeof Pi !== 'undefined') {
+                console.log('Pi SDK detected');
+                // Auto-connect if possible
+                checkPiConnection();
+            }
+        });
+
+        // ==========================================
+        // PI NETWORK FUNCTIONS
+        // ==========================================
+
+        async function checkPiConnection() {
+            try {
+                const Pi = window.Pi;
+                Pi.init({ version: "2.0" });
+                
+                // Check if already authenticated
+                const scopes = ['payments', 'username'];
+                const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
+                
+                piWallet = {
+                    connected: true,
+                    address: authResult.user.uid,
+                    username: authResult.user.username
+                };
+                
+                showNotification('Terhubung dengan Pi Wallet: ' + authResult.user.username, 'success');
+            } catch (error) {
+                console.log('Pi not connected:', error);
+            }
+        }
+
+        function onIncompletePaymentFound(payment) {
+            console.log('Incomplete payment found:', payment);
+            // Handle incomplete payment
+        }
+
+        async function donateWithPi() {
+            const Pi = window.Pi;
+            
+            // Check if Pi SDK available
+            if (typeof Pi === 'undefined') {
+                // Fallback mode - redirect to Pi Browser or show QR
+                showNotification('Buka halaman ini di Pi Browser untuk donasi dengan Pi', 'error');
+                
+                // Show alternative QR
+                const useQR = confirm('Pi Browser tidak terdeteksi. Ingin melihat alamat Pi untuk transfer manual?');
+                if (useQR) {
+                    alert('Alamat Pi Yayasan: GABYDEV_SCHOOL_MAINNET_2024\n\nKirim ke alamat ini dan konfirmasi ke admin.');
+                }
+                return;
+            }
+
+            // Get amount
+            let amount = selectedPiAmount;
+            if (amount === 'custom') {
+                amount = parseFloat(document.getElementById('piCustomInput').value);
+                if (!amount || amount <= 0) {
+                    showNotification('Masukkan jumlah Pi yang valid', 'error');
+                    return;
+                }
+            }
+
+            const donorName = document.getElementById('piDonorName').value || 'Hamba Allah';
+            const message = document.getElementById('piMessage').value || '';
+
+            showLoading(true);
+
+            try {
+                // Initialize Pi if not already
+                Pi.init({ version: "2.0" });
+
+                // Create payment
+                const payment = await Pi.createPayment({
+                    amount: amount,
+                    memo: `Donasi ${donorName} - Yayasan Hidayatullah Amin`,
+                    metadata: {
+                        type: 'donasi',
+                        donorName: donorName,
+                        message: message,
+                        program: selectedProgram,
+                        timestamp: new Date().toISOString()
+                    }
+                }, {
+                    onReadyForServerApproval: async (paymentId) => {
+                        console.log('Payment ready for approval:', paymentId);
+                        
+                        // Save to Firestore
+                        await db.collection('donasi').doc(paymentId).set({
+                            paymentId: paymentId,
+                            amount: amount,
+                            donorName: donorName,
+                            message: message,
+                            program: selectedProgram,
+                            method: 'pi',
+                            status: 'pending_approval',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            userAgent: navigator.userAgent
+                        });
+                    },
+                    onReadyForServerCompletion: async (paymentId, txid) => {
+                        console.log('Payment completed:', paymentId, txid);
+                        
+                        // Update Firestore
+                        await db.collection('donasi').doc(paymentId).update({
+                            status: 'completed',
+                            txid: txid,
+                            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        showLoading(false);
+                        showNotification(`Donasi ${amount} π berhasil! Terima kasih ${donorName}`, 'success');
+                        
+                        // Redirect to success page
+                        setTimeout(() => {
+                            window.location.href = `donasi-success.html?id=${paymentId}&amount=${amount}&method=pi`;
+                        }, 2000);
+                    },
+                    onCancel: (paymentId) => {
+                        console.log('Payment cancelled:', paymentId);
+                        showLoading(false);
+                        showNotification('Donasi dibatalkan', 'error');
+                    },
+                    onError: (error, payment) => {
+                        console.error('Payment error:', error);
+                        showLoading(false);
+                        showNotification('Gagal memproses donasi: ' + error.message, 'error');
+                    }
+                });
+
+            } catch (error) {
+                console.error('Pi donation error:', error);
+                showLoading(false);
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ==========================================
+        // QRIS FUNCTIONS
+        // ==========================================
+
+        async function submitQRIS() {
+            const donorName = document.getElementById('qrisDonorName').value;
+            const amount = parseFloat(document.getElementById('qrisAmount').value);
+            const message = document.getElementById('qrisMessage').value || '';
+
+            if (!donorName || !amount) {
+                showNotification('Lengkapi nama dan jumlah donasi', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                // Generate unique ID
+                const donationId = 'QRIS_' + Date.now();
+                
+                // Save to Firestore
+                await db.collection('donasi').doc(donationId).set({
+                    donationId: donationId,
+                    amount: amount,
+                    donorName: donorName,
+                    message: message,
+                    program: selectedProgram,
+                    method: 'qris',
+                    status: 'pending_verification',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    verified: false
+                });
+
+                showLoading(false);
+                showNotification('Konfirmasi donasi berhasil! Admin akan memverifikasi dalam 1x24 jam.', 'success');
+                
+                // Redirect to success page
+                setTimeout(() => {
+                    window.location.href = `donasi-success.html?id=${donationId}&amount=${amount}&method=qris&pending=true`;
+                }, 2000);
+
+            } catch (error) {
+                console.error('QRIS submission error:', error);
+                showLoading(false);
+                showNotification('Gagal menyimpan data: ' + error.message, 'error');
+            }
+        }
+
+        // ==========================================
+        // PROGRAM DONATION
+        // ==========================================
+
+        async function donateToProgram() {
+            // Check if Pi available
+            if (typeof Pi !== 'undefined') {
+                await donateWithPi();
+            } else {
+                // Fallback to QRIS mode for program
+                showNotification('Silakan gunakan metode QRIS atau buka di Pi Browser', 'error');
+                document.querySelector('.donasi-card.qris').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // ==========================================
+        // UI FUNCTIONS
+        // ==========================================
+
+        function selectAmount(btn, amount) {
+            // Remove active from all
+            document.querySelectorAll('.donasi-card.pi .amount-btn').forEach(b => b.classList.remove('active'));
+            
+            // Add active to clicked
+            btn.classList.add('active');
+            selectedPiAmount = amount;
+            
+            // Show/hide custom input
+            const customInput = document.getElementById('customPiAmount');
+            if (amount === 'custom') {
+                customInput.style.display = 'block';
+                document.getElementById('piCustomInput').focus();
+            } else {
+                customInput.style.display = 'none';
+            }
+        }
+
+        function selectProgram(element, program) {
+            // Remove active from all
+            document.querySelectorAll('.program-item').forEach(item => item.classList.remove('active'));
+            
+            // Add active to clicked
+            element.classList.add('active');
+            selectedProgram = program;
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notif = document.getElementById('notification');
+            const text = document.getElementById('notificationText');
+            
+            text.textContent = message;
+            notif.className = 'notification ' + type;
+            notif.classList.add('show');
+            
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 5000);
+        }
+
+        // ==========================================
+        // DATA FUNCTIONS
+        // ==========================================
+
+        async function loadStats() {
+            try {
+                // Get all completed donations
+                const snapshot = await db.collection('donasi')
+                    .where('status', 'in', ['completed', 'pending_verification'])
+                    .get();
+                
+                let totalPi = 0;
+                let totalRupiah = 0;
+                let uniqueDonors = new Set();
+                let santriHelped = 0; // Calculate based on program
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    uniqueDonors.add(data.donorName || 'Anonim');
+                    
+                    if (data.method === 'pi' && data.status === 'completed') {
+                        totalPi += data.amount || 0;
+                    } else if (data.method === 'qris') {
+                        totalRupiah += data.amount || 0;
+                    }
+                    
+                    // Estimate santri helped (rough calculation)
+                    if (data.program === 'beasiswa') {
+                        santriHelped += Math.floor((data.amount || 0) / 10);
+                    }
+                });
+                
+                // Update UI
+                document.getElementById('totalDonasiPi').textContent = totalPi.toFixed(2) + ' π';
+                document.getElementById('totalDonasiRupiah').textContent = 'Rp ' + totalRupiah.toLocaleString();
+                document.getElementById('jumlahDonatur').textContent = uniqueDonors.size;
+                document.getElementById('santriTerbantu').textContent = santriHelped;
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadRecentDonations() {
+            try {
+                const snapshot = await db.collection('donasi')
+                    .where('status', 'in', ['completed', 'pending_verification'])
+                    .orderBy('createdAt', 'desc')
+                    .limit(5)
+                    .get();
+                
+                const container = document.getElementById('recentDonations');
+                container.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="text-align: center; color: #64748b;">Belum ada donasi. Jadilah yang pertama!</p>';
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const isPi = data.method === 'pi';
+                    const amount = isPi ? `${data.amount} π` : `Rp ${data.amount.toLocaleString()}`;
+                    const icon = isPi ? 'fa-coins' : 'fa-qrcode';
+                    const color = isPi ? '#8b5cf6' : '#3b82f6';
+                    
+                    const timeAgo = getTimeAgo(data.createdAt);
+                    const initial = (data.donorName || 'A').charAt(0).toUpperCase();
+                    
+                    const item = document.createElement('div');
+                    item.className = 'donation-item';
+                    item.innerHTML = `
+                        <div class="donor-info">
+                            <div class="donor-avatar">${initial}</div>
+                            <div class="donor-details">
+                                <h4>${data.donorName || 'Hamba Allah'}</h4>
+                                <p>${getProgramName(data.program)} • ${timeAgo}</p>
+                            </div>
+                        </div>
+                        <div class="donation-amount">
+                            <div class="amount" style="color: ${color}">${amount}</div>
+                            <div class="method">
+                                <i class="fas ${icon}" style="color: ${color};"></i>
+                                ${isPi ? 'Pi Network' : 'QRIS'}
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(item);
+                });
+                
+            } catch (error) {
+                console.error('Error loading recent donations:', error);
+            }
+        }
+
+        function setupRealtimeListeners() {
+            // Listen for new donations
+            db.collection('donasi')
+                .where('status', '==', 'completed')
+                .orderBy('completedAt', 'desc')
+                .limit(1)
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            // Refresh stats and list
+                            loadStats();
+                            loadRecentDonations();
+                            
+                            // Show notification for new donation (if not current user)
+                            const data = change.doc.data();
+                            showNotification(`Donasi baru dari ${data.donorName || 'Hamba Allah'}!`, 'success');
+                        }
+                    });
+                });
+        }
+
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+
+        function getProgramName(program) {
+            const names = {
+                'beasiswa': 'Beasiswa Santri',
+                'perpustakaan': 'Perpustakaan',
+                'asrama': 'Renovasi Asrama',
+                'makan': 'Makan Gratis'
+            };
+            return names[program] || 'Umum';
+        }
+
+        function getTimeAgo(timestamp) {
+            if (!timestamp) return 'Baru saja';
+            
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000); // seconds
+            
+            if (diff < 60) return 'Baru saja';
+            if (diff < 3600) return `${Math.floor(diff / 60)} menit yang lalu`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} jam yang lalu`;
+            return `${Math.floor(diff / 86400)} hari yang lalu`;
+        }
+    </script>
+
+</body>
+</html>

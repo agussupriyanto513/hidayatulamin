@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Wali Santri | Hidayatullah Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --accent: #f59e0b;
+            --pi-purple: #8b5cf6;
+            --dark: #0f172a;
+        }
+        
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        /* Loading */
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+        .loading-overlay.active { display: flex; }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .header h1 { margin: 0 0 10px 0; font-size: 1.6rem; }
+        
+        /* Pi Wallet Bar */
+        .pi-bar {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .pi-info { display: flex; align-items: center; gap: 15px; }
+        .pi-icon {
+            width: 50px; height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .btn-pi-connect {
+            background: white;
+            color: #7c3aed;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-pi-connect:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-pi-connect.connected {
+            background: #10b981;
+            color: white;
+        }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--dark);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-box {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .stat-box.blue { border-left-color: var(--secondary); }
+        .stat-box.purple { border-left-color: var(--pi-purple); }
+        .stat-box h4 { margin: 0 0 10px 0; color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
+        .stat-box .value { font-size: 2rem; font-weight: 700; color: var(--dark); }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px;
+            border: none;
+            background: #f1f5f9;
+            color: #64748b;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Pi Payment Box */
+        .pi-payment-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%);
+            border: 2px dashed var(--pi-purple);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+        .pi-amount-input {
+            font-size: 2rem;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            width: 150px;
+            margin: 15px 0;
+        }
+        .btn-pay-pi {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-pay-pi:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th {
+            background: #f8fafc;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
+        
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-purple { background: #ede9fe; color: #7c3aed; }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #0f172a;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .toast.show { display: flex; }
+        .toast.error { background: #ef4444; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .header { padding: 20px; }
+            .header h1 { font-size: 1.3rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .pi-bar { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; color: #64748b;">Memuat...</p>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Operasi berhasil!</span>
+    </div>
+
+    <div class="container">
+        
+        <!-- Header -->
+        <div class="header">
+            <i class="fas fa-quran" style="font-size: 40px; margin-bottom: 15px;"></i>
+            <h1 id="welcomeText">Selamat Datang</h1>
+            <p>Monitoring perkembangan putra/putri Anda</p>
+        </div>
+
+        <!-- Pi Wallet Bar -->
+        <div class="pi-bar" id="piBar">
+            <div class="pi-info">
+                <div class="pi-icon"><i class="fas fa-wallet"></i></div>
+                <div>
+                    <h4 style="margin: 0 0 5px 0;">Pi Wallet</h4>
+                    <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;" id="piStatus">Belum terhubung</p>
+                </div>
+            </div>
+            <button class="btn-pi-connect" id="btnPiConnect" onclick="connectPiWallet()">
+                <i class="fas fa-link"></i> Connect Wallet
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <h4>Total Hafalan</h4>
+                <div class="value" id="statHafalan">-</div>
+            </div>
+            <div class="stat-box blue">
+                <h4>Status SPP</h4>
+                <div class="value" id="statSPP" style="font-size: 1.3rem;">-</div>
+            </div>
+            <div class="stat-box purple">
+                <h4>Pi Terbayar</h4>
+                <div class="value" id="statPiPaid">0 π</div>
+            </div>
+            <div class="stat-box" style="border-left-color: var(--accent);">
+                <h4>Peringkat</h4>
+                <div class="value" id="statRank">-</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('hafalan')">
+                <i class="fas fa-book-quran"></i> Hafalan
+            </button>
+            <button class="tab-btn" onclick="switchTab('spp')">
+                <i class="fas fa-money-bill-wave"></i> SPP & Pi Pay
+            </button>
+            <button class="tab-btn" onclick="switchTab('rapor')">
+                <i class="fas fa-chart-line"></i> Rapor
+            </button>
+        </div>
+
+        <!-- Tab: Hafalan -->
+        <div id="tab-hafalan" class="tab-content active">
+            <div class="card">
+                <div class="card-title"><i class="fas fa-book-open" style="color: var(--primary);"></i> Riwayat Hafalan</div>
+                <div style="overflow-x: auto;">
+                    <table id="tabelHafalan">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Juz</th>
+                                <th>Surat</th>
+                                <th>Nilai</th>
+                                <th>Penguji</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyHafalan">
+                            <tr><td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: SPP & Pi Payment -->
+        <div id="tab-spp" class="tab-content">
+            <div class="card">
+                <div class="card-title"><i class="fas fa-receipt" style="color: var(--secondary);"></i> Status Pembayaran SPP</div>
+                <div style="overflow-x: auto; margin-bottom: 20px;">
+                    <table id="tabelSPP">
+                        <thead>
+                            <tr>
+                                <th>Bulan</th>
+                                <th>Tahun</th>
+                                <th>Status</th>
+                                <th>Metode</th>
+                                <th>Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodySPP">
+                            <tr><td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pi Payment Box -->
+                <div class="pi-payment-box" id="piPaymentBox" style="display: none;">
+                    <h3 style="color: var(--pi-purple); margin-bottom: 15px;">
+                        <i class="fas fa-coins"></i> Bayar SPP dengan Pi
+                    </h3>
+                    <p style="color: #64748b; margin-bottom: 20px;">
+                        Pastikan Pi Wallet sudah terhubung
+                    </p>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 10px; color: #475569; font-weight: 600;">
+                            Jumlah Pi untuk SPP:
+                        </label>
+                        <input type="number" class="pi-amount-input" id="piAmount" value="10" min="0.1" step="0.1">
+                        <span style="color: var(--pi-purple); font-weight: 700; font-size: 1.5rem;">π</span>
+                    </div>
+                    
+                    <button class="btn-pay-pi" id="btnPayPi" onclick="bayarSPPwithPi()">
+                        <i class="fas fa-paper-plane"></i> Bayar dengan Pi
+                    </button>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 10px;">
+                        <p style="margin: 0; font-size: 0.85rem; color: #64748b;">
+                            <i class="fas fa-info-circle" style="color: var(--pi-purple);"></i>
+                            Alamat: <span style="font-family: monospace; color: var(--dark);">GABYDEV_SCHOOL_MAINNET</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Rapor -->
+        <div id="tab-rapor" class="tab-content">
+            <div class="card">
+                <div class="card-title"><i class="fas fa-graduation-cap" style="color: var(--accent);"></i> Nilai Rapor</div>
+                <div style="overflow-x: auto;">
+                    <table id="tabelRapor">
+                        <thead>
+                            <tr>
+                                <th>Mapel</th>
+                                <th>Harian</th>
+                                <th>UTS</th>
+                                <th>UAS</th>
+                                <th>Akhir</th>
+                                <th>Predikat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyRapor">
+                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button onclick="logout()" style="background: #fee2e2; color: #dc2626; border: none; padding: 16px 40px; border-radius: 12px; cursor: pointer; font-weight: 600;">
+                <i class="fas fa-sign-out-alt"></i> Keluar
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // FIREBASE CONFIG
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ==========================================
+        // GLOBAL VARIABLES
+        // ==========================================
+        let currentUser = null;
+        let waliData = null;
+        let santriData = null;
+        let piWallet = { connected: false, address: null, username: null };
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            showLoading(true);
+            
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    currentUser = user;
+                    await initDashboard(user);
+                } else {
+                    window.location.href = 'login.html';
+                }
+            });
+        });
+
+        async function initDashboard(user) {
+            try {
+                // Get wali data
+                const waliDoc = await db.collection('wali_santri').doc(user.uid).get();
+                
+                if (!waliDoc.exists) {
+                    // Create new wali document
+                    await db.collection('wali_santri').doc(user.uid).set({
+                        email: user.email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        linkedSantriId: null
+                    });
+                    showToast('Akun baru dibuat. Hubungi admin untuk link ke data santri.', 'error');
+                    showLoading(false);
+                    return;
+                }
+
+                waliData = waliDoc.data();
+
+                if (!waliData.linkedSantriId) {
+                    showToast('Akun belum terhubung dengan data santri.', 'error');
+                    showLoading(false);
+                    return;
+                }
+
+                // Get santri data
+                const santriDoc = await db.collection('santri').doc(waliData.linkedSantriId).get();
+                if (!santriDoc.exists) {
+                    showToast('Data santri tidak ditemukan.', 'error');
+                    showLoading(false);
+                    return;
+                }
+
+                santriData = { id: santriDoc.id, ...santriDoc.data() };
+                
+                // Update UI
+                document.getElementById('welcomeText').textContent = 
+                    `Selamat Datang, ${waliData.nama || 'Bapak/Ibu Wali'}`;
+                
+                // Load all data
+                await loadAllData();
+                
+                // Setup realtime listeners
+                setupListeners();
+                
+                showLoading(false);
+                
+            } catch (error) {
+                console.error('Init error:', error);
+                showToast('Error: ' + error.message, 'error');
+                showLoading(false);
+            }
+        }
+
+        // ==========================================
+        // PI WALLET FUNCTIONS
+        // ==========================================
+
+        async function connectPiWallet() {
+            const btn = document.getElementById('btnPiConnect');
+            
+            // Check if Pi SDK available
+            if (typeof Pi === 'undefined') {
+                showToast('Buka di Pi Browser untuk connect wallet', 'error');
+                
+                // Demo mode for testing
+                const useDemo = confirm('Pi Browser tidak terdeteksi. Gunakan mode demo?');
+                if (useDemo) {
+                    piWallet = {
+                        connected: true,
+                        address: 'DEMO_' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                        username: 'demo_user',
+                        balance: 100.50
+                    };
+                    updatePiUI();
+                    showToast('Mode demo aktif', 'success');
+                }
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+
+            try {
+                Pi.init({ version: "2.0" });
+                
+                const scopes = ['payments', 'username'];
+                const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
+                
+                piWallet = {
+                    connected: true,
+                    address: authResult.user.uid,
+                    username: authResult.user.username,
+                    balance: null // Will be fetched if needed
+                };
+                
+                updatePiUI();
+                showToast(`Terhubung: ${authResult.user.username}`, 'success');
+                
+            } catch (error) {
+                console.error('Pi connect error:', error);
+                showToast('Gagal connect: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-link"></i> Connect Wallet';
+            }
+        }
+
+        function onIncompletePaymentFound(payment) {
+            console.log('Incomplete payment:', payment);
+            showToast('Ada pembayaran yang belum selesai', 'warning');
+        }
+
+        function updatePiUI() {
+            const btn = document.getElementById('btnPiConnect');
+            const status = document.getElementById('piStatus');
+            
+            if (piWallet.connected) {
+                btn.classList.add('connected');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Tersambung';
+                status.innerHTML = `
+                    <strong>${piWallet.username || 'Wallet'}</strong><br>
+                    <small>${piWallet.address?.substring(0, 20)}...</small>
+                `;
+            }
+        }
+
+        async function bayarSPPwithPi() {
+            if (!piWallet.connected) {
+                showToast('Silakan connect Pi Wallet terlebih dahulu!', 'error');
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('piAmount').value);
+            if (!amount || amount <= 0) {
+                showToast('Masukkan jumlah Pi yang valid', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnPayPi');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+            try {
+                const payment = await Pi.createPayment({
+                    amount: amount,
+                    memo: `SPP ${santriData.nama} - ${new Date().toLocaleDateString('id-ID')}`,
+                    metadata: {
+                        type: 'spp',
+                        santriId: santriData.id,
+                        santriName: santriData.nama,
+                        waliId: currentUser.uid,
+                        waliEmail: currentUser.email,
+                        bulan: new Date().toISOString().slice(0, 7)
+                    }
+                }, {
+                    onReadyForServerApproval: async (paymentId) => {
+                        console.log('Ready for approval:', paymentId);
+                        
+                        // Save to Firestore
+                        await db.collection('pi_payments').doc(paymentId).set({
+                            paymentId: paymentId,
+                            type: 'spp',
+                            santriId: santriData.id,
+                            santriName: santriData.nama,
+                            waliId: currentUser.uid,
+                            waliEmail: currentUser.email,
+                            amount: amount,
+                            status: 'pending_approval',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        showToast('Menunggu approval server...', 'success');
+                    },
+                    onReadyForServerCompletion: async (paymentId, txid) => {
+                        console.log('Payment completed:', paymentId, txid);
+                        
+                        // Update payment status
+                        await db.collection('pi_payments').doc(paymentId).update({
+                            status: 'completed',
+                            txid: txid,
+                            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        // Update SPP status
+                        const now = new Date();
+                        const sppRef = db.collection('santri').doc(santriData.id)
+                            .collection('spp').doc();
+                        
+                        await sppRef.set({
+                            bulan: now.toLocaleString('id-ID', { month: 'long' }),
+                            tahun: now.getFullYear(),
+                            status: 'Lunas',
+                            metode: 'Pi',
+                            amount: amount,
+                            paymentId: paymentId,
+                            txid: txid,
+                            paidAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        showToast(`Pembayaran ${amount} π berhasil!`, 'success');
+                        await loadSPPData();
+                        
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Bayar dengan Pi';
+                    },
+                    onCancel: (paymentId) => {
+                        console.log('Cancelled:', paymentId);
+                        showToast('Pembayaran dibatalkan', 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Bayar dengan Pi';
+                    },
+                    onError: (error, payment) => {
+                        console.error('Payment error:', error);
+                        showToast('Error: ' + error.message, 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Bayar dengan Pi';
+                    }
+                });
+
+            } catch (error) {
+                console.error('Bayar error:', error);
+                showToast('Gagal memproses: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Bayar dengan Pi';
+            }
+        }
+
+        // ==========================================
+        // DATA LOADING
+        // ==========================================
+
+        async function loadAllData() {
+            await Promise.all([
+                loadStats(),
+                loadHafalan(),
+                loadSPPData(),
+                loadRapor()
+            ]);
+        }
+
+        async function loadStats() {
+            if (!santriData) return;
+
+            // Hafalan
+            const hafalanSnap = await db.collection('santri')
+                .doc(santriData.id)
+                .collection('hafalan')
+                .get();
+            
+            const uniqueJuz = new Set(hafalanSnap.docs.map(d => d.data().juz)).size;
+            document.getElementById('statHafalan').textContent = uniqueJuz + ' Juz';
+
+            // SPP Status
+            const now = new Date();
+            const bulanIni = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const sppStatus = santriData.spp?.[bulanIni]?.status || 'Belum Lunas';
+            
+            const sppEl = document.getElementById('statSPP');
+            sppEl.textContent = sppStatus;
+            sppEl.style.color = sppStatus === 'Lunas' ? '#10b981' : '#ef4444';
+
+            // Pi Paid
+            const piSnap = await db.collection('pi_payments')
+                .where('santriId', '==', santriData.id)
+                .where('status', '==', 'completed')
+                .get();
+            
+            const totalPi = piSnap.docs.reduce((sum, d) => sum + (d.data().amount || 0), 0);
+            document.getElementById('statPiPaid').textContent = totalPi.toFixed(2) + ' π';
+
+            // Rank
+            document.getElementById('statRank').textContent = '#' + (santriData.peringkat || '-');
+        }
+
+        async function loadHafalan() {
+            if (!santriData) return;
+
+            const snapshot = await db.collection('santri')
+                .doc(santriData.id)
+                .collection('hafalan')
+                .orderBy('tanggal', 'desc')
+                .limit(20)
+                .get();
+
+            const tbody = document.getElementById('tbodyHafalan');
+            
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">Belum ada data hafalan</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = snapshot.docs.map(doc => {
+                const h = doc.data();
+                const date = h.tanggal?.toDate ? h.tanggal.toDate().toLocaleDateString('id-ID') : '-';
+                const badgeClass = h.status === 'Mumtaz' ? 'badge-success' : 'badge-warning';
+                
+                return `
+                    <tr>
+                        <td>${date}</td>
+                        <td>Juz ${h.juz || '-'}</td>
+                        <td>${h.surat || '-'}</td>
+                        <td><span class="badge ${badgeClass}">${h.status || 'Proses'}</span></td>
+                        <td>${h.penguji || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function loadSPPData() {
+            if (!santriData) return;
+
+            const snapshot = await db.collection('santri')
+                .doc(santriData.id)
+                .collection('spp')
+                .orderBy('paidAt', 'desc')
+                .get();
+
+            const tbody = document.getElementById('tbodySPP');
+            let adaTunggakan = false;
+
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">Belum ada data SPP</td></tr>';
+                adaTunggakan = true;
+            } else {
+                tbody.innerHTML = snapshot.docs.map(doc => {
+                    const s = doc.data();
+                    const isLunas = s.status === 'Lunas';
+                    const isPi = s.metode === 'Pi';
+                    
+                    if (!isLunas) adaTunggakan = true;
+                    
+                    return `
+                        <tr>
+                            <td>${s.bulan || '-'}</td>
+                            <td>${s.tahun || '-'}</td>
+                            <td><span class="badge ${isLunas ? 'badge-success' : 'badge-warning'}">${s.status}</span></td>
+                            <td>${isPi ? '<i class="fas fa-coins" style="color: #8b5cf6;"></i> Pi' : s.metode || '-'}</td>
+                            <td>${isPi ? s.amount + ' π' : 'Rp ' + (s.amount || 0).toLocaleString()}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Show payment box if there's pending SPP
+            const sppBox = document.getElementById('piPaymentBox');
+            if (adaTunggakan || snapshot.empty) {
+                sppBox.style.display = 'block';
+            } else {
+                // Check if current month paid
+                const now = new Date();
+                const currentMonth = now.toLocaleString('id-ID', { month: 'long' });
+                const currentYear = now.getFullYear();
+                
+                const currentPaid = snapshot.docs.some(d => {
+                    const data = d.data();
+                    return data.bulan === currentMonth && data.tahun === currentYear && data.status === 'Lunas';
+                });
+                
+                sppBox.style.display = currentPaid ? 'none' : 'block';
+            }
+        }
+
+        async function loadRapor() {
+            if (!santriData) return;
+
+            const snapshot = await db.collection('santri')
+                .doc(santriData.id)
+                .collection('rapor')
+                .orderBy('semester', 'desc')
+                .limit(1)
+                .get();
+
+            const tbody = document.getElementById('tbodyRapor');
+
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Belum ada data rapor</td></tr>';
+                return;
+            }
+
+            const rapor = snapshot.docs[0].data();
+            const nilai = rapor.nilai || {};
+
+            tbody.innerHTML = Object.entries(nilai).map(([mapel, n]) => {
+                const predikat = n.akhir >= 85 ? 'A' : n.akhir >= 75 ? 'B' : n.akhir >= 60 ? 'C' : 'D';
+                const badgeClass = predikat === 'A' ? 'badge-success' : predikat === 'B' ? 'badge-purple' : 'badge-warning';
+                
+                return `
+                    <tr>
+                        <td><strong>${mapel}</strong></td>
+                        <td>${n.harian || '-'}</td>
+                        <td>${n.uts || '-'}</td>
+                        <td>${n.uas || '-'}</td>
+                        <td style="font-weight: 700;">${n.akhir || '-'}</td>
+                        <td><span class="badge ${badgeClass}">${predikat}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // REALTIME LISTENERS
+        // ==========================================
+
+        function setupListeners() {
+            if (!santriData) return;
+
+            // Listen SPP changes
+            db.collection('santri').doc(santriData.id).collection('spp')
+                .orderBy('paidAt', 'desc')
+                .limit(1)
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const data = change.doc.data();
+                            if (data.metode === 'Pi' && data.status === 'Lunas') {
+                                showToast(`SPP ${data.bulan} berhasil dibayar!`, 'success');
+                                loadSPPData();
+                                loadStats();
+                            }
+                        }
+                    });
+                });
+
+            // Listen hafalan changes
+            db.collection('santri').doc(santriData.id).collection('hafalan')
+                .orderBy('tanggal', 'desc')
+                .limit(1)
+                .onSnapshot(snapshot => {
+                    if (!snapshot.empty) {
+                        loadHafalan();
+                    }
+                });
+        }
+
+        // ==========================================
+        // UI FUNCTIONS
+        // ==========================================
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMessage');
+            
+            msg.textContent = message;
+            toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+            toast.classList.add('show');
+            
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+
+        function logout() {
+            if (confirm('Yakin ingin keluar?')) {
+                auth.signOut().then(() => {
+                    window.location.href = 'login.html';
+                });
+            }
+        }
+    </script>
+
+</body>
+</html>

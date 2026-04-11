@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donasi Berhasil | Yayasan Hidayatullah Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ede9fe 100%);
+            padding: 20px;
+        }
+
+        .success-card {
+            background: white;
+            border-radius: 30px;
+            padding: 50px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 3rem;
+            color: white;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .success-card h1 {
+            font-size: 2rem;
+            color: #0f172a;
+            margin-bottom: 15px;
+        }
+
+        .success-card > p {
+            color: #64748b;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .donation-details {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row span:first-child {
+            color: #64748b;
+        }
+
+        .detail-row span:last-child {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .amount-highlight {
+            font-size: 2rem;
+            color: #10b981;
+            font-weight: 800;
+        }
+
+        .pending-notice {
+            background: #fef3c7;
+            border: 2px dashed #f59e0b;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .pending-notice i {
+            font-size: 2rem;
+            color: #f59e0b;
+            margin-bottom: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .share-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .share-section p {
+            color: #64748b;
+            margin-bottom: 15px;
+        }
+
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .share-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .share-btn.whatsapp { background: #25d366; }
+        .share-btn.facebook { background: #1877f2; }
+        .share-btn.twitter { background: #1da1f2; }
+
+        @media (max-width: 480px) {
+            .success-card { padding: 30px 20px; }
+            .success-card h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        
+        <h1>Alhamdulillah, Donasi Berhasil!</h1>
+        <p>Terima kasih atas kebaikan Anda. Donasi akan digunakan untuk program pendidikan santri.</p>
+        
+        <div class="pending-notice" id="pendingNotice" style="display: none;">
+            <i class="fas fa-clock"></i>
+            <p><strong>Menunggu Verifikasi</strong></p>
+            <p style="font-size: 0.9rem;">Admin akan memverifikasi transfer Anda dalam 1x24 jam.</p>
+        </div>
+        
+        <div class="donation-details">
+            <div class="detail-row">
+                <span>ID Transaksi</span>
+                <span id="transId">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Jumlah Donasi</span>
+                <span class="amount-highlight" id="transAmount">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Metode</span>
+                <span id="transMethod">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Waktu</span>
+                <span id="transTime">-</span>
+            </div>
+            <div class="detail-row">
+                <span>Status</span>
+                <span id="transStatus" style="color: #10b981; font-weight: 700;">✓ Terverifikasi</span>
+            </div>
+        </div>
+        
+        <div class="btn-group">
+            <a href="donasi.html" class="btn btn-primary">
+                <i class="fas fa-heart"></i> Donasi Lagi
+            </a>
+            <a href="../index.html" class="btn btn-secondary">
+                <i class="fas fa-home"></i> Kembali ke Beranda
+            </a>
+        </div>
+        
+        <div class="share-section">
+            <p>Bagikan kebaikan ini:</p>
+            <div class="share-buttons">
+                <a href="#" class="share-btn whatsapp" onclick="shareWhatsApp()">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <a href="#" class="share-btn facebook" onclick="shareFacebook()">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="#" class="share-btn twitter" onclick="shareTwitter()">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        const amount = urlParams.get('amount');
+        const method = urlParams.get('method');
+        const pending = urlParams.get('pending');
+
+        // Fill data
+        document.getElementById('transId').textContent = id ? id.slice(-8).toUpperCase() : 'N/A';
+        document.getElementById('transAmount').textContent = method === 'pi' ? amount + ' π' : 'Rp ' + parseInt(amount).toLocaleString();
+        document.getElementById('transMethod').textContent = method === 'pi' ? 'Pi Network' : 'QRIS/Transfer';
+        document.getElementById('transTime').textContent = new Date().toLocaleString('id-ID');
+
+        // Show pending notice if needed
+        if (pending === 'true') {
+            document.getElementById('pendingNotice').style.display = 'block';
+            document.getElementById('transStatus').textContent = '⏳ Menunggu';
+            document.getElementById('transStatus').style.color = '#f59e0b';
+        }
+
+        // Share functions
+        const shareText = `Saya baru saja berdonasi ${amount} ${method === 'pi' ? 'π' : 'rupiah'} untuk pendidikan santri di Yayasan Hidayatullah Amin. Yuk ikutan berdonasi!`;
+        const shareUrl = encodeURIComponent(window.location.origin + '/pages/donasi.html');
+
+        function shareWhatsApp() {
+            window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + window.location.origin)}`, '_blank');
+        }
+
+        function shareFacebook() {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`, '_blank');
+        }
+
+        function shareTwitter() {
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${shareUrl}`, '_blank');
+        }
+    </script>
+
+</body>
+</html>
