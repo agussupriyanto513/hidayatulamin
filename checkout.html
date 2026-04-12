@@ -1,0 +1,1411 @@
+checkout_html = '''<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Yayasan Pendidikan Hidayatul Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Pi Network SDK -->
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Payment Fix Module -->
+    <script src="payment-fix-module.js"></script>
+    
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            --secondary: #3b82f6;
+            --accent: #8b5cf6;
+            --gold: #fbbf24;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --pi-purple: #8b5cf6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #ede9fe 100%);
+            min-height: 100vh;
+            color: #334155;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 50%, var(--primary-dark) 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+        }
+        
+        /* Progress Steps */
+        .progress-steps {
+            background: white;
+            padding: 30px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .steps-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+        
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50px;
+            right: 50px;
+            height: 3px;
+            background: #e2e8f0;
+            z-index: 0;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step-number {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border: 3px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .step.active .step-number {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: var(--success);
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+        
+        .step.active .step-label {
+            color: var(--primary);
+        }
+        
+        /* Navigation */
+        .nav-bar {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--dark);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-logo img {
+            height: 40px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #64748b;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+        
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .checkout-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        
+        @media (max-width: 968px) {
+            .checkout-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Card Styles */
+        .checkout-card {
+            background: white;
+            border-radius: 24px;
+            padding: 35px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        .card-header i {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, #f0fdf4 100%);
+            color: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .card-header h2 {
+            font-size: 1.4rem;
+            color: var(--dark);
+        }
+        
+        /* Order Items */
+        .order-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ede9fe 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+        
+        .item-details {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+        
+        .item-meta {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        .item-price {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+        
+        .item-price .pi {
+            color: var(--pi-purple);
+            font-size: 0.9rem;
+        }
+        
+        /* Address Section */
+        .address-display {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .address-display.default {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
+        }
+        
+        .address-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .address-display h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            padding-right: 80px;
+        }
+        
+        .address-display p {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin: 0;
+            line-height: 1.6;
+        }
+        
+        .change-address-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            color: #64748b;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .change-address-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        /* Payment Methods */
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .payment-method:hover {
+            border-color: var(--pi-purple);
+            background: #faf5ff;
+        }
+        
+        .payment-method.active {
+            border-color: var(--pi-purple);
+            background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
+        }
+        
+        .payment-method input[type="radio"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--pi-purple);
+        }
+        
+        .payment-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .payment-icon.qris {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        
+        .payment-info {
+            flex: 1;
+        }
+        
+        .payment-info h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        
+        .payment-info p {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin: 0;
+        }
+        
+        /* Summary Card */
+        .summary-card {
+            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+            color: white;
+            border-radius: 24px;
+            padding: 35px;
+            position: sticky;
+            top: 100px;
+        }
+        
+        .summary-card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .summary-row:last-of-type {
+            border-bottom: none;
+        }
+        
+        .summary-row.total {
+            border-top: 2px solid rgba(255,255,255,0.2);
+            margin-top: 15px;
+            padding-top: 20px;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        .summary-row .label {
+            opacity: 0.8;
+        }
+        
+        .pi-total-box {
+            background: linear-gradient(135deg, rgba(139,92,246,0.3) 0%, rgba(251,191,36,0.2) 100%);
+            border: 2px solid rgba(139,92,246,0.5);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        
+        .pi-total-box .label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        
+        .pi-total-box .amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .pi-total-box .currency {
+            font-size: 1.2rem;
+            color: #fbbf24;
+            font-weight: 600;
+        }
+        
+        /* Checkout Button */
+        .btn-checkout {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-checkout:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.4);
+        }
+        
+        .btn-checkout:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-checkout.processing {
+            pointer-events: none;
+        }
+        
+        .btn-checkout .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Security Badges */
+        .security-badges {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+        
+        /* QRIS Section */
+        .qris-section {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: #f8fafc;
+            border-radius: 16px;
+            margin-top: 20px;
+        }
+        
+        .qris-section.active {
+            display: block;
+        }
+        
+        .qris-code {
+            width: 250px;
+            height: 250px;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .qris-code img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.98);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            width: 70px;
+            height: 70px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--pi-purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loading-text {
+            margin-top: 25px;
+            color: #64748b;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .loading-subtext {
+            margin-top: 10px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        /* Success Modal */
+        .success-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .success-modal.active {
+            display: flex;
+        }
+        
+        .success-content {
+            background: white;
+            border-radius: 30px;
+            padding: 50px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            animation: scaleIn 0.5s ease;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--success) 0%, var(--primary-dark) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 3rem;
+            color: white;
+        }
+        
+        .success-content h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .success-content p {
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+        
+        .tx-hash {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--dark);
+            margin-bottom: 30px;
+            word-break: break-all;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--dark);
+            color: white;
+            padding: 18px 28px;
+            border-radius: 14px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            animation: slideUp 0.4s ease;
+            font-weight: 500;
+        }
+        
+        .toast.show {
+            display: flex;
+        }
+        
+        .toast.error {
+            background: var(--danger);
+        }
+        
+        .toast.success {
+            background: var(--success);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Empty Cart State */
+        .empty-checkout {
+            text-align: center;
+            padding: 100px 20px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        
+        .empty-checkout i {
+            font-size: 5rem;
+            color: #e2e8f0;
+            margin-bottom: 30px;
+        }
+        
+        .empty-checkout h2 {
+            font-size: 1.8rem;
+            color: var(--dark);
+            margin-bottom: 15px;
+        }
+        
+        .empty-checkout p {
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8rem; }
+            .nav-links { display: none; }
+            .steps-container::before { left: 30px; right: 30px; }
+            .step-label { font-size: 0.75rem; }
+            .checkout-card { padding: 25px; }
+            .summary-card { position: static; }
+            .success-content { padding: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Memproses pembayaran...</div>
+        <div class="loading-subtext">Jangan tutup halaman ini</div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2>Pembayaran Berhasil!</h2>
+            <p>Terima kasih atas pembelian Anda. Pesanan sedang diproses.</p>
+            <div class="tx-hash" id="txHashDisplay">-</div>
+            <button class="btn-checkout" onclick="goToHome()" style="margin-top: 0;">
+                <i class="fas fa-home"></i> Kembali ke Beranda
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Operasi berhasil!</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav-bar">
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">
+                <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+                <span>Hidayatul Amin</span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="index.html">Beranda</a>
+                <a href="products.html">Produk</a>
+                <a href="profile.html">Profil</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Progress Steps -->
+    <div class="progress-steps">
+        <div class="steps-container">
+            <div class="step completed">
+                <div class="step-number"><i class="fas fa-check"></i></div>
+                <div class="step-label">Keranjang</div>
+            </div>
+            <div class="step active">
+                <div class="step-number">2</div>
+                <div class="step-label">Checkout</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-label">Pembayaran</div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-label">Selesai</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <h1><i class="fas fa-credit-card"></i> Checkout</h1>
+        <p>Selesaikan pembayaran dengan Pi Network</p>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        
+        <!-- Empty Cart State -->
+        <div class="empty-checkout" id="emptyCheckout" style="display: none;">
+            <i class="fas fa-shopping-basket"></i>
+            <h2>Keranjang Kosong</h2>
+            <p>Anda belum menambahkan produk ke keranjang</p>
+            <a href="products.html" class="btn-checkout" style="display: inline-flex; width: auto; padding: 15px 40px;">
+                <i class="fas fa-store"></i> Belanja Sekarang
+            </a>
+        </div>
+
+        <!-- Checkout Layout -->
+        <div class="checkout-layout" id="checkoutLayout">
+            
+            <!-- Left Column -->
+            <div class="left-column">
+                
+                <!-- Order Items -->
+                <div class="checkout-card">
+                    <div class="card-header">
+                        <i class="fas fa-box"></i>
+                        <h2>Pesanan Anda</h2>
+                    </div>
+                    <div id="orderItemsList">
+                        <!-- Items will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="checkout-card">
+                    <div class="card-header">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h2>Alamat Pengiriman</h2>
+                    </div>
+                    <div id="addressContainer">
+                        <div class="address-display" id="addressDisplay">
+                            <div style="text-align: center; padding: 30px;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #94a3b8;"></i>
+                                <p style="margin-top: 15px; color: #64748b;">Memuat alamat...</p>
+                            </div>
+                        </div>
+                        <button class="change-address-btn" onclick="window.location.href='profile.html'">
+                            <i class="fas fa-edit"></i> Ubah Alamat
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="checkout-card">
+                    <div class="card-header">
+                        <i class="fas fa-wallet"></i>
+                        <h2>Metode Pembayaran</h2>
+                    </div>
+                    
+                    <div class="payment-methods">
+                        <label class="payment-method active" onclick="selectPayment('pi')">
+                            <input type="radio" name="payment" value="pi" checked>
+                            <div class="payment-icon">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="payment-info">
+                                <h4>Pi Network</h4>
+                                <p>Bayar dengan Pi Coin dari wallet Anda</p>
+                            </div>
+                        </label>
+                        
+                        <label class="payment-method" onclick="selectPayment('qris')">
+                            <input type="radio" name="payment" value="qris">
+                            <div class="payment-icon qris">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                            <div class="payment-info">
+                                <h4>QRIS / Transfer Bank</h4>
+                                <p>Scan QRIS atau transfer manual</p>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- QRIS Section -->
+                    <div class="qris-section" id="qrisSection">
+                        <div class="qris-code">
+                            <img src="qris-yayasan.png" alt="QRIS Code" onerror="this.src='https://via.placeholder.com/200?text=QRIS'">
+                        </div>
+                        <p style="font-weight: 600; color: var(--dark); margin-bottom: 10px;">Scan QRIS ini dengan aplikasi e-wallet Anda</p>
+                        <p style="font-size: 0.9rem; color: #64748b;">atau transfer ke rekening BRI: <strong>1234-5678-9012-3456</strong></p>
+                        <button class="btn-checkout" style="margin-top: 20px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" onclick="confirmQRIS()">
+                            <i class="fas fa-check-circle"></i> Saya Sudah Transfer
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column - Summary -->
+            <div class="right-column">
+                <div class="summary-card">
+                    <h2><i class="fas fa-receipt"></i> Ringkasan</h2>
+                    
+                    <div class="summary-row">
+                        <span class="label">Subtotal</span>
+                        <span id="summarySubtotal">0 π</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="label">Biaya Pengiriman</span>
+                        <span>Gratis</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="label">Pajak</span>
+                        <span>0%</span>
+                    </div>
+                    
+                    <div class="pi-total-box">
+                        <div class="label">Total Pembayaran</div>
+                        <div class="amount" id="piTotalAmount">0</div>
+                        <div class="currency">π Pi</div>
+                    </div>
+                    
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="summaryTotal">0 π</span>
+                    </div>
+                    
+                    <button class="btn-checkout" id="btnCheckout" onclick="processCheckout()">
+                        <i class="fas fa-coins"></i>
+                        Bayar dengan Pi
+                    </button>
+                    
+                    <div class="security-badges">
+                        <div class="security-badge">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Pi Blockchain</span>
+                        </div>
+                        <div class="security-badge">
+                            <i class="fas fa-lock"></i>
+                            <span>Terenkripsi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // FIREBASE CONFIGURATION
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ==========================================
+        // GLOBAL VARIABLES
+        // ==========================================
+        let cart = [];
+        let currentUser = null;
+        let userAddress = null;
+        let selectedPayment = 'pi';
+        let isProcessing = false;
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadCart();
+        });
+
+        // Check Authentication
+        function checkAuth() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    loadUserAddress(user.uid);
+                } else {
+                    window.location.href = 'login.html?redirect=checkout.html';
+                }
+            });
+        }
+
+        // Load User Address
+        async function loadUserAddress(uid) {
+            try {
+                const doc = await db.collection('users').doc(uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const addresses = data.addresses || [];
+                    userAddress = addresses.find(a => a.isDefault) || addresses[0] || null;
+                    renderAddress();
+                } else {
+                    renderNoAddress();
+                }
+            } catch (error) {
+                console.error('Error loading address:', error);
+                renderNoAddress();
+            }
+        }
+
+        // Load Cart
+        function loadCart() {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+            }
+            
+            if (cart.length === 0) {
+                showEmptyCheckout();
+            } else {
+                renderOrderItems();
+                updateSummary();
+            }
+        }
+
+        // ==========================================
+        // RENDER FUNCTIONS
+        // ==========================================
+
+        function renderAddress() {
+            const container = document.getElementById('addressDisplay');
+            
+            if (!userAddress) {
+                renderNoAddress();
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="address-display default">
+                    <span class="address-badge">Default</span>
+                    <h4>${userAddress.label || 'Alamat Pengiriman'}</h4>
+                    <p><strong>${userAddress.recipientName}</strong> (${userAddress.recipientPhone})</p>
+                    <p>${userAddress.fullAddress}</p>
+                    <p>${userAddress.city}, ${userAddress.province} ${userAddress.postalCode}</p>
+                </div>
+            `;
+        }
+
+        function renderNoAddress() {
+            const container = document.getElementById('addressDisplay');
+            container.innerHTML = `
+                <div class="address-display" style="text-align: center;">
+                    <i class="fas fa-map-marker-alt" style="font-size: 3rem; color: #e2e8f0; margin-bottom: 15px;"></i>
+                    <p style="color: #64748b; margin-bottom: 15px;">Anda belum memiliki alamat pengiriman</p>
+                    <button class="change-address-btn" onclick="window.location.href='profile.html'">
+                        <i class="fas fa-plus"></i> Tambah Alamat
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderOrderItems() {
+            const container = document.getElementById('orderItemsList');
+            
+            container.innerHTML = cart.map(item => `
+                <div class="order-item">
+                    <div class="item-icon">${item.image || '📦'}</div>
+                    <div class="item-details">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-meta">Qty: ${item.quantity}</div>
+                    </div>
+                    <div class="item-price">
+                        ${item.pricePi * item.quantity} <span class="pi">π</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateSummary() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.pricePi * item.quantity), 0);
+            
+            document.getElementById('summarySubtotal').textContent = subtotal + ' π';
+            document.getElementById('piTotalAmount').textContent = subtotal;
+            document.getElementById('summaryTotal').textContent = subtotal + ' π';
+            
+            // Update button state
+            const btn = document.getElementById('btnCheckout');
+            if (!userAddress) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Tambah Alamat Dulu';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = selectedPayment === 'pi' 
+                    ? '<i class="fas fa-coins"></i> Bayar dengan Pi' 
+                    : '<i class="fas fa-qrcode"></i> Bayar dengan QRIS';
+            }
+        }
+
+        function showEmptyCheckout() {
+            document.getElementById('checkoutLayout').style.display = 'none';
+            document.getElementById('emptyCheckout').style.display = 'block';
+        }
+
+        // ==========================================
+        // PAYMENT FUNCTIONS
+        // ==========================================
+
+        function selectPayment(method) {
+            selectedPayment = method;
+            
+            // Update UI
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Show/hide QRIS section
+            const qrisSection = document.getElementById('qrisSection');
+            if (method === 'qris') {
+                qrisSection.classList.add('active');
+            } else {
+                qrisSection.classList.remove('active');
+            }
+            
+            // Update button
+            updateSummary();
+        }
+
+        async function processCheckout() {
+            if (isProcessing) return;
+            
+            if (cart.length === 0) {
+                showToast('Keranjang masih kosong', 'error');
+                return;
+            }
+            
+            if (!userAddress) {
+                showToast('Silakan tambah alamat pengiriman terlebih dahulu', 'error');
+                window.location.href = 'profile.html';
+                return;
+            }
+            
+            if (selectedPayment === 'qris') {
+                // QRIS flow
+                document.getElementById('qrisSection').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            
+            // Pi Network Payment
+            await processPiPayment();
+        }
+
+        async function processPiPayment() {
+            const total = cart.reduce((sum, item) => sum + (item.pricePi * item.quantity), 0);
+            
+            // Check Pi SDK
+            if (typeof Pi === 'undefined') {
+                showToast('Buka di Pi Browser untuk pembayaran', 'error');
+                
+                // Demo mode option
+                const useDemo = confirm('Pi Browser tidak terdeteksi. Gunakan mode demo?');
+                if (useDemo) {
+                    simulatePayment(total);
+                }
+                return;
+            }
+            
+            isProcessing = true;
+            showLoading(true, 'Menghubungkan ke Pi Network...');
+            
+            try {
+                // Initialize Pi
+                Pi.init({ version: "2.0", sandbox: false });
+                
+                // Create payment
+                const payment = await Pi.createPayment({
+                    amount: total,
+                    memo: `Pembelian ${cart.length} item - Hidayatul Amin`,
+                    metadata: {
+                        type: 'purchase',
+                        items: cart,
+                        userId: currentUser.uid,
+                        userEmail: currentUser.email,
+                        address: userAddress,
+                        timestamp: new Date().toISOString(),
+                        redirectUrl: window.location.origin + '/checkout.html'
+                    }
+                }, {
+                    onReadyForServerApproval: async (paymentId) => {
+                        console.log('✅ Ready for server approval:', paymentId);
+                        showLoading(true, 'Menunggu approval server...');
+                        
+                        // Save order to Firestore
+                        await db.collection('orders').doc(paymentId).set({
+                            orderId: paymentId,
+                            userId: currentUser.uid,
+                            userEmail: currentUser.email,
+                            items: cart,
+                            total: total,
+                            address: userAddress,
+                            status: 'pending_approval',
+                            paymentMethod: 'pi',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        // Call server approval API
+                        await fetch('/api/pi/approve', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ paymentId: paymentId })
+                        });
+                    },
+                    
+                    onReadyForServerCompletion: async (paymentId, txid) => {
+                        console.log('✅ Payment completed:', paymentId, txid);
+                        showLoading(true, 'Menyelesaikan pembayaran...');
+                        
+                        // Update order status
+                        await db.collection('orders').doc(paymentId).update({
+                            status: 'completed',
+                            txid: txid,
+                            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        // Clear cart
+                        cart = [];
+                        localStorage.removeItem('cart');
+                        
+                        isProcessing = false;
+                        showLoading(false);
+                        
+                        // Show success
+                        showSuccessModal(txid);
+                    },
+                    
+                    onCancel: (paymentId) => {
+                        console.log('❌ Payment cancelled:', paymentId);
+                        isProcessing = false;
+                        showLoading(false);
+                        showToast('Pembayaran dibatalkan', 'error');
+                    },
+                    
+                    onError: (error, payment) => {
+                        console.error('❌ Payment error:', error);
+                        isProcessing = false;
+                        showLoading(false);
+                        showToast('Gagal: ' + error.message, 'error');
+                    }
+                });
+                
+            } catch (error) {
+                console.error('❌ Checkout error:', error);
+                isProcessing = false;
+                showLoading(false);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function confirmQRIS() {
+            const donorName = prompt('Masukkan nama Anda untuk konfirmasi:');
+            if (!donorName) return;
+            
+            const total = cart.reduce((sum, item) => sum + (item.pricePi * item.quantity), 0);
+            
+            showLoading(true, 'Menyimpan konfirmasi...');
+            
+            try {
+                const orderId = 'QRIS_' + Date.now();
+                
+                await db.collection('orders').doc(orderId).set({
+                    orderId: orderId,
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    items: cart,
+                    total: total,
+                    address: userAddress,
+                    status: 'pending_verification',
+                    paymentMethod: 'qris',
+                    donorName: donorName,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Clear cart
+                cart = [];
+                localStorage.removeItem('cart');
+                
+                showLoading(false);
+                
+                // Redirect to success page
+                window.location.href = `donasi-success.html?id=${orderId}&amount=${total}&method=qris&pending=true`;
+                
+            } catch (error) {
+                showLoading(false);
+                showToast('Gagal: ' + error.message, 'error');
+            }
+        }
+
+        // Demo/Simulation Mode
+        function simulatePayment(total) {
+            showLoading(true, 'Mode Demo: Memproses...');
+            
+            setTimeout(() => {
+                const fakeTxid = 'DEMO_' + Math.random().toString(36).substr(2, 16).toUpperCase();
+                
+                // Clear cart
+                cart = [];
+                localStorage.removeItem('cart');
+                
+                showLoading(false);
+                showSuccessModal(fakeTxid);
+            }, 2000);
+        }
+
+        // ==========================================
+        // UI FUNCTIONS
+        // ==========================================
+
+        function showLoading(show, text = 'Memproses...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const textEl = overlay.querySelector('.loading-text');
+            
+            textEl.textContent = text;
+            overlay.classList.toggle('active', show);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMessage');
+            
+            msg.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function showSuccessModal(txid) {
+            document.getElementById('txHashDisplay').textContent = txid;
+            document.getElementById('successModal').classList.add('active');
+        }
+
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
+        async function logout() {
+            try {
+                await auth.signOut();
+                localStorage.removeItem('cart');
+                window.location.href = 'login.html';
+            } catch (error) {
+                showToast('Gagal logout: ' + error.message, 'error');
+            }
+        }
+
+        // ==========================================
+        // HANDLE INCOMPLETE PAYMENT ON LOAD
+        // ==========================================
+        
+        window.addEventListener('piPaymentUpdate', (event) => {
+            const { type, payment } = event.detail;
+            console.log('Pi payment update:', type, payment);
+            
+            if (type === 'completed') {
+                showToast('Pembayaran sebelumnya selesai!');
+            }
+        });
+    </script>
+
+</body>
+</html>

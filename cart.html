@@ -1,0 +1,966 @@
+cart_html = '''<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keranjang Belanja - Yayasan Pendidikan Hidayatul Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --accent: #8b5cf6;
+            --gold: #fbbf24;
+            --dark: #0f172a;
+            --light: #f8fafc;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #ede9fe 100%);
+            min-height: 100vh;
+            color: #334155;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 50%, var(--primary-dark) 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+        }
+        
+        /* Navigation */
+        .nav-bar {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--dark);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-logo img {
+            height: 40px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #64748b;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+        }
+        
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .cart-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        
+        /* Cart Items */
+        .cart-items {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        .cart-header h2 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .clear-cart {
+            color: #ef4444;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .cart-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-image {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ede9fe 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+        
+        .item-details {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .item-price {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .item-price .pi-symbol {
+            color: #8b5cf6;
+        }
+        
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .qty-btn {
+            width: 35px;
+            height: 35px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .qty-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .qty-input {
+            width: 50px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px;
+            font-weight: 600;
+        }
+        
+        .remove-btn {
+            color: #ef4444;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            margin-left: 15px;
+            transition: transform 0.3s;
+        }
+        
+        .remove-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Cart Summary */
+        .cart-summary {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        
+        .summary-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            color: #64748b;
+        }
+        
+        .summary-row.total {
+            border-top: 2px solid #e2e8f0;
+            margin-top: 15px;
+            padding-top: 20px;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+        
+        .summary-row.total .amount {
+            color: var(--accent);
+        }
+        
+        .pi-highlight {
+            background: linear-gradient(135deg, #ede9fe 0%, #fef3c7 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .pi-highlight .label {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+        
+        .pi-highlight .amount {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #8b5cf6;
+        }
+        
+        .checkout-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .checkout-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.3);
+        }
+        
+        .checkout-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .continue-shopping {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #64748b;
+            text-decoration: none;
+        }
+        
+        .continue-shopping:hover {
+            color: var(--primary);
+        }
+        
+        /* Empty Cart */
+        .empty-cart {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .empty-cart i {
+            font-size: 5rem;
+            color: #e2e8f0;
+            margin-bottom: 20px;
+        }
+        
+        .empty-cart h3 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+        
+        .empty-cart p {
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+        
+        /* Address Section */
+        .address-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .address-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .address-header h3 {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .address-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .address-card.default {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
+        }
+        
+        .address-card.default::before {
+            content: '✓ Default';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .address-card h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        
+        .address-card p {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .no-address {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+        
+        .no-address a {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--dark);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+        
+        .toast.show {
+            display: flex;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 968px) {
+            .cart-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .cart-summary {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8rem; }
+            .nav-links { display: none; }
+            .cart-item { flex-direction: column; }
+            .item-image { width: 100%; height: 150px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; color: #64748b;">Memproses...</p>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Operasi berhasil!</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav-bar">
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">
+                <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+                <span>Hidayatul Amin</span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="index.html">Beranda</a>
+                <a href="products.html">Produk</a>
+                <a href="profile.html">Profil</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="header">
+        <h1><i class="fas fa-shopping-cart"></i> Keranjang Belanja</h1>
+        <p>Review pesanan Anda sebelum checkout dengan Pi Network</p>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        
+        <!-- Address Section -->
+        <div class="address-section" id="addressSection">
+            <div class="address-header">
+                <h3><i class="fas fa-map-marker-alt" style="color: var(--primary);"></i> Alamat Pengiriman</h3>
+                <a href="profile.html" class="btn btn-sm" style="background: #f1f5f9; color: #475569;">
+                    <i class="fas fa-edit"></i> Kelola Alamat
+                </a>
+            </div>
+            <div id="addressContent">
+                <div class="no-address">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <p>Memuat alamat...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Layout -->
+        <div class="cart-layout" id="cartLayout">
+            <!-- Cart Items -->
+            <div class="cart-items" id="cartItems">
+                <div class="cart-header">
+                    <h2><i class="fas fa-box"></i> Produk</h2>
+                    <button class="clear-cart" onclick="clearCart()" id="clearCartBtn" style="display: none;">
+                        <i class="fas fa-trash"></i> Kosongkan
+                    </button>
+                </div>
+                <div id="cartItemsList">
+                    <!-- Items will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="cart-summary">
+                <div class="summary-title">
+                    <i class="fas fa-receipt"></i> Ringkasan
+                </div>
+                
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">0 π</span>
+                </div>
+                <div class="summary-row">
+                    <span>Biaya Pengiriman</span>
+                    <span id="shipping">Gratis</span>
+                </div>
+                <div class="summary-row">
+                    <span>Pajak (0%)</span>
+                    <span>0 π</span>
+                </div>
+                
+                <div class="pi-highlight">
+                    <div class="label">Total Pembayaran</div>
+                    <div class="amount" id="totalPi">0 π</div>
+                </div>
+                
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span class="amount" id="totalAmount">0 π</span>
+                </div>
+                
+                <button class="checkout-btn" onclick="checkout()" id="checkoutBtn">
+                    <i class="fas fa-coins"></i>
+                    Bayar dengan Pi Network
+                </button>
+                
+                <a href="products.html" class="continue-shopping">
+                    <i class="fas fa-arrow-left"></i> Lanjutkan Belanja
+                </a>
+            </div>
+        </div>
+
+        <!-- Empty Cart State -->
+        <div class="empty-cart" id="emptyCart" style="display: none;">
+            <i class="fas fa-shopping-basket"></i>
+            <h3>Keranjang Kosong</h3>
+            <p>Anda belum menambahkan produk ke keranjang</p>
+            <a href="products.html" class="btn btn-primary btn-lg">
+                <i class="fas fa-store"></i> Belanja Sekarang
+            </a>
+        </div>
+
+    </div>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Global Variables
+        let cart = [];
+        let currentUser = null;
+        let userAddress = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadCart();
+        });
+
+        // Check Authentication
+        function checkAuth() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    loadUserAddress(user.uid);
+                } else {
+                    window.location.href = 'login.html';
+                }
+            });
+        }
+
+        // Load User Address
+        async function loadUserAddress(uid) {
+            try {
+                const doc = await db.collection('users').doc(uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const addresses = data.addresses || [];
+                    userAddress = addresses.find(a => a.isDefault) || addresses[0] || null;
+                    renderAddress();
+                }
+            } catch (error) {
+                console.error('Error loading address:', error);
+            }
+        }
+
+        // Render Address
+        function renderAddress() {
+            const container = document.getElementById('addressContent');
+            
+            if (!userAddress) {
+                container.innerHTML = `
+                    <div class="no-address">
+                        <i class="fas fa-map-marker-alt" style="font-size: 3rem; color: #e2e8f0; margin-bottom: 15px;"></i>
+                        <p>Anda belum memiliki alamat pengiriman</p>
+                        <a href="profile.html">Tambah Alamat Sekarang</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="address-card ${userAddress.isDefault ? 'default' : ''}">
+                    <h4>${userAddress.label || 'Alamat'}</h4>
+                    <p><strong>${userAddress.recipientName}</strong> (${userAddress.recipientPhone})</p>
+                    <p>${userAddress.fullAddress}</p>
+                    <p>${userAddress.city}, ${userAddress.province} ${userAddress.postalCode}</p>
+                </div>
+            `;
+        }
+
+        // Load Cart from localStorage
+        function loadCart() {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+            }
+            renderCart();
+        }
+
+        // Render Cart
+        function renderCart() {
+            const cartLayout = document.getElementById('cartLayout');
+            const emptyCart = document.getElementById('emptyCart');
+            const cartItemsList = document.getElementById('cartItemsList');
+            const clearCartBtn = document.getElementById('clearCartBtn');
+            
+            if (cart.length === 0) {
+                cartLayout.style.display = 'none';
+                document.getElementById('addressSection').style.display = 'none';
+                emptyCart.style.display = 'block';
+                return;
+            }
+            
+            cartLayout.style.display = 'grid';
+            document.getElementById('addressSection').style.display = 'block';
+            emptyCart.style.display = 'none';
+            clearCartBtn.style.display = 'flex';
+            
+            cartItemsList.innerHTML = cart.map((item, index) => `
+                <div class="cart-item">
+                    <div class="item-image">
+                        ${item.image ? `<span>${item.image}</span>` : '<i class="fas fa-box" style="color: #94a3b8;"></i>'}
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price">
+                            ${item.pricePi} <span class="pi-symbol">π</span>
+                        </div>
+                        <div class="quantity-control">
+                            <button class="qty-btn" onclick="updateQuantity(${index}, -1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" class="qty-input" value="${item.quantity}" readonly>
+                            <button class="qty-btn" onclick="updateQuantity(${index}, 1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="remove-btn" onclick="removeItem(${index})">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            updateSummary();
+        }
+
+        // Update Quantity
+        function updateQuantity(index, change) {
+            const item = cart[index];
+            const newQuantity = item.quantity + change;
+            
+            if (newQuantity < 1) {
+                removeItem(index);
+                return;
+            }
+            
+            item.quantity = newQuantity;
+            saveCart();
+            renderCart();
+        }
+
+        // Remove Item
+        function removeItem(index) {
+            cart.splice(index, 1);
+            saveCart();
+            renderCart();
+            showToast('Produk dihapus dari keranjang');
+        }
+
+        // Clear Cart
+        function clearCart() {
+            if (!confirm('Yakin ingin mengosongkan keranjang?')) return;
+            
+            cart = [];
+            saveCart();
+            renderCart();
+            showToast('Keranjang dikosongkan');
+        }
+
+        // Save Cart
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        // Update Summary
+        function updateSummary() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.pricePi * item.quantity), 0);
+            const total = subtotal; // Shipping gratis, pajak 0%
+            
+            document.getElementById('subtotal').textContent = subtotal + ' π';
+            document.getElementById('totalPi').textContent = total + ' π';
+            document.getElementById('totalAmount').textContent = total + ' π';
+            
+            // Enable/disable checkout button
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            checkoutBtn.disabled = cart.length === 0 || !userAddress;
+            
+            if (!userAddress) {
+                checkoutBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Tambah Alamat Dulu';
+            } else {
+                checkoutBtn.innerHTML = '<i class="fas fa-coins"></i> Bayar dengan Pi Network';
+            }
+        }
+
+        // Checkout
+        async function checkout() {
+            if (cart.length === 0) {
+                showToast('Keranjang masih kosong', 'error');
+                return;
+            }
+            
+            if (!userAddress) {
+                showToast('Silakan tambah alamat pengiriman terlebih dahulu', 'error');
+                window.location.href = 'profile.html';
+                return;
+            }
+            
+            const total = cart.reduce((sum, item) => sum + (item.pricePi * item.quantity), 0);
+            
+            // Check Pi SDK
+            if (typeof Pi === 'undefined') {
+                showToast('Buka di Pi Browser untuk pembayaran', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                Pi.init({ version: "2.0" });
+                
+                const payment = await Pi.createPayment({
+                    amount: total,
+                    memo: `Pembelian ${cart.length} produk - Hidayatul Amin`,
+                    metadata: {
+                        type: 'purchase',
+                        items: cart,
+                        userId: currentUser.uid,
+                        address: userAddress,
+                        timestamp: new Date().toISOString()
+                    }
+                }, {
+                    onReadyForServerApproval: async (paymentId) => {
+                        console.log('Payment ready for approval:', paymentId);
+                        
+                        // Save order to Firestore
+                        await db.collection('orders').doc(paymentId).set({
+                            orderId: paymentId,
+                            userId: currentUser.uid,
+                            userEmail: currentUser.email,
+                            items: cart,
+                            total: total,
+                            address: userAddress,
+                            status: 'pending_approval',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        showToast('Menunggu approval pembayaran...');
+                    },
+                    onReadyForServerCompletion: async (paymentId, txid) => {
+                        console.log('Payment completed:', paymentId, txid);
+                        
+                        // Update order status
+                        await db.collection('orders').doc(paymentId).update({
+                            status: 'completed',
+                            txid: txid,
+                            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        // Clear cart
+                        cart = [];
+                        saveCart();
+                        
+                        showLoading(false);
+                        showToast('Pembayaran berhasil! Terima kasih.');
+                        
+                        // Redirect to success page
+                        setTimeout(() => {
+                            window.location.href = `donasi-success.html?id=${paymentId}&amount=${total}&method=pi`;
+                        }, 2000);
+                    },
+                    onCancel: (paymentId) => {
+                        console.log('Payment cancelled:', paymentId);
+                        showLoading(false);
+                        showToast('Pembayaran dibatalkan', 'error');
+                    },
+                    onError: (error, payment) => {
+                        console.error('Payment error:', error);
+                        showLoading(false);
+                        showToast('Gagal: ' + error.message, 'error');
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Checkout error:', error);
+                showLoading(false);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // Show Toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMessage');
+            
+            msg.textContent = message;
+            toast.style.background = type === 'error' ? '#ef4444' : '#0f172a';
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Show Loading
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+        }
+
+        // Logout
+        async function logout() {
+            try {
+                await auth.signOut();
+                localStorage.removeItem('cart');
+                window.location.href = 'login.html';
+            } catch (error) {
+                showToast('Gagal logout: ' + error.message, 'error');
+            }
+        }
+    </script>
+
+</body>
+</html>

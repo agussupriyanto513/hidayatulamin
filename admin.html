@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Hidayatul Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #10b981;
+            --dark: #0f172a;
+            --light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light);
+            margin: 0;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--dark);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            position: fixed;
+        }
+
+        .sidebar h2 {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: var(--primary);
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav-item {
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255,255,255,0.1);
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 40px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-completed { background: #dcfce7; color: #166534; }
+        .status-pending { background: #fef9c3; color: #854d0e; }
+
+        .btn-logout {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>🕌 Hidayatul Amin Admin</h2>
+        <ul class="nav-menu">
+            <li class="nav-item active" onclick="showSection('orders')"><i class="fas fa-shopping-cart"></i> Pesanan Pi</li>
+            <li class="nav-item" onclick="showSection('users')"><i class="fas fa-users"></i> Data Santri/Wali</li>
+            <li class="nav-item" onclick="showSection('products')"><i class="fas fa-box"></i> Kelola Produk</li>
+        </ul>
+        <button class="btn-logout" onclick="adminLogout()">Logout</button>
+    </div>
+
+    <div class="main-content">
+        <div id="orders-section" class="section">
+            <h1>Manajemen Pesanan</h1>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Email Pembeli</th>
+                            <th>Total (Pi)</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Konfigurasi Firebase (Sama dengan login.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Cek apakah user adalah admin
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+            // Catatan: Di produksi, tambahkan pengecekan role 'admin' di Firestore
+        });
+
+        // Ambil Data Pesanan dari Koleksi 'orders' (Sesuai checkout.html)
+        async function fetchOrders() {
+            const tableBody = document.getElementById('orders-table-body');
+            db.collection("orders").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+                tableBody.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const order = doc.data();
+                    const row = `
+                        <tr>
+                            <td>${doc.id.substring(0, 8)}...</td>
+                            <td>${order.userEmail}</td>
+                            <td>${order.total} π</td>
+                            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                            <td>
+                                <button onclick="updateStatus('${doc.id}', 'completed')">Selesai</button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            });
+        }
+
+        async function updateStatus(orderId, newStatus) {
+            try {
+                await db.collection("orders").doc(orderId).update({ status: newStatus });
+                alert("Status berhasil diperbarui!");
+            } catch (error) {
+                console.error("Gagal update:", error);
+            }
+        }
+
+        function adminLogout() {
+            auth.signOut().then(() => window.location.href = 'login.html');
+        }
+
+        // Jalankan fungsi saat load
+        fetchOrders();
+    </script>
+</body>
+</html>

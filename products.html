@@ -1,0 +1,949 @@
+products_html = '''<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produk - Yayasan Pendidikan Hidayatul Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --accent: #8b5cf6;
+            --gold: #fbbf24;
+            --dark: #0f172a;
+            --light: #f8fafc;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #ede9fe 100%);
+            min-height: 100vh;
+            color: #334155;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 50%, var(--primary-dark) 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        /* Navigation */
+        .nav-bar {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--dark);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-logo img {
+            height: 40px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #64748b;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+        }
+        
+        .cart-icon {
+            position: relative;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .cart-icon:hover {
+            transform: translateY(-3px);
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--accent);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Filters */
+        .filters {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #475569;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: inherit;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+        
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+        
+        .product-image {
+            height: 200px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ede9fe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .product-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .product-badge.new {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+        
+        .product-badge.hot {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .product-info {
+            padding: 25px;
+        }
+        
+        .product-category {
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .product-description {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .product-price-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+        
+        .product-price .pi-price {
+            color: var(--accent);
+            font-size: 1rem;
+        }
+        
+        .product-stock {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        .product-stock.in-stock {
+            color: var(--primary);
+        }
+        
+        .product-stock.low-stock {
+            color: #f59e0b;
+        }
+        
+        .btn-add-cart {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-add-cart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-add-cart:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #94a3b8;
+        }
+        
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #64748b;
+        }
+        
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--dark);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+        
+        .toast.show {
+            display: flex;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Category Pills */
+        .category-pills {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .category-pill {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .category-pill:hover, .category-pill.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8rem; }
+            .nav-links { display: none; }
+            .filters { flex-direction: column; align-items: stretch; }
+            .products-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+        }
+        
+        @media (max-width: 480px) {
+            .products-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; color: #64748b;">Memuat produk...</p>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Produk ditambahkan ke keranjang!</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav-bar">
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">
+                <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+                <span>Hidayatul Amin</span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="index.html">Beranda</a>
+                <a href="products.html" class="active">Produk</a>
+                <a href="profile.html">Profil</a>
+                <a href="#" onclick="logout()">Logout</a>
+                <div class="cart-icon" onclick="window.location.href='cart.html'">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="header">
+        <h1><i class="fas fa-store"></i> Toko Santri</h1>
+        <p>Produk kebutuhan pondok pesantren - Bayar dengan Pi Network</p>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        
+        <!-- Category Pills -->
+        <div class="category-pills">
+            <div class="category-pill active" onclick="filterCategory('all')">Semua</div>
+            <div class="category-pill" onclick="filterCategory('buku')">📚 Buku</div>
+            <div class="category-pill" onclick="filterCategory('seragam')">👕 Seragam</div>
+            <div class="category-pill" onclick="filterCategory('perlengkapan')">🎒 Perlengkapan</div>
+            <div class="category-pill" onclick="filterCategory('makanan')">🍱 Makanan</div>
+            <div class="category-pill" onclick="filterCategory('digital')">💎 Digital</div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Cari produk..." onkeyup="searchProducts()">
+            </div>
+            
+            <div class="filter-group">
+                <label>Urutkan:</label>
+                <select id="sortSelect" onchange="sortProducts()">
+                    <option value="newest">Terbaru</option>
+                    <option value="price-low">Harga: Rendah ke Tinggi</option>
+                    <option value="price-high">Harga: Tinggi ke Rendah</option>
+                    <option value="name">Nama Produk</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Harga:</label>
+                <select id="priceFilter" onchange="filterPrice()">
+                    <option value="all">Semua Harga</option>
+                    <option value="under-50">Di bawah 50 π</option>
+                    <option value="50-100">50 - 100 π</option>
+                    <option value="100-500">100 - 500 π</option>
+                    <option value="above-500">Di atas 500 π</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" id="productsGrid">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <h3>Memuat Produk...</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Global Variables
+        let allProducts = [];
+        let cart = [];
+        let currentCategory = 'all';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadProducts();
+            loadCart();
+        });
+
+        // Check Authentication
+        function checkAuth() {
+            auth.onAuthStateChanged((user) => {
+                if (!user) {
+                    window.location.href = 'login.html';
+                }
+            });
+        }
+
+        // Load Products from Firestore
+        async function loadProducts() {
+            showLoading(true);
+            
+            try {
+                const snapshot = await db.collection('products')
+                    .where('active', '!=', false)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                allProducts = [];
+                snapshot.forEach(doc => {
+                    allProducts.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // If no products in database, use sample data
+                if (allProducts.length === 0) {
+                    allProducts = getSampleProducts();
+                }
+                
+                renderProducts(allProducts);
+                
+            } catch (error) {
+                console.error('Error loading products:', error);
+                // Use sample data on error
+                allProducts = getSampleProducts();
+                renderProducts(allProducts);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Sample Products Data
+        function getSampleProducts() {
+            return [
+                {
+                    id: '1',
+                    name: 'Kitab Kuning Digital',
+                    category: 'buku',
+                    description: 'Koleksi kitab kuning lengkap dalam format digital',
+                    price: 25,
+                    pricePi: 25,
+                    stock: 100,
+                    badge: 'hot',
+                    image: '📚'
+                },
+                {
+                    id: '2',
+                    name: 'Seragam Putih Lengkap',
+                    category: 'seragam',
+                    description: 'Set seragam putih pondok pesantren (baju, celana, peci)',
+                    price: 150,
+                    pricePi: 150,
+                    stock: 50,
+                    badge: 'new',
+                    image: '👕'
+                },
+                {
+                    id: '3',
+                    name: 'Tas Santri Premium',
+                    category: 'perlengkapan',
+                    description: 'Tas ransel khusus santri dengan kompartemen kitab',
+                    price: 75,
+                    pricePi: 75,
+                    stock: 30,
+                    badge: null,
+                    image: '🎒'
+                },
+                {
+                    id: '4',
+                    name: 'Paket Makan Sehat',
+                    category: 'makanan',
+                    description: 'Paket makan bergizi untuk 1 minggu',
+                    price: 50,
+                    pricePi: 50,
+                    stock: 20,
+                    badge: 'hot',
+                    image: '🍱'
+                },
+                {
+                    id: '5',
+                    name: 'Al-Quran Custom',
+                    category: 'buku',
+                    description: 'Al-Quran dengan terjemahan dan tajwid berwarna',
+                    price: 35,
+                    pricePi: 35,
+                    stock: 60,
+                    badge: null,
+                    image: '📖'
+                },
+                {
+                    id: '6',
+                    name: 'E-Book Hafalan',
+                    category: 'digital',
+                    description: 'Panduan hafalan Al-Quran metode modern',
+                    price: 15,
+                    pricePi: 15,
+                    stock: 999,
+                    badge: 'new',
+                    image: '💎'
+                },
+                {
+                    id: '7',
+                    name: 'Sajadah Travel',
+                    category: 'perlengkapan',
+                    description: 'Sajadah lipat praktis untuk perjalanan',
+                    price: 20,
+                    pricePi: 20,
+                    stock: 80,
+                    badge: null,
+                    image: '🧘'
+                },
+                {
+                    id: '8',
+                    name: 'Koko Premium',
+                    category: 'seragam',
+                    description: 'Baju koko santri bahan katun premium',
+                    price: 80,
+                    pricePi: 80,
+                    stock: 40,
+                    badge: null,
+                    image: '👔'
+                }
+            ];
+        }
+
+        // Render Products
+        function renderProducts(products) {
+            const grid = document.getElementById('productsGrid');
+            
+            if (products.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="fas fa-box-open"></i>
+                        <h3>Produk Tidak Ditemukan</h3>
+                        <p>Coba kata kunci lain atau filter berbeda</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = products.map(product => `
+                <div class="product-card" data-category="${product.category}">
+                    <div class="product-image">
+                        ${product.image ? `<span style="font-size: 4rem;">${product.image}</span>` : '<i class="fas fa-box" style="font-size: 3rem; color: #94a3b8;"></i>'}
+                        ${product.badge ? `<span class="product-badge ${product.badge}">${product.badge === 'hot' ? '🔥 Populer' : product.badge === 'new' ? '✨ Baru' : product.badge}</span>` : ''}
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category">${getCategoryName(product.category)}</div>
+                        <h3 class="product-name">${product.name}</h3>
+                        <p class="product-description">${product.description}</p>
+                        <div class="product-price-row">
+                            <div class="product-price">
+                                ${product.pricePi} <span class="pi-price">π</span>
+                            </div>
+                            <div class="product-stock ${product.stock < 10 ? 'low-stock' : 'in-stock'}">
+                                ${product.stock < 10 ? '⚠️ Stok tinggal ' + product.stock : '✓ Tersedia'}
+                            </div>
+                        </div>
+                        <button class="btn-add-cart" onclick="addToCart('${product.id}')" ${product.stock <= 0 ? 'disabled' : ''}>
+                            <i class="fas fa-cart-plus"></i>
+                            ${product.stock <= 0 ? 'Stok Habis' : 'Tambah ke Keranjang'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get Category Name
+        function getCategoryName(category) {
+            const names = {
+                'buku': 'Buku & Kitab',
+                'seragam': 'Seragam',
+                'perlengkapan': 'Perlengkapan',
+                'makanan': 'Makanan',
+                'digital': 'Produk Digital'
+            };
+            return names[category] || category;
+        }
+
+        // Filter Category
+        function filterCategory(category) {
+            currentCategory = category;
+            
+            // Update active pill
+            document.querySelectorAll('.category-pill').forEach(pill => {
+                pill.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter products
+            if (category === 'all') {
+                renderProducts(allProducts);
+            } else {
+                const filtered = allProducts.filter(p => p.category === category);
+                renderProducts(filtered);
+            }
+        }
+
+        // Search Products
+        function searchProducts() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = allProducts;
+            
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(p => p.category === currentCategory);
+            }
+            
+            if (search) {
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(search) ||
+                    p.description.toLowerCase().includes(search)
+                );
+            }
+            
+            renderProducts(filtered);
+        }
+
+        // Sort Products
+        function sortProducts() {
+            const sort = document.getElementById('sortSelect').value;
+            let sorted = [...allProducts];
+            
+            if (currentCategory !== 'all') {
+                sorted = sorted.filter(p => p.category === currentCategory);
+            }
+            
+            switch(sort) {
+                case 'price-low':
+                    sorted.sort((a, b) => a.pricePi - b.pricePi);
+                    break;
+                case 'price-high':
+                    sorted.sort((a, b) => b.pricePi - a.pricePi);
+                    break;
+                case 'name':
+                    sorted.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'newest':
+                default:
+                    // Already sorted by newest
+                    break;
+            }
+            
+            renderProducts(sorted);
+        }
+
+        // Filter Price
+        function filterPrice() {
+            const filter = document.getElementById('priceFilter').value;
+            let filtered = [...allProducts];
+            
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(p => p.category === currentCategory);
+            }
+            
+            switch(filter) {
+                case 'under-50':
+                    filtered = filtered.filter(p => p.pricePi < 50);
+                    break;
+                case '50-100':
+                    filtered = filtered.filter(p => p.pricePi >= 50 && p.pricePi <= 100);
+                    break;
+                case '100-500':
+                    filtered = filtered.filter(p => p.pricePi > 100 && p.pricePi <= 500);
+                    break;
+                case 'above-500':
+                    filtered = filtered.filter(p => p.pricePi > 500);
+                    break;
+            }
+            
+            renderProducts(filtered);
+        }
+
+        // Add to Cart
+        async function addToCart(productId) {
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) return;
+            
+            if (product.stock <= 0) {
+                showToast('Maaf, stok produk habis', 'error');
+                return;
+            }
+            
+            // Check if already in cart
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                if (existingItem.quantity >= product.stock) {
+                    showToast('Stok tidak mencukupi', 'error');
+                    return;
+                }
+                existingItem.quantity++;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    pricePi: product.pricePi,
+                    image: product.image,
+                    quantity: 1
+                });
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('cart', JSON.stringify(cart));
+            
+            // Update cart count
+            updateCartCount();
+            
+            showToast(`${product.name} ditambahkan ke keranjang!`);
+        }
+
+        // Load Cart from localStorage
+        function loadCart() {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+                updateCartCount();
+            }
+        }
+
+        // Update Cart Count
+        function updateCartCount() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        // Show Toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMessage');
+            
+            msg.textContent = message;
+            toast.style.background = type === 'error' ? '#ef4444' : '#0f172a';
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Show Loading
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+        }
+
+        // Logout
+        async function logout() {
+            try {
+                await auth.signOut();
+                localStorage.removeItem('cart');
+                window.location.href = 'login.html';
+            } catch (error) {
+                showToast('Gagal logout: ' + error.message, 'error');
+            }
+        }
+    </script>
+
+</body>
+</html>
