@@ -567,6 +567,12 @@
                     <i class="fas fa-users"></i>
                     <span>Wali Santri</span>
                 </button>
+				
+				<button class="nav-item" onclick="showSection('verifikasi')" style="background: linear-gradient(90deg, rgba(139,92,246,0.1) 0%, transparent 100%);">
+    <i class="fas fa-user-check" style="color: #8b5cf6;"></i>
+    <span>Verifikasi User</span>
+    <span class="badge" style="background: #8b5cf6;" id="totalPending">0</span>
+</button>
             </div>
             
             <div class="nav-section">
@@ -621,6 +627,47 @@
                     </div>
                 </div>
             </div>
+			
+			<!-- TAMBAHKAN DI DALAM <main class="main-content">, sebelum closing tag </main> -->
+
+<!-- USER VERIFICATION SECTION -->
+<div id="section-verifikasi" class="content-section">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><i class="fas fa-user-check" style="color: #8b5cf6;"></i> Verifikasi User Baru</div>
+        </div>
+        
+        <div class="submenu-tabs">
+            <button class="submenu-btn active" onclick="showVerifikasiTab('wali')">
+                <i class="fas fa-users"></i> Wali Santri <span class="badge" id="countPendingWali" style="margin-left: 5px;">0</span>
+            </button>
+            <button class="submenu-btn" onclick="showVerifikasiTab('ustadz')">
+                <i class="fas fa-chalkboard-teacher"></i> Ustadz <span class="badge" id="countPendingUstadz" style="margin-left: 5px;">0</span>
+            </button>
+            <button class="submenu-btn" onclick="showVerifikasiTab('admin')">
+                <i class="fas fa-user-shield"></i> Admin Request <span class="badge" id="countPendingAdmin" style="margin-left: 5px;">0</span>
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tanggal Daftar</th>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        <th>No HP</th>
+                        <th>Detail</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tableVerifikasi">
+                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
             <!-- DASHBOARD SECTION -->
             <div id="section-dashboard" class="content-section active">
@@ -990,15 +1037,161 @@
                 }
             });
         });
+		
+		// ==========================================
+// VERIFICATION FUNCTIONS
+// ==========================================
 
-        async function loadAllData() {
-            await Promise.all([
-                loadSantriData(),
-                loadPiPayments(),
-                loadStats()
-            ]);
+async function loadPendingUsers() {
+    try {
+        // Load pending wali
+        const waliSnap = await db.collection('wali_santri')
+            .where('status', '==', 'pending')
+            .get();
+        
+        // Load pending ustadz
+        const ustadzSnap = await db.collection('ustadz')
+            .where('status', '==', 'pending')
+            .get();
+        
+        // Load pending admin requests
+        const adminSnap = await db.collection('admin_requests')
+            .where('status', '==', 'pending')
+            .get();
+        
+        const totalPending = waliSnap.size + ustadzSnap.size + adminSnap.size;
+        
+        document.getElementById('countPendingWali').textContent = waliSnap.size;
+        document.getElementById('countPendingUstadz').textContent = ustadzSnap.size;
+        document.getElementById('countPendingAdmin').textContent = adminSnap.size;
+        document.getElementById('totalPending').textContent = totalPending;
+        document.getElementById('notifCount').textContent = totalPending;
+        
+        // Store for display
+        window.pendingUsers = {
+            wali: waliSnap.docs.map(d => ({ id: d.id, ...d.data(), type: 'wali' })),
+            ustadz: ustadzSnap.docs.map(d => ({ id: d.id, ...d.data(), type: 'ustadz' })),
+            admin: adminSnap.docs.map(d => ({ id: d.id, ...d.data(), type: 'admin' }))
+        };
+        
+        // Show wali by default
+        showVerifikasiTab('wali');
+        
+    } catch (error) {
+        console.error('Load pending users error:', error);
+    }
+}
+
+function showVerifikasiTab(type) {
+    // Update button active state
+    document.querySelectorAll('#section-verifikasi .submenu-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    const users = window.pendingUsers?.[type] || [];
+    const tbody = document.getElementById('tableVerifikasi');
+    
+    if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Tidak ada ${type} yang menunggu verifikasi</td></tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = users.map(u => {
+        const date = u.createdAt ? (u.createdAt.toDate ? u.createdAt.toDate().toLocaleDateString('id-ID') : new Date(u.createdAt).toLocaleDateString('id-ID')) : '-';
+        
+        let detail = '-';
+        if (type === 'wali') {
+            detail = `Santri: ${u.namaSantri || '-'} (${u.kelasSantri || '-'})`;
+        } else if (type === 'ustadz') {
+            detail = `Mapel: ${u.mataPelajaran || '-'}`;
         }
+        
+        return `
+            <tr>
+                <td>${date}</td>
+                <td><strong>${u.nama}</strong></td>
+                <td>${u.email}</td>
+                <td>${u.noHp || '-'}</td>
+                <td>${detail}</td>
+                <td>
+                    <button class="btn-sm btn-primary-sm" onclick="verifikasiUser('${u.id}', '${type}', true)" style="margin-right: 5px;">
+                        <i class="fas fa-check"></i> Terima
+                    </button>
+                    <button class="btn-sm" style="background: #fee2e2; color: #991b1b;" onclick="verifikasiUser('${u.id}', '${type}', false)">
+                        <i class="fas fa-times"></i> Tolak
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
 
+async function verifikasiUser(uid, type, approve) {
+    const action = approve ? 'menerima' : 'menolak';
+    if (!confirm(`Yakin ingin ${action} user ini?`)) return;
+    
+    showLoading(true);
+    
+    try {
+        let collectionName = type === 'admin' ? 'admin_requests' : type + 's';
+        if (type === 'wali') collectionName = 'wali_santri';
+        
+        if (approve) {
+            // Update status to active
+            await db.collection(collectionName).doc(uid).update({
+                status: 'active',
+                verifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                verifiedBy: currentUser.uid
+            });
+            
+            // If admin request, also add to admins collection
+            if (type === 'admin') {
+                const reqData = await db.collection('admin_requests').doc(uid).get();
+                if (reqData.exists) {
+                    await db.collection('admins').doc(uid).update({
+                        status: 'active',
+                        level: 'admin',
+                        verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            }
+            
+            showToast('User berhasil diverifikasi!');
+        } else {
+            // Reject - delete or mark as rejected
+            await db.collection(collectionName).doc(uid).update({
+                status: 'rejected',
+                rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                rejectedBy: currentUser.uid
+            });
+            
+            showToast('User ditolak');
+        }
+        
+        // Reload data
+        await loadPendingUsers();
+        await loadStats();
+        
+    } catch (error) {
+        console.error('Verification error:', error);
+        showToast('Gagal verifikasi: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Panggil loadPendingUsers saat init
+async function loadAllData() {
+    await Promise.all([
+        loadSantriData(),
+        loadPiPayments(),
+        loadStats(),
+        loadPendingUsers() // Tambahkan ini
+    ]);
+}
+
+        
         // ==========================================
         // DATA LOADING FUNCTIONS
         // ==========================================

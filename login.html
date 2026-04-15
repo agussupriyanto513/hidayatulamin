@@ -386,41 +386,97 @@
         }
 
         async function verifyRole(uid, role) {
-            try {
-                const doc = await db.collection(role === 'wali' ? 'wali_santri' : role === 'ustadz' ? 'ustadz' : 'admins').doc(uid).get();
-                return doc.exists;
-            } catch (error) {
-                console.error('Role verification error:', error);
+    try {
+        let docRef;
+        
+        switch(role) {
+            case 'wali':
+                docRef = db.collection('wali_santri').doc(uid);
+                break;
+            case 'ustadz':
+                docRef = db.collection('ustadz').doc(uid);
+                break;
+            case 'admin':
+                docRef = db.collection('admins').doc(uid);
+                break;
+            default:
                 return false;
-            }
         }
+        
+        const doc = await docRef.get();
+        
+        if (!doc.exists) {
+            return false;
+        }
+        
+        // Check if account is active (not pending)
+        const data = doc.data();
+        if (data.status === 'pending') {
+            throw new Error('Akun Anda masih menunggu verifikasi admin. Silakan hubungi admin.');
+        }
+        
+        if (data.status === 'suspended') {
+            throw new Error('Akun Anda telah ditangguhkan. Hubungi admin untuk info lebih lanjut.');
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('Role verification error:', error);
+        throw error; // Re-throw to be caught in handleLogin
+    }
+}
 
-        async function redirectBasedOnRole(uid) {
-            // Check admin first
-            const adminDoc = await db.collection('admins').doc(uid).get();
-            if (adminDoc.exists) {
+async function redirectBasedOnRole(uid) {
+    try {
+        // Check admin first (super admin and admin)
+        const adminDoc = await db.collection('admins').doc(uid).get();
+        if (adminDoc.exists) {
+            const adminData = adminDoc.data();
+            if (adminData.status !== 'pending') {
                 redirectToDashboard('admin');
                 return;
             }
+        }
 
-            // Check ustadz
-            const ustadzDoc = await db.collection('ustadz').doc(uid).get();
-            if (ustadzDoc.exists) {
+        // Check ustadz
+        const ustadzDoc = await db.collection('ustadz').doc(uid).get();
+        if (ustadzDoc.exists) {
+            const ustadzData = ustadzDoc.data();
+            if (ustadzData.status !== 'pending') {
                 redirectToDashboard('ustadz');
                 return;
-            }
-
-            // Check wali
-            const waliDoc = await db.collection('wali_santri').doc(uid).get();
-            if (waliDoc.exists) {
-                redirectToDashboard('wali');
+            } else {
+                await auth.signOut();
+                alert('Akun ustadz Anda masih menunggu verifikasi admin.');
                 return;
             }
-
-            // If no role found, logout
-            await auth.signOut();
-            alert('Akun tidak memiliki role yang valid');
         }
+
+        // Check wali
+        const waliDoc = await db.collection('wali_santri').doc(uid).get();
+        if (waliDoc.exists) {
+            const waliData = waliDoc.data();
+            if (waliData.status !== 'pending') {
+                redirectToDashboard('wali');
+                return;
+            } else {
+                await auth.signOut();
+                alert('Akun wali santri Anda masih menunggu verifikasi admin.');
+                return;
+            }
+        }
+
+        // If no role found, logout
+        await auth.signOut();
+        alert('Akun tidak memiliki role yang valid. Silakan daftar terlebih dahulu.');
+        
+    } catch (error) {
+        console.error('Redirect error:', error);
+        await auth.signOut();
+        alert('Error: ' + error.message);
+    }
+}
 
         function redirectToDashboard(role) {
             const dashboards = {
