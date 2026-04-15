@@ -1134,33 +1134,53 @@ async function verifikasiUser(uid, type, approve) {
     showLoading(true);
     
     try {
-        let collectionName = type === 'admin' ? 'admin_requests' : type + 's';
-        if (type === 'wali') collectionName = 'wali_santri';
+        // PERBAIKAN: Nama collection yang benar
+        let collectionName;
+        switch(type) {
+            case 'wali':
+                collectionName = 'wali_santri';  // ✅ benar
+                break;
+            case 'ustadz':
+                collectionName = 'ustadz';         // ✅ tanpa 's' di akhir
+                break;
+            case 'admin':
+                collectionName = 'admin_requests'; // ✅ benar
+                break;
+            default:
+                throw new Error('Tipe user tidak valid');
+        }
+        
+        console.log('Updating document:', collectionName, uid); // Debug
+        
+        const docRef = db.collection(collectionName).doc(uid);
+        const docSnap = await docRef.get();
+        
+        // Cek apakah dokumen ada
+        if (!docSnap.exists) {
+            throw new Error(`Dokumen tidak ditemukan di collection ${collectionName}. Mungkin user sudah dihapus atau ID salah.`);
+        }
         
         if (approve) {
             // Update status to active
-            await db.collection(collectionName).doc(uid).update({
+            await docRef.update({
                 status: 'active',
                 verifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 verifiedBy: currentUser.uid
             });
             
-            // If admin request, also add to admins collection
+            // If admin request, also update admins collection
             if (type === 'admin') {
-                const reqData = await db.collection('admin_requests').doc(uid).get();
-                if (reqData.exists) {
-                    await db.collection('admins').doc(uid).update({
-                        status: 'active',
-                        level: 'admin',
-                        verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
+                await db.collection('admins').doc(uid).update({
+                    status: 'active',
+                    level: 'admin',
+                    verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
             }
             
-            showToast('User berhasil diverifikasi!');
+            showToast('User berhasil diverifikasi! Akun sekarang bisa login.');
         } else {
-            // Reject - delete or mark as rejected
-            await db.collection(collectionName).doc(uid).update({
+            // Reject - update status
+            await docRef.update({
                 status: 'rejected',
                 rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 rejectedBy: currentUser.uid
@@ -1181,14 +1201,52 @@ async function verifikasiUser(uid, type, approve) {
     }
 }
 
-// Panggil loadPendingUsers saat init
-async function loadAllData() {
-    await Promise.all([
-        loadSantriData(),
-        loadPiPayments(),
-        loadStats(),
-        loadPendingUsers() // Tambahkan ini
-    ]);
+async function loadPendingUsers() {
+    try {
+        // Load pending wali
+        const waliSnap = await db.collection('wali_santri')
+            .where('status', '==', 'pending')
+            .get();
+        
+        // Load pending ustadz - PERBAIKAN: tanpa 's'
+        const ustadzSnap = await db.collection('ustadz')  // ✅ 'ustadz' bukan 'ustadzs'
+            .where('status', '==', 'pending')
+            .get();
+        
+        // Load pending admin requests
+        const adminSnap = await db.collection('admin_requests')
+            .where('status', '==', 'pending')
+            .get();
+        
+        const totalPending = waliSnap.size + ustadzSnap.size + adminSnap.size;
+        
+        // Update counters
+        const countWali = document.getElementById('countPendingWali');
+        const countUstadz = document.getElementById('countPendingUstadz');
+        const countAdmin = document.getElementById('countPendingAdmin');
+        const totalBadge = document.getElementById('totalPending');
+        const notifBadge = document.getElementById('notifCount');
+        
+        if (countWali) countWali.textContent = waliSnap.size;
+        if (countUstadz) countUstadz.textContent = ustadzSnap.size;
+        if (countAdmin) countAdmin.textContent = adminSnap.size;
+        if (totalBadge) totalBadge.textContent = totalPending;
+        if (notifBadge) notifBadge.textContent = totalPending;
+        
+        // Store for display
+        window.pendingUsers = {
+            wali: waliSnap.docs.map(d => ({ id: d.id, ...d.data(), type: 'wali' })),
+            ustadz: ustadzSnap.docs.map(d => ({ id: d.id, ...d.data(), type: 'ustadz' })),
+            admin: adminSnap.docs.map(d => ({ id: d.id, ...d.data(), type: 'admin' }))
+        };
+        
+        // Show wali by default
+        showVerifikasiTab('wali');
+        
+    } catch (error) {
+        console.error('Load pending users error:', error);
+        showToast('Gagal memuat data pending: ' + error.message, 'error');
+    }
 }
 
         
@@ -1414,6 +1472,28 @@ async function loadAllData() {
         // ==========================================
         // UI FUNCTIONS
         // ==========================================
+		
+		function showVerifikasiTab(type) {
+    // Update button active state
+    document.querySelectorAll('#section-verifikasi .submenu-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    const users = window.pendingUsers?.[type] || [];
+    
+    // DEBUG: Log ke console
+    console.log(`Loading ${type} users:`, users);
+    
+    const tbody = document.getElementById('tableVerifikasi');
+    
+    if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Tidak ada ${type} yang menunggu verifikasi</td></tr>`;
+        return;
+    }
+    
+    // ... rest of code
+}
 
         function showSection(sectionName) {
             // Update nav active state
