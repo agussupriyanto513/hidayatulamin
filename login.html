@@ -3,24 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Hidayatulamin</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Pi Network SDK -->
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-    <!-- Firebase SDK -->
+    <title>Login - Hidayatul Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #059669 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -29,192 +26,154 @@
         }
 
         .login-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
             width: 100%;
             max-width: 450px;
-            animation: slideUp 0.5s ease-out;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .login-header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            padding: 40px 30px;
+        .logo-section {
             text-align: center;
-        }
-
-        .login-header h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .login-header p {
-            opacity: 0.9;
-            font-size: 0.95rem;
-        }
-
-        .login-body {
-            padding: 40px 30px;
-        }
-
-        .login-tabs {
-            display: flex;
             margin-bottom: 30px;
-            border-bottom: 2px solid #e0e0e0;
         }
 
-        .login-tab {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 2rem;
+        }
+
+        h1 {
+            color: #0f172a;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .role-btn {
+            padding: 15px 10px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 600;
-            color: #666;
-            transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            text-align: center;
         }
 
-        .login-tab.active {
-            color: #1e3c72;
-            border-bottom-color: #1e3c72;
+        .role-btn:hover, .role-btn.active {
+            border-color: #10b981;
+            background: #f0fdf4;
         }
 
-        .login-tab:hover {
-            color: #1e3c72;
+        .role-btn i {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: #64748b;
+        }
+
+        .role-btn.active i, .role-btn:hover i {
+            color: #10b981;
         }
 
         .form-group {
             margin-bottom: 20px;
         }
 
-        .form-group label {
+        label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
+            color: #475569;
+            font-weight: 600;
             font-size: 0.9rem;
         }
 
-        .form-group input {
+        input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
             font-size: 1rem;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
 
-        .form-group input:focus {
+        input:focus {
             outline: none;
-            border-color: #1e3c72;
+            border-color: #10b981;
         }
 
-        .btn {
+        .btn-login {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 15px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(30, 60, 114, 0.4);
-        }
-
-        .btn-pi {
-            background: linear-gradient(135deg, #F7A600 0%, #E08E00 100%);
-            color: white;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
         }
 
-        .btn-pi:hover {
+        .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(247, 166, 0, 0.4);
+            box-shadow: 0 10px 30px rgba(16,185,129,0.3);
         }
 
-        .divider {
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .links {
             text-align: center;
-            margin: 25px 0;
-            position: relative;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e2e8f0;
         }
 
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #e0e0e0;
+        .links a {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 600;
         }
 
-        .divider span {
-            background: white;
-            padding: 0 15px;
-            color: #666;
-            position: relative;
-            font-size: 0.9rem;
-        }
-
-        .error-message {
-            background: #ffebee;
-            color: #c62828;
+        .error-msg {
+            background: #fee2e2;
+            color: #991b1b;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             margin-bottom: 20px;
-            font-size: 0.9rem;
             display: none;
-        }
-
-        .error-message.show {
-            display: block;
-            animation: shake 0.5s ease-in-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        .success-message {
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            align-items: center;
+            gap: 8px;
             font-size: 0.9rem;
-            display: none;
-        }
-
-        .success-message.show {
-            display: block;
         }
 
         .loading {
@@ -223,190 +182,97 @@
             padding: 20px;
         }
 
-        .loading.show {
-            display: block;
-        }
-
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #1e3c72;
-            border-radius: 50%;
             width: 40px;
             height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .register-link {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .register-link a {
-            color: #1e3c72;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .register-link a:hover {
-            text-decoration: underline;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .pi-info {
-            background: #fff8e1;
-            border-left: 4px solid #F7A600;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        .pi-info strong {
-            color: #F7A600;
-        }
-
-        .back-home {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .back-home a {
-            color: #1e3c72;
-            text-decoration: none;
-            font-size: 0.9rem;
+        .back-link {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
+            color: #64748b;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
         }
 
-        .back-home a:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 480px) {
-            .login-header {
-                padding: 30px 20px;
-            }
-            
-            .login-header h1 {
-                font-size: 1.5rem;
-            }
-            
-            .login-body {
-                padding: 30px 20px;
-            }
+        .back-link:hover {
+            color: #10b981;
         }
     </style>
 </head>
 <body>
+
     <div class="login-container">
-        <div class="login-header">
-            <h1>🔐 Login</h1>
-            <p>Selamat datang di Hidayatulamin</p>
+        <a href="index.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Kembali ke Beranda
+        </a>
+
+        <div class="logo-section">
+            <div class="logo-icon">
+                <i class="fas fa-mosque"></i>
+            </div>
+            <h1>Masuk ke Portal</h1>
+            <p>Yayasan Pendidikan Hidayatul Amin</p>
         </div>
-        
-        <div class="login-body">
-            <!-- Error & Success Messages -->
-            <div id="errorMessage" class="error-message"></div>
-            <div id="successMessage" class="success-message"></div>
-            
-            <!-- Loading -->
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <p>Memproses...</p>
+
+        <div class="role-selector">
+            <button class="role-btn active" data-role="wali" onclick="selectRole('wali')">
+                <i class="fas fa-users"></i>
+                <small>Wali</small>
+            </button>
+            <button class="role-btn" data-role="ustadz" onclick="selectRole('ustadz')">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <small>Ustadz</small>
+            </button>
+            <button class="role-btn" data-role="admin" onclick="selectRole('admin')">
+                <i class="fas fa-user-shield"></i>
+                <small>Admin</small>
+            </button>
+        </div>
+
+        <div class="error-msg" id="errorMsg">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="errorText">Email atau password salah</span>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="nama@email.com" required>
             </div>
-
-            <!-- Tabs -->
-            <div class="login-tabs">
-                <div class="login-tab active" onclick="switchTab('email')">Email</div>
-                <div class="login-tab" onclick="switchTab('pi')">Pi Network</div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="••••••••" required>
             </div>
+            <button type="submit" class="btn-login" id="btnLogin">
+                <i class="fas fa-sign-in-alt"></i>
+                Masuk
+            </button>
+        </form>
 
-            <!-- Email Login Tab -->
-            <div id="emailTab" class="tab-content active">
-                <form id="emailLoginForm">
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required placeholder="nama@email.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required placeholder="Masukkan password">
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Masuk</button>
-                </form>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Memverifikasi...</p>
+        </div>
 
-                <div class="divider">
-                    <span>atau</span>
-                </div>
-
-                <button class="btn btn-pi" onclick="switchTab('pi')">
-                    <span>π</span>
-                    Login dengan Pi Network
-                </button>
-            </div>
-
-            <!-- Pi Network Login Tab -->
-            <div id="piTab" class="tab-content">
-                <div class="pi-info">
-                    <strong>ℹ️ Info:</strong> Login dengan Pi Network memungkinkan Anda menggunakan akun Pi yang sudah terverifikasi. Pastikan aplikasi Pi Network terinstall di perangkat Anda.
-                </div>
-
-                <button id="piLoginBtn" class="btn btn-pi" onclick="loginWithPi()">
-                    <span style="font-size: 24px; font-weight: bold;">π</span>
-                    Login dengan Pi Network
-                </button>
-
-                <div class="divider">
-                    <span>atau</span>
-                </div>
-
-                <button class="btn btn-primary" onclick="switchTab('email')">
-                    Login dengan Email
-                </button>
-            </div>
-
-            <div class="register-link">
-                Belum punya akun? <a href="register.html">Daftar sekarang</a>
-            </div>
-
-            <div class="back-home">
-                <a href="index.html">← Kembali ke Beranda</a>
-            </div>
+        <div class="links">
+            <p>Belum punya akun? <a href="#" onclick="showRegister()">Daftar</a></p>
         </div>
     </div>
 
     <script>
         // ==========================================
-        // HIDAYATULAMIN - LOGIN MODULE
-        // Dengan integrasi Pi Network & Firebase
+        // FIREBASE CONFIGURATION
         // ==========================================
-
-        // Konfigurasi Firebase - GANTI DENGAN KONFIGURASI ANDA
         const firebaseConfig = {
             apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
             authDomain: "hidayatulamin-e6f22.firebaseapp.com",
@@ -416,265 +282,160 @@
             appId: "1:80743607267:web:f5f94165de021759958ed6"
         };
 
-        // Inisialisasi Firebase
-        firebase.initializeApp(firebaseConfig);
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Inisialisasi Pi SDK
-        let Pi = window.Pi;
-        let piInitialized = false;
+        // ==========================================
+        // GLOBAL VARIABLES
+        // ==========================================
+        let selectedRole = 'wali';
 
         // ==========================================
-        // FUNGSI UTILITY
+        // ROLE SELECTION
         // ==========================================
-
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.classList.add('show');
-            setTimeout(() => errorDiv.classList.remove('show'), 5000);
-        }
-
-        function showSuccess(message) {
-            const successDiv = document.getElementById('successMessage');
-            successDiv.textContent = message;
-            successDiv.classList.add('show');
-            setTimeout(() => successDiv.classList.remove('show'), 3000);
-        }
-
-        function showLoading(show) {
-            const loading = document.getElementById('loading');
-            if (show) {
-                loading.classList.add('show');
-            } else {
-                loading.classList.remove('show');
-            }
-        }
-
-        function switchTab(tab) {
-            // Update tab buttons
-            document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Update tab content
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById(tab + 'Tab').classList.add('active');
-            
-            // Clear messages
-            document.getElementById('errorMessage').classList.remove('show');
-            document.getElementById('successMessage').classList.remove('show');
-        }
-
-        // ==========================================
-        // PI NETWORK AUTHENTICATION
-        // ==========================================
-
-        async function initPiSDK() {
-            try {
-                if (!Pi) {
-                    console.error('Pi SDK tidak tersedia');
-                    return false;
+        function selectRole(role) {
+            selectedRole = role;
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.role === role) {
+                    btn.classList.add('active');
                 }
-
-                // Inisialisasi Pi SDK dengan sandbox mode untuk development
-                // Ganti ke false untuk production
-                Pi.init({ version: "2.0", sandbox: true });
-                piInitialized = true;
-                console.log('✅ Pi SDK berhasil diinisialisasi');
-                return true;
-            } catch (error) {
-                console.error('❌ Gagal inisialisasi Pi SDK:', error);
-                return false;
-            }
+            });
         }
 
-        async function loginWithPi() {
-            showLoading(true);
-            
-            try {
-                // Inisialisasi Pi SDK jika belum
-                if (!piInitialized) {
-                    const initialized = await initPiSDK();
-                    if (!initialized) {
-                        throw new Error('Gagal menginisialisasi Pi SDK');
-                    }
-                }
-
-                // Autentikasi dengan Pi Network
-                const scopes = ['username', 'payments', 'wallet_address'];
-                const authResult = await Pi.authenticate(scopes, onIncompletePaymentFound);
-                
-                console.log('✅ Pi Auth Success:', authResult);
-                
-                // Proses login dengan data Pi
-                await processPiLogin(authResult);
-                
-            } catch (error) {
-                console.error('❌ Pi Login Error:', error);
-                showError('Gagal login dengan Pi Network: ' + error.message);
-                showLoading(false);
-            }
-        }
-
-        // Callback untuk pembayaran tidak lengkap
-        function onIncompletePaymentFound(payment) {
-            console.log('⚠️ Pembayaran tidak lengkap ditemukan:', payment);
-            return Promise.resolve();
-        }
-
-        async function processPiLogin(authResult) {
-            try {
-                const { user, accessToken } = authResult;
-                
-                // Cek apakah user sudah ada di Firestore
-                const userRef = db.collection('users').doc(user.uid);
-                const userDoc = await userRef.get();
-                
-                const userData = {
-                    uid: user.uid,
-                    username: user.username,
-                    wallet_address: user.wallet_address || null,
-                    loginMethod: 'pi',
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                    accessToken: accessToken
-                };
-                
-                if (!userDoc.exists) {
-                    // User baru - buat profil baru
-                    userData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                    userData.email = user.username + '@pi.network';
-                    userData.profileComplete = false;
-                    
-                    await userRef.set(userData);
-                    console.log('✅ Profil Pi user baru dibuat');
-                } else {
-                    // User existing - update data
-                    await userRef.update(userData);
-                    console.log('✅ Profil Pi user diperbarui');
-                }
-                
-                // Simpan ke localStorage untuk session
-                localStorage.setItem('hidayatulamin_user', JSON.stringify({
-                    uid: user.uid,
-                    username: user.username,
-                    loginMethod: 'pi',
-                    isAuthenticated: true
-                }));
-                
-                showSuccess('Login berhasil! Mengalihkan...');
-                
-                // Redirect ke home setelah 1.5 detik
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
-                
-            } catch (error) {
-                console.error('❌ Process Pi Login Error:', error);
-                throw error;
-            } finally {
-                showLoading(false);
-            }
+        // Check URL params for role
+        const urlParams = new URLSearchParams(window.location.search);
+        const roleParam = urlParams.get('role');
+        if (roleParam && ['wali', 'ustadz', 'admin'].includes(roleParam)) {
+            selectRole(roleParam);
         }
 
         // ==========================================
-        // EMAIL/PASSWORD AUTHENTICATION
+        // AUTHENTICATION
         // ==========================================
+        
+        // Check if already logged in - PENTING UNTUK PERSISTENCE
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // User sudah login, redirect ke dashboard sesuai role
+                console.log('User already logged in:', user.email);
+                await redirectBasedOnRole(user.uid);
+            }
+        });
 
-        document.getElementById('emailLoginForm').addEventListener('submit', async (e) => {
+        async function handleLogin(e) {
             e.preventDefault();
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const btn = document.getElementById('btnLogin');
+            const loading = document.getElementById('loading');
+            const form = document.getElementById('loginForm');
+            const errorMsg = document.getElementById('errorMsg');
+
+            // Hide error
+            errorMsg.style.display = 'none';
             
-            showLoading(true);
-            
+            // Show loading
+            btn.disabled = true;
+            form.style.display = 'none';
+            loading.style.display = 'block';
+
             try {
-                // Login dengan Firebase Auth
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
-                console.log('✅ Email Login Success:', user.uid);
+                // Verify role
+                const hasAccess = await verifyRole(user.uid, selectedRole);
                 
-                // Update last login di Firestore
-                await db.collection('users').doc(user.uid).update({
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Simpan session
-                localStorage.setItem('hidayatulamin_user', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    loginMethod: 'email',
-                    isAuthenticated: true
-                }));
-                
-                showSuccess('Login berhasil! Mengalihkan...');
-                
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
-                
+                if (!hasAccess) {
+                    throw new Error(`Akun ini tidak terdaftar sebagai ${selectedRole}`);
+                }
+
+                // Redirect ke dashboard
+                redirectToDashboard(selectedRole);
+
             } catch (error) {
-                console.error('❌ Email Login Error:', error);
+                console.error('Login error:', error);
                 
-                let errorMessage = 'Gagal login. Silakan coba lagi.';
-                
-                switch (error.code) {
-                    case 'auth/user-not-found':
-                        errorMessage = 'Email tidak terdaftar. Silakan daftar terlebih dahulu.';
-                        break;
-                    case 'auth/wrong-password':
-                        errorMessage = 'Password salah. Silakan coba lagi.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'Format email tidak valid.';
-                        break;
-                    case 'auth/user-disabled':
-                        errorMessage = 'Akun ini telah dinonaktifkan.';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage = 'Terlalu banyak percobaan login. Silakan coba lagi nanti.';
-                        break;
+                // Show error
+                let errorMessage = 'Email atau password salah';
+                if (error.code === 'auth/user-not-found') {
+                    errorMessage = 'Akun tidak ditemukan';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMessage = 'Password salah';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Format email tidak valid';
+                } else if (error.message) {
+                    errorMessage = error.message;
                 }
                 
-                showError(errorMessage);
-                showLoading(false);
+                document.getElementById('errorText').textContent = errorMessage;
+                errorMsg.style.display = 'flex';
+                
+                // Reset UI
+                btn.disabled = false;
+                form.style.display = 'block';
+                loading.style.display = 'none';
             }
-        });
-
-        // ==========================================
-        // CEK AUTH STATUS SAAT LOAD
-        // ==========================================
-
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                console.log('👤 User sudah login:', user.uid);
-            }
-        });
-
-        // Inisialisasi Pi SDK saat halaman load
-        document.addEventListener('DOMContentLoaded', () => {
-            initPiSDK();
-        });
-
-        // ==========================================
-        // LOGOUT FUNCTION
-        // ==========================================
-
-        function logout() {
-            auth.signOut().then(() => {
-                localStorage.removeItem('hidayatulamin_user');
-                window.location.href = 'login.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
-            });
         }
 
-        // Export fungsi untuk global access
-        window.logout = logout;
-        window.loginWithPi = loginWithPi;
-        window.switchTab = switchTab;
+        async function verifyRole(uid, role) {
+            try {
+                const doc = await db.collection(role === 'wali' ? 'wali_santri' : role === 'ustadz' ? 'ustadz' : 'admins').doc(uid).get();
+                return doc.exists;
+            } catch (error) {
+                console.error('Role verification error:', error);
+                return false;
+            }
+        }
+
+        async function redirectBasedOnRole(uid) {
+            // Check admin first
+            const adminDoc = await db.collection('admins').doc(uid).get();
+            if (adminDoc.exists) {
+                redirectToDashboard('admin');
+                return;
+            }
+
+            // Check ustadz
+            const ustadzDoc = await db.collection('ustadz').doc(uid).get();
+            if (ustadzDoc.exists) {
+                redirectToDashboard('ustadz');
+                return;
+            }
+
+            // Check wali
+            const waliDoc = await db.collection('wali_santri').doc(uid).get();
+            if (waliDoc.exists) {
+                redirectToDashboard('wali');
+                return;
+            }
+
+            // If no role found, logout
+            await auth.signOut();
+            alert('Akun tidak memiliki role yang valid');
+        }
+
+        function redirectToDashboard(role) {
+            const dashboards = {
+                'wali': 'dashboard-wali.html',
+                'ustadz': 'dashboard-ustadz.html',
+                'admin': 'dashboard-admin.html'
+            };
+            
+            window.location.href = dashboards[role];
+        }
+
+        function showRegister() {
+            alert('Silakan hubungi admin untuk pendaftaran akun baru');
+        }
     </script>
+
 </body>
 </html>
