@@ -792,16 +792,83 @@
             .portals { padding: 60px 20px; }
             .footer-content { grid-template-columns: 1fr; gap: 40px; }
         }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        .navbar.scrolled .hamburger span { background: #0f172a; }
+        .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 8px); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -8px); }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0; right: 0;
+            background: rgba(15,23,42,0.98);
+            backdrop-filter: blur(20px);
+            padding: 20px 30px 30px;
+            z-index: 999;
+            flex-direction: column;
+            gap: 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .mobile-menu.open { display: flex; }
+        .mobile-menu a {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            padding: 12px 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            transition: color 0.2s;
+        }
+        .mobile-menu a:hover { color: #10b981; }
+        .mob-btn {
+            background: #10b981;
+            color: white !important;
+            padding: 12px 24px !important;
+            border-radius: 30px !important;
+            border: none !important;
+            font-weight: 600 !important;
+            text-align: center;
+            flex: 1;
+        }
+        .mob-btn-outline {
+            background: transparent !important;
+            border: 2px solid rgba(255,255,255,0.3) !important;
+            color: white !important;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger { display: flex; }
+            .nav-links { display: none !important; }
+            .btn-nav { display: none !important; }
+        }
     </style>
 </head>
 <body>
 
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
-        <a href="#" class="logo">
-            <div class="logo-icon">
-                <i class="fas fa-mosque"></i>
-            </div>
+        <a href="index.html" class="logo">
+            <img src="logo.png" alt="Logo" style="height:45px;width:45px;border-radius:12px;object-fit:cover;">
             <span class="logo-text">Hidayatul Amin</span>
         </a>
         
@@ -1032,7 +1099,7 @@
         <div class="footer-content">
             <div class="footer-brand">
                 <h3>
-                    <i class="fas fa-mosque" style="color: var(--primary);"></i>
+                    <img src="logo.png" alt="Logo" style="height:35px;width:35px;border-radius:8px;object-fit:cover;">
                     Yayasan Pendidikan Hidayatul Amin
                 </h3>
                 <p>
@@ -1077,7 +1144,7 @@
         </div>
         
         <div class="footer-bottom">
-            <p>&copy; 2024 Yayasan Pendidikan Hidayatul Amin. All rights reserved. | Powered by Pi Network</p>
+            <p>&copy; 2025 Yayasan Pendidikan Hidayatul Amin. All rights reserved. | Powered by Pi Network</p>
         </div>
     </footer>
 
@@ -1125,6 +1192,17 @@
             el.style.transition = 'all 0.6s ease';
             observer.observe(el);
         });
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.getElementById('hamburger');
+            menu.classList.toggle('open');
+            btn.classList.toggle('open');
+        }
+        function closeMobileMenu() {
+            document.getElementById('mobileMenu').classList.remove('open');
+            document.getElementById('hamburger').classList.remove('open');
+        }
     </script>
 
 </body>

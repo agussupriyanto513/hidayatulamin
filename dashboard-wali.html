@@ -245,9 +245,52 @@
             .stats-grid { grid-template-columns: 1fr; }
             .pi-bar { flex-direction: column; text-align: center; }
         }
+
+        /* Mobile Responsive Sidebar */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 15px; left: 15px;
+            z-index: 200;
+            background: #10b981;
+            color: white;
+            border: none;
+            width: 45px; height: 45px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            align-items: center;
+            justify-content: center;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+        }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); z-index: 150; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; }
+            .sidebar-toggle { display: flex; }
+            .overlay.active { display: block; }
+            .stats-grid { grid-template-columns: 1fr 1fr !important; }
+            .portal-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr !important; }
+            .main-content { padding: 15px !important; padding-top: 70px !important; }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Mobile Toggle -->
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
     <!-- Loading -->
     <div class="loading-overlay" id="loadingOverlay">

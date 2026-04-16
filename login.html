@@ -217,8 +217,8 @@
         </a>
 
         <div class="logo-section">
-            <div class="logo-icon">
-                <i class="fas fa-mosque"></i>
+            <div class="logo-icon" style="background:none;padding:0;">
+                <img src="logo.png" alt="Logo" style="width:80px;height:80px;border-radius:20px;object-fit:cover;">
             </div>
             <h1>Masuk ke Portal</h1>
             <p>Yayasan Pendidikan Hidayatul Amin</p>
@@ -253,6 +253,9 @@
                 <label>Password</label>
                 <input type="password" id="password" placeholder="••••••••" required>
             </div>
+            <div style="text-align:right;margin-bottom:15px;">
+                <a href="#" onclick="forgotPassword()" style="color:#10b981;font-size:0.85rem;text-decoration:none;">Lupa password?</a>
+            </div>
             <button type="submit" class="btn-login" id="btnLogin">
                 <i class="fas fa-sign-in-alt"></i>
                 Masuk
@@ -265,7 +268,7 @@
         </div>
 
         <div class="links">
-            <p>Belum punya akun? <a href="#" onclick="showRegister()">Daftar</a></p>
+            <p>Belum punya akun? <a href="register.html">Daftar di sini</a></p>
         </div>
     </div>
 
@@ -488,8 +491,20 @@ async function redirectBasedOnRole(uid) {
             window.location.href = dashboards[role];
         }
 
-        function showRegister() {
-            alert('Silakan hubungi admin untuk pendaftaran akun baru');
+
+
+        async function forgotPassword() {
+            const email = document.getElementById('email').value;
+            if (!email) {
+                alert('Masukkan email Anda terlebih dahulu');
+                return;
+            }
+            try {
+                await auth.sendPasswordResetEmail(email);
+                alert('Link reset password telah dikirim ke ' + email);
+            } catch(e) {
+                alert('Gagal: ' + e.message);
+            }
         }
     </script>
 
