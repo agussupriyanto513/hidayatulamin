@@ -3,39 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Hidayatul Amin</title>
+    <title>Login | Hidayatullah Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-gray-50">
+<body class="bg-slate-50 font-sans text-slate-900">
 
-    <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="max-w-md w-full bg-white rounded-3xl shadow-xl p-8">
-            
-            <form onsubmit="handleLogin(event)">
-                <div class="mb-6">
-                    <label class="block text-gray-700 mb-2">Email Address</label>
-                    <input type="email" id="email" autocomplete="username" required
-                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+    <div class="min-h-screen flex items-center justify-center p-4 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-100 via-slate-50 to-blue-100">
+        
+        <div class="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white p-8 md:p-10">
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-emerald-600 rounded-3xl shadow-lg shadow-emerald-200 mb-6 rotate-3">
+                    <i class="fas fa-mosque text-3xl text-white"></i>
+                </div>
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Selamat Datang</h1>
+                <p class="text-slate-500 mt-2 font-medium">Silakan masuk ke akun Anda</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-6">
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button type="button" onclick="selectRole('admin')" id="role-admin" class="role-btn border-2 border-slate-100 p-3 rounded-2xl text-sm font-bold hover:bg-emerald-50 transition-all">Admin</button>
+                    <button type="button" onclick="selectRole('ustadz')" id="role-ustadz" class="role-btn border-2 border-slate-100 p-3 rounded-2xl text-sm font-bold hover:bg-emerald-50 transition-all">Ustadz</button>
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-gray-700 mb-2">Password</label>
-                    <input type="password" id="password" autocomplete="current-password" required
-                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                <div class="space-y-4">
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="email" id="email" autocomplete="username" placeholder="Email Address" required
+                            class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all font-medium">
+                    </div>
+
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="password" id="password" autocomplete="current-password" placeholder="Password" required
+                            class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all font-medium">
+                    </div>
                 </div>
 
                 <button type="submit" id="loginBtn" 
-                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl flex justify-center items-center transition-all">
-                    
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-emerald-200 flex justify-center items-center transition-all active:scale-95 group">
                     <span class="btn-loader hidden mr-3">
-                        <i class="fas fa-spinner animate-spin"></i>
+                        <i class="fas fa-circle-notch animate-spin text-xl"></i>
                     </span>
-                    
                     <span class="btn-text">Masuk Sekarang</span>
+                    <i class="fas fa-arrow-right ml-3 group-hover:translate-x-1 transition-transform"></i>
                 </button>
             </form>
 
+            <p class="text-center mt-8 text-slate-500 text-sm">
+                Lupa password? <a href="#" class="text-emerald-600 font-bold hover:underline">Hubungi Admin</a>
+            </p>
         </div>
     </div>
 
@@ -44,7 +71,6 @@
         import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Konfigurasi Firebase Anda
         const firebaseConfig = {
             apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
             authDomain: "hidayatulamin-3e614.firebaseapp.com",
@@ -58,60 +84,62 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Pastikan selectedRole terdefinisi (bisa dari klik kartu UI)
-        window.selectedRole = "admin"; // Contoh default, sesuaikan dengan logika klik kartu Anda
+        let selectedRole = '';
+
+        window.selectRole = (role) => {
+            selectedRole = role;
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'bg-emerald-50', 'text-emerald-700');
+                btn.classList.add('border-slate-100');
+            });
+            const activeBtn = document.getElementById(`role-${role}`);
+            activeBtn.classList.replace('border-slate-100', 'border-emerald-500');
+            activeBtn.classList.add('bg-emerald-50', 'text-emerald-700');
+        };
 
         window.handleLogin = async (e) => {
             e.preventDefault();
-            
             const btn = document.getElementById('loginBtn');
             const btnLoader = btn.querySelector('.btn-loader');
             const btnText = btn.querySelector('.btn-text');
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
 
-            if (!window.selectedRole) {
-                alert('Pilih peran terlebih dahulu!');
+            if (!selectedRole) {
+                alert('Silakan pilih peran Anda!');
                 return;
             }
 
             try {
-                // Mulai Loading
+                // START LOADING
                 btn.disabled = true;
-                if (btnLoader) btnLoader.classList.remove('hidden');
-                if (btnText) btnText.textContent = 'Memuat...';
+                btnLoader.classList.remove('hidden');
+                btnText.textContent = 'Memverifikasi...';
 
-                // 1. Auth Firebase
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // 2. Cek Role di Firestore
                 const uDoc = await getDoc(doc(db, "users", user.uid));
                 
-                if (uDoc.exists()) {
-                    const userData = uDoc.data();
-                    if (userData.role === window.selectedRole) {
-                        alert('Login Berhasil!');
-                        window.location.href = `dashboard-${userData.role}.html`;
-                    } else {
-                        await signOut(auth);
-                        alert(`Akses ditolak. Peran Anda adalah ${userData.role}`);
-                    }
+                if (uDoc.exists() && uDoc.data().role === selectedRole) {
+                    alert('Login Berhasil!');
+                    window.location.href = `dashboard-${selectedRole}.html`;
                 } else {
                     await signOut(auth);
-                    alert('Data pengguna tidak ditemukan di database.');
+                    alert(`Akses ditolak. Akun Anda bukan ${selectedRole.toUpperCase()}`);
                 }
-
             } catch (error) {
                 console.error(error);
-                let msg = "Gagal login: " + error.message;
-                if (error.code === 'auth/invalid-credential') msg = "Email atau Password salah!";
+                let msg = "Login Gagal: ";
+                if(error.code === 'auth/invalid-credential') msg += "Email atau Password salah.";
+                else msg += error.message;
                 alert(msg);
             } finally {
-                // Berhenti Loading (Apapun hasilnya)
+                // STOP LOADING (Tombol kembali normal)
                 btn.disabled = false;
-                if (btnLoader) btnLoader.classList.add('hidden');
-                if (btnText) btnText.textContent = 'Masuk Sekarang';
+                btnLoader.classList.add('hidden');
+                btnText.textContent = 'Masuk Sekarang';
             }
         };
     </script>
