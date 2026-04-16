@@ -38,16 +38,17 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .loading-skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .dropdown-menu { transform-origin: top right; transition: all 0.2s; }
-        .dropdown-menu.hidden { opacity: 0; transform: scale(0.95); pointer-events: none; }
-        .dropdown-menu:not(.hidden) { opacity: 1; transform: scale(1); pointer-events: auto; }
+        .modal { opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.9) translateY(20px); transition: all 0.3s; }
+        .modal.active .modal-content { transform: scale(1) translateY(0); }
+        .tab-active { border-bottom: 2px solid #059669; color: #059669; }
     </style>
 </head>
 <body class="font-sans antialiased bg-secondary-50 dark:bg-secondary-900 text-secondary-800 dark:text-secondary-200">
     
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar sidebar-expanded fixed left-0 top-0 h-full bg-white dark:bg-secondary-800 border-r border-secondary-200 dark:border-secondary-700 z-40 flex flex-col">
-        <!-- Logo -->
         <div class="h-20 flex items-center px-6 border-b border-secondary-200 dark:border-secondary-700">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white shadow-lg shadow-primary-500/30">
                 <i class="fas fa-mosque text-lg"></i>
@@ -61,7 +62,6 @@
             </button>
         </div>
 
-        <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
             <a href="#" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium">
                 <i class="fas fa-home w-5"></i>
@@ -86,9 +86,13 @@
             
             <div class="pt-4 mt-4 border-t border-secondary-200 dark:border-secondary-700">
                 <p class="sidebar-text px-4 text-xs font-semibold text-secondary-400 uppercase tracking-wider mb-2">Manajemen</p>
-                <a href="#" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <i class="fas fa-users w-5"></i>
-                    <span class="sidebar-text">Data Santri</span>
+                <button onclick="openUserModal()" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                    <i class="fas fa-user-plus w-5"></i>
+                    <span class="sidebar-text">Buat User Baru</span>
+                </button>
+                <a href="#" onclick="showUserList()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                    <i class="fas fa-users-cog w-5"></i>
+                    <span class="sidebar-text">Kelola Users</span>
                 </a>
                 <a href="#" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
                     <i class="fas fa-chalkboard-teacher w-5"></i>
@@ -101,16 +105,15 @@
             </div>
         </nav>
 
-        <!-- User Profile -->
         <div class="p-4 border-t border-secondary-200 dark:border-secondary-700">
             <div class="flex items-center gap-3">
-                <img src="https://ui-avatars.com/api/?name=Admin&background=059669&color=fff" class="w-10 h-10 rounded-full">
+                <img id="userAvatar" src="https://ui-avatars.com/api/?name=Admin&background=059669&color=fff" class="w-10 h-10 rounded-full">
                 <div class="sidebar-text flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-secondary-900 dark:text-white truncate">Administrator</p>
-                    <p class="text-xs text-secondary-500 truncate">admin@ponpes.id</p>
+                    <p id="userName" class="text-sm font-semibold text-secondary-900 dark:text-white truncate">Administrator</p>
+                    <p id="userEmail" class="text-xs text-secondary-500 truncate">admin@ponpes.id</p>
                 </div>
-                <button onclick="toggleUserMenu()" class="text-secondary-400 hover:text-secondary-600">
-                    <i class="fas fa-ellipsis-v"></i>
+                <button onclick="handleLogout()" class="text-secondary-400 hover:text-red-500 transition">
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
         </div>
@@ -126,15 +129,15 @@
                     <p class="text-sm text-secondary-500">Selamat datang kembali, <span id="currentDate"></span></p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-yellow-400 flex items-center justify-center hover:bg-secondary-200 dark:hover:bg-secondary-700 transition">
+                    <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-yellow-400 flex items-center justify-center hover:bg-secondary-200 transition">
                         <i class="fas fa-moon dark:hidden"></i>
                         <i class="fas fa-sun hidden dark:block"></i>
                     </button>
-                    <button class="w-10 h-10 rounded-xl bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400 flex items-center justify-center hover:bg-secondary-200 dark:hover:bg-secondary-700 transition relative">
+                    <button class="w-10 h-10 rounded-xl bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400 flex items-center justify-center hover:bg-secondary-200 transition relative">
                         <i class="fas fa-bell"></i>
                         <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
                     </button>
-                    <button onclick="handleLogout()" class="px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-600 text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/50 transition flex items-center gap-2">
+                    <button onclick="handleLogout()" class="px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-600 text-sm font-semibold hover:bg-red-100 transition flex items-center gap-2">
                         <i class="fas fa-sign-out-alt"></i>
                         <span>Logout</span>
                     </button>
@@ -144,8 +147,24 @@
 
         <!-- Dashboard Content -->
         <div class="p-8">
-            <!-- Stats Grid -->
+            <!-- Quick Action Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <button onclick="openUserModal()" class="card-stat bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl p-6 text-white text-left shadow-lg shadow-primary-500/30">
+                    <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                        <i class="fas fa-user-plus text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold">Buat User Baru</h3>
+                    <p class="text-primary-100 text-sm">Tambah admin, ustadz, wali, atau santri</p>
+                </button>
+                
+                <button onclick="showUserList()" class="card-stat bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 text-left">
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Kelola Users</h3>
+                    <p class="text-secondary-500 text-sm">Lihat dan edit data user</p>
+                </button>
+
                 <div class="card-stat bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 text-primary-600 flex items-center justify-center">
@@ -171,140 +190,242 @@
                     <h3 class="text-3xl font-bold text-secondary-900 dark:text-white mb-1" id="statUstadz">-</h3>
                     <p class="text-sm text-secondary-500">Total Ustadz</p>
                 </div>
+            </div>
 
-                <div class="card-stat bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
+            <!-- Charts Section -->
+            <div class="grid lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
                     <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center">
-                            <i class="fas fa-wallet text-xl"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-secondary-400">Bulan Ini</span>
+                        <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Grafik Kehadiran</h3>
+                        <select class="text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg px-3 py-1 bg-transparent">
+                            <option>Minggu Ini</option>
+                            <option>Bulan Ini</option>
+                        </select>
                     </div>
-                    <h3 class="text-3xl font-bold text-secondary-900 dark:text-white mb-1" id="statKeuangan">-</h3>
-                    <p class="text-sm text-secondary-500">Pemasukan</p>
+                    <div class="relative h-[300px] w-full">
+                        <canvas id="attendanceChart"></canvas>
+                    </div>
                 </div>
 
-                <div class="card-stat bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
+                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
                     <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
-                            <i class="fas fa-percentage text-xl"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-green-500 flex items-center gap-1">
-                            <i class="fas fa-arrow-up"></i> 8%
-                        </span>
+                        <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Progres Hafalan per Kelas</h3>
+                        <select class="text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg px-3 py-1 bg-transparent">
+                            <option>Semua Kelas</option>
+                            <option>Kelas A</option>
+                            <option>Kelas B</option>
+                        </select>
                     </div>
-                    <h3 class="text-3xl font-bold text-secondary-900 dark:text-white mb-1" id="statHafalan">-</h3>
-                    <p class="text-sm text-secondary-500">Rata-rata Hafalan</p>
+                    <div class="relative h-[300px] w-full">
+                        <canvas id="hafalanChart"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <!-- Charts Section - FIXED -->
-<div class="grid lg:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Grafik Kehadiran</h3>
-            <select class="text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg px-3 py-1 bg-transparent">
-                <option>Minggu Ini</option>
-                <option>Bulan Ini</option>
-            </select>
-        </div>
-        <!-- FIXED: Container dengan height fixed 300px -->
-        <div class="relative h-[300px] w-full">
-            <canvas id="attendanceChart"></canvas>
-        </div>
-    </div>
-
-    <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Progres Hafalan per Kelas</h3>
-            <select class="text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg px-3 py-1 bg-transparent">
-                <option>Semua Kelas</option>
-                <option>Kelas A</option>
-                <option>Kelas B</option>
-            </select>
-        </div>
-        <!-- FIXED: Container dengan height fixed 300px -->
-        <div class="relative h-[300px] w-full">
-            <canvas id="hafalanChart"></canvas>
-        </div>
-    </div>
-</div>
-
-            <!-- Recent Activity & Quick Actions -->
-            <div class="grid lg:grid-cols-3 gap-6">
-                <!-- Recent Activity -->
-                <div class="lg:col-span-2 bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Aktivitas Terbaru</h3>
-                        <button class="text-sm text-primary-600 hover:text-primary-700 font-medium">Lihat Semua</button>
-                    </div>
-                    <div class="space-y-4" id="activityList">
-                        <div class="flex items-center gap-4 p-4 rounded-xl bg-secondary-50 dark:bg-secondary-700/50">
-                            <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 flex items-center justify-center">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-semibold text-secondary-900 dark:text-white">Santri Baru Terdaftar</p>
-                                <p class="text-xs text-secondary-500">Ahmad Fauzi - Kelas A</p>
-                            </div>
-                            <span class="text-xs text-secondary-400">2 menit lalu</span>
-                        </div>
-                        <div class="flex items-center gap-4 p-4 rounded-xl bg-secondary-50 dark:bg-secondary-700/50">
-                            <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
-                                <i class="fas fa-book"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-semibold text-secondary-900 dark:text-white">Setoran Hafalan</p>
-                                <p class="text-xs text-secondary-500">Ustadz Abdullah - 5 Juz</p>
-                            </div>
-                            <span class="text-xs text-secondary-400">15 menit lalu</span>
-                        </div>
-                        <div class="flex items-center gap-4 p-4 rounded-xl bg-secondary-50 dark:bg-secondary-700/50">
-                            <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center">
-                                <i class="fas fa-money-bill-wave"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-semibold text-secondary-900 dark:text-white">Pembayaran SPP</p>
-                                <p class="text-xs text-secondary-500">Wali santri: Bapak Budi</p>
-                            </div>
-                            <span class="text-xs text-secondary-400">1 jam lalu</span>
-                        </div>
-                    </div>
+            <!-- Recent Users Table -->
+            <div class="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 overflow-hidden">
+                <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-secondary-900 dark:text-white">User Terbaru</h3>
+                    <button onclick="showUserList()" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Lihat Semua</button>
                 </div>
-
-                <!-- Quick Actions -->
-                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
-                    <h3 class="text-lg font-bold text-secondary-900 dark:text-white mb-6">Aksi Cepat</h3>
-                    <div class="space-y-3">
-                        <button onclick="showAddSantriModal()" class="w-full flex items-center gap-3 p-4 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition text-left">
-                            <i class="fas fa-user-plus"></i>
-                            <span class="font-medium">Tambah Santri Baru</span>
-                        </button>
-                        <button onclick="location.href='absensi.html'" class="w-full flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition text-left">
-                            <i class="fas fa-qrcode"></i>
-                            <span class="font-medium">Scan Absensi</span>
-                        </button>
-                        <button onclick="location.href='hafalan.html'" class="w-full flex items-center gap-3 p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition text-left">
-                            <i class="fas fa-book-open"></i>
-                            <span class="font-medium">Input Hafalan</span>
-                        </button>
-                        <button onclick="location.href='keuangan.html'" class="w-full flex items-center gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition text-left">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                            <span class="font-medium">Laporan Keuangan</span>
-                        </button>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-secondary-50 dark:bg-secondary-700/50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">User</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Role</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Status</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Dibuat</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-secondary-200 dark:divide-secondary-700" id="recentUsersTable">
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-secondary-400">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i> Memuat data...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </main>
 
+    <!-- Create User Modal -->
+    <div id="userModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl">
+            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-secondary-900 dark:text-white">Buat User Baru</h3>
+                <button onclick="closeUserModal()" class="w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center hover:bg-secondary-200 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                <form id="createUserForm" onsubmit="handleCreateUser(event)">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Email <span class="text-red-500">*</span></label>
+                            <input type="email" id="newUserEmail" required placeholder="user@email.com"
+                                class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Password <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="password" id="newUserPassword" required placeholder="Min. 6 karakter" minlength="6"
+                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600">
+                                    <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+                            <p class="text-xs text-secondary-500 mt-1">Minimal 6 karakter</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
+                            <input type="text" id="newUserName" required placeholder="Nama user"
+                                class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Role <span class="text-red-500">*</span></label>
+                            <select id="newUserRole" required onchange="handleRoleChange()"
+                                class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                                <option value="">Pilih Role</option>
+                                <option value="admin">Administrator</option>
+                                <option value="ustadz">Ustadz/Pengajar</option>
+                                <option value="wali">Wali Santri</option>
+                                <option value="santri">Santri</option>
+                            </select>
+                        </div>
+
+                        <!-- Extra fields for santri -->
+                        <div id="santriFields" class="hidden space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
+                            <div>
+                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">NIS (Nomor Induk Santri)</label>
+                                <input type="text" id="santriNIS" placeholder="2024001"
+                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Kelas</label>
+                                <select id="santriKelas"
+                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                                    <option value="">Pilih Kelas</option>
+                                    <option value="1A">1A</option>
+                                    <option value="1B">1B</option>
+                                    <option value="2A">2A</option>
+                                    <option value="2B">2B</option>
+                                    <option value="3A">3A</option>
+                                    <option value="3B">3B</option>
+                                    <option value="4A">4A</option>
+                                    <option value="4B">4B</option>
+                                    <option value="5A">5A</option>
+                                    <option value="5B">5B</option>
+                                    <option value="6A">6A</option>
+                                    <option value="6B">6B</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Extra fields for wali -->
+                        <div id="waliFields" class="hidden space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
+                            <div>
+                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">No. Telepon</label>
+                                <input type="tel" id="waliPhone" placeholder="08123456789"
+                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Hubungan dengan Santri</label>
+                                <select id="waliHubungan"
+                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                                    <option value="ayah">Ayah</option>
+                                    <option value="ibu">Ibu</option>
+                                    <option value="wali">Wali</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="sendVerificationEmail" checked
+                                    class="w-5 h-5 rounded border-secondary-300 text-primary-600 focus:ring-primary-500">
+                                <span class="text-sm text-secondary-700 dark:text-secondary-300">Kirim email verifikasi</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button type="submit" id="createUserBtn" class="w-full py-4 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-user-plus"></i>
+                            <span id="createUserBtnText">Buat User</span>
+                            <div id="createUserBtnLoader" class="hidden">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User List Modal -->
+    <div id="userListModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-secondary-900 dark:text-white">Kelola Users</h3>
+                <button onclick="closeUserListModal()" class="w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center hover:bg-secondary-200 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex gap-4">
+                <div class="flex-1 relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"></i>
+                    <input type="text" id="searchUser" placeholder="Cari user..." oninput="filterUsers(this.value)"
+                        class="w-full pl-10 pr-4 py-2 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                </div>
+                <select id="filterRole" onchange="filterUsersByRole(this.value)"
+                    class="px-4 py-2 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                    <option value="">Semua Role</option>
+                    <option value="admin">Admin</option>
+                    <option value="ustadz">Ustadz</option>
+                    <option value="wali">Wali</option>
+                    <option value="santri">Santri</option>
+                </select>
+            </div>
+            
+            <div class="overflow-y-auto max-h-[60vh]">
+                <table class="w-full">
+                    <thead class="bg-secondary-50 dark:bg-secondary-700/50 sticky top-0">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">User</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Role</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Verifikasi</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Status</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-secondary-200 dark:divide-secondary-700" id="allUsersTable">
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-secondary-400">
+                                <i class="fas fa-spinner fa-spin mr-2"></i> Memuat data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
     <script type="module">
-        // TAMBAHKAN getDoc di import - ini yang menyebabkan error!
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
@@ -319,7 +440,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Auth Check dengan error handling yang lebih baik
+        let allUsers = [];
+
+        // Auth Check
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
@@ -327,149 +450,405 @@
             }
             
             try {
-                // Verify admin role dengan getDoc yang sudah di-import
                 const userRef = doc(db, "users", user.uid);
                 const uDoc = await getDoc(userRef);
                 
-                if (!uDoc.exists()) {
-                    console.error('User document not found for UID:', user.uid);
-                    showToast('Error', 'Data user tidak ditemukan. Membuat data default...');
-                    
-                    // Auto-create user document jika tidak ada (sama seperti di login)
-                    const { setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-                    await setDoc(userRef, {
-                        uid: user.uid,
-                        email: user.email,
-                        role: 'admin',
-                        displayName: user.displayName || 'Administrator',
-                        createdAt: serverTimestamp(),
-                        lastLoginAt: serverTimestamp(),
-                        isActive: true
-                    });
-                    
-                    showToast('Sukses', 'Data admin berhasil dibuat');
-                    loadDashboardData();
+                if (!uDoc.exists() || uDoc.data().role !== 'admin') {
+                    showToast('Akses Ditolak', 'Hanya admin yang bisa mengakses halaman ini', 'error');
+                    await signOut(auth);
+                    window.location.href = 'login.html';
                     return;
                 }
                 
                 const userData = uDoc.data();
-                
-                if (userData.role !== 'admin') {
-                    showToast('Akses Ditolak', `Anda terdaftar sebagai ${userData.role}, bukan admin`);
-                    await signOut(auth);
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 2000);
-                    return;
-                }
-                
-                // Update UI dengan data user
-                const userNameEl = document.querySelector('.sidebar-text .font-semibold');
-                const userEmailEl = document.querySelector('.sidebar-text .text-xs');
-                if (userNameEl) userNameEl.textContent = userData.displayName || 'Administrator';
-                if (userEmailEl) userEmailEl.textContent = user.email;
+                document.getElementById('userName').textContent = userData.displayName || 'Administrator';
+                document.getElementById('userEmail').textContent = user.email;
                 
                 loadDashboardData();
+                loadRecentUsers();
                 
             } catch (error) {
-                console.error('Auth check error:', error);
-                showToast('Error', 'Gagal memverifikasi akses: ' + error.message);
+                console.error('Auth error:', error);
+                showToast('Error', 'Gagal memverifikasi akses', 'error');
             }
         });
 
         async function loadDashboardData() {
             try {
-                // Load counts
-                const santriSnap = await getDocs(collection(db, "santri"));
+                const santriSnap = await getDocs(query(collection(db, "users"), where("role", "==", "santri")));
                 const ustadzSnap = await getDocs(query(collection(db, "users"), where("role", "==", "ustadz")));
                 
                 document.getElementById('statSantri').textContent = santriSnap.size;
                 document.getElementById('statUstadz').textContent = ustadzSnap.size;
-                document.getElementById('statKeuangan').textContent = 'Rp 12.5M';
-                document.getElementById('statHafalan').textContent = '3.5 Juz';
                 
                 initCharts();
             } catch (error) {
                 console.error("Error loading data:", error);
-                showToast('Error', 'Gagal memuat data dashboard: ' + error.message);
             }
         }
 
         function initCharts() {
-    // Attendance Chart - FIXED OPTIONS
-    const ctx1 = document.getElementById('attendanceChart').getContext('2d');
-    new Chart(ctx1, {
-        type: 'line',
-        data: {
-            labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-            datasets: [{
-                label: 'Hadir',
-                data: [95, 92, 98, 96, 94, 90, 88],
-                borderColor: '#059669',
-                backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                fill: true,
-                tension: 0.4
-            }, {
-                label: 'Absen',
-                data: [5, 8, 2, 4, 6, 10, 12],
-                borderColor: '#ef4444',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // PENTING: false agar mengikuti container
-            plugins: { 
-                legend: { position: 'bottom' } 
-            },
-            scales: { 
-                y: { 
-                    beginAtZero: true, 
-                    max: 100 
+            const ctx1 = document.getElementById('attendanceChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                    datasets: [{
+                        label: 'Hadir',
+                        data: [95, 92, 98, 96, 94, 90, 88],
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Absen',
+                        data: [5, 8, 2, 4, 6, 10, 12],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
                 },
-                x: {
-                    grid: {
-                        display: false
-                    }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true, max: 100 } }
                 }
-            }
-        }
-    });
+            });
 
-    // Hafalan Chart - FIXED OPTIONS
-    const ctx2 = document.getElementById('hafalanChart').getContext('2d');
-    new Chart(ctx2, {
-        type: 'bar',
-        data: {
-            labels: ['Kelas A', 'Kelas B', 'Kelas C', 'Kelas D'],
-            datasets: [{
-                label: 'Rata-rata Juz',
-                data: [4.2, 3.8, 5.1, 4.5],
-                backgroundColor: ['#059669', '#3b82f6', '#f59e0b', '#8b5cf6'],
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // PENTING: false agar mengikuti container
-            plugins: { 
-                legend: { display: false } 
-            },
-            scales: { 
-                y: { 
-                    beginAtZero: true 
+            const ctx2 = document.getElementById('hafalanChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Kelas A', 'Kelas B', 'Kelas C', 'Kelas D'],
+                    datasets: [{
+                        label: 'Rata-rata Juz',
+                        data: [4.2, 3.8, 5.1, 4.5],
+                        backgroundColor: ['#059669', '#3b82f6', '#f59e0b', '#8b5cf6'],
+                        borderRadius: 8
+                    }]
                 },
-                x: {
-                    grid: {
-                        display: false
-                    }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
                 }
+            });
+        }
+
+        // Create User
+        window.handleCreateUser = async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('createUserBtn');
+            const btnText = document.getElementById('createUserBtnText');
+            const btnLoader = document.getElementById('createUserBtnLoader');
+            
+            btn.disabled = true;
+            btnText.textContent = 'Membuat User...';
+            btnLoader.classList.remove('hidden');
+            
+            try {
+                const email = document.getElementById('newUserEmail').value;
+                const password = document.getElementById('newUserPassword').value;
+                const displayName = document.getElementById('newUserName').value;
+                const role = document.getElementById('newUserRole').value;
+                const sendVerification = document.getElementById('sendVerificationEmail').checked;
+                
+                // Create user in Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const newUser = userCredential.user;
+                
+                // Update profile
+                await updateProfile(newUser, { displayName: displayName });
+                
+                // Send verification email if checked
+                if (sendVerification) {
+                    await sendEmailVerification(newUser);
+                }
+                
+                // Prepare user data for Firestore
+                const userData = {
+                    uid: newUser.uid,
+                    email: email,
+                    displayName: displayName,
+                    role: role,
+                    emailVerified: false,
+                    isActive: true,
+                    createdAt: serverTimestamp(),
+                    createdBy: auth.currentUser.uid
+                };
+                
+                // Add role-specific data
+                if (role === 'santri') {
+                    userData.nis = document.getElementById('santriNIS').value || '';
+                    userData.kelas = document.getElementById('santriKelas').value || '';
+                } else if (role === 'wali') {
+                    userData.phone = document.getElementById('waliPhone').value || '';
+                    userData.hubungan = document.getElementById('waliHubungan').value || 'ayah';
+                }
+                
+                // Save to Firestore
+                await setDoc(doc(db, "users", newUser.uid), userData);
+                
+                // Success
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#059669', '#10b981', '#34d399']
+                });
+                
+                showToast('Sukses', `User ${displayName} berhasil dibuat! ${sendVerification ? 'Email verifikasi telah dikirim.' : ''}`);
+                
+                // Reset form and close modal
+                document.getElementById('createUserForm').reset();
+                closeUserModal();
+                
+                // Reload user list
+                loadRecentUsers();
+                
+            } catch (error) {
+                console.error('Create user error:', error);
+                let errorMsg = 'Gagal membuat user: ';
+                
+                switch(error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMsg += 'Email sudah terdaftar';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMsg += 'Format email tidak valid';
+                        break;
+                    case 'auth/weak-password':
+                        errorMsg += 'Password terlalu lemah (min. 6 karakter)';
+                        break;
+                    default:
+                        errorMsg += error.message;
+                }
+                
+                showToast('Error', errorMsg, 'error');
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Buat User';
+                btnLoader.classList.add('hidden');
+            }
+        };
+
+        // Load Recent Users
+        async function loadRecentUsers() {
+            try {
+                const usersSnap = await getDocs(query(collection(db, "users"), where("isActive", "==", true)));
+                allUsers = [];
+                
+                usersSnap.forEach(doc => {
+                    allUsers.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by createdAt desc
+                allUsers.sort((a, b) => {
+                    const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                    const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                    return bTime - aTime;
+                });
+                
+                renderRecentUsers(allUsers.slice(0, 5));
+                renderAllUsers(allUsers);
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
             }
         }
-    });
-}
+
+        function renderRecentUsers(users) {
+            const tbody = document.getElementById('recentUsersTable');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-secondary-400">Belum ada user</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map(user => `
+                <tr class="hover:bg-secondary-50 dark:hover:bg-secondary-700/30">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=random" class="w-10 h-10 rounded-full">
+                            <div>
+                                <p class="font-semibold text-secondary-900 dark:text-white text-sm">${user.displayName || 'Unknown'}</p>
+                                <p class="text-xs text-secondary-500">${user.email}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeClass(user.role)}">
+                            ${user.role}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        ${user.emailVerified 
+                            ? '<span class="text-green-500"><i class="fas fa-check-circle"></i> Terverifikasi</span>' 
+                            : '<span class="text-amber-500"><i class="fas fa-clock"></i> Pending</span>'}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-secondary-500">
+                        ${user.createdAt?.toDate ? new Date(user.createdAt.toDate()).toLocaleDateString('id-ID') : '-'}
+                    </td>
+                    <td class="px-6 py-4">
+                        <button onclick="viewUser('${user.uid}')" class="text-primary-600 hover:text-primary-700 mr-2">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="deleteUser('${user.uid}')" class="text-red-500 hover:text-red-600">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAllUsers(users) {
+            const tbody = document.getElementById('allUsersTable');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-secondary-400">Tidak ada user</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map(user => `
+                <tr class="hover:bg-secondary-50 dark:hover:bg-secondary-700/30">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=random" class="w-10 h-10 rounded-full">
+                            <div>
+                                <p class="font-semibold text-secondary-900 dark:text-white text-sm">${user.displayName || 'Unknown'}</p>
+                                <p class="text-xs text-secondary-500">${user.email}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeClass(user.role)}">
+                            ${user.role}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        ${user.emailVerified 
+                            ? '<span class="text-green-500"><i class="fas fa-check-circle"></i></span>' 
+                            : '<button onclick="resendVerification(\'${user.email}\')" class="text-amber-500 hover:text-amber-600 text-xs"><i class="fas fa-paper-plane"></i> Kirim Ulang</button>'}
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                            ${user.isActive ? 'Aktif' : 'Nonaktif'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <button onclick="viewUser('${user.uid}')" class="text-primary-600 hover:text-primary-700 mr-2" title="Lihat">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="toggleUserStatus('${user.uid}', ${!user.isActive})" class="text-secondary-600 hover:text-secondary-700 mr-2" title="${user.isActive ? 'Nonaktifkan' : 'Aktifkan'}">
+                            <i class="fas ${user.isActive ? 'fa-ban' : 'fa-check'}"></i>
+                        </button>
+                        <button onclick="deleteUser('${user.uid}')" class="text-red-500 hover:text-red-600" title="Hapus">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getRoleBadgeClass(role) {
+            const classes = {
+                admin: 'bg-purple-100 text-purple-700',
+                ustadz: 'bg-blue-100 text-blue-700',
+                wali: 'bg-amber-100 text-amber-700',
+                santri: 'bg-green-100 text-green-700'
+            };
+            return classes[role] || 'bg-gray-100 text-gray-700';
+        }
+
+        // Filter users
+        window.filterUsers = (query) => {
+            const filtered = allUsers.filter(u => 
+                u.displayName?.toLowerCase().includes(query.toLowerCase()) ||
+                u.email?.toLowerCase().includes(query.toLowerCase())
+            );
+            renderAllUsers(filtered);
+        };
+
+        window.filterUsersByRole = (role) => {
+            if (!role) {
+                renderAllUsers(allUsers);
+                return;
+            }
+            const filtered = allUsers.filter(u => u.role === role);
+            renderAllUsers(filtered);
+        };
+
+        // User actions
+        window.viewUser = (uid) => {
+            showToast('Info', 'Detail user: ' + uid);
+        };
+
+        window.toggleUserStatus = async (uid, newStatus) => {
+            try {
+                await updateDoc(doc(db, "users", uid), { isActive: newStatus });
+                showToast('Sukses', `User ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`);
+                loadRecentUsers();
+            } catch (error) {
+                showToast('Error', 'Gagal mengubah status: ' + error.message, 'error');
+            }
+        };
+
+        window.deleteUser = async (uid) => {
+            if (!confirm('Yakin ingin menghapus user ini?')) return;
+            
+            try {
+                // Soft delete
+                await updateDoc(doc(db, "users", uid), { isActive: false, deletedAt: serverTimestamp() });
+                showToast('Sukses', 'User berhasil dihapus');
+                loadRecentUsers();
+            } catch (error) {
+                showToast('Error', 'Gagal menghapus: ' + error.message, 'error');
+            }
+        };
+
+        window.resendVerification = async (email) => {
+            showToast('Info', 'Fitur kirim ulang verifikasi akan segera hadir');
+        };
+
+        // Modal functions
+        window.openUserModal = () => {
+            document.getElementById('userModal').classList.add('active');
+        };
+
+        window.closeUserModal = () => {
+            document.getElementById('userModal').classList.remove('active');
+        };
+
+        window.showUserList = () => {
+            document.getElementById('userListModal').classList.add('active');
+        };
+
+        window.closeUserListModal = () => {
+            document.getElementById('userListModal').classList.remove('active');
+        };
+
+        window.handleRoleChange = () => {
+            const role = document.getElementById('newUserRole').value;
+            document.getElementById('santriFields').classList.toggle('hidden', role !== 'santri');
+            document.getElementById('waliFields').classList.toggle('hidden', role !== 'wali');
+        };
+
+        window.togglePasswordVisibility = () => {
+            const input = document.getElementById('newUserPassword');
+            const icon = document.getElementById('togglePasswordIcon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        };
 
         window.toggleSidebar = () => {
             const sidebar = document.getElementById('sidebar');
@@ -500,25 +879,17 @@
                     localStorage.removeItem('userData');
                     window.location.href = 'login.html';
                 } catch (error) {
-                    showToast('Error', 'Gagal logout: ' + error.message);
+                    showToast('Error', 'Gagal logout: ' + error.message, 'error');
                 }
             }
         };
 
-        window.showAddSantriModal = () => {
-            showToast('Info', 'Fitur tambah santri akan segera hadir');
-        };
-
-        window.toggleUserMenu = () => {
-            showToast('Info', 'Menu pengaturan user akan segera hadir');
-        };
-
-        function showToast(title, message) {
+        function showToast(title, message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            toast.className = 'bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-4 flex items-center gap-3 border-l-4 border-primary-500 animate-fade-in mb-2';
+            toast.className = `bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-4 flex items-center gap-3 border-l-4 ${type === 'error' ? 'border-red-500' : 'border-primary-500'} animate-fade-in mb-2`;
             toast.innerHTML = `
-                <i class="fas fa-info-circle text-primary-500"></i>
+                <i class="fas ${type === 'error' ? 'fa-exclamation-circle text-red-500' : 'fa-check-circle text-primary-500'}"></i>
                 <div>
                     <p class="font-semibold text-secondary-900 dark:text-white text-sm">${title}</p>
                     <p class="text-xs text-secondary-500">${message}</p>
@@ -529,7 +900,7 @@
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateX(100%)';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 5000);
         }
 
         // Set current date
