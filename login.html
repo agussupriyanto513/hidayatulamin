@@ -3,452 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Hidayatullah Amin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Login - Hidayatul Amin</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-                    animation: {
-                        'blob': 'blob 7s infinite',
-                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
-                        'slide-up': 'slideUp 0.5s ease-out',
-                    },
-                    keyframes: {
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
-                        },
-                        shake: {
-                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
-                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
-                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
-                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' }
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        .glass-dark {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        .input-group:focus-within label {
-            color: #059669;
-            transform: translateY(-24px) scale(0.85);
-        }
-        .input-group label {
-            transition: all 0.2s ease-out;
-            transform-origin: left top;
-        }
-        .input-group input:not(:placeholder-shown) + label,
-        .input-group input:focus + label {
-            transform: translateY(-24px) scale(0.85);
-        }
-        .role-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .role-card:hover {
-            transform: translateY(-4px);
-        }
-        .role-card.selected {
-            border-color: #059669;
-            background: rgba(5, 150, 105, 0.05);
-            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-        }
-        .gradient-mesh {
-            background-color: #0f172a;
-            background-image: 
-                radial-gradient(at 40% 20%, hsla(160,100%,40%,0.3) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, hsla(190,100%,50%,0.2) 0px, transparent 50%),
-                radial-gradient(at 0% 50%, hsla(340,100%,60%,0.2) 0px, transparent 50%),
-                radial-gradient(at 80% 50%, hsla(160,100%,40%,0.3) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, hsla(220,100%,50%,0.2) 0px, transparent 50%),
-                radial-gradient(at 80% 100%, hsla(160,100%,30%,0.3) 0px, transparent 50%);
-        }
-        .loader {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top: 3px solid white;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="font-sans antialiased min-h-screen flex items-center justify-center p-4 gradient-mesh">
-    
-    <!-- Animated Background Blobs -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-        <div class="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob" style="animation-delay: 2s;"></div>
-        <div class="absolute -bottom-32 left-1/3 w-96 h-96 bg-purple-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob" style="animation-delay: 4s;"></div>
-    </div>
+<body class="bg-gray-50">
 
-    <!-- Main Container -->
-    <div class="relative w-full max-w-5xl animate-slide-up">
-        
-        <!-- Back Button -->
-        <a href="index.html" class="absolute -top-16 left-0 flex items-center gap-2 text-white/80 hover:text-white transition">
-            <i class="fas fa-arrow-left"></i>
-            <span>Kembali ke Beranda</span>
-        </a>
-
-        <div class="grid lg:grid-cols-2 gap-0 rounded-3xl overflow-hidden shadow-2xl">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-white rounded-3xl shadow-xl p-8">
             
-            <!-- Left Side - Branding -->
-            <div class="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-emerald-600 to-emerald-800 text-white relative overflow-hidden">
-                <div class="absolute inset-0 opacity-20">
-                    <div class="absolute top-0 left-0 w-full h-full" style="background-image: url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%23ffffff\\' fill-opacity=\\'0.1\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
-                </div>
-                
-                <div class="relative z-10">
-                    <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mb-8">
-                        <i class="fas fa-mosque text-3xl"></i>
-                    </div>
-                    <h2 class="text-4xl font-bold mb-4">Selamat Datang</h2>
-                    <p class="text-emerald-100 text-lg leading-relaxed">
-                        Sistem manajemen pesantren modern untuk generasi emas. 
-                        Terhubung, terintegrasi, dan berkelas.
-                    </p>
-                </div>
-                
-                <div class="relative z-10 space-y-4">
-                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur">
-                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold">Keamanan Terjamin</p>
-                            <p class="text-sm text-emerald-200">Enkripsi data end-to-end</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur">
-                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold">Real-time Update</p>
-                            <p class="text-sm text-emerald-200">Data selalu terkini</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Side - Login Form -->
-            <div class="glass dark:glass-dark p-8 lg:p-12">
-                <div class="mb-8">
-                    <h1 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Masuk ke Akun</h1>
-                    <p class="text-gray-500 dark:text-gray-400">Pilih peran Anda untuk melanjutkan</p>
+            <form onsubmit="handleLogin(event)">
+                <div class="mb-6">
+                    <label class="block text-gray-700 mb-2">Email Address</label>
+                    <input type="email" id="email" autocomplete="username" required
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none">
                 </div>
 
-                <!-- Role Selection -->
-                <div class="grid grid-cols-2 gap-3 mb-8">
-                    <button onclick="selectRole('admin')" id="role-admin" class="role-card p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-500 text-left transition-all">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center mb-3">
-                            <i class="fas fa-user-shield"></i>
-                        </div>
-                        <p class="font-semibold text-gray-800 dark:text-white text-sm">Administrator</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Kelola sistem</p>
-                    </button>
+                <div class="mb-6">
+                    <label class="block text-gray-700 mb-2">Password</label>
+                    <input type="password" id="password" autocomplete="current-password" required
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+
+                <button type="submit" id="loginBtn" 
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl flex justify-center items-center transition-all">
                     
-                    <button onclick="selectRole('ustadz')" id="role-ustadz" class="role-card p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 text-left transition-all">
-                        <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center mb-3">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                        </div>
-                        <p class="font-semibold text-gray-800 dark:text-white text-sm">Ustadz</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Input nilai</p>
-                    </button>
+                    <span class="btn-loader hidden mr-3">
+                        <i class="fas fa-spinner animate-spin"></i>
+                    </span>
                     
-                    <button onclick="selectRole('wali')" id="role-wali" class="role-card p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 text-left transition-all">
-                        <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center mb-3">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <p class="font-semibold text-gray-800 dark:text-white text-sm">Wali Santri</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Monitoring anak</p>
-                    </button>
-                    
-                    <button onclick="selectRole('santri')" id="role-santri" class="role-card p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-500 text-left transition-all">
-                        <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center mb-3">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                        <p class="font-semibold text-gray-800 dark:text-white text-sm">Santri</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Lihat profil</p>
-                    </button>
-                </div>
+                    <span class="btn-text">Masuk Sekarang</span>
+                </button>
+            </form>
 
-                <!-- Login Form -->
-                <form id="loginForm" onsubmit="handleLogin(event)">
-                    <div class="space-y-5">
-                        <div class="input-group relative">
-                            <input type="email" id="email" placeholder=" " required
-                                class="w-full px-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white focus:border-emerald-500 focus:outline-none transition-colors peer">
-                            <label for="email" class="absolute left-4 top-4 text-gray-500 dark:text-gray-400 pointer-events-none">
-                                <i class="fas fa-envelope mr-2"></i>Email Address
-                            </label>
-                        </div>
-                        
-                        <div class="input-group relative">
-                            <input type="password" id="password" autocomplete="current-password" placeholder=" " required ... >
-                            <label for="password" class="absolute left-4 top-4 text-gray-500 dark:text-gray-400 pointer-events-none">
-                                <i class="fas fa-lock mr-2"></i>Password
-                            </label>
-                            <button type="button" onclick="togglePassword()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                <i class="fas fa-eye" id="eyeIcon"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between mt-6 mb-8">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Ingat saya</span>
-                        </label>
-                        <a href="#" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium">Lupa password?</a>
-                    </div>
-
-                    <button type="submit" id="submitBtn" class="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                        <span id="btnText">Masuk Sekarang</span>
-                        <div id="btnLoader" class="loader hidden"></div>
-                    </button>
-                </form>
-
-                <div class="mt-8 text-center">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Belum punya akun? 
-                        <a href="#" onclick="showRegisterModal()" class="text-emerald-600 font-semibold hover:underline">Hubungi Admin</a>
-                    </p>
-                </div>
-
-                <!-- Demo Credentials -->
-                <div class="mt-8 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Demo Credentials</p>
-                    <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400 font-mono">
-                        <p><span class="text-emerald-600 font-bold">Admin:</span> admin@hidayatulamin.pi / 513513</p>
-                        <p><span class="text-blue-600 font-bold">Ustadz:</span> ustadz@ponpes.id / ustadz123</p>
-                        <p><span class="text-amber-600 font-bold">Wali:</span> wali@ponpes.id / wali123</p>
-                        <p><span class="text-purple-600 font-bold">Santri:</span> santri@ponpes.id / santri123</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 flex items-center gap-3 border-l-4 border-red-500 min-w-[300px]">
-            <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center">
-                <i class="fas fa-exclamation-circle"></i>
-            </div>
-            <div>
-                <p class="font-semibold text-gray-800 dark:text-white" id="toastTitle">Error</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400" id="toastMessage">Something went wrong</p>
-            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+        // Konfigurasi Firebase Anda
         const firebaseConfig = {
             apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-            projectId: "hidayatulamin-e6f22",
-            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-            messagingSenderId: "80743607267",
-            appId: "1:80743607267:web:f5f94165de021759958ed6"
+            authDomain: "hidayatulamin-3e614.firebaseapp.com",
+            projectId: "hidayatulamin-3e614",
+            storageBucket: "hidayatulamin-3e614.appspot.com",
+            messagingSenderId: "931234567890",
+            appId: "1:931234567890:web:abcdef123456"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let selectedRole = null;
+        // Pastikan selectedRole terdefinisi (bisa dari klik kartu UI)
+        window.selectedRole = "admin"; // Contoh default, sesuaikan dengan logika klik kartu Anda
 
-        // Check if already logged in
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
+        window.handleLogin = async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('loginBtn');
+            const btnLoader = btn.querySelector('.btn-loader');
+            const btnText = btn.querySelector('.btn-text');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!window.selectedRole) {
+                alert('Pilih peran terlebih dahulu!');
+                return;
+            }
+
+            try {
+                // Mulai Loading
+                btn.disabled = true;
+                if (btnLoader) btnLoader.classList.remove('hidden');
+                if (btnText) btnText.textContent = 'Memuat...';
+
+                // 1. Auth Firebase
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // 2. Cek Role di Firestore
                 const uDoc = await getDoc(doc(db, "users", user.uid));
+                
                 if (uDoc.exists()) {
-                    redirectBasedOnRole(uDoc.data().role);
+                    const userData = uDoc.data();
+                    if (userData.role === window.selectedRole) {
+                        alert('Login Berhasil!');
+                        window.location.href = `dashboard-${userData.role}.html`;
+                    } else {
+                        await signOut(auth);
+                        alert(`Akses ditolak. Peran Anda adalah ${userData.role}`);
+                    }
+                } else {
+                    await signOut(auth);
+                    alert('Data pengguna tidak ditemukan di database.');
                 }
-            }
-        });
 
-        window.selectRole = (role) => {
-            selectedRole = role;
-            document.querySelectorAll('.role-card').forEach(card => card.classList.remove('selected'));
-            document.getElementById(`role-${role}`).classList.add('selected');
-            
-            // Auto-fill demo credentials based on role
-            const credentials = {
-                admin: { email: 'admin@hidayatulamin.pi', pass: '513513' },
-                ustadz: { email: 'ustadz@ponpes.id', pass: 'ustadz123' },
-                wali: { email: 'wali@ponpes.id', pass: 'wali123' },
-                santri: { email: 'santri@ponpes.id', pass: 'santri123' }
-            };
-            
-            if (credentials[role]) {
-                document.getElementById('email').value = credentials[role].email;
-                document.getElementById('password').value = credentials[role].pass;
+            } catch (error) {
+                console.error(error);
+                let msg = "Gagal login: " + error.message;
+                if (error.code === 'auth/invalid-credential') msg = "Email atau Password salah!";
+                alert(msg);
+            } finally {
+                // Berhenti Loading (Apapun hasilnya)
+                btn.disabled = false;
+                if (btnLoader) btnLoader.classList.add('hidden');
+                if (btnText) btnText.textContent = 'Masuk Sekarang';
             }
         };
-
-       window.handleLogin = async (e) => {
-    e.preventDefault();
-    
-    // 1. Ambil elemen tombol dengan aman
-    const btn = document.getElementById('loginBtn');
-    
-    // Proteksi jika ID loginBtn tidak ditemukan di HTML
-    if (!btn) {
-        console.error("Error: Tombol dengan ID 'loginBtn' tidak ditemukan!");
-        alert("Terjadi kesalahan teknis pada tombol login.");
-        return;
-    }
-
-    const btnLoader = btn.querySelector('.btn-loader');
-    const btnText = btn.querySelector('.btn-text');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-
-    // 2. Validasi Input Dasar
-    if (!emailInput.value || !passwordInput.value) {
-        showToast('Email dan Password harus diisi', 'error');
-        return;
-    }
-
-    if (!selectedRole) {
-        showToast('Pilih peran (Admin/Ustadz/Wali/Santri) terlebih dahulu', 'error');
-        return;
-    }
-
-    try {
-        // --- MULAI LOADING ---
-        btn.disabled = true;
-        if (btnLoader) btnLoader.classList.remove('hidden');
-        if (btnText) btnText.textContent = 'Memuat...';
-
-        // 3. Proses Login Firebase
-        const userCredential = await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
-        const user = userCredential.user;
-
-        // 4. Cek Data di Firestore
-        const uDoc = await getDoc(doc(db, "users", user.uid));
-        
-        if (uDoc.exists()) {
-            const userData = uDoc.data();
-            
-            // Validasi apakah Role di database cocok dengan yang dipilih di layar
-            if (userData.role === selectedRole) {
-                showToast('Berhasil masuk! Mengalihkan...', 'success');
-                
-                // Simpan info login jika perlu
-                localStorage.setItem('userRole', userData.role);
-                
-                // Redirect ke halaman masing-masing
-                setTimeout(() => {
-                    window.location.href = `dashboard-${userData.role}.html`;
-                }, 1000);
-            } else {
-                // Jika role tidak cocok, keluarkan user (Sign Out)
-                await signOut(auth);
-                throw new Error(`Anda terdaftar sebagai ${userData.role}, bukan ${selectedRole}.`);
-            }
-        } else {
-            await signOut(auth);
-            throw new Error('Profil Anda belum terdaftar di database.');
-        }
-
-    } catch (error) {
-        console.error('Login Error Detail:', error);
-        
-        // Terjemahan pesan error agar user paham
-        let pesan = error.message;
-        if (error.code === 'auth/invalid-credential') {
-            pesan = 'Email atau Password salah.';
-        } else if (error.code === 'auth/network-request-failed') {
-            pesan = 'Koneksi internet bermasalah.';
-        } else if (error.code === 'auth/too-many-requests') {
-            pesan = 'Terlalu banyak mencoba, silakan tunggu sebentar.';
-        }
-        
-        showToast(pesan, 'error');
-
-    } finally {
-        // --- SELESAI LOADING (Apapun hasilnya, tombol kembali normal) ---
-        btn.disabled = false;
-        if (btnLoader) btnLoader.classList.add('hidden');
-        if (btnText) btnText.textContent = 'Masuk Sekarang';
-    }
-};
-
-        function redirectBasedOnRole(role) {
-            const routes = {
-                admin: 'dashboard-admin.html',
-                ustadz: 'dashboard-ustadz.html',
-                wali: 'dashboard-wali.html',
-                santri: 'dashboard-santri.html'
-            };
-            window.location.href = routes[role] || 'login.html';
-        }
-
-        function getErrorMessage(code) {
-            const messages = {
-                'auth/user-not-found': 'Email tidak terdaftar',
-                'auth/wrong-password': 'Password salah',
-                'auth/invalid-email': 'Format email tidak valid',
-                'auth/too-many-requests': 'Terlalu banyak percobaan, coba lagi nanti'
-            };
-            return messages[code] || 'Terjadi kesalahan, coba lagi';
-        }
-
-        window.togglePassword = () => {
-            const input = document.getElementById('password');
-            const icon = document.getElementById('eyeIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        };
-
-        function showToast(title, message) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastTitle').textContent = title;
-            document.getElementById('toastMessage').textContent = message;
-            toast.classList.remove('translate-x-full');
-            setTimeout(() => toast.classList.add('translate-x-full'), 4000);
-        }
-
-        // Check URL params for pre-selected role
-        const urlParams = new URLSearchParams(window.location.search);
-        const preRole = urlParams.get('role');
-        if (preRole) selectRole(preRole);
     </script>
 </body>
 </html>
