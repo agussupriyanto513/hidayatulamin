@@ -1,920 +1,560 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Hidayatullah Amin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-                    colors: {
-                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
-                        secondary: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sidebar-collapsed { width: 80px; }
-        .sidebar-expanded { width: 280px; }
-        .nav-item { transition: all 0.2s; }
-        .nav-item:hover { background: rgba(5, 150, 105, 0.1); }
-        .nav-item.active { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3); }
-        .card-stat { transition: all 0.3s; }
-        .card-stat:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); }
-        .glass-dark { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .loading-skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .modal { opacity: 0; visibility: hidden; transition: all 0.3s; }
-        .modal.active { opacity: 1; visibility: visible; }
-        .modal-content { transform: scale(0.9) translateY(20px); transition: all 0.3s; }
-        .modal.active .modal-content { transform: scale(1) translateY(0); }
-        .tab-active { border-bottom: 2px solid #059669; color: #059669; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Admin | Hidayatullah Amin</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f4f6fb;--sidebar:#0f1f2e;--card:#fff;--text:#1a2332;--text2:#5a6a7e;--text3:#8fa3b8;
+  --green:#0db87a;--green2:#09926a;--green-bg:#e6f9f2;--green-text:#0a6b4e;
+  --blue:#2d7ef5;--blue-bg:#eaf1fe;--blue-text:#1a4fa0;
+  --amber:#f5a623;--amber-bg:#fef4e0;--amber-text:#935f0b;
+  --red:#ef4444;--red-bg:#feeaea;--red-text:#991b1b;
+  --purple:#7c3aed;--purple-bg:#f0ebff;--purple-text:#4c1d95;
+  --border:#e8edf3;--shadow:0 2px 12px rgba(0,0,0,0.06);--shadow2:0 8px 32px rgba(0,0,0,0.1);
+  --r:12px;--r2:16px;
+}
+.dark{
+  --bg:#0d1117;--card:#161d27;--text:#e2e8f0;--text2:#8fa3b8;--text3:#4a6070;
+  --green-bg:#0a2e20;--green-text:#4ade80;--blue-bg:#0f1e3a;--blue-text:#60a5fa;
+  --amber-bg:#2a1e0a;--amber-text:#fbbf24;--red-bg:#2a0f0f;--red-text:#f87171;
+  --purple-bg:#1e0f3a;--purple-text:#a78bfa;--border:#1e2d3d;
+  --shadow:0 2px 12px rgba(0,0,0,0.3);--shadow2:0 8px 32px rgba(0,0,0,0.4);
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px}
+
+/* SIDEBAR */
+.sidebar{width:260px;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;transition:width .3s ease}
+.sidebar.collapsed{width:72px}
+.sidebar-logo{padding:20px 20px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.logo-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#0db87a,#09926a);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0}
+.logo-text h1{font-family:'Amiri',serif;color:#fff;font-size:17px;font-weight:700}
+.logo-text p{color:#0db87a;font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-top:1px}
+.sidebar.collapsed .logo-text,.sidebar.collapsed .nav-label,.sidebar.collapsed .sec-label{opacity:0;pointer-events:none;width:0;overflow:hidden}
+.sec-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.25);padding:12px 20px 4px;display:block}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all .2s;font-size:13px;font-weight:500;text-decoration:none;margin:1px 8px}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.85)}
+.nav-item.active{background:rgba(13,184,122,0.18);color:#0db87a;border:1px solid rgba(13,184,122,0.25)}
+.nav-item i{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+.sidebar-footer{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.06)}
+.user-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:10px;background:rgba(255,255,255,0.04)}
+.u-av{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#0db87a,#09926a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0}
+.u-info p{font-size:13px;font-weight:600;color:#fff;line-height:1.3}
+.u-info span{font-size:11px;color:rgba(255,255,255,0.38)}
+
+/* MAIN */
+.main{flex:1;margin-left:260px;transition:margin-left .3s ease;display:flex;flex-direction:column;min-height:100vh}
+.main.expanded{margin-left:72px}
+
+/* TOPBAR */
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:90}
+.page-title h2{font-size:20px;font-weight:700;color:var(--text)}
+.page-title p{font-size:12px;color:var(--text2);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.icon-btn{width:38px;height:38px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .2s;position:relative}
+.icon-btn:hover{background:var(--green-bg);color:var(--green);border-color:var(--green)}
+.badge-dot{position:absolute;top:8px;right:8px;width:7px;height:7px;background:#ef4444;border-radius:50%;border:2px solid var(--card)}
+.btn-logout{padding:8px 16px;border-radius:10px;background:var(--red-bg);color:var(--red-text);font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;display:flex;align-items:center;gap:6px;transition:all .2s;text-decoration:none}
+.btn-logout:hover{border-color:var(--red)}
+
+/* CONTENT */
+.content{padding:24px 28px;flex:1}
+
+/* GREETING */
+.greeting{background:linear-gradient(135deg,#0f2744 0%,#0a3d2e 100%);border-radius:var(--r2);padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between}
+.greeting::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:rgba(13,184,122,0.1);border-radius:50%}
+.greeting::after{content:'';position:absolute;bottom:-40px;right:120px;width:140px;height:140px;background:rgba(255,255,255,0.03);border-radius:50%}
+.greeting-text h3{font-family:'Amiri',serif;font-size:22px;color:#fff;margin-bottom:5px}
+.greeting-text p{color:rgba(255,255,255,0.5);font-size:13px}
+.greeting-date .dn{font-size:36px;font-weight:800;color:#0db87a;line-height:1}
+.greeting-date .dl{font-size:12px;color:rgba(255,255,255,0.4);margin-top:3px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border-radius:var(--r2);padding:20px;border:1px solid var(--border);transition:all .2s;cursor:default}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow2)}
+.stat-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.stat-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;display:flex;align-items:center;gap:3px}
+.stat-val{font-size:32px;font-weight:800;color:var(--text);line-height:1;margin-bottom:4px}
+.stat-lbl{font-size:12px;color:var(--text2);font-weight:500}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:5px}
+.ig{background:var(--green-bg);color:var(--green)}
+.ib{background:var(--blue-bg);color:var(--blue)}
+.ia{background:var(--amber-bg);color:var(--amber)}
+.ip{background:var(--purple-bg);color:var(--purple)}
+.bu{background:var(--green-bg);color:var(--green-text)}
+.bd{background:var(--red-bg);color:var(--red-text)}
+.bn{background:var(--amber-bg);color:var(--amber-text)}
+
+/* QA */
+.qa-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px}
+.qa-card{background:var(--card);border-radius:var(--r2);padding:18px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;text-decoration:none}
+.qa-card:hover{transform:translateY(-2px);box-shadow:var(--shadow2);border-color:var(--green)}
+.qa-card.primary{background:linear-gradient(135deg,#0db87a,#09926a);border:none}
+.qa-card.primary .qa-icon{background:rgba(255,255,255,0.18)}
+.qa-card.primary .qa-title{color:#fff}
+.qa-card.primary .qa-sub{color:rgba(255,255,255,0.6)}
+.qa-icon{width:46px;height:46px;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.qa-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.qa-sub{font-size:12px;color:var(--text2)}
+
+/* CHARTS */
+.charts-row{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:24px}
+.chart-card{background:var(--card);border-radius:var(--r2);padding:20px;border:1px solid var(--border)}
+.card-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.card-hd h4{font-size:15px;font-weight:700;color:var(--text)}
+.card-hd p{font-size:12px;color:var(--text2);margin-top:2px}
+.sel-sm{font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;outline:none;font-family:'Outfit',sans-serif}
+.hafalan-list{display:flex;flex-direction:column;gap:14px}
+.hi-header{display:flex;justify-content:space-between;margin-bottom:6px}
+.hi-name{font-size:13px;font-weight:600;color:var(--text)}
+.hi-val{font-size:12px;font-weight:700;color:var(--green)}
+.bar-track{height:8px;background:var(--border);border-radius:20px;overflow:hidden}
+.bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#0db87a,#09926a);transition:width .6s ease}
+
+/* TABLE */
+.table-card{background:var(--card);border-radius:var(--r2);border:1px solid var(--border);overflow:hidden}
+.tbl-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tbl-hd h4{font-size:15px;font-weight:700;color:var(--text)}
+.tbl-hd p{font-size:12px;color:var(--text2);margin-top:2px}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--bg)}
+th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)}
+td{padding:13px 16px;border-top:1px solid var(--border);font-size:13px;color:var(--text2)}
+tr:hover td{background:var(--bg)}
+.uc{display:flex;align-items:center;gap:10px}
+.ua{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.un{font-size:13px;font-weight:600;color:var(--text)}
+.ue{font-size:11px;color:var(--text3)}
+.rb{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+.r-admin{background:var(--purple-bg);color:var(--purple-text)}
+.r-ustadz{background:var(--blue-bg);color:var(--blue-text)}
+.r-wali{background:var(--amber-bg);color:var(--amber-text)}
+.r-santri{background:var(--green-bg);color:var(--green-text)}
+.s-aktif{background:var(--green-bg);color:var(--green-text);font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+.action-btns{display:flex;gap:6px}
+.act-btn{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:none;transition:all .2s}
+.act-view{background:var(--blue-bg);color:var(--blue)}
+.act-del{background:var(--red-bg);color:var(--red)}
+.act-btn:hover{opacity:.8}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal-box{background:var(--card);border-radius:var(--r2);width:520px;max-width:96vw;max-height:90vh;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow2)}
+.mhd{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mhd h3{font-size:17px;font-weight:700;color:var(--text)}
+.m-close{width:32px;height:32px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .2s}
+.m-close:hover{background:var(--red-bg);color:var(--red)}
+.mbody{padding:24px;overflow-y:auto;max-height:62vh}
+.fg{margin-bottom:16px}
+.flabel{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px}
+.finput{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:'Outfit',sans-serif;outline:none;transition:border .2s}
+.finput:focus{border-color:var(--green)}
+.fselect{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:'Outfit',sans-serif;outline:none;cursor:pointer}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mfoot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .2s}
+.btn-cancel{background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.btn-primary{background:linear-gradient(135deg,#0db87a,#09926a);color:#fff;box-shadow:0 4px 14px rgba(13,184,122,0.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(13,184,122,0.4)}
+.extra{display:none}
+.extra.show{display:block}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--card);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow2);min-width:240px;transform:translateX(110%);transition:transform .35s cubic-bezier(0.4,0,0.2,1);font-size:13px;border:1px solid var(--border);border-left:4px solid var(--green)}
+.toast.err{border-left-color:var(--red)}
+.toast.info{border-left-color:var(--blue)}
+.toast.show{transform:translateX(0)}
+.toast-icon{font-size:15px;color:var(--green)}
+.toast.err .toast-icon{color:var(--red)}
+.toast.info .toast-icon{color:var(--blue)}
+.toast-msg p:first-child{font-weight:600;color:var(--text);font-size:13px}
+.toast-msg p:last-child{color:var(--text2);font-size:11px;margin-top:1px}
+
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-row{grid-template-columns:1fr}}
+@media(max-width:768px){.sidebar{width:72px}.main{margin-left:72px}.sidebar .nav-label,.sidebar .logo-text,.sidebar .sec-label{opacity:0;width:0;overflow:hidden}.content{padding:16px}.stats-grid{grid-template-columns:1fr 1fr}.greeting-date{display:none}}
+</style>
 </head>
-<body class="font-sans antialiased bg-secondary-50 dark:bg-secondary-900 text-secondary-800 dark:text-secondary-200">
-    
-    <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar sidebar-expanded fixed left-0 top-0 h-full bg-white dark:bg-secondary-800 border-r border-secondary-200 dark:border-secondary-700 z-40 flex flex-col">
-        <div class="h-20 flex items-center px-6 border-b border-secondary-200 dark:border-secondary-700">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white shadow-lg shadow-primary-500/30">
-                <i class="fas fa-mosque text-lg"></i>
-            </div>
-            <div class="ml-3 sidebar-text">
-                <h1 class="font-bold text-secondary-900 dark:text-white">Hidayatullah</h1>
-                <p class="text-xs text-primary-600">Admin Panel</p>
-            </div>
-            <button onclick="toggleSidebar()" class="ml-auto text-secondary-400 hover:text-secondary-600">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-        </div>
+<body>
 
-        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-            <a href="#" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium">
-                <i class="fas fa-home w-5"></i>
-                <span class="sidebar-text">Dashboard</span>
-            </a>
-            <a href="absensi.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                <i class="fas fa-qrcode w-5"></i>
-                <span class="sidebar-text">Absensi QR</span>
-            </a>
-            <a href="hafalan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                <i class="fas fa-book-open w-5"></i>
-                <span class="sidebar-text">Input Hafalan</span>
-            </a>
-            <a href="keuangan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                <i class="fas fa-wallet w-5"></i>
-                <span class="sidebar-text">Keuangan</span>
-            </a>
-            <a href="sagatama-mart.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                <i class="fas fa-store w-5"></i>
-                <span class="sidebar-text">Sagatama Mart</span>
-            </a>
-            
-            <div class="pt-4 mt-4 border-t border-secondary-200 dark:border-secondary-700">
-                <p class="sidebar-text px-4 text-xs font-semibold text-secondary-400 uppercase tracking-wider mb-2">Manajemen</p>
-                <button onclick="openUserModal()" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <i class="fas fa-user-plus w-5"></i>
-                    <span class="sidebar-text">Buat User Baru</span>
-                </button>
-                <a href="#" onclick="showUserList()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <i class="fas fa-users-cog w-5"></i>
-                    <span class="sidebar-text">Kelola Users</span>
-                </a>
-                <a href="data-ustadz.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <i class="fas fa-chalkboard-teacher w-5"></i>
-                    <span class="sidebar-text">Data Ustadz</span>
-                </a>
-                <a href="data-wali.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <i class="fas fa-user-friends w-5"></i>
-                    <span class="sidebar-text">Data Wali</span>
-                </a>
-                <a href="data-santri.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <i class="fas fa-user-graduate w-5"></i>
-                    <span class="sidebar-text">Data Santri</span>
-                </a>
-            </div>
-        </nav>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-mosque"></i></div>
+    <div class="logo-text">
+      <h1>Hidayatullah</h1>
+      <p>Admin Panel</p>
+    </div>
+  </div>
 
-        <div class="p-4 border-t border-secondary-200 dark:border-secondary-700">
-            <div class="flex items-center gap-3">
-                <img id="userAvatar" src="https://ui-avatars.com/api/?name=Admin&background=059669&color=fff" class="w-10 h-10 rounded-full">
-                <div class="sidebar-text flex-1 min-w-0">
-                    <p id="userName" class="text-sm font-semibold text-secondary-900 dark:text-white truncate">Administrator</p>
-                    <p id="userEmail" class="text-xs text-secondary-500 truncate">admin@ponpes.id</p>
-                </div>
-                <button onclick="handleLogout()" class="text-secondary-400 hover:text-red-500 transition">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </div>
-        </div>
-    </aside>
+  <span class="sec-label">Utama</span>
+  <a class="nav-item active" href="dashboard-admin.html"><i class="fas fa-th-large"></i><span class="nav-label">Dashboard</span></a>
+  <a class="nav-item" href="absensi.html"><i class="fas fa-qrcode"></i><span class="nav-label">Absensi QR</span></a>
+  <a class="nav-item" href="hafalan.html"><i class="fas fa-book-open"></i><span class="nav-label">Input Hafalan</span></a>
+  <a class="nav-item" href="keuangan.html"><i class="fas fa-wallet"></i><span class="nav-label">Keuangan</span></a>
+  <a class="nav-item" href="sagatama-mart.html"><i class="fas fa-store"></i><span class="nav-label">Sagatama Mart</span></a>
 
-    <!-- Main Content -->
-    <main id="mainContent" class="ml-[280px] transition-all duration-300 min-h-screen">
-        <!-- Header -->
-        <header class="sticky top-0 z-30 glass dark:glass-dark border-b border-secondary-200 dark:border-secondary-700 px-8 py-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-2xl font-bold text-secondary-900 dark:text-white">Dashboard</h2>
-                    <p class="text-sm text-secondary-500">Selamat datang kembali, <span id="currentDate"></span></p>
-                </div>
-                <div class="flex items-center gap-4">
-                    <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-yellow-400 flex items-center justify-center hover:bg-secondary-200 transition">
-                        <i class="fas fa-moon dark:hidden"></i>
-                        <i class="fas fa-sun hidden dark:block"></i>
-                    </button>
-                    <button class="w-10 h-10 rounded-xl bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400 flex items-center justify-center hover:bg-secondary-200 transition relative">
-                        <i class="fas fa-bell"></i>
-                        <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
-                    </button>
-                    <button onclick="handleLogout()" class="px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-600 text-sm font-semibold hover:bg-red-100 transition flex items-center gap-2">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </button>
-                </div>
-            </div>
-        </header>
+  <span class="sec-label">Manajemen</span>
+  <a class="nav-item" href="#" onclick="openModal();return false"><i class="fas fa-user-plus"></i><span class="nav-label">Buat User Baru</span></a>
+  <a class="nav-item" href="data-ustadz.html"><i class="fas fa-chalkboard-teacher"></i><span class="nav-label">Data Ustadz</span></a>
+  <a class="nav-item" href="data-wali.html"><i class="fas fa-user-friends"></i><span class="nav-label">Data Wali</span></a>
+  <a class="nav-item" href="data-santri.html"><i class="fas fa-user-graduate"></i><span class="nav-label">Data Santri</span></a>
 
-        <!-- Dashboard Content -->
-        <div class="p-8">
-            <!-- Quick Action Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <button onclick="openUserModal()" class="card-stat bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl p-6 text-white text-left shadow-lg shadow-primary-500/30">
-                    <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                        <i class="fas fa-user-plus text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold">Buat User Baru</h3>
-                    <p class="text-primary-100 text-sm">Tambah admin, ustadz, wali, atau santri</p>
-                </button>
-                
-                <button onclick="showUserList()" class="card-stat bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 text-left">
-                    <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center mb-4">
-                        <i class="fas fa-users text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Kelola Users</h3>
-                    <p class="text-secondary-500 text-sm">Lihat dan edit data user</p>
-                </button>
+  <span class="sec-label">Sistem</span>
+  <a class="nav-item" href="dashboard-ustadz.html"><i class="fas fa-chalkboard"></i><span class="nav-label">Portal Ustadz</span></a>
+  <a class="nav-item" href="dashboard-santri.html"><i class="fas fa-graduation-cap"></i><span class="nav-label">Portal Santri</span></a>
+  <a class="nav-item" href="dashboard-wali.html"><i class="fas fa-users"></i><span class="nav-label">Portal Wali</span></a>
 
-                <div class="card-stat bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 text-primary-600 flex items-center justify-center">
-                            <i class="fas fa-user-graduate text-xl"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-green-500 flex items-center gap-1">
-                            <i class="fas fa-arrow-up"></i> 12%
-                        </span>
-                    </div>
-                    <h3 class="text-3xl font-bold text-secondary-900 dark:text-white mb-1" id="statSantri">-</h3>
-                    <p class="text-sm text-secondary-500">Total Santri</p>
-                </div>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="u-av" id="sideAvatar">A</div>
+      <div class="u-info" style="flex:1;min-width:0">
+        <p id="sideUserName" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Administrator</p>
+        <span id="sideUserEmail">admin@ponpes.id</span>
+      </div>
+      <i class="fas fa-sign-out-alt" style="color:rgba(255,255,255,0.3);cursor:pointer;font-size:14px;flex-shrink:0" id="sideLogoutBtn"></i>
+    </div>
+  </div>
+</aside>
 
-                <div class="card-stat bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
-                            <i class="fas fa-chalkboard-teacher text-xl"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-green-500 flex items-center gap-1">
-                            <i class="fas fa-arrow-up"></i> 5%
-                        </span>
-                    </div>
-                    <h3 class="text-3xl font-bold text-secondary-900 dark:text-white mb-1" id="statUstadz">-</h3>
-                    <p class="text-sm text-secondary-500">Total Ustadz</p>
-                </div>
-            </div>
+<div class="main" id="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="icon-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+      <div class="page-title">
+        <h2>Dashboard Admin</h2>
+        <p id="topbarDate">Memuat...</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="icon-btn" onclick="toggleDark()" id="darkBtn" title="Ganti Tema"><i class="fas fa-moon"></i></div>
+      <div class="icon-btn" title="Notifikasi"><i class="fas fa-bell"></i><span class="badge-dot"></span></div>
+      <a class="btn-logout" id="logoutBtn" href="login.html"><i class="fas fa-sign-out-alt"></i>Logout</a>
+    </div>
+  </header>
 
-            <!-- Charts Section -->
-            <div class="grid lg:grid-cols-2 gap-6 mb-8">
-                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Grafik Kehadiran</h3>
-                        <select class="text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg px-3 py-1 bg-transparent">
-                            <option>Minggu Ini</option>
-                            <option>Bulan Ini</option>
-                        </select>
-                    </div>
-                    <div class="relative h-[300px] w-full">
-                        <canvas id="attendanceChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Progres Hafalan per Kelas</h3>
-                        <select class="text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg px-3 py-1 bg-transparent">
-                            <option>Semua Kelas</option>
-                            <option>Kelas A</option>
-                            <option>Kelas B</option>
-                        </select>
-                    </div>
-                    <div class="relative h-[300px] w-full">
-                        <canvas id="hafalanChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Users Table -->
-            <div class="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 overflow-hidden">
-                <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
-                    <h3 class="text-lg font-bold text-secondary-900 dark:text-white">User Terbaru</h3>
-                    <button onclick="showUserList()" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Lihat Semua</button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-secondary-50 dark:bg-secondary-700/50">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">User</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Role</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Status</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Dibuat</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-secondary-200 dark:divide-secondary-700" id="recentUsersTable">
-                            <tr>
-                                <td colspan="5" class="px-6 py-8 text-center text-secondary-400">
-                                    <i class="fas fa-spinner fa-spin mr-2"></i> Memuat data...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Create User Modal -->
-    <div id="userModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl">
-            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
-                <h3 class="text-xl font-bold text-secondary-900 dark:text-white">Buat User Baru</h3>
-                <button onclick="closeUserModal()" class="w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center hover:bg-secondary-200 transition">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="p-6 overflow-y-auto max-h-[60vh]">
-                <form id="createUserForm" onsubmit="handleCreateUser(event)">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Email <span class="text-red-500">*</span></label>
-                            <input type="email" id="newUserEmail" required placeholder="user@email.com"
-                                class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Password <span class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <input type="password" id="newUserPassword" required placeholder="Min. 6 karakter" minlength="6"
-                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600">
-                                    <i class="fas fa-eye" id="togglePasswordIcon"></i>
-                                </button>
-                            </div>
-                            <p class="text-xs text-secondary-500 mt-1">Minimal 6 karakter</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
-                            <input type="text" id="newUserName" required placeholder="Nama user"
-                                class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Role <span class="text-red-500">*</span></label>
-                            <select id="newUserRole" required onchange="handleRoleChange()"
-                                class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                                <option value="">Pilih Role</option>
-                                <option value="admin">Administrator</option>
-                                <option value="ustadz">Ustadz/Pengajar</option>
-                                <option value="wali">Wali Santri</option>
-                                <option value="santri">Santri</option>
-                            </select>
-                        </div>
-
-                        <!-- Extra fields for santri -->
-                        <div id="santriFields" class="hidden space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
-                            <div>
-                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">NIS (Nomor Induk Santri)</label>
-                                <input type="text" id="santriNIS" placeholder="2024001"
-                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Kelas</label>
-                                <select id="santriKelas"
-                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                                    <option value="">Pilih Kelas</option>
-                                    <option value="1A">1A</option>
-                                    <option value="1B">1B</option>
-                                    <option value="2A">2A</option>
-                                    <option value="2B">2B</option>
-                                    <option value="3A">3A</option>
-                                    <option value="3B">3B</option>
-                                    <option value="4A">4A</option>
-                                    <option value="4B">4B</option>
-                                    <option value="5A">5A</option>
-                                    <option value="5B">5B</option>
-                                    <option value="6A">6A</option>
-                                    <option value="6B">6B</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Extra fields for wali -->
-                        <div id="waliFields" class="hidden space-y-4 pt-4 border-t border-secondary-200 dark:border-secondary-700">
-                            <div>
-                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">No. Telepon</label>
-                                <input type="tel" id="waliPhone" placeholder="08123456789"
-                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Hubungan dengan Santri</label>
-                                <select id="waliHubungan"
-                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                                    <option value="ayah">Ayah</option>
-                                    <option value="ibu">Ibu</option>
-                                    <option value="wali">Wali</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="pt-4">
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" id="sendVerificationEmail" checked
-                                    class="w-5 h-5 rounded border-secondary-300 text-primary-600 focus:ring-primary-500">
-                                <span class="text-sm text-secondary-700 dark:text-secondary-300">Kirim email verifikasi</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6">
-                        <button type="submit" id="createUserBtn" class="w-full py-4 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                            <i class="fas fa-user-plus"></i>
-                            <span id="createUserBtnText">Buat User</span>
-                            <div id="createUserBtnLoader" class="hidden">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </div>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+  <div class="content">
+    <div class="greeting">
+      <div class="greeting-text">
+        <h3>Assalamu'alaikum, <span id="greetName">Admin</span>! 👋</h3>
+        <p>Semua sistem berjalan normal. Pantau aktivitas pondok hari ini.</p>
+      </div>
+      <div class="greeting-date">
+        <div class="dn" id="dateNum">—</div>
+        <div class="dl" id="dateStr">—</div>
+      </div>
     </div>
 
-    <!-- User List Modal -->
-    <div id="userListModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
-            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
-                <h3 class="text-xl font-bold text-secondary-900 dark:text-white">Kelola Users</h3>
-                <button onclick="closeUserListModal()" class="w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center hover:bg-secondary-200 transition">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex gap-4">
-                <div class="flex-1 relative">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"></i>
-                    <input type="text" id="searchUser" placeholder="Cari user..." oninput="filterUsers(this.value)"
-                        class="w-full pl-10 pr-4 py-2 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                </div>
-                <select id="filterRole" onchange="filterUsersByRole(this.value)"
-                    class="px-4 py-2 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                    <option value="">Semua Role</option>
-                    <option value="admin">Admin</option>
-                    <option value="ustadz">Ustadz</option>
-                    <option value="wali">Wali</option>
-                    <option value="santri">Santri</option>
-                </select>
-            </div>
-            
-            <div class="overflow-y-auto max-h-[60vh]">
-                <table class="w-full">
-                    <thead class="bg-secondary-50 dark:bg-secondary-700/50 sticky top-0">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">User</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Role</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Verifikasi</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Status</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-secondary-200 dark:divide-secondary-700" id="allUsersTable">
-                        <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-secondary-400">
-                                <i class="fas fa-spinner fa-spin mr-2"></i> Memuat data...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-hd"><div class="stat-icon ig"><i class="fas fa-user-graduate"></i></div><span class="stat-badge bu"><i class="fas fa-arrow-up" style="font-size:9px"></i> 12%</span></div>
+        <div class="stat-val" id="statSantri"><i class="fas fa-spinner fa-spin" style="font-size:20px;color:var(--text3)"></i></div>
+        <div class="stat-lbl">Total Santri</div><div class="stat-sub">Aktif terdaftar</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-hd"><div class="stat-icon ib"><i class="fas fa-chalkboard-teacher"></i></div><span class="stat-badge bu"><i class="fas fa-arrow-up" style="font-size:9px"></i> 5%</span></div>
+        <div class="stat-val" id="statUstadz"><i class="fas fa-spinner fa-spin" style="font-size:20px;color:var(--text3)"></i></div>
+        <div class="stat-lbl">Total Ustadz</div><div class="stat-sub">Semua aktif mengajar</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-hd"><div class="stat-icon ia"><i class="fas fa-calendar-check"></i></div><span class="stat-badge bu"><i class="fas fa-arrow-up" style="font-size:9px"></i> 2%</span></div>
+        <div class="stat-val">94%</div>
+        <div class="stat-lbl">Tingkat Kehadiran</div><div class="stat-sub">Rata-rata minggu ini</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-hd"><div class="stat-icon ip"><i class="fas fa-book-quran"></i></div><span class="stat-badge bn"><i class="fas fa-minus" style="font-size:9px"></i> Stabil</span></div>
+        <div class="stat-val">4.5</div>
+        <div class="stat-lbl">Rata-rata Hafalan (Juz)</div><div class="stat-sub">Semua kelas</div>
+      </div>
     </div>
 
-    <!-- Toast Container -->
-    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+    <div class="qa-grid">
+      <a class="qa-card primary" href="#" onclick="openModal();return false">
+        <div class="qa-icon"><i class="fas fa-user-plus" style="color:#fff"></i></div>
+        <div><div class="qa-title">Buat User Baru</div><div class="qa-sub">Tambah admin, ustadz, santri, wali</div></div>
+      </a>
+      <a class="qa-card" href="data-santri.html">
+        <div class="qa-icon" style="background:var(--blue-bg)"><i class="fas fa-users-cog" style="color:var(--blue)"></i></div>
+        <div><div class="qa-title">Kelola Data Santri</div><div class="qa-sub">Lihat dan edit semua data santri</div></div>
+      </a>
+    </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="card-hd">
+          <div><h4>Grafik Kehadiran Santri</h4><p>Data perhari</p></div>
+          <select class="sel-sm" onchange="updateChart(this.value)">
+            <option value="week">Minggu Ini</option>
+            <option value="month">Bulan Ini</option>
+          </select>
+        </div>
+        <canvas id="attChart" style="height:220px;max-height:220px"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-hd"><div><h4>Hafalan per Kelas</h4><p>Rata-rata juz tercapai</p></div></div>
+        <div class="hafalan-list">
+          <div><div class="hi-header"><span class="hi-name">Kelas A</span><span class="hi-val">5.1 juz</span></div><div class="bar-track"><div class="bar-fill" style="width:51%"></div></div></div>
+          <div><div class="hi-header"><span class="hi-name">Kelas B</span><span class="hi-val">4.5 juz</span></div><div class="bar-track"><div class="bar-fill" style="width:45%"></div></div></div>
+          <div><div class="hi-header"><span class="hi-name">Kelas C</span><span class="hi-val">3.8 juz</span></div><div class="bar-track"><div class="bar-fill" style="width:38%"></div></div></div>
+          <div><div class="hi-header"><span class="hi-name">Kelas D</span><span class="hi-val">4.2 juz</span></div><div class="bar-track"><div class="bar-fill" style="width:42%"></div></div></div>
+          <div><div class="hi-header"><span class="hi-name">Kelas E</span><span class="hi-val">6.0 juz</span></div><div class="bar-track"><div class="bar-fill" style="width:60%"></div></div></div>
+        </div>
+      </div>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-            projectId: "hidayatulamin-e6f22",
-            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-            messagingSenderId: "80743607267",
-            appId: "1:80743607267:web:f5f94165de021759958ed6"
-        };
+    <div class="table-card">
+      <div class="tbl-hd">
+        <div><h4>User Terbaru</h4><p>5 user terakhir dibuat</p></div>
+        <button class="btn btn-primary" style="padding:8px 16px;font-size:12px" onclick="openModal()"><i class="fas fa-plus" style="margin-right:5px"></i>Tambah User</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Dibuat</th><th>Aksi</th></tr></thead>
+          <tbody id="usersTable"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)"><i class="fas fa-spinner fa-spin"></i> Menghubungkan Firebase...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+<!-- Modal Buat User -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="mhd">
+      <h3><i class="fas fa-user-plus" style="color:var(--green);margin-right:8px"></i>Buat User Baru</h3>
+      <div class="m-close" onclick="closeModal()"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="mbody">
+      <div class="frow">
+        <div class="fg"><label class="flabel">Nama Lengkap *</label><input class="finput" type="text" id="fName" placeholder="Nama lengkap"></div>
+        <div class="fg"><label class="flabel">Role *</label>
+          <select class="fselect" id="fRole" onchange="handleRoleChange()">
+            <option value="">Pilih Role</option>
+            <option value="santri">Santri</option>
+            <option value="ustadz">Ustadz</option>
+            <option value="wali">Wali Santri</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="flabel">Email *</label><input class="finput" type="email" id="fEmail" placeholder="email@contoh.com"></div>
+      <div class="fg"><label class="flabel">Password *</label><input class="finput" type="password" id="fPass" placeholder="Min. 6 karakter"></div>
+      <div class="extra" id="xSantri">
+        <div class="frow">
+          <div class="fg"><label class="flabel">NIS</label><input class="finput" type="text" id="fNIS" placeholder="Nomor Induk Santri"></div>
+          <div class="fg"><label class="flabel">Kelas</label>
+            <select class="fselect" id="fKelas"><option value="">Pilih Kelas</option><option>Kelas A</option><option>Kelas B</option><option>Kelas C</option><option>Kelas D</option><option>Kelas E</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="extra" id="xWali">
+        <div class="fg"><label class="flabel">No. HP</label><input class="finput" type="tel" id="fPhone" placeholder="08xx-xxxx-xxxx"></div>
+        <div class="fg"><label class="flabel">Hubungan dengan Santri</label>
+          <select class="fselect" id="fHubungan"><option value="ayah">Ayah</option><option value="ibu">Ibu</option><option value="wali">Wali</option></select>
+        </div>
+      </div>
+      <div class="fg" style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <input type="checkbox" id="fVerif" style="width:16px;height:16px;accent-color:var(--green)">
+        <label for="fVerif" style="font-size:13px;color:var(--text2);cursor:pointer">Kirim email verifikasi</label>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" id="createBtn" onclick="handleCreate()"><i class="fas fa-user-plus" style="margin-right:6px"></i><span id="createBtnText">Buat User</span></button>
+    </div>
+  </div>
+</div>
 
-        let allUsers = [];
+<div class="toast-wrap" id="toastWrap"></div>
 
-        // Auth Check
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            try {
-                const userRef = doc(db, "users", user.uid);
-                const uDoc = await getDoc(userRef);
-                
-                if (!uDoc.exists() || uDoc.data().role !== 'admin') {
-                    showToast('Akses Ditolak', 'Hanya admin yang bisa mengakses halaman ini', 'error');
-                    await signOut(auth);
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                const userData = uDoc.data();
-                document.getElementById('userName').textContent = userData.displayName || 'Administrator';
-                document.getElementById('userEmail').textContent = user.email;
-                
-                loadDashboardData();
-                loadRecentUsers();
-                
-            } catch (error) {
-                console.error('Auth error:', error);
-                showToast('Error', 'Gagal memverifikasi akses', 'error');
-            }
-        });
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        async function loadDashboardData() {
-            try {
-                const santriSnap = await getDocs(query(collection(db, "users"), where("role", "==", "santri")));
-                const ustadzSnap = await getDocs(query(collection(db, "users"), where("role", "==", "ustadz")));
-                
-                document.getElementById('statSantri').textContent = santriSnap.size;
-                document.getElementById('statUstadz').textContent = ustadzSnap.size;
-                
-                initCharts();
-            } catch (error) {
-                console.error("Error loading data:", error);
-            }
-        }
+const firebaseConfig = {
+  apiKey:"AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+  authDomain:"hidayatulamin-e6f22.firebaseapp.com",
+  projectId:"hidayatulamin-e6f22",
+  storageBucket:"hidayatulamin-e6f22.firebasestorage.app",
+  messagingSenderId:"80743607267",
+  appId:"1:80743607267:web:f5f94165de021759958ed6"
+};
 
-        function initCharts() {
-            const ctx1 = document.getElementById('attendanceChart').getContext('2d');
-            new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-                    datasets: [{
-                        label: 'Hadir',
-                        data: [95, 92, 98, 96, 94, 90, 88],
-                        borderColor: '#059669',
-                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }, {
-                        label: 'Absen',
-                        data: [5, 8, 2, 4, 6, 10, 12],
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } },
-                    scales: { y: { beginAtZero: true, max: 100 } }
-                }
-            });
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+let allUsers = [];
 
-            const ctx2 = document.getElementById('hafalanChart').getContext('2d');
-            new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: ['Kelas A', 'Kelas B', 'Kelas C', 'Kelas D'],
-                    datasets: [{
-                        label: 'Rata-rata Juz',
-                        data: [4.2, 3.8, 5.1, 4.5],
-                        backgroundColor: ['#059669', '#3b82f6', '#f59e0b', '#8b5cf6'],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-        }
+// ─── AUTH ───────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  try {
+    const uDoc = await getDoc(doc(db,"users",user.uid));
+    if (!uDoc.exists() || uDoc.data().role !== 'admin') {
+      await signOut(auth); window.location.href = 'login.html'; return;
+    }
+    const d = uDoc.data();
+    const name = d.displayName || 'Administrator';
+    document.getElementById('greetName').textContent = name;
+    document.getElementById('sideUserName').textContent = name;
+    document.getElementById('sideUserEmail').textContent = user.email;
+    document.getElementById('sideAvatar').textContent = name[0].toUpperCase();
+    loadData();
+  } catch(e){ showToast('Error','Gagal verifikasi akses','err'); }
+});
 
-        // Create User
-        window.handleCreateUser = async (e) => {
-            e.preventDefault();
-            
-            const btn = document.getElementById('createUserBtn');
-            const btnText = document.getElementById('createUserBtnText');
-            const btnLoader = document.getElementById('createUserBtnLoader');
-            
-            btn.disabled = true;
-            btnText.textContent = 'Membuat User...';
-            btnLoader.classList.remove('hidden');
-            
-            try {
-                const email = document.getElementById('newUserEmail').value;
-                const password = document.getElementById('newUserPassword').value;
-                const displayName = document.getElementById('newUserName').value;
-                const role = document.getElementById('newUserRole').value;
-                const sendVerification = document.getElementById('sendVerificationEmail').checked;
-                
-                // Create user in Firebase Auth
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const newUser = userCredential.user;
-                
-                // Update profile
-                await updateProfile(newUser, { displayName: displayName });
-                
-                // Send verification email if checked
-                if (sendVerification) {
-                    await sendEmailVerification(newUser);
-                }
-                
-                // Prepare user data for Firestore
-                const userData = {
-                    uid: newUser.uid,
-                    email: email,
-                    displayName: displayName,
-                    role: role,
-                    emailVerified: false,
-                    isActive: true,
-                    createdAt: serverTimestamp(),
-                    createdBy: auth.currentUser.uid
-                };
-                
-                // Add role-specific data
-                if (role === 'santri') {
-                    userData.nis = document.getElementById('santriNIS').value || '';
-                    userData.kelas = document.getElementById('santriKelas').value || '';
-                } else if (role === 'wali') {
-                    userData.phone = document.getElementById('waliPhone').value || '';
-                    userData.hubungan = document.getElementById('waliHubungan').value || 'ayah';
-                }
-                
-                // Save to Firestore
-                await setDoc(doc(db, "users", newUser.uid), userData);
-                
-                // Success
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    colors: ['#059669', '#10b981', '#34d399']
-                });
-                
-                showToast('Sukses', `User ${displayName} berhasil dibuat! ${sendVerification ? 'Email verifikasi telah dikirim.' : ''}`);
-                
-                // Reset form and close modal
-                document.getElementById('createUserForm').reset();
-                closeUserModal();
-                
-                // Reload user list
-                loadRecentUsers();
-                
-            } catch (error) {
-                console.error('Create user error:', error);
-                let errorMsg = 'Gagal membuat user: ';
-                
-                switch(error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMsg += 'Email sudah terdaftar';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMsg += 'Format email tidak valid';
-                        break;
-                    case 'auth/weak-password':
-                        errorMsg += 'Password terlalu lemah (min. 6 karakter)';
-                        break;
-                    default:
-                        errorMsg += error.message;
-                }
-                
-                showToast('Error', errorMsg, 'error');
-            } finally {
-                btn.disabled = false;
-                btnText.textContent = 'Buat User';
-                btnLoader.classList.add('hidden');
-            }
-        };
+document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+  e.preventDefault();
+  if(confirm('Yakin ingin logout?')){ await signOut(auth); window.location.href='login.html'; }
+});
+document.getElementById('sideLogoutBtn').addEventListener('click', async () => {
+  if(confirm('Yakin ingin logout?')){ await signOut(auth); window.location.href='login.html'; }
+});
 
-        // Load Recent Users
-        async function loadRecentUsers() {
-            try {
-                const usersSnap = await getDocs(query(collection(db, "users"), where("isActive", "==", true)));
-                allUsers = [];
-                
-                usersSnap.forEach(doc => {
-                    allUsers.push({ id: doc.id, ...doc.data() });
-                });
-                
-                // Sort by createdAt desc
-                allUsers.sort((a, b) => {
-                    const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-                    const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-                    return bTime - aTime;
-                });
-                
-                renderRecentUsers(allUsers.slice(0, 5));
-                renderAllUsers(allUsers);
-                
-            } catch (error) {
-                console.error('Error loading users:', error);
-            }
-        }
+// ─── DATA ───────────────────────────────────────────
+async function loadData() {
+  try {
+    const [santriSnap, ustadzSnap] = await Promise.all([
+      getDocs(query(collection(db,"users"),where("role","==","santri"))),
+      getDocs(query(collection(db,"users"),where("role","==","ustadz")))
+    ]);
+    document.getElementById('statSantri').textContent = santriSnap.size;
+    document.getElementById('statUstadz').textContent = ustadzSnap.size;
+    const usersSnap = await getDocs(query(collection(db,"users"),where("isActive","==",true)));
+    allUsers = [];
+    usersSnap.forEach(d => allUsers.push({id:d.id,...d.data()}));
+    allUsers.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+    renderTable(allUsers.slice(0,5));
+  } catch(e){ console.error(e); }
+}
 
-        function renderRecentUsers(users) {
-            const tbody = document.getElementById('recentUsersTable');
-            
-            if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-secondary-400">Belum ada user</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = users.map(user => `
-                <tr class="hover:bg-secondary-50 dark:hover:bg-secondary-700/30">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=random" class="w-10 h-10 rounded-full">
-                            <div>
-                                <p class="font-semibold text-secondary-900 dark:text-white text-sm">${user.displayName || 'Unknown'}</p>
-                                <p class="text-xs text-secondary-500">${user.email}</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeClass(user.role)}">
-                            ${user.role}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        ${user.emailVerified 
-                            ? '<span class="text-green-500"><i class="fas fa-check-circle"></i> Terverifikasi</span>' 
-                            : '<span class="text-amber-500"><i class="fas fa-clock"></i> Pending</span>'}
-                    </td>
-                    <td class="px-6 py-4 text-sm text-secondary-500">
-                        ${user.createdAt?.toDate ? new Date(user.createdAt.toDate()).toLocaleDateString('id-ID') : '-'}
-                    </td>
-                    <td class="px-6 py-4">
-                        <button onclick="viewUser('${user.uid}')" class="text-primary-600 hover:text-primary-700 mr-2">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button onclick="deleteUser('${user.uid}')" class="text-red-500 hover:text-red-600">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
+function renderTable(users) {
+  const tbody = document.getElementById('usersTable');
+  if(!users.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">Belum ada user</td></tr>'; return; }
+  const colors = {admin:['#ddd6fe','#4c1d95'],ustadz:['#bfdbfe','#1e40af'],wali:['#fde68a','#92400e'],santri:['#a7f3d0','#065f46']};
+  tbody.innerHTML = users.map(u => {
+    const c = colors[u.role]||['#e2e8f0','#334155'];
+    const date = u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '-';
+    return `<tr>
+      <td><div class="uc"><div class="ua" style="background:${c[0]};color:${c[1]}">${(u.displayName||'U')[0]}</div><div><div class="un">${u.displayName||'Unknown'}</div><div class="ue">${u.email||''}</div></div></div></td>
+      <td><span class="rb r-${u.role}">${u.role}</span></td>
+      <td><span class="s-aktif">${u.isActive?'Aktif':'Nonaktif'}</span></td>
+      <td style="font-size:12px">${date}</td>
+      <td><div class="action-btns">
+        <button class="act-btn act-view" onclick="goToPortal('${u.role}')" title="Lihat Portal"><i class="fas fa-external-link-alt"></i></button>
+        <button class="act-btn act-del" onclick="softDelete('${u.id}')" title="Hapus"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
 
-        function renderAllUsers(users) {
-            const tbody = document.getElementById('allUsersTable');
-            
-            if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-secondary-400">Tidak ada user</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = users.map(user => `
-                <tr class="hover:bg-secondary-50 dark:hover:bg-secondary-700/30">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}&background=random" class="w-10 h-10 rounded-full">
-                            <div>
-                                <p class="font-semibold text-secondary-900 dark:text-white text-sm">${user.displayName || 'Unknown'}</p>
-                                <p class="text-xs text-secondary-500">${user.email}</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeClass(user.role)}">
-                            ${user.role}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        ${user.emailVerified 
-                            ? '<span class="text-green-500"><i class="fas fa-check-circle"></i></span>' 
-                            : '<button onclick="resendVerification(\'${user.email}\')" class="text-amber-500 hover:text-amber-600 text-xs"><i class="fas fa-paper-plane"></i> Kirim Ulang</button>'}
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 rounded-full text-xs font-medium ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-                            ${user.isActive ? 'Aktif' : 'Nonaktif'}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <button onclick="viewUser('${user.uid}')" class="text-primary-600 hover:text-primary-700 mr-2" title="Lihat">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button onclick="toggleUserStatus('${user.uid}', ${!user.isActive})" class="text-secondary-600 hover:text-secondary-700 mr-2" title="${user.isActive ? 'Nonaktifkan' : 'Aktifkan'}">
-                            <i class="fas ${user.isActive ? 'fa-ban' : 'fa-check'}"></i>
-                        </button>
-                        <button onclick="deleteUser('${user.uid}')" class="text-red-500 hover:text-red-600" title="Hapus">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
+window.goToPortal = (role) => {
+  const routes = {admin:'dashboard-admin.html',ustadz:'dashboard-ustadz.html',santri:'dashboard-santri.html',wali:'dashboard-wali.html'};
+  if(routes[role]) window.location.href = routes[role];
+};
 
-        function getRoleBadgeClass(role) {
-            const classes = {
-                admin: 'bg-purple-100 text-purple-700',
-                ustadz: 'bg-blue-100 text-blue-700',
-                wali: 'bg-amber-100 text-amber-700',
-                santri: 'bg-green-100 text-green-700'
-            };
-            return classes[role] || 'bg-gray-100 text-gray-700';
-        }
+window.softDelete = async (uid) => {
+  if(!confirm('Nonaktifkan user ini?')) return;
+  try {
+    await updateDoc(doc(db,"users",uid),{isActive:false});
+    showToast('Berhasil','User dinonaktifkan');
+    loadData();
+  } catch(e){ showToast('Error',e.message,'err'); }
+};
 
-        // Filter users
-        window.filterUsers = (query) => {
-            const filtered = allUsers.filter(u => 
-                u.displayName?.toLowerCase().includes(query.toLowerCase()) ||
-                u.email?.toLowerCase().includes(query.toLowerCase())
-            );
-            renderAllUsers(filtered);
-        };
+// ─── CREATE USER ────────────────────────────────────
+window.handleCreate = async () => {
+  const name = document.getElementById('fName').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const pass = document.getElementById('fPass').value;
+  const role = document.getElementById('fRole').value;
+  if(!name||!email||!pass||!role){ showToast('Peringatan','Lengkapi semua field wajib','err'); return; }
+  if(pass.length<6){ showToast('Peringatan','Password min. 6 karakter','err'); return; }
+  const btn = document.getElementById('createBtn');
+  const btnTxt = document.getElementById('createBtnText');
+  btn.disabled=true; btnTxt.textContent='Membuat...';
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, {displayName:name});
+    if(document.getElementById('fVerif').checked) await sendEmailVerification(cred.user);
+    const userData = {uid:cred.user.uid,email,displayName:name,role,isActive:true,emailVerified:false,createdAt:serverTimestamp(),createdBy:auth.currentUser?.uid||''};
+    if(role==='santri'){ userData.nis=document.getElementById('fNIS').value; userData.kelas=document.getElementById('fKelas').value; }
+    if(role==='wali'){ userData.phone=document.getElementById('fPhone').value; userData.hubungan=document.getElementById('fHubungan').value; }
+    await setDoc(doc(db,"users",cred.user.uid), userData);
+    confetti({particleCount:100,spread:70,origin:{y:0.6},colors:['#0db87a','#10b981','#34d399']});
+    showToast('Berhasil',`User ${name} berhasil dibuat!`);
+    closeModal(); loadData();
+  } catch(e){
+    const msgs = {'auth/email-already-in-use':'Email sudah terdaftar','auth/invalid-email':'Format email tidak valid','auth/weak-password':'Password terlalu lemah'};
+    showToast('Error', msgs[e.code]||e.message, 'err');
+  } finally { btn.disabled=false; btnTxt.textContent='Buat User'; }
+};
 
-        window.filterUsersByRole = (role) => {
-            if (!role) {
-                renderAllUsers(allUsers);
-                return;
-            }
-            const filtered = allUsers.filter(u => u.role === role);
-            renderAllUsers(filtered);
-        };
+// ─── CHARTS ─────────────────────────────────────────
+const attData = {
+  week:{labels:['Sen','Sel','Rab','Kam','Jum','Sab','Min'],hadir:[95,92,98,96,94,90,88],absen:[5,8,2,4,6,10,12]},
+  month:{labels:['Minggu 1','Minggu 2','Minggu 3','Minggu 4'],hadir:[93,95,91,94],absen:[7,5,9,6]}
+};
+let attChart;
+function buildChart(type='week'){
+  const d = attData[type];
+  const ctx = document.getElementById('attChart').getContext('2d');
+  if(attChart) attChart.destroy();
+  attChart = new Chart(ctx,{type:'line',data:{labels:d.labels,datasets:[
+    {label:'Hadir',data:d.hadir,borderColor:'#0db87a',backgroundColor:'rgba(13,184,122,0.08)',fill:true,tension:0.4,borderWidth:2,pointBackgroundColor:'#0db87a',pointRadius:4},
+    {label:'Absen',data:d.absen,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.05)',fill:true,tension:0.4,borderWidth:2,pointBackgroundColor:'#ef4444',pointRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{family:'Outfit',size:12},padding:16,boxWidth:10,boxHeight:10}}},scales:{y:{beginAtZero:true,max:110,grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{family:'Outfit',size:11}}},x:{grid:{display:false},ticks:{font:{family:'Outfit',size:11}}}}}});
+}
+buildChart();
+window.updateChart = (v) => buildChart(v);
 
-        // User actions
-        window.viewUser = (uid) => {
-            showToast('Info', 'Detail user: ' + uid);
-        };
+// ─── UI UTILS ───────────────────────────────────────
+window.toggleSidebar = () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.getElementById('main').classList.toggle('expanded');
+};
+let isDark = localStorage.getItem('ha_theme')==='dark';
+function applyTheme(){
+  document.documentElement.classList.toggle('dark',isDark);
+  document.getElementById('darkBtn').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+window.toggleDark = () => { isDark=!isDark; localStorage.setItem('ha_theme',isDark?'dark':'light'); applyTheme(); };
+applyTheme();
 
-        window.toggleUserStatus = async (uid, newStatus) => {
-            try {
-                await updateDoc(doc(db, "users", uid), { isActive: newStatus });
-                showToast('Sukses', `User ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`);
-                loadRecentUsers();
-            } catch (error) {
-                showToast('Error', 'Gagal mengubah status: ' + error.message, 'error');
-            }
-        };
+window.openModal = () => { document.getElementById('modalOverlay').classList.add('open'); };
+window.closeModal = () => { document.getElementById('modalOverlay').classList.remove('open'); };
+document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target===document.getElementById('modalOverlay')) closeModal(); });
+window.handleRoleChange = () => {
+  const r = document.getElementById('fRole').value;
+  document.getElementById('xSantri').classList.toggle('show', r==='santri');
+  document.getElementById('xWali').classList.toggle('show', r==='wali');
+};
 
-        window.deleteUser = async (uid) => {
-            if (!confirm('Yakin ingin menghapus user ini?')) return;
-            
-            try {
-                // Soft delete
-                await updateDoc(doc(db, "users", uid), { isActive: false, deletedAt: serverTimestamp() });
-                showToast('Sukses', 'User berhasil dihapus');
-                loadRecentUsers();
-            } catch (error) {
-                showToast('Error', 'Gagal menghapus: ' + error.message, 'error');
-            }
-        };
+function showToast(title, msg, type='ok'){
+  const w = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast'+(type==='err'?' err':type==='info'?' info':'');
+  t.innerHTML = `<i class="fas ${type==='err'?'fa-exclamation-circle':type==='info'?'fa-info-circle':'fa-check-circle'} toast-icon"></i><div class="toast-msg"><p>${title}</p><p>${msg}</p></div>`;
+  w.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),50);
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); },4500);
+}
 
-        window.resendVerification = async (email) => {
-            showToast('Info', 'Fitur kirim ulang verifikasi akan segera hadir');
-        };
-
-        // Modal functions
-        window.openUserModal = () => {
-            document.getElementById('userModal').classList.add('active');
-        };
-
-        window.closeUserModal = () => {
-            document.getElementById('userModal').classList.remove('active');
-        };
-
-        window.showUserList = () => {
-            document.getElementById('userListModal').classList.add('active');
-        };
-
-        window.closeUserListModal = () => {
-            document.getElementById('userListModal').classList.remove('active');
-        };
-
-        window.handleRoleChange = () => {
-            const role = document.getElementById('newUserRole').value;
-            document.getElementById('santriFields').classList.toggle('hidden', role !== 'santri');
-            document.getElementById('waliFields').classList.toggle('hidden', role !== 'wali');
-        };
-
-        window.togglePasswordVisibility = () => {
-            const input = document.getElementById('newUserPassword');
-            const icon = document.getElementById('togglePasswordIcon');
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        };
-
-        window.toggleSidebar = () => {
-            const sidebar = document.getElementById('sidebar');
-            const main = document.getElementById('mainContent');
-            const texts = document.querySelectorAll('.sidebar-text');
-            
-            if (sidebar.classList.contains('sidebar-expanded')) {
-                sidebar.classList.replace('sidebar-expanded', 'sidebar-collapsed');
-                main.style.marginLeft = '80px';
-                texts.forEach(t => t.style.display = 'none');
-            } else {
-                sidebar.classList.replace('sidebar-collapsed', 'sidebar-expanded');
-                main.style.marginLeft = '280px';
-                texts.forEach(t => t.style.display = 'block');
-            }
-        };
-
-        window.toggleDarkMode = () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        };
-
-        window.handleLogout = async () => {
-            if (confirm('Apakah Anda yakin ingin logout?')) {
-                try {
-                    await signOut(auth);
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userData');
-                    window.location.href = 'login.html';
-                } catch (error) {
-                    showToast('Error', 'Gagal logout: ' + error.message, 'error');
-                }
-            }
-        };
-
-        function showToast(title, message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-4 flex items-center gap-3 border-l-4 ${type === 'error' ? 'border-red-500' : 'border-primary-500'} animate-fade-in mb-2`;
-            toast.innerHTML = `
-                <i class="fas ${type === 'error' ? 'fa-exclamation-circle text-red-500' : 'fa-check-circle text-primary-500'}"></i>
-                <div>
-                    <p class="font-semibold text-secondary-900 dark:text-white text-sm">${title}</p>
-                    <p class="text-xs text-secondary-500">${message}</p>
-                </div>
-            `;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
-        }
-
-        // Set current date
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('id-ID', options);
-
-        // Check theme
-        if (localStorage.getItem('theme') === 'dark') {
-            document.documentElement.classList.add('dark');
-        }
-    </script>
+const now = new Date();
+const days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+document.getElementById('topbarDate').textContent = days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+document.getElementById('dateNum').textContent = now.getDate();
+document.getElementById('dateStr').textContent = months[now.getMonth()]+' '+now.getFullYear();
+</script>
 </body>
 </html>

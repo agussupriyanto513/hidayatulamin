@@ -1,944 +1,683 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Ustadz | Hidayatullah Amin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-                    colors: {
-                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
-                        blue: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .sidebar { transition: all 0.3s; }
-        .nav-item { transition: all 0.2s; }
-        .nav-item:hover { background: rgba(59, 130, 246, 0.1); }
-        .nav-item.active { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); }
-        .glass-dark { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); }
-        .card-hover { transition: all 0.3s; }
-        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.2); }
-        .modal { display: none; }
-        .modal.active { display: flex; }
-        .tab-btn { transition: all 0.2s; }
-        .tab-btn.active { background: #3b82f6; color: white; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Ustadz | Hidayatullah Amin</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f4f6fb;--sidebar:#0f1f2e;--card:#fff;--text:#1a2332;--text2:#5a6a7e;--text3:#8fa3b8;
+  --blue:#2d7ef5;--blue2:#1a5fbb;--blue-bg:#eaf1fe;--blue-text:#1a4fa0;
+  --green:#0db87a;--green-bg:#e6f9f2;--green-text:#0a6b4e;
+  --amber:#f5a623;--amber-bg:#fef4e0;--amber-text:#935f0b;
+  --red:#ef4444;--red-bg:#feeaea;--red-text:#991b1b;
+  --purple:#7c3aed;--purple-bg:#f0ebff;--purple-text:#4c1d95;
+  --border:#e8edf3;--shadow:0 2px 12px rgba(0,0,0,0.06);--shadow2:0 8px 32px rgba(0,0,0,0.1);
+  --r:12px;--r2:16px;
+}
+.dark{
+  --bg:#0d1117;--card:#161d27;--text:#e2e8f0;--text2:#8fa3b8;--text3:#4a6070;
+  --blue-bg:#0f1e3a;--blue-text:#60a5fa;--green-bg:#0a2e20;--green-text:#4ade80;
+  --amber-bg:#2a1e0a;--amber-text:#fbbf24;--red-bg:#2a0f0f;--red-text:#f87171;
+  --purple-bg:#1e0f3a;--purple-text:#a78bfa;--border:#1e2d3d;
+  --shadow:0 2px 12px rgba(0,0,0,0.3);--shadow2:0 8px 32px rgba(0,0,0,0.4);
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px}
+
+/* SIDEBAR — warna aksen biru untuk ustadz */
+.sidebar{width:260px;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;transition:width .3s ease}
+.sidebar.collapsed{width:72px}
+.sidebar-logo{padding:20px 20px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.logo-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#2d7ef5,#1a5fbb);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0}
+.logo-text h1{font-family:'Amiri',serif;color:#fff;font-size:17px;font-weight:700}
+.logo-text p{color:#2d7ef5;font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-top:1px}
+.sidebar.collapsed .logo-text,.sidebar.collapsed .nav-label,.sidebar.collapsed .sec-label{opacity:0;pointer-events:none;width:0;overflow:hidden}
+.sec-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.25);padding:12px 20px 4px;display:block}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all .2s;font-size:13px;font-weight:500;text-decoration:none;margin:1px 8px}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.85)}
+.nav-item.active{background:rgba(45,126,245,0.18);color:#2d7ef5;border:1px solid rgba(45,126,245,0.25)}
+.nav-item i{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+.sidebar-footer{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.06)}
+.user-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:10px;background:rgba(255,255,255,0.04)}
+.u-av{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#2d7ef5,#1a5fbb);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0}
+.u-info p{font-size:13px;font-weight:600;color:#fff;line-height:1.3}
+.u-info span{font-size:11px;color:rgba(255,255,255,0.38)}
+
+/* MAIN */
+.main{flex:1;margin-left:260px;transition:margin-left .3s ease;display:flex;flex-direction:column;min-height:100vh}
+.main.expanded{margin-left:72px}
+
+/* TOPBAR */
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:90}
+.page-title h2{font-size:20px;font-weight:700;color:var(--text)}
+.page-title p{font-size:12px;color:var(--text2);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.icon-btn{width:38px;height:38px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .2s;position:relative}
+.icon-btn:hover{background:var(--blue-bg);color:var(--blue);border-color:var(--blue)}
+.badge-dot{position:absolute;top:8px;right:8px;width:7px;height:7px;background:#ef4444;border-radius:50%;border:2px solid var(--card)}
+.btn-logout{padding:8px 16px;border-radius:10px;background:var(--red-bg);color:var(--red-text);font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;display:flex;align-items:center;gap:6px;transition:all .2s;text-decoration:none}
+.btn-logout:hover{border-color:var(--red)}
+
+/* CONTENT */
+.content{padding:24px 28px;flex:1}
+
+/* SECTIONS */
+.section{display:none}
+.section.active{display:block}
+
+/* GREETING */
+.greeting{background:linear-gradient(135deg,#0f1f44 0%,#0a2a4a 100%);border-radius:var(--r2);padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between}
+.greeting::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:rgba(45,126,245,0.1);border-radius:50%}
+.greeting::after{content:'';position:absolute;bottom:-40px;right:120px;width:140px;height:140px;background:rgba(255,255,255,0.03);border-radius:50%}
+.greeting-text h3{font-family:'Amiri',serif;font-size:22px;color:#fff;margin-bottom:5px}
+.greeting-text p{color:rgba(255,255,255,0.5);font-size:13px}
+.greeting-date .dn{font-size:36px;font-weight:800;color:#2d7ef5;line-height:1}
+.greeting-date .dl{font-size:12px;color:rgba(255,255,255,0.4);margin-top:3px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border-radius:var(--r2);padding:20px;border:1px solid var(--border);transition:all .2s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow2)}
+.stat-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.stat-val{font-size:32px;font-weight:800;color:var(--text);line-height:1;margin-bottom:4px}
+.stat-lbl{font-size:12px;color:var(--text2);font-weight:500}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:5px}
+.ig{background:var(--green-bg);color:var(--green)}
+.ib{background:var(--blue-bg);color:var(--blue)}
+.ia{background:var(--amber-bg);color:var(--amber)}
+.ip{background:var(--purple-bg);color:var(--purple)}
+
+/* QA CARDS */
+.qa-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.qa-card{border-radius:var(--r2);padding:20px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:all .2s;text-decoration:none;border:1px solid transparent}
+.qa-card:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
+.qa-card .qa-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.qa-card h4{font-size:14px;font-weight:700}
+.qa-card p{font-size:12px;opacity:.75}
+.qa-blue{background:linear-gradient(135deg,#2d7ef5,#1a5fbb);color:#fff}
+.qa-green{background:linear-gradient(135deg,#0db87a,#09926a);color:#fff}
+.qa-purple{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff}
+.qa-card .qa-icon{background:rgba(255,255,255,0.18)}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.card{background:var(--card);border-radius:var(--r2);padding:20px;border:1px solid var(--border)}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-hd h4{font-size:15px;font-weight:700;color:var(--text)}
+.card-hd p{font-size:12px;color:var(--text2);margin-top:2px}
+.card-link{font-size:12px;color:var(--blue);font-weight:600;text-decoration:none;cursor:pointer}
+.card-link:hover{text-decoration:underline}
+
+/* SANTRI LIST */
+.santri-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:pointer;transition:all .2s;margin-bottom:6px}
+.santri-item:hover{background:var(--bg)}
+.s-av{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+.s-name{font-size:13px;font-weight:600;color:var(--text)}
+.s-info{font-size:11px;color:var(--text3)}
+.s-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;flex-shrink:0}
+.s-aktif{background:var(--green-bg);color:var(--green-text)}
+.s-proses{background:var(--amber-bg);color:var(--amber-text)}
+.s-libur{background:var(--red-bg);color:var(--red-text)}
+
+/* JADWAL TIMELINE */
+.jadwal-item{display:flex;gap:14px;margin-bottom:16px}
+.jadwal-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+.jadwal-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.jadwal-line{width:2px;flex:1;background:var(--border);margin:4px 0}
+.jadwal-content{flex:1;padding-bottom:4px}
+.jadwal-time{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.jadwal-mapel{font-size:13px;font-weight:600;color:var(--text)}
+.jadwal-room{font-size:11px;color:var(--text3)}
+.jadwal-status{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-block;margin-top:4px}
+.js-selesai{background:var(--green-bg);color:var(--green-text)}
+.js-aktif{background:var(--blue-bg);color:var(--blue-text)}
+.js-upcoming{background:var(--amber-bg);color:var(--amber-text)}
+
+/* DATA SANTRI TABLE */
+.search-bar{display:flex;gap:10px;margin-bottom:16px}
+.search-input{flex:1;padding:9px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:'Outfit',sans-serif;outline:none}
+.search-input:focus{border-color:var(--blue)}
+.sel-sm{font-size:12px;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;outline:none;font-family:'Outfit',sans-serif}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--bg)}
+th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)}
+td{padding:12px 16px;border-top:1px solid var(--border);font-size:13px;color:var(--text2)}
+tr:hover td{background:var(--bg)}
+.prog-bar{height:6px;background:var(--border);border-radius:20px;overflow:hidden;width:80px}
+.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#2d7ef5,#1a5fbb)}
+
+/* LAPORAN */
+.chart-card{background:var(--card);border-radius:var(--r2);padding:20px;border:1px solid var(--border);margin-bottom:16px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:20px}
+.tab-btn{flex:1;padding:8px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .2s;font-family:'Outfit',sans-serif}
+.tab-btn.active{background:var(--card);color:var(--blue);box-shadow:var(--shadow)}
+
+/* MODAL detail santri */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal-box{background:var(--card);border-radius:var(--r2);width:500px;max-width:96vw;max-height:90vh;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow2)}
+.mhd{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mhd h3{font-size:17px;font-weight:700;color:var(--text)}
+.m-close{width:32px;height:32px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .2s}
+.m-close:hover{background:var(--red-bg);color:var(--red)}
+.mbody{padding:24px;overflow-y:auto;max-height:70vh}
+.detail-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.detail-row:last-child{border-bottom:none}
+.detail-label{font-size:12px;color:var(--text2)}
+.detail-val{font-size:13px;font-weight:600;color:var(--text)}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--card);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow2);min-width:240px;transform:translateX(110%);transition:transform .35s cubic-bezier(0.4,0,0.2,1);font-size:13px;border:1px solid var(--border);border-left:4px solid var(--blue)}
+.toast.err{border-left-color:var(--red)}
+.toast.show{transform:translateX(0)}
+.toast-icon{font-size:15px;color:var(--blue)}
+.toast.err .toast-icon{color:var(--red)}
+.toast-msg p:first-child{font-weight:600;color:var(--text);font-size:13px}
+.toast-msg p:last-child{color:var(--text2);font-size:11px;margin-top:1px}
+
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}.qa-row{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){.sidebar{width:72px}.main{margin-left:72px}.sidebar .nav-label,.sidebar .logo-text,.sidebar .sec-label{opacity:0;width:0;overflow:hidden}.content{padding:16px}.stats-grid{grid-template-columns:1fr 1fr}.greeting-date{display:none}.qa-row{grid-template-columns:1fr}}
+</style>
 </head>
-<body class="font-sans antialiased bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-    
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
-        <aside class="sidebar w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col">
-            <div class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-700">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                </div>
-                <div class="ml-3">
-                    <h1 class="font-bold text-slate-900 dark:text-white">Portal Ustadz</h1>
-                </div>
-            </div>
-            
-            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-                <a href="#" onclick="showSection('dashboard')" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium" id="nav-dashboard">
-                    <i class="fas fa-home w-5"></i>
-                    Dashboard
-                </a>
-                <a href="absensi.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400">
-                    <i class="fas fa-qrcode w-5"></i>
-                    Absensi QR
-                </a>
-                <a href="hafalan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400">
-                    <i class="fas fa-book-open w-5"></i>
-                    Input Hafalan
-                </a>
-                <a href="#" onclick="showSection('santri')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400" id="nav-santri">
-                    <i class="fas fa-users w-5"></i>
-                    Data Santri
-                </a>
-                <a href="#" onclick="showSection('laporan')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400" id="nav-laporan">
-                    <i class="fas fa-chart-line w-5"></i>
-                    Laporan
-                </a>
-            </nav>
-            
-            <div class="p-4 border-t border-slate-200 dark:border-slate-700">
-                <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
-                    <i class="fas fa-sign-out-alt w-5"></i>
-                    <span class="font-medium">Logout</span>
-                </button>
-            </div>
-        </aside>
+<body>
 
-        <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto">
-            <!-- Header -->
-            <header class="sticky top-0 z-30 glass dark:glass-dark border-b border-slate-200 dark:border-slate-700 px-8 py-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-2xl font-bold text-slate-900 dark:text-white" id="page-title">Dashboard Ustadz</h2>
-                        <p class="text-sm text-slate-500">Kelas: <span class="font-semibold text-blue-600">6A & 6B</span></p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 flex items-center justify-center">
-                            <i class="fas fa-moon dark:hidden"></i>
-                            <i class="fas fa-sun hidden dark:block"></i>
-                        </button>
-                        <div class="flex items-center gap-3">
-                            <img src="https://ui-avatars.com/api/?name=Ustadz&background=3b82f6&color=fff" class="w-10 h-10 rounded-full">
-                            <div class="hidden md:block">
-                                <p class="text-sm font-semibold text-slate-900 dark:text-white">Ust. Abdullah</p>
-                                <p class="text-xs text-slate-500">Pengajar Tahfidz</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- DASHBOARD SECTION -->
-            <div id="section-dashboard" class="p-8">
-                <!-- Quick Actions -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <a href="absensi.html" class="card-hover bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
-                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                            <i class="fas fa-qrcode text-2xl"></i>
-                        </div>
-                        <h3 class="text-lg font-bold mb-1">Scan Absensi</h3>
-                        <p class="text-blue-100 text-sm">Absensi dengan QR Code</p>
-                    </a>
-                    <a href="hafalan.html" class="card-hover bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white">
-                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                            <i class="fas fa-book-open text-2xl"></i>
-                        </div>
-                        <h3 class="text-lg font-bold mb-1">Input Hafalan</h3>
-                        <p class="text-emerald-100 text-sm">Catat setoran santri</p>
-                    </a>
-                    <button onclick="showJadwalModal()" class="card-hover bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white text-left">
-                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                            <i class="fas fa-calendar-alt text-2xl"></i>
-                        </div>
-                        <h3 class="text-lg font-bold mb-1">Jadwal Mengajar</h3>
-                        <p class="text-purple-100 text-sm">Lihat jadwal lengkap</p>
-                    </button>
-                </div>
-
-                <!-- Stats -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
-                                <i class="fas fa-users"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white" id="total-santri">42</h3>
-                        <p class="text-sm text-slate-500">Santri Bimbingan</p>
-                    </div>
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">38</h3>
-                        <p class="text-sm text-slate-500">Hadir Hari Ini</p>
-                    </div>
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center">
-                                <i class="fas fa-book-quran"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">12</h3>
-                        <p class="text-sm text-slate-500">Setoran Hari Ini</p>
-                    </div>
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">4.2</h3>
-                        <p class="text-sm text-slate-500">Rata-rata Juz</p>
-                    </div>
-                </div>
-
-                <!-- Content Grid -->
-                <div class="grid lg:grid-cols-2 gap-6">
-                    <!-- Santri List -->
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Santri Bimbingan</h3>
-                            <button onclick="showSection('santri')" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Lihat Semua</button>
-                        </div>
-                        <div class="space-y-3" id="dashboard-santri-list">
-                            <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer" onclick="showSantriDetail('Ahmad Fauzi')">
-                                <img src="https://ui-avatars.com/api/?name=Ahmad&background=10b981&color=fff" class="w-10 h-10 rounded-full">
-                                <div class="flex-1">
-                                    <p class="font-semibold text-slate-900 dark:text-white text-sm">Ahmad Fauzi</p>
-                                    <p class="text-xs text-slate-500">Juz 5 • 85% Selesai</p>
-                                </div>
-                                <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 text-xs rounded-full font-medium">Aktif</span>
-                            </div>
-                            <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer" onclick="showSantriDetail('Muhammad Rizky')">
-                                <img src="https://ui-avatars.com/api/?name=Muhammad&background=3b82f6&color=fff" class="w-10 h-10 rounded-full">
-                                <div class="flex-1">
-                                    <p class="font-semibold text-slate-900 dark:text-white text-sm">Muhammad Rizky</p>
-                                    <p class="text-xs text-slate-500">Juz 4 • 60% Selesai</p>
-                                </div>
-                                <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 text-xs rounded-full font-medium">Proses</span>
-                            </div>
-                            <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer" onclick="showSantriDetail('Abdul Rahman')">
-                                <img src="https://ui-avatars.com/api/?name=Abdul&background=f59e0b&color=fff" class="w-10 h-10 rounded-full">
-                                <div class="flex-1">
-                                    <p class="font-semibold text-slate-900 dark:text-white text-sm">Abdul Rahman</p>
-                                    <p class="text-xs text-slate-500">Juz 6 • 90% Selesai</p>
-                                </div>
-                                <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 text-xs rounded-full font-medium">Aktif</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Today's Schedule -->
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Jadwal Hari Ini</h3>
-                            <span class="text-sm text-slate-500" id="today-date">Rabu, 5 Maret 2026</span>
-                        </div>
-                        <div class="space-y-4" id="today-schedule">
-                            <div class="flex gap-4">
-                                <div class="flex flex-col items-center">
-                                    <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-                                    <div class="w-0.5 h-full bg-slate-200 dark:bg-slate-700"></div>
-                                </div>
-                                <div class="pb-4">
-                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">07:00 - 08:30</p>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400">Tahfidz Kelas 6A</p>
-                                    <p class="text-xs text-slate-500">Ruang Tahfidz 1 • 21 Santri</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-4">
-                                <div class="flex flex-col items-center">
-                                    <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
-                                    <div class="w-0.5 h-full bg-slate-200 dark:bg-slate-700"></div>
-                                </div>
-                                <div class="pb-4">
-                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">09:00 - 10:30</p>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400">Tahfidz Kelas 6B</p>
-                                    <p class="text-xs text-slate-500">Ruang Tahfidz 2 • 21 Santri</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-4">
-                                <div class="flex flex-col items-center">
-                                    <div class="w-3 h-3 rounded-full bg-purple-500"></div>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">13:00 - 14:30</p>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400">Muroja'ah Kelas 6A</p>
-                                    <p class="text-xs text-slate-500">Ruang Tahfidz 1 • 21 Santri</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- DATA SANTRI SECTION -->
-            <div id="section-santri" class="p-8 hidden">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Data Santri Bimbingan</h3>
-                        <p class="text-sm text-slate-500">Kelola data dan perkembangan santri</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="exportSantriData()" class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition">
-                            <i class="fas fa-download mr-2"></i>Export
-                        </button>
-                        <button onclick="showAddSantriModal()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition">
-                            <i class="fas fa-plus mr-2"></i>Tambah Santri
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Filter & Search -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 mb-6">
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <div class="flex-1 relative">
-                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="search-santri" placeholder="Cari nama santri..." class="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onkeyup="filterSantri()">
-                        </div>
-                        <select id="filter-kelas" class="px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="filterSantri()">
-                            <option value="">Semua Kelas</option>
-                            <option value="6A">Kelas 6A</option>
-                            <option value="6B">Kelas 6B</option>
-                        </select>
-                        <select id="filter-status" class="px-4 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="filterSantri()">
-                            <option value="">Semua Status</option>
-                            <option value="aktif">Aktif</option>
-                            <option value="proses">Proses</option>
-                            <option value="libur">Libur</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Santri Table -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-slate-50 dark:bg-slate-700/50">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Santri</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Kelas</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Progress Hafalan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Terakhir Setor</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="santri-table-body" class="divide-y divide-slate-200 dark:divide-slate-700">
-                                <!-- Data akan diisi oleh JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- LAPORAN SECTION -->
-            <div id="section-laporan" class="p-8 hidden">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Laporan & Statistik</h3>
-                        <p class="text-sm text-slate-500">Analisis perkembangan santri dan absensi</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="exportLaporan()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition">
-                            <i class="fas fa-file-pdf mr-2"></i>Export PDF
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Report Tabs -->
-                <div class="flex gap-2 mb-6 overflow-x-auto">
-                    <button onclick="switchReportTab('hafalan')" class="tab-btn active px-4 py-2 rounded-xl text-sm font-medium" id="tab-hafalan">Perkembangan Hafalan</button>
-                    <button onclick="switchReportTab('absensi')" class="tab-btn px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-xl text-sm font-medium" id="tab-absensi">Rekap Absensi</button>
-                    <button onclick="switchReportTab('kelas')" class="tab-btn px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-xl text-sm font-medium" id="tab-kelas">Per Kelas</button>
-                </div>
-
-                <!-- Hafalan Report -->
-                <div id="report-hafalan" class="space-y-6">
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                            <h4 class="font-semibold text-slate-900 dark:text-white mb-4">Progress Juz per Santri</h4>
-                            <canvas id="chart-juz" height="200"></canvas>
-                        </div>
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                            <h4 class="font-semibold text-slate-900 dark:text-white mb-4">Setoran per Minggu</h4>
-                            <canvas id="chart-setoran" height="200"></canvas>
-                        </div>
-                    </div>
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                        <h4 class="font-semibold text-slate-900 dark:text-white mb-4">Detail Setoran Bulan Ini</h4>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="bg-slate-50 dark:bg-slate-700/50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500">Tanggal</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500">Santri</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500">Juz/Halaman</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500">Kualitas</th>
-                                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500">Catatan</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-200 dark:divide-slate-700" id="laporan-setoran-body">
-                                    <!-- Data dari Firebase -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Absensi Report -->
-                <div id="report-absensi" class="space-y-6 hidden">
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                            <h4 class="text-sm text-slate-500 mb-2">Kehadiran Bulan Ini</h4>
-                            <p class="text-3xl font-bold text-slate-900 dark:text-white">94%</p>
-                            <p class="text-xs text-green-600 mt-1"><i class="fas fa-arrow-up mr-1"></i>+2% dari bulan lalu</p>
-                        </div>
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                            <h4 class="text-sm text-slate-500 mb-2">Santri Paling Rajin</h4>
-                            <p class="text-lg font-bold text-slate-900 dark:text-white">Ahmad Fauzi</p>
-                            <p class="text-xs text-slate-500 mt-1">100% kehadiran</p>
-                        </div>
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                            <h4 class="text-sm text-slate-500 mb-2">Perlu Perhatian</h4>
-                            <p class="text-lg font-bold text-slate-900 dark:text-white">3 Santri</p>
-                            <p class="text-xs text-red-500 mt-1">Kehadiran < 80%</p>
-                        </div>
-                    </div>
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                        <h4 class="font-semibold text-slate-900 dark:text-white mb-4">Grafik Kehadiran Mingguan</h4>
-                        <canvas id="chart-absensi" height="100"></canvas>
-                    </div>
-                </div>
-
-                <!-- Kelas Report -->
-                <div id="report-kelas" class="space-y-6 hidden">
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                            <h4 class="font-semibold text-slate-900 dark:text-white mb-4">Perbandingan Kelas 6A vs 6B</h4>
-                            <canvas id="chart-kelas" height="200"></canvas>
-                        </div>
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                            <h4 class="font-semibold text-slate-900 dark:text-white mb-4">Ranking Kelas</h4>
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                                    <div class="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 flex items-center justify-center font-bold text-sm">1</div>
-                                    <div class="flex-1">
-                                        <p class="font-semibold text-slate-900 dark:text-white">Kelas 6A</p>
-                                        <p class="text-xs text-slate-500">Rata-rata Juz: 4.5</p>
-                                    </div>
-                                    <span class="text-green-600 text-sm font-medium">+12%</span>
-                                </div>
-                                <div class="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                                    <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-sm">2</div>
-                                    <div class="flex-1">
-                                        <p class="font-semibold text-slate-900 dark:text-white">Kelas 6B</p>
-                                        <p class="text-xs text-slate-500">Rata-rata Juz: 3.9</p>
-                                    </div>
-                                    <span class="text-green-600 text-sm font-medium">+8%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-mosque"></i></div>
+    <div class="logo-text">
+      <h1>Hidayatullah</h1>
+      <p>Portal Ustadz</p>
     </div>
+  </div>
 
-    <!-- Jadwal Modal -->
-    <div id="jadwal-modal" class="modal fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto">
-            <div class="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Jadwal Mengajar Lengkap</h3>
-                <button onclick="closeJadwalModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-                    <button onclick="switchJadwalDay('senin')" class="jadwal-tab px-4 py-2 rounded-xl text-sm font-medium bg-blue-600 text-white" data-day="senin">Senin</button>
-                    <button onclick="switchJadwalDay('selasa')" class="jadwal-tab px-4 py-2 rounded-xl text-sm font-medium bg-slate-200 dark:bg-slate-700" data-day="selasa">Selasa</button>
-                    <button onclick="switchJadwalDay('rabu')" class="jadwal-tab px-4 py-2 rounded-xl text-sm font-medium bg-slate-200 dark:bg-slate-700" data-day="rabu">Rabu</button>
-                    <button onclick="switchJadwalDay('kamis')" class="jadwal-tab px-4 py-2 rounded-xl text-sm font-medium bg-slate-200 dark:bg-slate-700" data-day="kamis">Kamis</button>
-                    <button onclick="switchJadwalDay('jumat')" class="jadwal-tab px-4 py-2 rounded-xl text-sm font-medium bg-slate-200 dark:bg-slate-700" data-day="jumat">Jumat</button>
-                    <button onclick="switchJadwalDay('sabtu')" class="jadwal-tab px-4 py-2 rounded-xl text-sm font-medium bg-slate-200 dark:bg-slate-700" data-day="sabtu">Sabtu</button>
-                </div>
-                
-                <div id="jadwal-content" class="space-y-4">
-                    <!-- Content akan diisi oleh JavaScript -->
-                </div>
-            </div>
+  <span class="sec-label">Menu Utama</span>
+  <a class="nav-item active" href="#" onclick="showSection('dashboard');return false" id="nav-dashboard"><i class="fas fa-th-large"></i><span class="nav-label">Dashboard</span></a>
+  <a class="nav-item" href="absensi.html"><i class="fas fa-qrcode"></i><span class="nav-label">Absensi QR</span></a>
+  <a class="nav-item" href="hafalan.html"><i class="fas fa-book-open"></i><span class="nav-label">Input Hafalan</span></a>
+  <a class="nav-item" href="#" onclick="showSection('santri');return false" id="nav-santri"><i class="fas fa-users"></i><span class="nav-label">Data Santri</span></a>
+  <a class="nav-item" href="#" onclick="showSection('laporan');return false" id="nav-laporan"><i class="fas fa-chart-line"></i><span class="nav-label">Laporan</span></a>
+
+  <span class="sec-label">Navigasi</span>
+  <a class="nav-item" href="dashboard-admin.html"><i class="fas fa-shield-alt"></i><span class="nav-label">Panel Admin</span></a>
+  <a class="nav-item" href="sagatama-mart.html"><i class="fas fa-store"></i><span class="nav-label">Sagatama Mart</span></a>
+
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="u-av" id="sideAvatar">U</div>
+      <div class="u-info" style="flex:1;min-width:0">
+        <p id="sideUserName" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ustadz</p>
+        <span id="sideUserEmail">Loading...</span>
+      </div>
+      <i class="fas fa-sign-out-alt" id="sideLogout" style="color:rgba(255,255,255,0.3);cursor:pointer;font-size:14px;flex-shrink:0"></i>
+    </div>
+  </div>
+</aside>
+
+<div class="main" id="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="icon-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+      <div class="page-title">
+        <h2 id="pageTitle">Dashboard Ustadz</h2>
+        <p id="topbarSub">Kelas: <span id="kelasBadge" style="color:var(--blue);font-weight:600">—</span></p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="icon-btn" onclick="toggleDark()" id="darkBtn"><i class="fas fa-moon"></i></div>
+      <div class="icon-btn"><i class="fas fa-bell"></i><span class="badge-dot"></span></div>
+      <a class="btn-logout" id="logoutBtn" href="login.html"><i class="fas fa-sign-out-alt"></i>Logout</a>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ════ DASHBOARD SECTION ════ -->
+    <div class="section active" id="sec-dashboard">
+      <div class="greeting">
+        <div class="greeting-text">
+          <h3>Assalamu'alaikum, <span id="greetName">Ustadz</span>! ✋</h3>
+          <p id="greetSub">Selamat mengajar hari ini.</p>
         </div>
-    </div>
-
-    <!-- Santri Detail Modal -->
-    <div id="santri-detail-modal" class="modal fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-lg mx-4">
-            <div class="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Detail Santri</h3>
-                <button onclick="closeSantriDetail()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="p-6" id="santri-detail-content">
-                <!-- Content akan diisi oleh JavaScript -->
-            </div>
+        <div class="greeting-date">
+          <div class="dn" id="dateNum">—</div>
+          <div class="dl" id="dateStr">—</div>
         </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-hd"><div class="stat-icon ib"><i class="fas fa-users"></i></div></div>
+          <div class="stat-val" id="statSantri">—</div>
+          <div class="stat-lbl">Santri Bimbingan</div><div class="stat-sub" id="statKelas">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-hd"><div class="stat-icon ig"><i class="fas fa-check-circle"></i></div></div>
+          <div class="stat-val" id="statHadir">38</div>
+          <div class="stat-lbl">Hadir Hari Ini</div><div class="stat-sub">Dari total santri</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-hd"><div class="stat-icon ia"><i class="fas fa-book-quran"></i></div></div>
+          <div class="stat-val" id="statSetoran">12</div>
+          <div class="stat-lbl">Setoran Hari Ini</div><div class="stat-sub">Halaman disetorkan</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-hd"><div class="stat-icon ip"><i class="fas fa-chart-line"></i></div></div>
+          <div class="stat-val" id="statRataJuz">4.2</div>
+          <div class="stat-lbl">Rata-rata Juz</div><div class="stat-sub">Semua kelas</div>
+        </div>
+      </div>
+
+      <div class="qa-row">
+        <a class="qa-card qa-blue" href="absensi.html">
+          <div class="qa-icon"><i class="fas fa-qrcode"></i></div>
+          <div><h4>Scan Absensi</h4><p>Absensi dengan QR Code</p></div>
+        </a>
+        <a class="qa-card qa-green" href="hafalan.html">
+          <div class="qa-icon"><i class="fas fa-book-open"></i></div>
+          <div><h4>Input Hafalan</h4><p>Catat setoran santri</p></div>
+        </a>
+        <a class="qa-card qa-purple" href="#" onclick="showSection('laporan');return false">
+          <div class="qa-icon"><i class="fas fa-chart-bar"></i></div>
+          <div><h4>Lihat Laporan</h4><p>Perkembangan kelas</p></div>
+        </a>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hd">
+            <div><h4>Santri Bimbingan</h4><p>Aktivitas terbaru</p></div>
+            <span class="card-link" onclick="showSection('santri')">Lihat Semua →</span>
+          </div>
+          <div id="dashSantriList">
+            <div style="text-align:center;padding:20px;color:var(--text3)"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">
+            <div><h4>Jadwal Hari Ini</h4></div>
+            <span class="card-link" onclick="showJadwalModal()">Semua Jadwal →</span>
+          </div>
+          <div id="todaySchedule">
+            <div style="text-align:center;padding:20px;color:var(--text3)"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-hd" style="margin-bottom:16px">
+          <div><h4>Progres Hafalan Santri</h4><p>Top 6 santri berdasarkan juz</p></div>
+        </div>
+        <canvas id="chartJuz" style="height:220px;max-height:220px"></canvas>
+      </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    <!-- ════ DATA SANTRI SECTION ════ -->
+    <div class="section" id="sec-santri">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div><h3 style="font-size:20px;font-weight:700">Data Santri Bimbingan</h3><p style="font-size:13px;color:var(--text2);margin-top:2px">Semua santri di bawah bimbingan Anda</p></div>
+      </div>
+      <div class="search-bar">
+        <input class="search-input" type="text" id="searchSantri" placeholder="🔍 Cari nama santri..." oninput="filterSantri()">
+        <select class="sel-sm" id="filterKelas" onchange="filterSantri()">
+          <option value="">Semua Kelas</option>
+          <option value="6A">Kelas 6A</option>
+          <option value="6B">Kelas 6B</option>
+        </select>
+        <select class="sel-sm" id="filterStatus" onchange="filterSantri()">
+          <option value="">Semua Status</option>
+          <option value="aktif">Aktif</option>
+          <option value="proses">Proses</option>
+          <option value="libur">Libur</option>
+        </select>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Santri</th><th>Kelas</th><th>Juz</th><th>Progres</th><th>Status</th><th>Terakhir Setoran</th><th>Aksi</th></tr></thead>
+            <tbody id="santriTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-            projectId: "hidayatulamin-e6f22",
-            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-            messagingSenderId: "80743607267",
-            appId: "1:80743607267:web:f5f94165de021759958ed6"
-        };
+    <!-- ════ LAPORAN SECTION ════ -->
+    <div class="section" id="sec-laporan">
+      <div style="margin-bottom:20px">
+        <h3 style="font-size:20px;font-weight:700">Laporan Kelas</h3>
+        <p style="font-size:13px;color:var(--text2);margin-top:2px">Statistik dan perkembangan santri bimbingan</p>
+      </div>
+      <div class="tabs" id="laporanTabs">
+        <button class="tab-btn active" onclick="switchLaporanTab('setoran',this)">Setoran Mingguan</button>
+        <button class="tab-btn" onclick="switchLaporanTab('absensi',this)">Absensi Harian</button>
+        <button class="tab-btn" onclick="switchLaporanTab('kelas',this)">Perbandingan Kelas</button>
+      </div>
+      <div class="chart-card" id="chartWrap">
+        <canvas id="laporanChart" style="height:260px;max-height:260px"></canvas>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hd"><div><h4>Ranking Santri</h4><p>Berdasarkan juz hafalan</p></div></div>
+          <div id="rankingList"></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div><h4>Perbandingan Kelas</h4><p>Rata-rata juz per kelas</p></div></div>
+          <canvas id="kelasChart" style="height:200px"></canvas>
+        </div>
+      </div>
+    </div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+  </div>
+</div>
 
-        // Data santri dummy (nantinya dari Firebase)
-        let santriData = [
-            { id: 1, nama: "Ahmad Fauzi", kelas: "6A", juz: 5, persen: 85, status: "aktif", terakhir: "2 jam yang lalu" },
-            { id: 2, nama: "Muhammad Rizky", kelas: "6A", juz: 4, persen: 60, status: "proses", terakhir: "Kemarin" },
-            { id: 3, nama: "Abdul Rahman", kelas: "6B", juz: 6, persen: 90, status: "aktif", terakhir: "3 jam yang lalu" },
-            { id: 4, nama: "Umar Faruq", kelas: "6A", juz: 3, persen: 45, status: "proses", terakhir: "2 hari lalu" },
-            { id: 5, nama: "Ali Hasan", kelas: "6B", juz: 7, persen: 95, status: "aktif", terakhir: "1 jam yang lalu" },
-            { id: 6, nama: "Bilal Ahmad", kelas: "6A", juz: 2, persen: 30, status: "libur", terakhir: "1 minggu lalu" },
-        ];
+<!-- Modal Jadwal -->
+<div class="overlay" id="jadwalModal">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="mhd">
+      <h3><i class="fas fa-calendar-alt" style="color:var(--blue);margin-right:8px"></i>Jadwal Mengajar Lengkap</h3>
+      <div class="m-close" onclick="closeJadwalModal()"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="mbody">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px" id="jadwalDayTabs"></div>
+      <div id="jadwalContent"></div>
+    </div>
+  </div>
+</div>
 
-        // Jadwal data
-        const jadwalData = {
-            senin: [
-                { waktu: "07:00 - 08:30", mapel: "Tahfidz", kelas: "6A", ruang: "Ruang Tahfidz 1", status: "aktif" },
-                { waktu: "09:00 - 10:30", mapel: "Tahfidz", kelas: "6B", ruang: "Ruang Tahfidz 2", status: "aktif" },
-                { waktu: "13:00 - 14:30", mapel: "Muroja'ah", kelas: "6A", ruang: "Ruang Tahfidz 1", status: "aktif" }
-            ],
-            selasa: [
-                { waktu: "07:00 - 08:30", mapel: "Tahfidz", kelas: "6B", ruang: "Ruang Tahfidz 2", status: "aktif" },
-                { waktu: "09:00 - 10:30", mapel: "Tahfidz", kelas: "6A", ruang: "Ruang Tahfidz 1", status: "aktif" }
-            ],
-            rabu: [
-                { waktu: "07:00 - 08:30", mapel: "Tahfidz", kelas: "6A", ruang: "Ruang Tahfidz 1", status: "aktif" },
-                { waktu: "09:00 - 10:30", mapel: "Tahfidz", kelas: "6B", ruang: "Ruang Tahfidz 2", status: "aktif" },
-                { waktu: "13:00 - 14:30", mapel: "Muroja'ah", kelas: "6A", ruang: "Ruang Tahfidz 1", status: "aktif" }
-            ],
-            kamis: [
-                { waktu: "07:00 - 08:30", mapel: "Tahfidz", kelas: "6B", ruang: "Ruang Tahfidz 2", status: "aktif" },
-                { waktu: "09:00 - 10:30", mapel: "Tahfidz", kelas: "6A", ruang: "Ruang Tahfidz 1", status: "aktif" },
-                { waktu: "13:00 - 14:30", mapel: "Muroja'ah", kelas: "6B", ruang: "Ruang Tahfidz 2", status: "aktif" }
-            ],
-            jumat: [
-                { waktu: "07:00 - 08:30", mapel: "Tahfidz", kelas: "6A", ruang: "Ruang Tahfidz 1", status: "aktif" },
-                { waktu: "09:00 - 10:30", mapel: "Tahfidz", kelas: "6B", ruang: "Ruang Tahfidz 2", status: "aktif" }
-            ],
-            sabtu: [
-                { waktu: "07:00 - 09:00", mapel: "Tahfidz", kelas: "6A & 6B", ruang: "Ruang Tahfidz 1", status: "aktif" }
-            ]
-        };
+<!-- Modal Detail Santri -->
+<div class="overlay" id="santriModal">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="mhd">
+      <h3 id="modalSantriTitle">Detail Santri</h3>
+      <div class="m-close" onclick="closeSantriModal()"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="mbody" id="modalSantriBody"></div>
+  </div>
+</div>
 
-        // Auth state
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            const uDoc = await getDoc(doc(db, "users", user.uid));
-            if (!uDoc.exists() || uDoc.data().role !== 'ustadz') {
-                await signOut(auth);
-                window.location.href = 'login.html';
-            }
-            
-            // Load data dari Firebase
-            await loadSantriData();
-            await loadLaporanData();
-        });
+<div class="toast-wrap" id="toastWrap"></div>
 
-        async function loadSantriData() {
-            try {
-                const q = query(collection(db, "santri"), where("ustadzId", "==", auth.currentUser.uid));
-                const snapshot = await getDocs(q);
-                if (!snapshot.empty) {
-                    santriData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderSantriTable();
-                } else {
-                    renderSantriTable(); // Render data dummy jika kosong
-                }
-            } catch (error) {
-                console.log("Using dummy data:", error);
-                renderSantriTable();
-            }
-        }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        async function loadLaporanData() {
-            // Load data setoran untuk laporan
-            try {
-                const q = query(collection(db, "setoran"), orderBy("tanggal", "desc"), limit(10));
-                const snapshot = await getDocs(q);
-                const tbody = document.getElementById('laporan-setoran-body');
-                tbody.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-slate-500">Belum ada data setoran</td></tr>';
-                } else {
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                <td class="px-4 py-3 text-sm">${data.tanggal?.toDate?.().toLocaleDateString('id-ID') || '-'}</td>
-                                <td class="px-4 py-3 text-sm font-medium">${data.namaSantri}</td>
-                                <td class="px-4 py-3 text-sm">Juz ${data.juz}, Hal ${data.halaman}</td>
-                                <td class="px-4 py-3 text-sm"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">${data.kualitas || 'Baik'}</span></td>
-                                <td class="px-4 py-3 text-sm text-slate-500">${data.catatan || '-'}</td>
-                            </tr>
-                        `;
-                    });
-                }
-            } catch (error) {
-                console.log("Error loading laporan:", error);
-            }
-            
-            initCharts();
-        }
+const firebaseConfig = {
+  apiKey:"AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+  authDomain:"hidayatulamin-e6f22.firebaseapp.com",
+  projectId:"hidayatulamin-e6f22",
+  storageBucket:"hidayatulamin-e6f22.firebasestorage.app",
+  messagingSenderId:"80743607267",
+  appId:"1:80743607267:web:f5f94165de021759958ed6"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-        // Navigation
-        window.showSection = (section) => {
-            // Hide all sections
-            document.querySelectorAll('[id^="section-"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`section-${section}`).classList.remove('hidden');
-            
-            // Update nav active state
-            document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('active');
-                el.classList.add('text-slate-600', 'dark:text-slate-400');
-            });
-            document.getElementById(`nav-${section}`).classList.add('active');
-            document.getElementById(`nav-${section}`).classList.remove('text-slate-600', 'dark:text-slate-400');
-            
-            // Update title
-            const titles = {
-                dashboard: 'Dashboard Ustadz',
-                santri: 'Data Santri Bimbingan',
-                laporan: 'Laporan & Statistik'
-            };
-            document.getElementById('page-title').textContent = titles[section];
-            
-            if (section === 'santri') renderSantriTable();
-            if (section === 'laporan') initCharts();
-        };
+// ─── DATA ────────────────────────────────────────────
+let santriList = [
+  {id:1,nama:"Ahmad Fauzi",kelas:"6A",juz:5,persen:85,status:"aktif",terakhir:"2 jam lalu",color:["#a7f3d0","#065f46"]},
+  {id:2,nama:"Muhammad Rizky",kelas:"6A",juz:4,persen:60,status:"proses",terakhir:"Kemarin",color:["#bfdbfe","#1e40af"]},
+  {id:3,nama:"Abdul Rahman",kelas:"6B",juz:6,persen:90,status:"aktif",terakhir:"3 jam lalu",color:["#fde68a","#92400e"]},
+  {id:4,nama:"Umar Faruq",kelas:"6A",juz:3,persen:45,status:"proses",terakhir:"2 hari lalu",color:["#ddd6fe","#4c1d95"]},
+  {id:5,nama:"Ali Hasan",kelas:"6B",juz:7,persen:95,status:"aktif",terakhir:"1 jam lalu",color:["#a7f3d0","#065f46"]},
+  {id:6,nama:"Bilal Ahmad",kelas:"6A",juz:2,persen:30,status:"libur",terakhir:"1 minggu lalu",color:["#fecaca","#991b1b"]},
+  {id:7,nama:"Yusuf Ismail",kelas:"6B",juz:5,persen:70,status:"aktif",terakhir:"Hari ini",color:["#bfdbfe","#1e40af"]},
+  {id:8,nama:"Hassan Abdullah",kelas:"6A",juz:4,persen:55,status:"proses",terakhir:"3 hari lalu",color:["#fde68a","#92400e"]},
+];
+const jadwalData = {
+  senin:[{waktu:"07:00–08:30",mapel:"Tahfidz",kelas:"6A",ruang:"Ruang Tahfidz 1",status:"selesai"},{waktu:"09:00–10:30",mapel:"Tahfidz",kelas:"6B",ruang:"Ruang Tahfidz 2",status:"selesai"}],
+  selasa:[{waktu:"08:00–09:30",mapel:"Muroja'ah",kelas:"6A",ruang:"Ruang Tahfidz 1",status:"selesai"},{waktu:"10:00–11:30",mapel:"Tahsin",kelas:"6B",ruang:"Ruang Tahfidz 2",status:"selesai"}],
+  rabu:[{waktu:"07:00–08:30",mapel:"Tahfidz",kelas:"6A",ruang:"Ruang Tahfidz 1",status:"selesai"},{waktu:"09:00–10:30",mapel:"Tahfidz",kelas:"6B",ruang:"Ruang Tahfidz 2",status:"aktif"},{waktu:"13:00–14:30",mapel:"Muroja'ah",kelas:"6A",ruang:"Ruang Tahfidz 1",status:"upcoming"}],
+  kamis:[{waktu:"08:00–09:30",mapel:"Tahsin",kelas:"6A",ruang:"Ruang Tahfidz 1",status:"upcoming"},{waktu:"10:00–11:30",mapel:"Muroja'ah",kelas:"6B",ruang:"Ruang Tahfidz 2",status:"upcoming"}],
+  jumat:[{waktu:"07:30–09:00",mapel:"Muroja'ah Bersama",kelas:"6A & 6B",ruang:"Aula Utama",status:"upcoming"}],
+  sabtu:[{waktu:"08:00–10:00",mapel:"Ujian Hafalan",kelas:"6A",ruang:"Ruang Ujian",status:"upcoming"},{waktu:"10:30–12:00",mapel:"Ujian Hafalan",kelas:"6B",ruang:"Ruang Ujian",status:"upcoming"}]
+};
 
-        // Santri functions
-        function renderSantriTable() {
-            const tbody = document.getElementById('santri-table-body');
-            tbody.innerHTML = '';
-            
-            const statusColors = {
-                aktif: 'bg-green-100 dark:bg-green-900/30 text-green-700',
-                proses: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700',
-                libur: 'bg-red-100 dark:bg-red-900/30 text-red-700'
-            };
-            
-            santriData.forEach(santri => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer" onclick="showSantriDetail('${santri.nama}')">
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(santri.nama)}&background=${santri.kelas === '6A' ? '3b82f6' : '10b981'}&color=fff" class="w-10 h-10 rounded-full">
-                                <div>
-                                    <p class="font-semibold text-slate-900 dark:text-white">${santri.nama}</p>
-                                    <p class="text-xs text-slate-500">ID: ${santri.id}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-sm">${santri.kelas}</td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-2">
-                                <div class="flex-1 h-2 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden">
-                                    <div class="h-full bg-blue-500 rounded-full" style="width: ${santri.persen}%"></div>
-                                </div>
-                                <span class="text-xs font-medium">Juz ${santri.juz}</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-slate-500">${santri.terakhir}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColors[santri.status]}">${santri.status}</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button onclick="event.stopPropagation(); editSantri('${santri.id}')" class="text-blue-600 hover:text-blue-700 mr-2">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="event.stopPropagation(); deleteSantri('${santri.id}')" class="text-red-600 hover:text-red-700">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            document.getElementById('total-santri').textContent = santriData.length;
-        }
+// ─── AUTH ────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href='login.html'; return; }
+  try {
+    const uDoc = await getDoc(doc(db,"users",user.uid));
+    if (!uDoc.exists() || uDoc.data().role !== 'ustadz') {
+      await signOut(auth); window.location.href='login.html'; return;
+    }
+    const d = uDoc.data();
+    const name = d.displayName || 'Ustadz';
+    document.getElementById('greetName').textContent = name;
+    document.getElementById('sideUserName').textContent = name;
+    document.getElementById('sideUserEmail').textContent = user.email;
+    document.getElementById('sideAvatar').textContent = name[0].toUpperCase();
+    const kelas = d.kelas || '6A & 6B';
+    document.getElementById('kelasBadge').textContent = kelas;
+    document.getElementById('statSantri').textContent = santriList.length;
+    document.getElementById('statKelas').textContent = 'Kelas '+kelas;
+    document.getElementById('greetSub').textContent = 'Selamat mengajar Kelas '+kelas+' hari ini.';
+    loadDashboard();
+  } catch(e){ console.error(e); loadDashboard(); }
+});
 
-        window.filterSantri = () => {
-            const search = document.getElementById('search-santri').value.toLowerCase();
-            const kelas = document.getElementById('filter-kelas').value;
-            const status = document.getElementById('filter-status').value;
-            
-            const rows = document.querySelectorAll('#santri-table-body tr');
-            rows.forEach(row => {
-                const nama = row.querySelector('td:first-child').textContent.toLowerCase();
-                const rowKelas = row.querySelector('td:nth-child(2)').textContent;
-                const rowStatus = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-                
-                const matchSearch = nama.includes(search);
-                const matchKelas = !kelas || rowKelas === kelas;
-                const matchStatus = !status || rowStatus === status;
-                
-                row.style.display = matchSearch && matchKelas && matchStatus ? '' : 'none';
-            });
-        };
+document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+  e.preventDefault(); if(confirm('Yakin logout?')){ await signOut(auth); window.location.href='login.html'; }
+});
+document.getElementById('sideLogout').addEventListener('click', async () => {
+  if(confirm('Yakin logout?')){ await signOut(auth); window.location.href='login.html'; }
+});
 
-        window.showSantriDetail = (nama) => {
-            const santri = santriData.find(s => s.nama === nama) || santriData[0];
-            const modal = document.getElementById('santri-detail-modal');
-            const content = document.getElementById('santri-detail-content');
-            
-            content.innerHTML = `
-                <div class="flex items-center gap-4 mb-6">
-                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(santri.nama)}&background=3b82f6&color=fff" class="w-20 h-20 rounded-full">
-                    <div>
-                        <h4 class="text-xl font-bold text-slate-900 dark:text-white">${santri.nama}</h4>
-                        <p class="text-slate-500">Kelas ${santri.kelas} • ${santri.status}</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl">
-                        <p class="text-xs text-slate-500 mb-1">Progress Hafalan</p>
-                        <p class="text-2xl font-bold text-slate-900 dark:text-white">Juz ${santri.juz}</p>
-                        <p class="text-xs text-slate-500">${santri.persen}% selesai</p>
-                    </div>
-                    <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl">
-                        <p class="text-xs text-slate-500 mb-1">Total Setoran</p>
-                        <p class="text-2xl font-bold text-slate-900 dark:text-white">24x</p>
-                        <p class="text-xs text-slate-500">Bulan ini</p>
-                    </div>
-                </div>
-                <div class="mb-6">
-                    <h5 class="font-semibold text-slate-900 dark:text-white mb-3">Riwayat Setoran Terakhir</h5>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                            <div>
-                                <p class="font-medium text-sm">Juz ${santri.juz} - Halaman 1-5</p>
-                                <p class="text-xs text-slate-500">2 hari yang lalu</p>
-                            </div>
-                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Lancar</span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                            <div>
-                                <p class="font-medium text-sm">Juz ${santri.juz - 1} - Halaman 6-10</p>
-                                <p class="text-xs text-slate-500">5 hari yang lalu</p>
-                            </div>
-                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Lancar</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="location.href='hafalan.html?santri=${santri.id}'" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition">
-                        <i class="fas fa-plus mr-2"></i>Input Hafalan
-                    </button>
-                    <button onclick="closeSantriDetail()" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition">Tutup</button>
-                </div>
-            `;
-            
-            modal.classList.add('active');
-        };
+// ─── RENDER DASHBOARD ───────────────────────────────
+function loadDashboard() {
+  renderDashSantri();
+  renderTodaySchedule();
+  renderChartJuz();
+  renderSantriTable(santriList);
+  renderRanking();
+}
 
-        window.closeSantriDetail = () => {
-            document.getElementById('santri-detail-modal').classList.remove('active');
-        };
+function renderDashSantri() {
+  const el = document.getElementById('dashSantriList');
+  el.innerHTML = santriList.slice(0,4).map(s=>`
+    <div class="santri-item" onclick="openSantriDetail(${s.id})">
+      <div class="s-av" style="background:${s.color[0]};color:${s.color[1]}">${s.nama[0]}</div>
+      <div style="flex:1;min-width:0">
+        <div class="s-name">${s.nama}</div>
+        <div class="s-info">Juz ${s.juz} • ${s.persen}% • ${s.terakhir}</div>
+      </div>
+      <span class="s-badge s-${s.status}">${s.status}</span>
+    </div>`).join('');
+}
 
-        window.editSantri = (id) => {
-            alert('Edit santri ID: ' + id);
-        };
+function renderTodaySchedule() {
+  const days=['minggu','senin','selasa','rabu','kamis','jumat','sabtu'];
+  const today = days[new Date().getDay()];
+  const jadwal = jadwalData[today] || jadwalData.rabu;
+  const dotColors = ['#2d7ef5','#0db87a','#7c3aed'];
+  const el = document.getElementById('todaySchedule');
+  if(!jadwal.length){ el.innerHTML='<p style="text-align:center;color:var(--text3);padding:20px">Tidak ada jadwal hari ini</p>'; return; }
+  el.innerHTML = jadwal.map((j,i)=>`
+    <div class="jadwal-item">
+      <div class="jadwal-dot-wrap">
+        <div class="jadwal-dot" style="background:${dotColors[i%3]}"></div>
+        ${i<jadwal.length-1?'<div class="jadwal-line"></div>':''}
+      </div>
+      <div class="jadwal-content">
+        <div class="jadwal-time">${j.waktu}</div>
+        <div class="jadwal-mapel">${j.mapel} — Kelas ${j.kelas}</div>
+        <div class="jadwal-room"><i class="fas fa-map-marker-alt" style="margin-right:4px"></i>${j.ruang}</div>
+        <span class="jadwal-status js-${j.status}">${j.status==='selesai'?'Selesai':j.status==='aktif'?'Sedang Berlangsung':'Akan Datang'}</span>
+      </div>
+    </div>`).join('');
+}
 
-        window.deleteSantri = (id) => {
-            if (confirm('Apakah Anda yakin ingin menghapus santri ini?')) {
-                alert('Santri dihapus (ID: ' + id + ')');
-            }
-        };
+function renderChartJuz() {
+  const ctx = document.getElementById('chartJuz').getContext('2d');
+  const top6 = [...santriList].sort((a,b)=>b.juz-a.juz).slice(0,6);
+  new Chart(ctx,{type:'bar',data:{
+    labels:top6.map(s=>s.nama.split(' ')[0]),
+    datasets:[{label:'Juz Hafal',data:top6.map(s=>s.juz),backgroundColor:['#2d7ef5','#0db87a','#7c3aed','#f5a623','#ef4444','#06b6d4'],borderRadius:8,borderSkipped:false}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:30,ticks:{font:{family:'Outfit',size:11}}},x:{grid:{display:false},ticks:{font:{family:'Outfit',size:11}}}}}});
+}
 
-        window.exportSantriData = () => {
-            alert('Export data santri ke Excel/PDF');
-        };
+function renderSantriTable(list) {
+  const tbody = document.getElementById('santriTable');
+  tbody.innerHTML = list.map(s=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;border-radius:9px;background:${s.color[0]};color:${s.color[1]};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${s.nama[0]}</div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text)">${s.nama}</div></div>
+      </div></td>
+      <td><span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--blue-bg);color:var(--blue-text)">${s.kelas}</span></td>
+      <td style="font-weight:700;color:var(--text)">${s.juz}</td>
+      <td><div class="prog-bar"><div style="height:100%;border-radius:20px;background:linear-gradient(90deg,#2d7ef5,#1a5fbb);width:${s.persen}%"></div></div></td>
+      <td><span class="s-badge s-${s.status}">${s.status}</span></td>
+      <td style="font-size:12px;color:var(--text3)">${s.terakhir}</td>
+      <td><button onclick="openSantriDetail(${s.id})" style="width:28px;height:28px;border-radius:7px;background:var(--blue-bg);color:var(--blue);border:none;cursor:pointer;font-size:12px"><i class="fas fa-eye"></i></button></td>
+    </tr>`).join('');
+}
 
-        window.showAddSantriModal = () => {
-            alert('Form tambah santri baru');
-        };
+function renderRanking(){
+  const el = document.getElementById('rankingList');
+  const sorted = [...santriList].sort((a,b)=>b.juz-a.juz);
+  const medals = ['🥇','🥈','🥉'];
+  el.innerHTML = sorted.slice(0,5).map((s,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:18px;width:28px;text-align:center">${medals[i]||`${i+1}`}</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${s.nama}</div><div style="font-size:11px;color:var(--text3)">Kelas ${s.kelas}</div></div>
+      <span style="font-size:15px;font-weight:800;color:var(--blue)">${s.juz} juz</span>
+    </div>`).join('');
+}
 
-        // Laporan functions
-        window.switchReportTab = (tab) => {
-            document.querySelectorAll('[id^="report-"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`report-${tab}`).classList.remove('hidden');
-            
-            document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('active', 'bg-blue-600', 'text-white');
-                el.classList.add('bg-slate-200', 'dark:bg-slate-700');
-            });
-            document.getElementById(`tab-${tab}`).classList.add('active', 'bg-blue-600', 'text-white');
-            document.getElementById(`tab-${tab}`).classList.remove('bg-slate-200', 'dark:bg-slate-700');
-            
-            if (tab === 'hafalan') setTimeout(initCharts, 100);
-        };
+let laporanChart, kelasChart;
+window.switchLaporanTab = (tab, btn) => {
+  document.querySelectorAll('#laporanTabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(laporanChart) laporanChart.destroy();
+  const ctx = document.getElementById('laporanChart').getContext('2d');
+  if(tab==='setoran'){
+    laporanChart = new Chart(ctx,{type:'line',data:{labels:['M1','M2','M3','M4'],datasets:[{label:'Setoran',data:[8,12,10,15],borderColor:'#2d7ef5',backgroundColor:'rgba(45,126,245,0.08)',fill:true,tension:0.4,borderWidth:2,pointBackgroundColor:'#2d7ef5',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{grid:{display:false}}}}});
+  } else if(tab==='absensi'){
+    laporanChart = new Chart(ctx,{type:'bar',data:{labels:['Sen','Sel','Rab','Kam','Jum','Sab'],datasets:[{label:'Hadir',data:[38,40,38,41,39,35],backgroundColor:'#0db87a',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:45},x:{grid:{display:false}}}}});
+  } else {
+    laporanChart = new Chart(ctx,{type:'doughnut',data:{labels:['Kelas 6A','Kelas 6B'],datasets:[{data:[4.5,3.9],backgroundColor:['#2d7ef5','#0db87a'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{font:{family:'Outfit'}}}}}});
+  }
+};
+window.switchLaporanTab('setoran', document.querySelector('#laporanTabs .tab-btn'));
 
-        window.exportLaporan = () => {
-            alert('Export laporan ke PDF');
-        };
+function buildKelasChart(){
+  const ctx = document.getElementById('kelasChart').getContext('2d');
+  kelasChart = new Chart(ctx,{type:'bar',data:{labels:['Kelas 6A','Kelas 6B'],datasets:[{data:[4.5,3.9],backgroundColor:['#2d7ef5','#0db87a'],borderRadius:8,borderSkipped:false}]},options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,max:10},y:{grid:{display:false}}}}});
+}
 
-        // Jadwal functions
-        window.showJadwalModal = () => {
-            document.getElementById('jadwal-modal').classList.add('active');
-            switchJadwalDay('rabu'); // Default ke hari ini
-        };
+// ─── SECTION ROUTING ───────────────────────────────
+const sections = ['dashboard','santri','laporan'];
+window.showSection = (name) => {
+  sections.forEach(s=>{
+    document.getElementById('sec-'+s).classList.toggle('active',s===name);
+    document.getElementById('nav-'+s)?.classList.toggle('active',s===name);
+  });
+  const titles = {dashboard:'Dashboard Ustadz',santri:'Data Santri Bimbingan',laporan:'Laporan Kelas'};
+  document.getElementById('pageTitle').textContent = titles[name]||name;
+  if(name==='laporan' && !kelasChart) setTimeout(buildKelasChart,100);
+};
 
-        window.closeJadwalModal = () => {
-            document.getElementById('jadwal-modal').classList.remove('active');
-        };
+// ─── FILTER SANTRI ─────────────────────────────────
+window.filterSantri = () => {
+  const q = document.getElementById('searchSantri').value.toLowerCase();
+  const k = document.getElementById('filterKelas').value;
+  const s = document.getElementById('filterStatus').value;
+  const filtered = santriList.filter(x=>
+    (!q || x.nama.toLowerCase().includes(q)) &&
+    (!k || x.kelas===k) &&
+    (!s || x.status===s)
+  );
+  renderSantriTable(filtered);
+};
 
-        window.switchJadwalDay = (day) => {
-            document.querySelectorAll('.jadwal-tab').forEach(btn => {
-                if (btn.dataset.day === day) {
-                    btn.classList.add('bg-blue-600', 'text-white');
-                    btn.classList.remove('bg-slate-200', 'dark:bg-slate-700');
-                } else {
-                    btn.classList.remove('bg-blue-600', 'text-white');
-                    btn.classList.add('bg-slate-200', 'dark:bg-slate-700');
-                }
-            });
-            
-            const content = document.getElementById('jadwal-content');
-            const jadwal = jadwalData[day] || [];
-            
-            if (jadwal.length === 0) {
-                content.innerHTML = '<p class="text-center text-slate-500 py-8">Tidak ada jadwal mengajar hari ini</p>';
-            } else {
-                content.innerHTML = jadwal.map((j, i) => `
-                    <div class="flex gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                        <div class="flex flex-col items-center">
-                            <div class="w-3 h-3 rounded-full ${i === 0 ? 'bg-blue-500' : i === 1 ? 'bg-emerald-500' : 'bg-purple-500'}"></div>
-                            ${i < jadwal.length - 1 ? '<div class="w-0.5 h-full bg-slate-200 dark:bg-slate-600 mt-2"></div>' : ''}
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-semibold text-slate-900 dark:text-white">${j.waktu}</span>
-                                <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 text-xs rounded-full">${j.status}</span>
-                            </div>
-                            <p class="font-medium text-slate-800 dark:text-slate-200">${j.mapel} Kelas ${j.kelas}</p>
-                            <p class="text-sm text-slate-500"><i class="fas fa-map-marker-alt mr-1"></i>${j.ruang}</p>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        };
+// ─── MODALS ────────────────────────────────────────
+window.openSantriDetail = (id) => {
+  const s = santriList.find(x=>x.id===id);
+  if(!s) return;
+  document.getElementById('modalSantriTitle').innerHTML = `<div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:9px;background:${s.color[0]};color:${s.color[1]};display:flex;align-items:center;justify-content:center;font-weight:700">${s.nama[0]}</div>${s.nama}</div>`;
+  document.getElementById('modalSantriBody').innerHTML = `
+    <div class="detail-row"><span class="detail-label">Kelas</span><span class="detail-val">${s.kelas}</span></div>
+    <div class="detail-row"><span class="detail-label">Hafalan Saat Ini</span><span class="detail-val">Juz ${s.juz}</span></div>
+    <div class="detail-row"><span class="detail-label">Progres Juz</span><span class="detail-val">${s.persen}%</span></div>
+    <div class="detail-row"><span class="detail-label">Status</span><span class="s-badge s-${s.status}">${s.status}</span></div>
+    <div class="detail-row"><span class="detail-label">Terakhir Setoran</span><span class="detail-val">${s.terakhir}</span></div>
+    <div style="margin-top:16px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Progres Hafalan</div>
+      <div style="height:10px;background:var(--border);border-radius:20px;overflow:hidden"><div style="height:100%;width:${s.persen}%;background:linear-gradient(90deg,#2d7ef5,#1a5fbb);border-radius:20px"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">${s.persen}% dari target Juz ${s.juz+1}</div>
+    </div>`;
+  document.getElementById('santriModal').classList.add('open');
+};
+window.closeSantriModal = () => document.getElementById('santriModal').classList.remove('open');
+document.getElementById('santriModal').addEventListener('click', e=>{ if(e.target===document.getElementById('santriModal')) closeSantriModal(); });
 
-        // Charts
-        function initCharts() {
-            // Chart Juz
-            const ctxJuz = document.getElementById('chart-juz');
-            if (ctxJuz) {
-                new Chart(ctxJuz, {
-                    type: 'bar',
-                    data: {
-                        labels: santriData.slice(0, 6).map(s => s.nama.split(' ')[0]),
-                        datasets: [{
-                            label: 'Juz',
-                            data: santriData.slice(0, 6).map(s => s.juz),
-                            backgroundColor: '#3b82f6',
-                            borderRadius: 8
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true, max: 30 } }
-                    }
-                });
-            }
-            
-            // Chart Setoran
-            const ctxSetoran = document.getElementById('chart-setoran');
-            if (ctxSetoran) {
-                new Chart(ctxSetoran, {
-                    type: 'line',
-                    data: {
-                        labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
-                        datasets: [{
-                            label: 'Setoran',
-                            data: [8, 12, 10, 15],
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: { responsive: true, plugins: { legend: { display: false } } }
-                });
-            }
-            
-            // Chart Absensi
-            const ctxAbsensi = document.getElementById('chart-absensi');
-            if (ctxAbsensi) {
-                new Chart(ctxAbsensi, {
-                    type: 'line',
-                    data: {
-                        labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-                        datasets: [{
-                            label: 'Hadir',
-                            data: [38, 40, 38, 41, 39, 35],
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: { responsive: true }
-                });
-            }
-            
-            // Chart Kelas
-            const ctxKelas = document.getElementById('chart-kelas');
-            if (ctxKelas) {
-                new Chart(ctxKelas, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Kelas 6A', 'Kelas 6B'],
-                        datasets: [{
-                            data: [4.5, 3.9],
-                            backgroundColor: ['#3b82f6', '#10b981']
-                        }]
-                    },
-                    options: { responsive: true }
-                });
-            }
-        }
+window.showJadwalModal = () => {
+  const days = ['senin','selasa','rabu','kamis','jumat','sabtu'];
+  const today = ['minggu','senin','selasa','rabu','kamis','jumat','sabtu'][new Date().getDay()];
+  document.getElementById('jadwalDayTabs').innerHTML = days.map(d=>`
+    <button onclick="switchDay('${d}',this)" style="padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'Outfit',sans-serif;background:${d===today?'var(--blue)':'var(--bg)'};color:${d===today?'#fff':'var(--text2)'}; transition:all .2s" class="day-btn">${d.charAt(0).toUpperCase()+d.slice(1)}</button>`).join('');
+  switchDay(today.replace('minggu','senin'), document.querySelector('.day-btn'));
+  document.getElementById('jadwalModal').classList.add('open');
+};
+window.closeJadwalModal = () => document.getElementById('jadwalModal').classList.remove('open');
+document.getElementById('jadwalModal').addEventListener('click', e=>{ if(e.target===document.getElementById('jadwalModal')) closeJadwalModal(); });
 
-        // Utils
-        window.toggleDarkMode = () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        };
+window.switchDay = (day, btn) => {
+  document.querySelectorAll('.day-btn').forEach(b=>{ b.style.background='var(--bg)'; b.style.color='var(--text2)'; });
+  btn.style.background='var(--blue)'; btn.style.color='#fff';
+  const jadwal = jadwalData[day]||[];
+  const dotColors = ['#2d7ef5','#0db87a','#7c3aed'];
+  document.getElementById('jadwalContent').innerHTML = !jadwal.length
+    ? '<p style="text-align:center;color:var(--text3);padding:20px">Tidak ada jadwal hari ini</p>'
+    : jadwal.map((j,i)=>`
+      <div class="jadwal-item">
+        <div class="jadwal-dot-wrap">
+          <div class="jadwal-dot" style="background:${dotColors[i%3]}"></div>
+          ${i<jadwal.length-1?'<div class="jadwal-line"></div>':''}
+        </div>
+        <div class="jadwal-content">
+          <div class="jadwal-time">${j.waktu}</div>
+          <div class="jadwal-mapel">${j.mapel} — Kelas ${j.kelas}</div>
+          <div class="jadwal-room"><i class="fas fa-map-marker-alt" style="margin-right:4px"></i>${j.ruang}</div>
+          <span class="jadwal-status js-${j.status}">${j.status==='selesai'?'Selesai':j.status==='aktif'?'Berlangsung':'Akan Datang'}</span>
+        </div>
+      </div>`).join('');
+};
 
-        window.handleLogout = async () => {
-            if (confirm('Apakah Anda yakin ingin logout?')) {
-                await signOut(auth);
-                window.location.href = 'login.html';
-            }
-        };
+// ─── UI UTILS ───────────────────────────────────────
+window.toggleSidebar = () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.getElementById('main').classList.toggle('expanded');
+};
+let isDark = localStorage.getItem('ha_theme')==='dark';
+function applyTheme(){ document.documentElement.classList.toggle('dark',isDark); document.getElementById('darkBtn').innerHTML=isDark?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>'; }
+window.toggleDark = () => { isDark=!isDark; localStorage.setItem('ha_theme',isDark?'dark':'light'); applyTheme(); };
+applyTheme();
 
-        // Set today's date
-        const today = new Date();
-        const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-        document.getElementById('today-date').textContent = today.toLocaleDateString('id-ID', options);
+function showToast(title,msg,type='ok'){
+  const w=document.getElementById('toastWrap');
+  const t=document.createElement('div');
+  t.className='toast'+(type==='err'?' err':'');
+  t.innerHTML=`<i class="fas ${type==='err'?'fa-exclamation-circle':'fa-check-circle'} toast-icon"></i><div class="toast-msg"><p>${title}</p><p>${msg}</p></div>`;
+  w.appendChild(t); setTimeout(()=>t.classList.add('show'),50);
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); },4500);
+}
 
-        // Theme init
-        if (localStorage.getItem('theme') === 'dark') {
-            document.documentElement.classList.add('dark');
-        }
-
-        // Close modal on outside click
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.classList.remove('active');
-            });
-        });
-    </script>
+const now = new Date();
+const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const days2=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+document.getElementById('dateNum').textContent = now.getDate();
+document.getElementById('dateStr').textContent = months[now.getMonth()]+' '+now.getFullYear();
+document.getElementById('topbarSub').innerHTML = 'Kelas: <span id="kelasBadge" style="color:var(--blue);font-weight:600">6A & 6B</span> • '+days2[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()];
+</script>
 </body>
 </html>
