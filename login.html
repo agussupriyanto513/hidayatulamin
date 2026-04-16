@@ -316,66 +316,57 @@
             }
         };
 
-        window.handleLogin = async (e) => {
-            e.preventDefault();
-            
-            if (!selectedRole) {
-                showToast('Pilih peran terlebih dahulu', 'error');
-                return;
+       window.handleLogin = async (e) => {
+    e.preventDefault();
+    if (!selectedRole) {
+        showToast('Pilih peran terlebih dahulu', 'error');
+        return;
+    }
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const btn = e.target.querySelector('button');
+    const btnText = btn.querySelector('.btn-text');
+    const btnLoader = btn.querySelector('.btn-loader');
+
+    // Mulai Loading
+    btn.disabled = true;
+    btnText.textContent = 'Memuat...';
+    btnLoader.classList.remove('hidden');
+
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Ambil data dari Firestore
+        const uDoc = await getDoc(doc(db, "users", user.uid));
+        
+        if (uDoc.exists()) {
+            const userData = uDoc.data();
+            if (userData.role === selectedRole) {
+                showToast('Login Berhasil!', 'success');
+                // Arahkan ke dashboard sesuai role
+                setTimeout(() => {
+                    window.location.href = `dashboard-${selectedRole}.html`;
+                }, 1500);
+            } else {
+                throw new Error(`Anda terdaftar sebagai ${userData.role}, bukan ${selectedRole}`);
             }
+        } else {
+            // JIKA DATA TIDAK ADA DI FIRESTORE
+            throw new Error('Data profil user tidak ditemukan di database.');
+        }
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('submitBtn');
-            const btnText = document.getElementById('btnText');
-            const btnLoader = document.getElementById('btnLoader');
-
-            // Loading state
-            btn.disabled = true;
-            btnText.textContent = 'Memuat...';
-            btnLoader.classList.remove('hidden');
-
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                const uDoc = await getDoc(doc(db, "users", user.uid));
-                if (uDoc.exists()) {
-                    const userData = uDoc.data();
-                    
-                    // Verify role matches
-                    if (userData.role !== selectedRole) {
-                        throw new Error(`Anda terdaftar sebagai ${userData.role}, bukan ${selectedRole}`);
-                    }
-                    
-                    // Success animation
-                    confetti({
-                        particleCount: 100,
-                        spread: 70,
-                        origin: { y: 0.6 },
-                        colors: ['#059669', '#10b981', '#34d399']
-                    });
-                    
-                    // Save session
-                    localStorage.setItem('userRole', userData.role);
-                    localStorage.setItem('userData', JSON.stringify(userData));
-                    
-                    setTimeout(() => {
-                        redirectBasedOnRole(userData.role);
-                    }, 1000);
-                }
-            } catch (error) {
-                btn.disabled = false;
-                btnText.textContent = 'Masuk Sekarang';
-                btnLoader.classList.add('hidden');
-                
-                // Shake animation
-                btn.classList.add('animate-shake');
-                setTimeout(() => btn.classList.remove('animate-shake'), 500);
-                
-                showToast('Login Gagal', getErrorMessage(error.code || error.message));
-            }
-        };
+    } catch (error) {
+        console.error(error);
+        showToast('Gagal Masuk', error.message);
+        
+        // KEMBALIKAN TOMBOL KE NORMAL JIKA GAGAL
+        btn.disabled = false;
+        btnText.textContent = 'Masuk Sekarang';
+        btnLoader.classList.add('hidden');
+    }
+};
 
         function redirectBasedOnRole(role) {
             const routes = {
