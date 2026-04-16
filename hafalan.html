@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Input Hafalan | Hidayatullah Amin</title>
+    
+    <!-- Preconnect Firebase -->
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,200 +20,280 @@
                 extend: {
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
                     colors: {
-                        emerald: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' }
+                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                        secondary: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
                     }
                 }
             }
         }
     </script>
     <style>
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); }
-        .glass-dark { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); }
-        .surah-card { transition: all 0.2s; }
-        .surah-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
-        .surah-card.selected { border-color: #10b981; background: #ecfdf5; }
-        .progress-bar { transition: width 0.5s ease-out; }
+        .sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-collapsed { width: 80px; }
+        .sidebar-expanded { width: 280px; }
+        .nav-item { transition: all 0.2s; }
+        .nav-item:hover { background: rgba(5, 150, 105, 0.1); }
+        .nav-item.active { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3); }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); }
+        .glass-dark { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .surah-card { transition: all 0.3s; }
+        .surah-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px -10px rgba(5, 150, 105, 0.3); }
+        .surah-card.selected { border-color: #059669; background: rgba(5, 150, 105, 0.05); }
+        .progress-bar { transition: width 0.5s ease; }
+        .toast { animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
-<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+<body class="font-sans antialiased bg-secondary-50 dark:bg-secondary-900 text-secondary-800 dark:text-secondary-200">
     
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden md:flex flex-col">
-            <div class="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white">
-                    <i class="fas fa-book-open"></i>
-                </div>
-                <span class="ml-3 font-bold text-gray-900 dark:text-white">Input Hafalan</span>
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar sidebar-expanded fixed left-0 top-0 h-full bg-white dark:bg-secondary-800 border-r border-secondary-200 dark:border-secondary-700 z-40 flex flex-col">
+        <div class="h-20 flex items-center px-6 border-b border-secondary-200 dark:border-secondary-700">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white shadow-lg shadow-primary-500/30">
+                <i class="fas fa-mosque text-lg"></i>
             </div>
-            <nav class="flex-1 p-4 space-y-1">
-                <a href="dashboard-ustadz.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
-                    <i class="fas fa-home w-5"></i>Dashboard
-                </a>
-                <a href="absensi.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
-                    <i class="fas fa-qrcode w-5"></i>Absensi
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 font-medium">
-                    <i class="fas fa-book-open w-5"></i>Input Hafalan
-                </a>
-            </nav>
-        </aside>
+            <div class="ml-3 sidebar-text">
+                <h1 class="font-bold text-secondary-900 dark:text-white">Hidayatullah</h1>
+                <p class="text-xs text-primary-600">Input Hafalan</p>
+            </div>
+            <button onclick="toggleSidebar()" class="ml-auto text-secondary-400 hover:text-secondary-600">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
 
-        <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto">
-            <!-- Mobile Header -->
-            <header class="md:hidden glass-dark border-b border-gray-800 p-4 flex items-center justify-between">
-                <a href="dashboard-ustadz.html" class="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
-                <h1 class="font-bold">Input Hafalan</h1>
-                <div class="w-10"></div>
-            </header>
+        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            <a href="dashboard-admin.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                <i class="fas fa-home w-5"></i>
+                <span class="sidebar-text">Dashboard</span>
+            </a>
+            <a href="absensi.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                <i class="fas fa-qrcode w-5"></i>
+                <span class="sidebar-text">Absensi QR</span>
+            </a>
+            <a href="hafalan.html" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium">
+                <i class="fas fa-book-open w-5"></i>
+                <span class="sidebar-text">Input Hafalan</span>
+            </a>
+            <a href="keuangan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                <i class="fas fa-wallet w-5"></i>
+                <span class="sidebar-text">Keuangan</span>
+            </a>
+            <a href="sagatama-mart.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                <i class="fas fa-store w-5"></i>
+                <span class="sidebar-text">Sagatama Mart</span>
+            </a>
+        </nav>
 
-            <div class="max-w-4xl mx-auto p-6">
-                <!-- Header -->
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Input Setoran Hafalan</h2>
-                    <p class="text-gray-500">Catat perkembangan hafalan santri</p>
+        <div class="p-4 border-t border-secondary-200 dark:border-secondary-700">
+            <div class="flex items-center gap-3">
+                <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=059669&color=fff" class="w-10 h-10 rounded-full">
+                <div class="sidebar-text flex-1 min-w-0">
+                    <p id="userName" class="text-sm font-semibold text-secondary-900 dark:text-white truncate">Loading...</p>
+                    <p id="userRole" class="text-xs text-secondary-500 truncate">Loading...</p>
                 </div>
+                <button onclick="handleLogout()" class="text-secondary-400 hover:text-red-500 transition">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
 
-                <!-- Search Santri -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cari Santri</label>
-                    <div class="relative">
-                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" id="searchSantri" placeholder="Ketik nama atau NIS..." 
-                               class="w-full pl-12 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none transition"
-                               oninput="filterSantri(this.value)">
-                    </div>
-                    
-                    <!-- Santri List -->
-                    <div id="santriList" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto">
-                        <!-- Populated by JS -->
-                    </div>
+    <!-- Main Content -->
+    <main id="mainContent" class="ml-[280px] transition-all duration-300 min-h-screen">
+        <!-- Header -->
+        <header class="sticky top-0 z-30 glass dark:glass-dark border-b border-secondary-200 dark:border-secondary-700 px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-secondary-900 dark:text-white">Input Setoran Hafalan</h2>
+                    <p class="text-sm text-secondary-500">Catat progress menghafal Quran santri</p>
                 </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-yellow-400 flex items-center justify-center hover:bg-secondary-200 transition">
+                        <i class="fas fa-moon dark:hidden"></i>
+                        <i class="fas fa-sun hidden dark:block"></i>
+                    </button>
+                    <button onclick="openHistoryModal()" class="px-4 py-2 rounded-xl bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-sm font-semibold hover:bg-primary-200 transition flex items-center gap-2">
+                        <i class="fas fa-history"></i>
+                        <span>Riwayat</span>
+                    </button>
+                </div>
+            </div>
+        </header>
 
-                <!-- Selected Santri Info -->
-                <div id="selectedSantriInfo" class="hidden bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-6 border border-emerald-200 dark:border-emerald-800 mb-6">
-                    <div class="flex items-center gap-4">
-                        <img id="selectedAvatar" src="" class="w-16 h-16 rounded-full">
-                        <div class="flex-1">
-                            <h3 id="selectedName" class="text-lg font-bold text-gray-900 dark:text-white"></h3>
-                            <p id="selectedNIS" class="text-sm text-gray-500"></p>
-                            <div class="flex items-center gap-4 mt-2">
-                                <span class="text-sm">
-                                    <span class="text-gray-500">Target:</span>
-                                    <span id="selectedTarget" class="font-semibold text-emerald-600"></span>
-                                </span>
-                                <span class="text-sm">
-                                    <span class="text-gray-500">Terakhir:</span>
-                                    <span id="selectedLast" class="font-semibold text-emerald-600"></span>
-                                </span>
+        <div class="p-8">
+            <!-- Form Input -->
+            <div class="grid lg:grid-cols-3 gap-6 mb-8">
+                <!-- Santri Selection -->
+                <div class="lg:col-span-1 bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
+                    <h3 class="text-lg font-bold text-secondary-900 dark:text-white mb-4">Pilih Santri</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Cari Santri</label>
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"></i>
+                                <input type="text" id="searchSantri" placeholder="Nama santri..." 
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition"
+                                    oninput="filterSantri(this.value)">
+                            </div>
+                        </div>
+                        <div id="santriList" class="space-y-2 max-h-64 overflow-y-auto">
+                            <div class="text-center py-8 text-secondary-400">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <p class="text-sm">Memuat data santri...</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Input Form -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-                    <h3 class="font-bold text-gray-900 dark:text-white mb-4">Detail Setoran</h3>
-                    
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <!-- Surah Selection -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Surah</label>
-                            <select id="surahSelect" onchange="updateAyatRange()" 
-                                    class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none">
-                                <option value="">Pilih Surah</option>
-                            </select>
+                <!-- Hafalan Input -->
+                <div class="lg:col-span-2 bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
+                    <h3 class="text-lg font-bold text-secondary-900 dark:text-white mb-4">Detail Setoran</h3>
+                    <form id="hafalanForm" onsubmit="submitHafalan(event)" class="space-y-4">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Surah</label>
+                                <select id="surahSelect" required onchange="updateAyatRange()"
+                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                                    <option value="">Pilih Surah</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Juz</label>
+                                <select id="juzSelect" required
+                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                                    <option value="">Pilih Juz</option>
+                                    <option value="1">Juz 1</option>
+                                    <option value="2">Juz 2</option>
+                                    <option value="3">Juz 3</option>
+                                    <option value="4">Juz 4</option>
+                                    <option value="5">Juz 5</option>
+                                    <option value="6">Juz 6</option>
+                                    <option value="7">Juz 7</option>
+                                    <option value="8">Juz 8</option>
+                                    <option value="9">Juz 9</option>
+                                    <option value="10">Juz 10</option>
+                                    <option value="11">Juz 11</option>
+                                    <option value="12">Juz 12</option>
+                                    <option value="13">Juz 13</option>
+                                    <option value="14">Juz 14</option>
+                                    <option value="15">Juz 15</option>
+                                    <option value="16">Juz 16</option>
+                                    <option value="17">Juz 17</option>
+                                    <option value="18">Juz 18</option>
+                                    <option value="19">Juz 19</option>
+                                    <option value="20">Juz 20</option>
+                                    <option value="21">Juz 21</option>
+                                    <option value="22">Juz 22</option>
+                                    <option value="23">Juz 23</option>
+                                    <option value="24">Juz 24</option>
+                                    <option value="25">Juz 25</option>
+                                    <option value="26">Juz 26</option>
+                                    <option value="27">Juz 27</option>
+                                    <option value="28">Juz 28</option>
+                                    <option value="29">Juz 29</option>
+                                    <option value="30">Juz 30</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <!-- Tanggal -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tanggal</label>
-                            <input type="date" id="tanggalInput" 
-                                   class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Ayat Awal</label>
+                                <input type="number" id="ayatAwal" required min="1"
+                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Ayat Akhir</label>
+                                <input type="number" id="ayatAkhir" required min="1"
+                                    class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                            </div>
                         </div>
 
-                        <!-- Ayat Awal -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ayat Awal</label>
-                            <input type="number" id="ayatAwal" min="1" placeholder="1" 
-                                   class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none">
+                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Kualitas Hafalan</label>
+                            <div class="grid grid-cols-3 gap-3">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="kualitas" value="baik" class="hidden peer" checked>
+                                    <div class="p-3 rounded-xl border-2 border-secondary-200 dark:border-secondary-600 peer-checked:border-green-500 peer-checked:bg-green-50 dark:peer-checked:bg-green-900/20 text-center transition">
+                                        <i class="fas fa-check-circle text-green-500 mb-1"></i>
+                                        <p class="text-sm font-medium">Baik</p>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="kualitas" value="cukup" class="hidden peer">
+                                    <div class="p-3 rounded-xl border-2 border-secondary-200 dark:border-secondary-600 peer-checked:border-yellow-500 peer-checked:bg-yellow-50 dark:peer-checked:bg-yellow-900/20 text-center transition">
+                                        <i class="fas fa-exclamation-circle text-yellow-500 mb-1"></i>
+                                        <p class="text-sm font-medium">Cukup</p>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="kualitas" value="kurang" class="hidden peer">
+                                    <div class="p-3 rounded-xl border-2 border-secondary-200 dark:border-secondary-600 peer-checked:border-red-500 peer-checked:bg-red-50 dark:peer-checked:bg-red-900/20 text-center transition">
+                                        <i class="fas fa-times-circle text-red-500 mb-1"></i>
+                                        <p class="text-sm font-medium">Kurang</p>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
-                        <!-- Ayat Akhir -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ayat Akhir</label>
-                            <input type="number" id="ayatAkhir" min="1" placeholder="7" 
-                                   class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none">
+                            <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Catatan (Opsional)</label>
+                            <textarea id="catatan" rows="3" placeholder="Tambahkan catatan jika diperlukan..."
+                                class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition resize-none"></textarea>
                         </div>
 
-                        <!-- Juz -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Juz</label>
-                            <input type="number" id="juzInput" min="1" max="30" placeholder="1" 
-                                   class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none">
-                        </div>
-
-                        <!-- Status -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                            <select id="statusSelect" 
-                                    class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none">
-                                <option value="lancar">Lancar</option>
-                                <option value="cukup">Cukup</option>
-                                <option value="kurang">Perlu Perbaikan</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Catatan -->
-                    <div class="mt-6">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Catatan (Opsional)</label>
-                        <textarea id="catatanInput" rows="3" placeholder="Tambahkan catatan..." 
-                                  class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none resize-none"></textarea>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button onclick="submitHafalan()" id="submitBtn" 
-                            class="w-full mt-6 py-4 rounded-xl bg-emerald-600 text-white font-bold text-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i class="fas fa-save"></i>
-                        <span>Simpan Setoran</span>
-                    </button>
+                        <button type="submit" id="submitBtn" class="w-full py-4 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-save"></i>
+                            <span id="btnText">Simpan Setoran</span>
+                            <div id="btnLoader" class="hidden">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </button>
+                    </form>
                 </div>
+            </div>
 
-                <!-- Recent Entries -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-gray-900 dark:text-white">Setoran Terbaru Hari Ini</h3>
-                        <span class="text-sm text-gray-500" id="todayCount">0 entri</span>
-                    </div>
-                    <div id="recentList" class="space-y-3">
-                        <p class="text-center text-gray-500 py-8">Belum ada setoran hari ini</p>
+            <!-- Progress Overview -->
+            <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
+                <h3 class="text-lg font-bold text-secondary-900 dark:text-white mb-6">Progress Hafalan Santri</h3>
+                <div id="progressList" class="space-y-4">
+                    <div class="text-center py-12 text-secondary-400">
+                        <i class="fas fa-book-open text-4xl mb-4 opacity-50"></i>
+                        <p>Pilih santri untuk melihat progress hafalan</p>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
-    <!-- Toast -->
-    <div id="toast" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 flex items-center gap-3 border-l-4 border-emerald-500 min-w-[300px]">
-            <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
-                <i class="fas fa-check"></i>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl animate-fade-in">
+            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-secondary-900 dark:text-white">Riwayat Setoran Hafalan</h3>
+                <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center hover:bg-secondary-200 transition">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div>
-                <p class="font-semibold text-gray-900 dark:text-white text-sm" id="toastTitle">Berhasil!</p>
-                <p class="text-xs text-gray-500" id="toastMessage">Data telah disimpan</p>
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                <div id="historyList" class="space-y-3">
+                    <div class="text-center py-8 text-secondary-400">
+                        <p>Memuat riwayat...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, where, doc, getDoc, addDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
@@ -225,63 +310,124 @@
 
         let currentUser = null;
         let selectedSantri = null;
-        let todayEntries = [];
+        let allSantri = [];
 
         // Daftar Surah
         const surahList = [
-            { no: 1, nama: "Al-Fatihah", ayat: 7 },
-            { no: 2, nama: "Al-Baqarah", ayat: 286 },
-            { no: 3, nama: "Ali Imran", ayat: 200 },
-            { no: 4, nama: "An-Nisa", ayat: 176 },
-            { no: 5, nama: "Al-Maidah", ayat: 120 },
-            { no: 67, nama: "Al-Mulk", ayat: 30 },
-            { no: 68, nama: "Al-Qalam", ayat: 52 },
-            { no: 69, nama: "Al-Haqqah", ayat: 52 },
-            { no: 70, nama: "Al-Ma'arij", ayat: 44 },
-            { no: 71, nama: "Nuh", ayat: 28 },
-            { no: 72, nama: "Al-Jinn", ayat: 28 },
-            { no: 73, nama: "Al-Muzzammil", ayat: 20 },
-            { no: 74, nama: "Al-Muddaththir", ayat: 56 },
-            { no: 75, nama: "Al-Qiyamah", ayat: 40 },
-            { no: 76, nama: "Al-Insan", ayat: 31 },
-            { no: 77, nama: "Al-Mursalat", ayat: 50 },
-            { no: 78, nama: "An-Naba", ayat: 40 },
-            { no: 79, nama: "An-Nazi'at", ayat: 46 },
-            { no: 80, nama: "'Abasa", ayat: 42 },
-            { no: 81, nama: "At-Takwir", ayat: 29 },
-            { no: 82, nama: "Al-Infitar", ayat: 19 },
-            { no: 83, nama: "Al-Mutaffifin", ayat: 36 },
-            { no: 84, nama: "Al-Inshiqaq", ayat: 25 },
-            { no: 85, nama: "Al-Buruj", ayat: 22 },
-            { no: 86, nama: "At-Tariq", ayat: 17 },
-            { no: 87, nama: "Al-A'la", ayat: 19 },
-            { no: 88, nama: "Al-Ghashiyah", ayat: 26 },
-            { no: 89, nama: "Al-Fajr", ayat: 30 },
-            { no: 90, nama: "Al-Balad", ayat: 20 },
-            { no: 91, nama: "Ash-Shams", ayat: 15 },
-            { no: 92, nama: "Al-Layl", ayat: 21 },
-            { no: 93, nama: "Ad-Duha", ayat: 11 },
-            { no: 94, nama: "Ash-Sharh", ayat: 8 },
-            { no: 95, nama: "At-Tin", ayat: 8 },
-            { no: 96, nama: "Al-'Alaq", ayat: 19 },
-            { no: 97, nama: "Al-Qadr", ayat: 5 },
-            { no: 98, nama: "Al-Bayyinah", ayat: 8 },
-            { no: 99, nama: "Az-Zalzalah", ayat: 8 },
-            { no: 100, nama: "Al-'Adiyat", ayat: 11 },
-            { no: 101, nama: "Al-Qari'ah", ayat: 11 },
-            { no: 102, nama: "At-Takathur", ayat: 8 },
-            { no: 103, nama: "Al-'Asr", ayat: 3 },
-            { no: 104, nama: "Al-Humazah", ayat: 9 },
-            { no: 105, nama: "Al-Fil", ayat: 5 },
-            { no: 106, nama: "Quraisy", ayat: 4 },
-            { no: 107, nama: "Al-Ma'un", ayat: 7 },
-            { no: 108, nama: "Al-Kawthar", ayat: 3 },
-            { no: 109, nama: "Al-Kafirun", ayat: 6 },
-            { no: 110, nama: "An-Nasr", ayat: 3 },
-            { no: 111, nama: "Al-Masad", ayat: 5 },
-            { no: 112, nama: "Al-Ikhlas", ayat: 4 },
-            { no: 113, nama: "Al-Falaq", ayat: 5 },
-            { no: 114, nama: "An-Nas", ayat: 6 }
+            { no: 1, nama: "Al-Fatihah", ayat: 7, juz: 1 },
+            { no: 2, nama: "Al-Baqarah", ayat: 286, juz: 1 },
+            { no: 3, nama: "Ali Imran", ayat: 200, juz: 3 },
+            { no: 4, nama: "An-Nisa", ayat: 176, juz: 4 },
+            { no: 5, nama: "Al-Ma'idah", ayat: 120, juz: 6 },
+            { no: 6, nama: "Al-An'am", ayat: 165, juz: 7 },
+            { no: 7, nama: "Al-A'raf", ayat: 206, juz: 8 },
+            { no: 8, nama: "Al-Anfal", ayat: 75, juz: 9 },
+            { no: 9, nama: "At-Tawbah", ayat: 129, juz: 10 },
+            { no: 10, nama: "Yunus", ayat: 109, juz: 11 },
+            { no: 11, nama: "Hud", ayat: 123, juz: 11 },
+            { no: 12, nama: "Yusuf", ayat: 111, juz: 12 },
+            { no: 13, nama: "Ar-Ra'd", ayat: 43, juz: 13 },
+            { no: 14, nama: "Ibrahim", ayat: 52, juz: 13 },
+            { no: 15, nama: "Al-Hijr", ayat: 99, juz: 14 },
+            { no: 16, nama: "An-Nahl", ayat: 128, juz: 14 },
+            { no: 17, nama: "Al-Isra", ayat: 111, juz: 15 },
+            { no: 18, nama: "Al-Kahf", ayat: 110, juz: 15 },
+            { no: 19, nama: "Maryam", ayat: 98, juz: 16 },
+            { no: 20, nama: "Taha", ayat: 135, juz: 16 },
+            { no: 21, nama: "Al-Anbiya", ayat: 112, juz: 17 },
+            { no: 22, nama: "Al-Hajj", ayat: 78, juz: 17 },
+            { no: 23, nama: "Al-Mu'minun", ayat: 118, juz: 18 },
+            { no: 24, nama: "An-Nur", ayat: 64, juz: 18 },
+            { no: 25, nama: "Al-Furqan", ayat: 77, juz: 18 },
+            { no: 26, nama: "Asy-Syu'ara", ayat: 227, juz: 19 },
+            { no: 27, nama: "An-Naml", ayat: 93, juz: 19 },
+            { no: 28, nama: "Al-Qasas", ayat: 88, juz: 20 },
+            { no: 29, nama: "Al-'Ankabut", ayat: 69, juz: 20 },
+            { no: 30, nama: "Ar-Rum", ayat: 60, juz: 21 },
+            { no: 31, nama: "Luqman", ayat: 34, juz: 21 },
+            { no: 32, nama: "As-Sajdah", ayat: 30, juz: 21 },
+            { no: 33, nama: "Al-Ahzab", ayat: 73, juz: 21 },
+            { no: 34, nama: "Saba'", ayat: 54, juz: 22 },
+            { no: 35, nama: "Fatir", ayat: 45, juz: 22 },
+            { no: 36, nama: "Yasin", ayat: 83, juz: 22 },
+            { no: 37, nama: "As-Saffat", ayat: 182, juz: 23 },
+            { no: 38, nama: "Sad", ayat: 88, juz: 23 },
+            { no: 39, nama: "Az-Zumar", ayat: 75, juz: 23 },
+            { no: 40, nama: "Ghafir", ayat: 85, juz: 24 },
+            { no: 41, nama: "Fussilat", ayat: 54, juz: 24 },
+            { no: 42, nama: "Asy-Syura", ayat: 53, juz: 25 },
+            { no: 43, nama: "Az-Zukhruf", ayat: 89, juz: 25 },
+            { no: 44, nama: "Ad-Dukhan", ayat: 59, juz: 25 },
+            { no: 45, nama: "Al-Jasiyah", ayat: 37, juz: 25 },
+            { no: 46, nama: "Al-Ahqaf", ayat: 35, juz: 26 },
+            { no: 47, nama: "Muhammad", ayat: 38, juz: 26 },
+            { no: 48, nama: "Al-Fath", ayat: 29, juz: 26 },
+            { no: 49, nama: "Al-Hujurat", ayat: 18, juz: 26 },
+            { no: 50, nama: "Qaf", ayat: 45, juz: 26 },
+            { no: 51, nama: "Az-Zariyat", ayat: 60, juz: 26 },
+            { no: 52, nama: "At-Tur", ayat: 49, juz: 27 },
+            { no: 53, nama: "An-Najm", ayat: 62, juz: 27 },
+            { no: 54, nama: "Al-Qamar", ayat: 55, juz: 27 },
+            { no: 55, nama: "Ar-Rahman", ayat: 78, juz: 27 },
+            { no: 56, nama: "Al-Waqi'ah", ayat: 96, juz: 27 },
+            { no: 57, nama: "Al-Hadid", ayat: 29, juz: 27 },
+            { no: 58, nama: "Al-Mujadilah", ayat: 22, juz: 28 },
+            { no: 59, nama: "Al-Hasyr", ayat: 24, juz: 28 },
+            { no: 60, nama: "Al-Mumtahanah", ayat: 13, juz: 28 },
+            { no: 61, nama: "As-Saff", ayat: 14, juz: 28 },
+            { no: 62, nama: "Al-Jumu'ah", ayat: 11, juz: 28 },
+            { no: 63, nama: "Al-Munafiqun", ayat: 11, juz: 28 },
+            { no: 64, nama: "At-Tagabun", ayat: 18, juz: 28 },
+            { no: 65, nama: "At-Talaq", ayat: 12, juz: 28 },
+            { no: 66, nama: "At-Tahrim", ayat: 12, juz: 28 },
+            { no: 67, nama: "Al-Mulk", ayat: 30, juz: 29 },
+            { no: 68, nama: "Al-Qalam", ayat: 52, juz: 29 },
+            { no: 69, nama: "Al-Haqqah", ayat: 52, juz: 29 },
+            { no: 70, nama: "Al-Ma'arij", ayat: 44, juz: 29 },
+            { no: 71, nama: "Nuh", ayat: 28, juz: 29 },
+            { no: 72, nama: "Al-Jinn", ayat: 28, juz: 29 },
+            { no: 73, nama: "Al-Muzzammil", ayat: 20, juz: 29 },
+            { no: 74, nama: "Al-Muddassir", ayat: 56, juz: 29 },
+            { no: 75, nama: "Al-Qiyamah", ayat: 40, juz: 29 },
+            { no: 76, nama: "Al-Insan", ayat: 31, juz: 29 },
+            { no: 77, nama: "Al-Mursalat", ayat: 50, juz: 29 },
+            { no: 78, nama: "An-Naba'", ayat: 40, juz: 30 },
+            { no: 79, nama: "An-Nazi'at", ayat: 46, juz: 30 },
+            { no: 80, nama: "'Abasa", ayat: 42, juz: 30 },
+            { no: 81, nama: "At-Takwir", ayat: 29, juz: 30 },
+            { no: 82, nama: "Al-Infitar", ayat: 19, juz: 30 },
+            { no: 83, nama: "Al-Mutaffifin", ayat: 36, juz: 30 },
+            { no: 84, nama: "Al-Insiqaq", ayat: 25, juz: 30 },
+            { no: 85, nama: "Al-Buruj", ayat: 22, juz: 30 },
+            { no: 86, nama: "At-Tariq", ayat: 17, juz: 30 },
+            { no: 87, nama: "Al-A'la", ayat: 19, juz: 30 },
+            { no: 88, nama: "Al-Gasyiyah", ayat: 26, juz: 30 },
+            { no: 89, nama: "Al-Fajr", ayat: 30, juz: 30 },
+            { no: 90, nama: "Al-Balad", ayat: 20, juz: 30 },
+            { no: 91, nama: "Asy-Syams", ayat: 15, juz: 30 },
+            { no: 92, nama: "Al-Lail", ayat: 21, juz: 30 },
+            { no: 93, nama: "Ad-Duha", ayat: 11, juz: 30 },
+            { no: 94, nama: "Asy-Syarh", ayat: 8, juz: 30 },
+            { no: 95, nama: "At-Tin", ayat: 8, juz: 30 },
+            { no: 96, nama: "Al-'Alaq", ayat: 19, juz: 30 },
+            { no: 97, nama: "Al-Qadr", ayat: 5, juz: 30 },
+            { no: 98, nama: "Al-Bayyinah", ayat: 8, juz: 30 },
+            { no: 99, nama: "Az-Zalzalah", ayat: 8, juz: 30 },
+            { no: 100, nama: "Al-'Adiyat", ayat: 11, juz: 30 },
+            { no: 101, nama: "Al-Qari'ah", ayat: 11, juz: 30 },
+            { no: 102, nama: "At-Takasur", ayat: 8, juz: 30 },
+            { no: 103, nama: "Al-'Asr", ayat: 3, juz: 30 },
+            { no: 104, nama: "Al-Humazah", ayat: 9, juz: 30 },
+            { no: 105, nama: "Al-Fil", ayat: 5, juz: 30 },
+            { no: 106, nama: "Quraisy", ayat: 4, juz: 30 },
+            { no: 107, nama: "Al-Ma'un", ayat: 7, juz: 30 },
+            { no: 108, nama: "Al-Kautsar", ayat: 3, juz: 30 },
+            { no: 109, nama: "Al-Kafirun", ayat: 6, juz: 30 },
+            { no: 110, nama: "An-Nasr", ayat: 3, juz: 30 },
+            { no: 111, nama: "Al-Lahab", ayat: 5, juz: 30 },
+            { no: 112, nama: "Al-Ikhlas", ayat: 4, juz: 30 },
+            { no: 113, nama: "Al-Falaq", ayat: 5, juz: 30 },
+            { no: 114, nama: "An-Nas", ayat: 6, juz: 30 }
         ];
 
         // Populate Surah Select
@@ -291,200 +437,354 @@
             option.value = surah.no;
             option.textContent = `${surah.no}. ${surah.nama} (${surah.ayat} ayat)`;
             option.dataset.ayat = surah.ayat;
+            option.dataset.juz = surah.juz;
             surahSelect.appendChild(option);
         });
 
-        // Set today's date
-        document.getElementById('tanggalInput').valueAsDate = new Date();
+        function updateAyatRange() {
+            const selectedOption = surahSelect.options[surahSelect.selectedIndex];
+            if (selectedOption.value) {
+                const maxAyat = parseInt(selectedOption.dataset.ayat);
+                const juz = selectedOption.dataset.juz;
+                document.getElementById('ayatAwal').max = maxAyat;
+                document.getElementById('ayatAkhir').max = maxAyat;
+                document.getElementById('juzSelect').value = juz;
+            }
+        }
 
-        onAuthStateChanged(auth, (user) => {
+        window.updateAyatRange = updateAyatRange;
+
+        // Auth Check
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
+            
             currentUser = user;
-            loadSantri();
-            loadTodayEntries();
+            
+            try {
+                const userRef = doc(db, "users", user.uid);
+                const uDoc = await getDoc(userRef);
+                
+                if (!uDoc.exists() || !['admin', 'ustadz'].includes(uDoc.data().role)) {
+                    showToast('Akses Ditolak', 'Anda tidak memiliki akses ke halaman ini');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard-admin.html';
+                    }, 2000);
+                    return;
+                }
+                
+                const userData = uDoc.data();
+                document.getElementById('userName').textContent = userData.displayName || user.email;
+                document.getElementById('userRole').textContent = userData.role === 'admin' ? 'Administrator' : 'Ustadz';
+                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.displayName || 'User')}&background=059669&color=fff`;
+                
+                loadSantriList();
+                
+            } catch (error) {
+                console.error('Auth error:', error);
+                showToast('Error', 'Gagal memverifikasi akses');
+            }
         });
 
-        function loadSantri() {
-            // Mock data - replace with Firestore query
-            const santriData = [
-                { nis: '2024001', nama: 'Ahmad Fauzi', kelas: '6A', target: 'Juz 5', last: 'Juz 4: 120-140', avatar: 'Ahmad' },
-                { nis: '2024002', nama: 'Muhammad Rizky', kelas: '6A', target: 'Juz 4', last: 'Juz 3: 50-70', avatar: 'Muhammad' },
-                { nis: '2024003', nama: 'Abdul Rahman', kelas: '6B', target: 'Juz 6', last: 'Juz 5: 200-220', avatar: 'Abdul' },
-                { nis: '2024004', nama: 'Fatih Abdullah', kelas: '6B', target: 'Juz 3', last: 'Juz 2: 180-200', avatar: 'Fatih' },
-                { nis: '2024005', nama: 'Ibrahim Khalil', kelas: '6A', target: 'Juz 7', last: 'Juz 6: 50-70', avatar: 'Ibrahim' }
-            ];
-            
-            renderSantriList(santriData);
+        async function loadSantriList() {
+            try {
+                const santriRef = collection(db, "santri");
+                const snapshot = await getDocs(santriRef);
+                
+                allSantri = [];
+                snapshot.forEach(doc => {
+                    allSantri.push({ id: doc.id, ...doc.data() });
+                });
+                
+                renderSantriList(allSantri);
+            } catch (error) {
+                console.error('Error loading santri:', error);
+                document.getElementById('santriList').innerHTML = `
+                    <div class="text-center py-8 text-red-400">
+                        <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                        <p class="text-sm">Gagal memuat data santri</p>
+                    </div>
+                `;
+            }
         }
 
-        function renderSantriList(santriData) {
+        function renderSantriList(santriList) {
             const container = document.getElementById('santriList');
-            container.innerHTML = santriData.map(s => `
-                <div onclick="selectSantri('${s.nis}')" class="surah-card cursor-pointer p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center gap-3" data-nis="${s.nis}">
-                    <img src="https://ui-avatars.com/api/?name=${s.avatar}&background=10b981&color=fff" class="w-10 h-10 rounded-full">
-                    <div class="flex-1 min-w-0">
-                        <p class="font-semibold text-gray-900 dark:text-white text-sm truncate">${s.nama}</p>
-                        <p class="text-xs text-gray-500">${s.kelas} • NIS: ${s.nis}</p>
+            
+            if (santriList.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-secondary-400">
+                        <i class="fas fa-user-slash text-2xl mb-2"></i>
+                        <p class="text-sm">Tidak ada santri ditemukan</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = santriList.map(santri => `
+                <div onclick="selectSantri('${santri.id}', '${santri.nama}', '${santri.kelas || '-'}')" 
+                     class="santri-item p-3 rounded-xl border-2 border-secondary-200 dark:border-secondary-600 cursor-pointer hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/10 transition ${selectedSantri?.id === santri.id ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : ''}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 flex items-center justify-center">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-secondary-900 dark:text-white text-sm">${santri.nama}</p>
+                            <p class="text-xs text-secondary-500">Kelas ${santri.kelas || '-'}</p>
+                        </div>
+                        ${selectedSantri?.id === santri.id ? '<i class="fas fa-check-circle text-primary-500"></i>' : ''}
                     </div>
                 </div>
             `).join('');
-            
-            // Store for filtering
-            window.santriData = santriData;
         }
 
         window.filterSantri = (query) => {
-            const filtered = window.santriData.filter(s => 
+            const filtered = allSantri.filter(s => 
                 s.nama.toLowerCase().includes(query.toLowerCase()) ||
-                s.nis.includes(query)
+                (s.kelas && s.kelas.toLowerCase().includes(query.toLowerCase()))
             );
             renderSantriList(filtered);
         };
 
-        window.selectSantri = (nis) => {
-            selectedSantri = window.santriData.find(s => s.nis === nis);
-            if (!selectedSantri) return;
+        window.selectSantri = async (id, nama, kelas) => {
+            selectedSantri = { id, nama, kelas };
+            renderSantriList(allSantri);
             
-            // Update UI
-            document.querySelectorAll('.surah-card').forEach(card => {
-                card.classList.remove('selected', 'ring-2', 'ring-emerald-500');
-            });
-            document.querySelector(`[data-nis="${nis}"]`).classList.add('selected', 'ring-2', 'ring-emerald-500');
-            
-            // Show info
-            document.getElementById('selectedSantriInfo').classList.remove('hidden');
-            document.getElementById('selectedAvatar').src = `https://ui-avatars.com/api/?name=${selectedSantri.avatar}&background=10b981&color=fff`;
-            document.getElementById('selectedName').textContent = selectedSantri.nama;
-            document.getElementById('selectedNIS').textContent = `${selectedSantri.kelas} • NIS: ${selectedSantri.nis}`;
-            document.getElementById('selectedTarget').textContent = selectedSantri.target;
-            document.getElementById('selectedLast').textContent = selectedSantri.last;
+            // Load progress santri
+            await loadSantriProgress(id);
         };
 
-        window.updateAyatRange = () => {
-            const select = document.getElementById('surahSelect');
-            const selectedOption = select.options[select.selectedIndex];
-            const maxAyat = parseInt(selectedOption.dataset.ayat) || 286;
-            
-            document.getElementById('ayatAwal').max = maxAyat;
-            document.getElementById('ayatAkhir').max = maxAyat;
-        };
+        async function loadSantriProgress(santriId) {
+            try {
+                const hafalanRef = collection(db, "hafalan");
+                const q = query(hafalanRef, where("santriId", "==", santriId), orderBy("createdAt", "desc"), limit(10));
+                const snapshot = await getDocs(q);
+                
+                const setoranList = [];
+                let totalAyat = 0;
+                const surahSet = new Set();
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    setoranList.push(data);
+                    totalAyat += (data.ayatAkhir - data.ayatAwal + 1);
+                    surahSet.add(data.surah);
+                });
+                
+                // Calculate progress
+                const totalAyatQuran = 6236;
+                const progressPercent = Math.min((totalAyat / totalAyatQuran) * 100, 100).toFixed(1);
+                
+                document.getElementById('progressList').innerHTML = `
+                    <div class="bg-primary-50 dark:bg-primary-900/20 rounded-xl p-4 mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-secondary-700 dark:text-secondary-300">Progress Hafalan</span>
+                            <span class="text-lg font-bold text-primary-600">${progressPercent}%</span>
+                        </div>
+                        <div class="w-full bg-secondary-200 dark:bg-secondary-700 rounded-full h-3">
+                            <div class="progress-bar bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <div class="flex justify-between mt-2 text-xs text-secondary-500">
+                            <span>${totalAyat} ayat dihafal</span>
+                            <span>${surahSet.size} surah</span>
+                        </div>
+                    </div>
+                    
+                    ${setoranList.length > 0 ? `
+                        <h4 class="font-semibold text-secondary-900 dark:text-white mb-3">Setoran Terbaru</h4>
+                        <div class="space-y-2">
+                            ${setoranList.map(s => `
+                                <div class="flex items-center gap-3 p-3 rounded-lg bg-secondary-50 dark:bg-secondary-700/50">
+                                    <div class="w-8 h-8 rounded-full ${s.kualitas === 'baik' ? 'bg-green-100 text-green-600' : s.kualitas === 'cukup' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'} flex items-center justify-center">
+                                        <i class="fas fa-${s.kualitas === 'baik' ? 'check' : s.kualitas === 'cukup' ? 'exclamation' : 'times'}"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-secondary-900 dark:text-white">${s.surahNama}</p>
+                                        <p class="text-xs text-secondary-500">Ayat ${s.ayatAwal}-${s.ayatAkhir}</p>
+                                    </div>
+                                    <span class="text-xs text-secondary-400">${s.createdAt?.toDate ? new Date(s.createdAt.toDate()).toLocaleDateString('id-ID') : '-'}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<p class="text-center text-secondary-400 py-4">Belum ada setoran</p>'}
+                `;
+                
+            } catch (error) {
+                console.error('Error loading progress:', error);
+                document.getElementById('progressList').innerHTML = `
+                    <div class="text-center py-8 text-red-400">
+                        <p>Gagal memuat progress</p>
+                    </div>
+                `;
+            }
+        }
 
-        window.submitHafalan = async () => {
+        window.submitHafalan = async (e) => {
+            e.preventDefault();
+            
             if (!selectedSantri) {
                 showToast('Error', 'Pilih santri terlebih dahulu');
                 return;
             }
             
-            const surahSelect = document.getElementById('surahSelect');
-            const surahNo = surahSelect.value;
-            const surahNama = surahSelect.options[surahSelect.selectedIndex].text.split('. ')[1]?.split(' (')[0] || '';
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
             
-            if (!surahNo) {
-                showToast('Error', 'Pilih surah');
-                return;
-            }
-            
-            const data = {
-                santriId: selectedSantri.nis,
-                santriNama: selectedSantri.nama,
-                surah: surahNama,
-                surahNo: parseInt(surahNo),
-                ayatAwal: parseInt(document.getElementById('ayatAwal').value) || 1,
-                ayatAkhir: parseInt(document.getElementById('ayatAkhir').value) || 1,
-                juz: parseInt(document.getElementById('juzInput').value) || 1,
-                status: document.getElementById('statusSelect').value,
-                catatan: document.getElementById('catatanInput').value,
-                tanggal: document.getElementById('tanggalInput').value,
-                ustadzId: currentUser.uid,
-                createdAt: serverTimestamp()
-            };
+            btn.disabled = true;
+            btnText.textContent = 'Menyimpan...';
+            btnLoader.classList.remove('hidden');
             
             try {
-                await addDoc(collection(db, "hafalan"), data);
+                const surahSelect = document.getElementById('surahSelect');
+                const surahOption = surahSelect.options[surahSelect.selectedIndex];
                 
-                // Success
-                showToast('Berhasil!', `Setoran ${selectedSantri.nama} telah disimpan`);
+                const hafalanData = {
+                    santriId: selectedSantri.id,
+                    santriNama: selectedSantri.nama,
+                    surah: parseInt(surahSelect.value),
+                    surahNama: surahList.find(s => s.no === parseInt(surahSelect.value)).nama,
+                    juz: parseInt(document.getElementById('juzSelect').value),
+                    ayatAwal: parseInt(document.getElementById('ayatAwal').value),
+                    ayatAkhir: parseInt(document.getElementById('ayatAkhir').value),
+                    kualitas: document.querySelector('input[name="kualitas"]:checked').value,
+                    catatan: document.getElementById('catatan').value,
+                    ustadzId: currentUser.uid,
+                    ustadzNama: document.getElementById('userName').textContent,
+                    createdAt: serverTimestamp()
+                };
+                
+                await addDoc(collection(db, "hafalan"), hafalanData);
+                
+                // Success animation
                 confetti({
-                    particleCount: 50,
-                    spread: 60,
-                    origin: { y: 0.7 },
-                    colors: ['#10b981', '#059669', '#34d399']
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#059669', '#10b981', '#34d399']
                 });
                 
-                // Reset form
-                document.getElementById('surahSelect').value = '';
-                document.getElementById('ayatAwal').value = '';
-                document.getElementById('ayatAkhir').value = '';
-                document.getElementById('catatanInput').value = '';
+                showToast('Sukses', 'Setoran hafalan berhasil disimpan');
                 
-                // Refresh list
-                addToRecentList(data);
+                // Reset form
+                document.getElementById('hafalanForm').reset();
+                
+                // Reload progress
+                await loadSantriProgress(selectedSantri.id);
                 
             } catch (error) {
-                console.error("Error:", error);
-                showToast('Error', 'Gagal menyimpan data');
+                console.error('Error saving hafalan:', error);
+                showToast('Error', 'Gagal menyimpan setoran: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Simpan Setoran';
+                btnLoader.classList.add('hidden');
             }
         };
 
-        function loadTodayEntries() {
-            const today = new Date().toISOString().split('T')[0];
-            const q = query(
-                collection(db, "hafalan"),
-                where("tanggal", "==", today),
-                orderBy("createdAt", "desc")
-            );
-            
-            onSnapshot(q, (snapshot) => {
-                todayEntries = [];
-                snapshot.forEach(doc => todayEntries.push(doc.data()));
-                updateRecentList();
-            });
-        }
+        window.openHistoryModal = async () => {
+            document.getElementById('historyModal').classList.remove('hidden');
+            await loadHistory();
+        };
 
-        function addToRecentList(data) {
-            todayEntries.unshift(data);
-            updateRecentList();
-        }
+        window.closeHistoryModal = () => {
+            document.getElementById('historyModal').classList.add('hidden');
+        };
 
-        function updateRecentList() {
-            const container = document.getElementById('recentList');
-            document.getElementById('todayCount').textContent = `${todayEntries.length} entri`;
-            
-            if (todayEntries.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 py-8">Belum ada setoran hari ini</p>';
-                return;
+        async function loadHistory() {
+            try {
+                const hafalanRef = collection(db, "hafalan");
+                const q = query(hafalanRef, orderBy("createdAt", "desc"), limit(50));
+                const snapshot = await getDocs(q);
+                
+                const historyList = document.getElementById('historyList');
+                
+                if (snapshot.empty) {
+                    historyList.innerHTML = '<p class="text-center text-secondary-400 py-8">Belum ada riwayat setoran</p>';
+                    return;
+                }
+                
+                historyList.innerHTML = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return `
+                        <div class="p-4 rounded-xl bg-secondary-50 dark:bg-secondary-700/50 flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full ${data.kualitas === 'baik' ? 'bg-green-100 text-green-600' : data.kualitas === 'cukup' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'} flex items-center justify-center">
+                                <i class="fas fa-${data.kualitas === 'baik' ? 'check' : data.kualitas === 'cukup' ? 'exclamation' : 'times'}"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-secondary-900 dark:text-white">${data.santriNama}</p>
+                                <p class="text-sm text-secondary-600 dark:text-secondary-400">${data.surahNama} (Juz ${data.juz})</p>
+                                <p class="text-xs text-secondary-500">Ayat ${data.ayatAwal}-${data.ayatAkhir} • ${data.ustadzNama}</p>
+                            </div>
+                            <span class="text-xs text-secondary-400 whitespace-nowrap">
+                                ${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString('id-ID') : '-'}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading history:', error);
+                document.getElementById('historyList').innerHTML = '<p class="text-center text-red-400 py-8">Gagal memuat riwayat</p>';
             }
-            
-            container.innerHTML = todayEntries.slice(0, 5).map(entry => `
-                <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
-                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="font-semibold text-gray-900 dark:text-white text-sm">${entry.santriNama}</p>
-                        <p class="text-xs text-gray-500">${entry.surah}: ${entry.ayatAwal}-${entry.ayatAkhir}</p>
-                    </div>
-                    <span class="px-2 py-1 rounded-full text-xs font-medium ${
-                        entry.status === 'lancar' ? 'bg-green-100 text-green-700' :
-                        entry.status === 'cukup' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                    }">${entry.status}</span>
-                </div>
-            `).join('');
         }
+
+        window.toggleSidebar = () => {
+            const sidebar = document.getElementById('sidebar');
+            const main = document.getElementById('mainContent');
+            const texts = document.querySelectorAll('.sidebar-text');
+            
+            if (sidebar.classList.contains('sidebar-expanded')) {
+                sidebar.classList.replace('sidebar-expanded', 'sidebar-collapsed');
+                main.style.marginLeft = '80px';
+                texts.forEach(t => t.style.display = 'none');
+            } else {
+                sidebar.classList.replace('sidebar-collapsed', 'sidebar-expanded');
+                main.style.marginLeft = '280px';
+                texts.forEach(t => t.style.display = 'block');
+            }
+        };
+
+        window.toggleDarkMode = () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        };
+
+        window.handleLogout = async () => {
+            if (confirm('Apakah Anda yakin ingin logout?')) {
+                try {
+                    await signOut(auth);
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('userData');
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    showToast('Error', 'Gagal logout: ' + error.message);
+                }
+            }
+        };
 
         function showToast(title, message) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastTitle').textContent = title;
-            document.getElementById('toastMessage').textContent = message;
-            toast.classList.remove('translate-x-full');
-            setTimeout(() => toast.classList.add('translate-x-full'), 3000);
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-4 flex items-center gap-3 border-l-4 border-primary-500 mb-2';
+            toast.innerHTML = `
+                <i class="fas fa-info-circle text-primary-500"></i>
+                <div>
+                    <p class="font-semibold text-secondary-900 dark:text-white text-sm">${title}</p>
+                    <p class="text-xs text-secondary-500">${message}</p>
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
-        // Dark mode check
+        // Check theme
         if (localStorage.getItem('theme') === 'dark') {
             document.documentElement.classList.add('dark');
         }
