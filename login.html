@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Hidayatul Amin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Login | Yayasan Hidayatullah Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Firebase -->
@@ -13,268 +13,562 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --accent: #8b5cf6;
+            --gold: #fbbf24;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #059669 100%);
             min-height: 100vh;
             display: flex;
-            align-items: center;
+            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 50%, var(--primary-dark) 100%);
+            overflow-x: hidden;
+        }
+
+        /* Left Side - Visual */
+        .login-visual {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
-            padding: 20px;
+            align-items: center;
+            padding: 60px;
+            position: relative;
+            color: white;
         }
 
-        .login-container {
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 40px;
-            width: 100%;
-            max-width: 450px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        .login-visual::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
         }
 
-        .logo-section {
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .brand-logo {
+            position: relative;
+            z-index: 1;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
-        .logo-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            border-radius: 20px;
+        .brand-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--gold) 100%);
+            border-radius: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            color: white;
+            font-size: 3rem;
+            margin: 0 auto 25px;
+            box-shadow: 0 20px 60px rgba(16,185,129,0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .brand-logo h1 {
             font-size: 2rem;
+            margin-bottom: 10px;
         }
 
-        h1 {
-            color: #0f172a;
-            font-size: 1.5rem;
-            margin-bottom: 5px;
+        .brand-logo p {
+            opacity: 0.8;
+            font-size: 1.1rem;
         }
 
-        p {
+        .features-list {
+            position: relative;
+            z-index: 1;
+            list-style: none;
+            max-width: 400px;
+        }
+
+        .features-list li {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        .features-list li:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(10px);
+        }
+
+        .features-list i {
+            width: 50px;
+            height: 50px;
+            background: rgba(16,185,129,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: var(--primary);
+        }
+
+        /* Right Side - Form */
+        .login-form-container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            position: relative;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 30px;
+            left: 30px;
             color: #64748b;
-            font-size: 0.9rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
         }
 
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .form-header {
+            margin-bottom: 35px;
+        }
+
+        .form-header h2 {
+            font-size: 2rem;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .form-header p {
+            color: #64748b;
+        }
+
+        /* Role Selector */
         .role-selector {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 25px;
+            gap: 15px;
+            margin-bottom: 30px;
         }
 
-        .role-btn {
-            padding: 15px 10px;
+        .role-option {
+            padding: 20px;
             border: 2px solid #e2e8f0;
-            background: white;
-            border-radius: 12px;
+            border-radius: 16px;
+            text-align: center;
             cursor: pointer;
             transition: all 0.3s;
-            text-align: center;
+            background: white;
         }
 
-        .role-btn:hover, .role-btn.active {
-            border-color: #10b981;
-            background: #f0fdf4;
+        .role-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
         }
 
-        .role-btn i {
-            display: block;
+        .role-option.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .role-option.active.wali { border-color: var(--primary); background: #f0fdf4; }
+        .role-option.active.admin { border-color: var(--secondary); background: #eff6ff; }
+        .role-option.active.ustadz { border-color: var(--accent); background: #f5f3ff; }
+
+        .role-option i {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.5rem;
-            margin-bottom: 8px;
+            margin: 0 auto 12px;
+            color: white;
+        }
+
+        .role-option.wali i { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); }
+        .role-option.admin i { background: linear-gradient(135deg, var(--secondary) 0%, #2563eb 100%); }
+        .role-option.ustadz i { background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%); }
+
+        .role-option h4 {
+            font-size: 0.95rem;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .role-option p {
+            font-size: 0.8rem;
             color: #64748b;
         }
 
-        .role-btn.active i, .role-btn:hover i {
-            color: #10b981;
-        }
-
+        /* Form Inputs */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
-        label {
+        .form-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #475569;
+            margin-bottom: 10px;
             font-weight: 600;
-            font-size: 0.9rem;
+            color: #475569;
+            font-size: 0.95rem;
         }
 
-        input {
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .form-group input {
             width: 100%;
-            padding: 14px 18px;
+            padding: 16px 20px 16px 50px;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 1rem;
             transition: all 0.3s;
         }
 
-        input:focus {
+        .form-group input:focus {
             outline: none;
-            border-color: #10b981;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(16,185,129,0.1);
         }
 
-        .btn-login {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 700;
+        .toggle-password {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
             cursor: pointer;
             transition: all 0.3s;
+        }
+
+        .toggle-password:hover {
+            color: var(--primary);
+        }
+
+        /* Pi Login Option */
+        .pi-login-option {
+            margin: 25px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ede9fe 0%, #fef3c7 100%);
+            border-radius: 16px;
+            border: 2px dashed #ddd6fe;
+            text-align: center;
+        }
+
+        .pi-login-option h4 {
+            color: #7c3aed;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
         }
 
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(16,185,129,0.3);
+        .btn-pi {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
         }
 
-        .btn-login:disabled {
-            opacity: 0.7;
+        .btn-pi:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(139,92,246,0.3);
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(16,185,129,0.3);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
 
-        .links {
-            text-align: center;
-            margin-top: 25px;
-            padding-top: 25px;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .links a {
-            color: #10b981;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .error-msg {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
+        /* Divider */
+        .divider {
+            display: flex;
             align-items: center;
-            gap: 8px;
+            margin: 25px 0;
+            color: #94a3b8;
             font-size: 0.9rem;
         }
 
-        .loading {
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .divider span {
+            padding: 0 15px;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: #fee2e2;
+            color: var(--error);
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
             display: none;
-            text-align: center;
-            padding: 20px;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+        .error-message.show {
+            display: flex;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        .loading-overlay.show {
+            display: flex;
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
+            width: 60px;
+            height: 60px;
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #10b981;
+            border-top: 4px solid var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #64748b;
-            text-decoration: none;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
-        .back-link:hover {
-            color: #10b981;
+        /* Responsive */
+        @media (max-width: 1024px) {
+            body { flex-direction: column; }
+            .login-visual { display: none; }
+            .login-form-container { max-width: 100%; min-height: 100vh; }
+        }
+
+        @media (max-width: 640px) {
+            .login-form-container { padding: 40px 25px; }
+            .role-selector { grid-template-columns: 1fr; }
+            .form-header h2 { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="login-container">
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; color: #64748b; font-weight: 500;">Memuat...</p>
+    </div>
+
+    <!-- Left Side -->
+    <div class="login-visual">
+        <div class="brand-logo">
+            <div class="brand-icon">
+                <i class="fas fa-mosque"></i>
+            </div>
+            <h1>Yayasan Hidayatullah Amin</h1>
+            <p>Sistem Informasi Terpadu & Pi Network</p>
+        </div>
+        
+        <ul class="features-list">
+            <li>
+                <i class="fas fa-quran"></i>
+                <div>
+                    <h4>Monitoring Hafalan</h4>
+                    <p>Pantau perkembangan hafalan santri real-time</p>
+                </div>
+            </li>
+            <li>
+                <i class="fas fa-coins"></i>
+                <div>
+                    <h4>Pi Payments</h4>
+                    <p>Pembayaran SPP dengan cryptocurrency Pi</p>
+                </div>
+            </li>
+            <li>
+                <i class="fas fa-chart-line"></i>
+                <div>
+                    <h4>Laporan Digital</h4>
+                    <p>Akses nilai dan laporan keuangan online</p>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Right Side -->
+    <div class="login-form-container">
         <a href="index.html" class="back-link">
             <i class="fas fa-arrow-left"></i> Kembali ke Beranda
         </a>
-
-        <div class="logo-section">
-            <div class="logo-icon" style="background:none;padding:0;">
-                <img src="logo.png" alt="Logo" style="width:80px;height:80px;border-radius:20px;object-fit:cover;">
-            </div>
-            <h1>Masuk ke Portal</h1>
-            <p>Yayasan Pendidikan Hidayatul Amin</p>
+        
+        <div class="form-header">
+            <h2>Selamat Datang Kembali</h2>
+            <p>Pilih peran Anda dan masuk ke sistem</p>
         </div>
-
-        <div class="role-selector">
-            <button class="role-btn active" data-role="wali" onclick="selectRole('wali')">
-                <i class="fas fa-users"></i>
-                <small>Wali</small>
-            </button>
-            <button class="role-btn" data-role="ustadz" onclick="selectRole('ustadz')">
-                <i class="fas fa-chalkboard-teacher"></i>
-                <small>Ustadz</small>
-            </button>
-            <button class="role-btn" data-role="admin" onclick="selectRole('admin')">
-                <i class="fas fa-user-shield"></i>
-                <small>Admin</small>
-            </button>
-        </div>
-
-        <div class="error-msg" id="errorMsg">
+        
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage">
             <i class="fas fa-exclamation-circle"></i>
             <span id="errorText">Email atau password salah</span>
         </div>
-
-        <form id="loginForm" onsubmit="handleLogin(event)">
+        
+        <!-- Role Selector -->
+        <div class="role-selector">
+            <div class="role-option wali" onclick="selectRole('wali')" data-role="wali">
+                <i class="fas fa-users"></i>
+                <h4>Wali Santri</h4>
+                <p>Orang tua/wali</p>
+            </div>
+            <div class="role-option admin" onclick="selectRole('admin')" data-role="admin">
+                <i class="fas fa-user-shield"></i>
+                <h4>Administrator</h4>
+                <p>Admin pondok</p>
+            </div>
+            <div class="role-option ustadz" onclick="selectRole('ustadz')" data-role="ustadz">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <h4>Ustadz</h4>
+                <p>Pengajar</p>
+            </div>
+        </div>
+        
+        <!-- Email/Password Form -->
+        <form id="loginForm">
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" id="email" placeholder="nama@email.com" required>
+                <div class="input-wrap">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="nama@email.com" required>
+                </div>
             </div>
+            
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" id="password" placeholder="••••••••" required>
+                <div class="input-wrap">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
+                </div>
             </div>
-            <div style="text-align:right;margin-bottom:15px;">
-                <a href="#" onclick="forgotPassword()" style="color:#10b981;font-size:0.85rem;text-decoration:none;">Lupa password?</a>
-            </div>
-            <button type="submit" class="btn-login" id="btnLogin">
+            
+            <button type="submit" class="btn-submit" id="submitBtn">
                 <i class="fas fa-sign-in-alt"></i>
-                Masuk
+                Masuk ke Sistem
             </button>
         </form>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Memverifikasi...</p>
+        
+        <div class="divider">
+            <span>atau</span>
         </div>
-
-        <div class="links">
-            <p>Belum punya akun? <a href="register.html">Daftar di sini</a></p>
+        
+        <!-- Pi Network Login -->
+        <div class="pi-login-option">
+            <h4><i class="fas fa-coins"></i> Login dengan Pi Network</h4>
+            <button class="btn-pi" onclick="loginWithPi()">
+                <i class="fas fa-mobile-alt"></i>
+                Scan dengan Pi Browser
+            </button>
         </div>
     </div>
 
     <script>
         // ==========================================
-        // FIREBASE CONFIGURATION
+        // FIREBASE CONFIG - SAMA DENGAN SEMUA PORTAL
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
@@ -285,226 +579,214 @@
             appId: "1:80743607267:web:f5f94165de021759958ed6"
         };
 
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
+        firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // ==========================================
-        // GLOBAL VARIABLES
-        // ==========================================
-        let selectedRole = 'wali';
+        let selectedRole = null;
 
         // ==========================================
         // ROLE SELECTION
         // ==========================================
+
         function selectRole(role) {
             selectedRole = role;
-            document.querySelectorAll('.role-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.role === role) {
-                    btn.classList.add('active');
-                }
+            
+            // Update UI
+            document.querySelectorAll('.role-option').forEach(el => {
+                el.classList.remove('active');
             });
+            document.querySelector(`.role-option[data-role="${role}"]`).classList.add('active');
+            
+            // Update button text
+            const btn = document.getElementById('submitBtn');
+            const roleNames = {
+                wali: 'Masuk sebagai Wali',
+                admin: 'Masuk sebagai Admin',
+                ustadz: 'Masuk sebagai Ustadz'
+            };
+            btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> ${roleNames[role]}`;
         }
 
-        // Check URL params for role
-        const urlParams = new URLSearchParams(window.location.search);
-        const roleParam = urlParams.get('role');
-        if (roleParam && ['wali', 'ustadz', 'admin'].includes(roleParam)) {
-            selectRole(roleParam);
-        }
-
-        // ==========================================
-        // AUTHENTICATION
-        // ==========================================
-        
-        // Check if already logged in - PENTING UNTUK PERSISTENCE
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                // User sudah login, redirect ke dashboard sesuai role
-                console.log('User already logged in:', user.email);
-                await redirectBasedOnRole(user.uid);
+        // Cek URL parameter untuk pre-select role
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const role = urlParams.get('role');
+            if (role && ['wali', 'admin', 'ustadz'].includes(role)) {
+                selectRole(role);
+            } else {
+                selectRole('wali'); // Default
             }
         });
 
-        async function handleLogin(e) {
+        // ==========================================
+        // FORM HANDLING
+        // ==========================================
+
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = event.target;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            if (!selectedRole) {
+                showError('Pilih peran Anda terlebih dahulu');
+                return;
+            }
+            
+            showLoading();
+            hideError();
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const btn = document.getElementById('btnLogin');
-            const loading = document.getElementById('loading');
-            const form = document.getElementById('loginForm');
-            const errorMsg = document.getElementById('errorMsg');
-
-            // Hide error
-            errorMsg.style.display = 'none';
             
-            // Show loading
-            btn.disabled = true;
-            form.style.display = 'none';
-            loading.style.display = 'block';
-
             try {
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
-                // Verify role
-                const hasAccess = await verifyRole(user.uid, selectedRole);
+                // Verifikasi role
+                const roleValid = await verifyRole(user.uid, selectedRole);
                 
-                if (!hasAccess) {
-                    throw new Error(`Akun ini tidak terdaftar sebagai ${selectedRole}`);
+                if (!roleValid) {
+                    await auth.signOut();
+                    hideLoading();
+                    showError(`Akun ini tidak terdaftar sebagai ${selectedRole}`);
+                    return;
                 }
-
-                // Redirect ke dashboard
-                redirectToDashboard(selectedRole);
-
+                
+                // Redirect ke dashboard sesuai role
+                const redirects = {
+                    wali: 'dashboard-wali.html',
+                    admin: 'dashboard-admin.html',
+                    ustadz: 'dashboard-ustadz.html'
+                };
+                
+                window.location.href = redirects[selectedRole];
+                
             } catch (error) {
-                console.error('Login error:', error);
-                
-                // Show error
-                let errorMessage = 'Email atau password salah';
-                if (error.code === 'auth/user-not-found') {
-                    errorMessage = 'Akun tidak ditemukan';
-                } else if (error.code === 'auth/wrong-password') {
-                    errorMessage = 'Password salah';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'Format email tidak valid';
-                } else if (error.message) {
-                    errorMessage = error.message;
-                }
-                
-                document.getElementById('errorText').textContent = errorMessage;
-                errorMsg.style.display = 'flex';
-                
-                // Reset UI
-                btn.disabled = false;
-                form.style.display = 'block';
-                loading.style.display = 'none';
+                hideLoading();
+                showError(getErrorMessage(error.code));
             }
-        }
+        });
 
         async function verifyRole(uid, role) {
-    try {
-        let docRef;
-        
-        switch(role) {
-            case 'wali':
-                docRef = db.collection('wali_santri').doc(uid);
-                break;
-            case 'ustadz':
-                docRef = db.collection('ustadz').doc(uid);
-                break;
-            case 'admin':
-                docRef = db.collection('admins').doc(uid);
-                break;
-            default:
-                return false;
-        }
-        
-        const doc = await docRef.get();
-        
-        if (!doc.exists) {
-            return false;
-        }
-        
-        // Check if account is active (not pending)
-        const data = doc.data();
-        if (data.status === 'pending') {
-            throw new Error('Akun Anda masih menunggu verifikasi admin. Silakan hubungi admin.');
-        }
-        
-        if (data.status === 'suspended') {
-            throw new Error('Akun Anda telah ditangguhkan. Hubungi admin untuk info lebih lanjut.');
-        }
-        
-        return true;
-        
-    } catch (error) {
-        console.error('Role verification error:', error);
-        throw error; // Re-throw to be caught in handleLogin
-    }
-}
-
-async function redirectBasedOnRole(uid) {
-    try {
-        // Check admin first (super admin and admin)
-        const adminDoc = await db.collection('admins').doc(uid).get();
-        if (adminDoc.exists) {
-            const adminData = adminDoc.data();
-            if (adminData.status !== 'pending') {
-                redirectToDashboard('admin');
-                return;
-            }
-        }
-
-        // Check ustadz
-        const ustadzDoc = await db.collection('ustadz').doc(uid).get();
-        if (ustadzDoc.exists) {
-            const ustadzData = ustadzDoc.data();
-            if (ustadzData.status !== 'pending') {
-                redirectToDashboard('ustadz');
-                return;
-            } else {
-                await auth.signOut();
-                alert('Akun ustadz Anda masih menunggu verifikasi admin.');
-                return;
-            }
-        }
-
-        // Check wali
-        const waliDoc = await db.collection('wali_santri').doc(uid).get();
-        if (waliDoc.exists) {
-            const waliData = waliDoc.data();
-            if (waliData.status !== 'pending') {
-                redirectToDashboard('wali');
-                return;
-            } else {
-                await auth.signOut();
-                alert('Akun wali santri Anda masih menunggu verifikasi admin.');
-                return;
-            }
-        }
-
-        // If no role found, logout
-        await auth.signOut();
-        alert('Akun tidak memiliki role yang valid. Silakan daftar terlebih dahulu.');
-        
-    } catch (error) {
-        console.error('Redirect error:', error);
-        await auth.signOut();
-        alert('Error: ' + error.message);
-    }
-}
-
-        function redirectToDashboard(role) {
-            const dashboards = {
-                'wali': 'dashboard-wali.html',
-                'ustadz': 'dashboard-ustadz.html',
-                'admin': 'dashboard-admin.html'
-            };
-            
-            window.location.href = dashboards[role];
-        }
-
-
-
-        async function forgotPassword() {
-            const email = document.getElementById('email').value;
-            if (!email) {
-                alert('Masukkan email Anda terlebih dahulu');
-                return;
-            }
             try {
-                await auth.sendPasswordResetEmail(email);
-                alert('Link reset password telah dikirim ke ' + email);
-            } catch(e) {
-                alert('Gagal: ' + e.message);
+                const collections = {
+                    wali: 'wali_santri',
+                    admin: 'admins',
+                    ustadz: 'ustadz'
+                };
+                
+                const doc = await db.collection(collections[role]).doc(uid).get();
+                return doc.exists;
+            } catch (error) {
+                console.error("Error verifying role:", error);
+                return false;
             }
+        }
+
+        // ==========================================
+        // PI NETWORK LOGIN
+        // ==========================================
+
+        async function loginWithPi() {
+            if (!selectedRole) {
+                showError('Pilih peran Anda terlebih dahulu');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                // Inisialisasi Pi SDK
+                const Pi = window.Pi;
+                Pi.init({ version: "2.0" });
+                
+                // Request akses user
+                const authResult = await Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
+                
+                // Cek apakah Pi user sudah terlink dengan akun di sistem
+                const linkedAccount = await db.collection('pi_linked_accounts')
+                    .where('piUsername', '==', authResult.user.username)
+                    .where('role', '==', selectedRole)
+                    .get();
+                
+                if (linkedAccount.empty) {
+                    // Belum terlink, arahkan ke linking page atau buat akun baru
+                    hideLoading();
+                    alert('Akun Pi Anda belum terhubung dengan sistem. Silakan login dengan email terlebih dahulu untuk menghubungkan.');
+                    return;
+                }
+                
+                // Sudah terlink, auto login
+                const accountData = linkedAccount.docs[0].data();
+                
+                // Sign in dengan custom token atau email/password tersimpan
+                // (Implementasi sesuai kebutuhan security Anda)
+                
+                const redirects = {
+                    wali: 'dashboard-wali.html',
+                    admin: 'dashboard-admin.html',
+                    ustadz: 'dashboard-ustadz.html'
+                };
+                
+                window.location.href = redirects[selectedRole];
+                
+            } catch (error) {
+                hideLoading();
+                console.error("Pi login error:", error);
+                showError('Gagal login dengan Pi: ' + error.message);
+            }
+        }
+
+        function onIncompletePaymentFound(payment) {
+            console.log("Incomplete payment found:", payment);
+            // Handle pembayaran yang belum selesai
+        }
+
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        function getErrorMessage(code) {
+            const messages = {
+                'auth/user-not-found': 'Email tidak terdaftar',
+                'auth/wrong-password': 'Password salah',
+                'auth/invalid-email': 'Format email tidak valid',
+                'auth/user-disabled': 'Akun dinonaktifkan',
+                'auth/too-many-requests': 'Terlalu banyak percobaan, coba lagi nanti',
+                'auth/invalid-credential': 'Email atau password salah'
+            };
+            return messages[code] || 'Terjadi kesalahan, silakan coba lagi';
         }
     </script>
 
