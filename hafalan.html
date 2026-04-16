@@ -293,7 +293,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, getDocs, query, where, doc, getDoc, addDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, where, doc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
@@ -558,8 +558,10 @@
 
         async function loadSantriProgress(santriId) {
             try {
+                // FIX: Hapus orderBy untuk menghindari index requirement
+                // Gunakan where saja, kemudian sort di client-side
                 const hafalanRef = collection(db, "hafalan");
-                const q = query(hafalanRef, where("santriId", "==", santriId), orderBy("createdAt", "desc"), limit(10));
+                const q = query(hafalanRef, where("santriId", "==", santriId));
                 const snapshot = await getDocs(q);
                 
                 const setoranList = [];
@@ -568,10 +570,21 @@
                 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    setoranList.push(data);
+                    setoranList.push({
+                        id: doc.id,
+                        ...data,
+                        // Convert timestamp untuk sorting di client
+                        sortTime: data.createdAt?.toMillis ? data.createdAt.toMillis() : 0
+                    });
                     totalAyat += (data.ayatAkhir - data.ayatAwal + 1);
                     surahSet.add(data.surah);
                 });
+                
+                // Sort di client-side (descending by time)
+                setoranList.sort((a, b) => b.sortTime - a.sortTime);
+                
+                // Ambil 10 terbaru saja
+                const recentSetoran = setoranList.slice(0, 10);
                 
                 // Calculate progress
                 const totalAyatQuran = 6236;
@@ -592,10 +605,10 @@
                         </div>
                     </div>
                     
-                    ${setoranList.length > 0 ? `
+                    ${recentSetoran.length > 0 ? `
                         <h4 class="font-semibold text-secondary-900 dark:text-white mb-3">Setoran Terbaru</h4>
                         <div class="space-y-2">
-                            ${setoranList.map(s => `
+                            ${recentSetoran.map(s => `
                                 <div class="flex items-center gap-3 p-3 rounded-lg bg-secondary-50 dark:bg-secondary-700/50">
                                     <div class="w-8 h-8 rounded-full ${s.kualitas === 'baik' ? 'bg-green-100 text-green-600' : s.kualitas === 'cukup' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'} flex items-center justify-center">
                                         <i class="fas fa-${s.kualitas === 'baik' ? 'check' : s.kualitas === 'cukup' ? 'exclamation' : 'times'}"></i>
@@ -615,7 +628,8 @@
                 console.error('Error loading progress:', error);
                 document.getElementById('progressList').innerHTML = `
                     <div class="text-center py-8 text-red-400">
-                        <p>Gagal memuat progress</p>
+                        <p>Gagal memuat progress: ${error.message}</p>
+                        <button onclick="loadSantriProgress('${santriId}')" class="mt-2 px-4 py-2 bg-primary-500 text-white rounded-lg text-sm">Coba Lagi</button>
                     </div>
                 `;
             }
@@ -641,14 +655,21 @@
                 const surahSelect = document.getElementById('surahSelect');
                 const surahOption = surahSelect.options[surahSelect.selectedIndex];
                 
+                const ayatAwal = parseInt(document.getElementById('ayatAwal').value);
+                const ayatAkhir = parseInt(document.getElementById('ayatAkhir').value);
+                
+                if (ayatAwal > ayatAkhir) {
+                    throw new Error('Ayat awal tidak boleh lebih besar dari ayat akhir');
+                }
+                
                 const hafalanData = {
                     santriId: selectedSantri.id,
                     santriNama: selectedSantri.nama,
                     surah: parseInt(surahSelect.value),
                     surahNama: surahList.find(s => s.no === parseInt(surahSelect.value)).nama,
                     juz: parseInt(document.getElementById('juzSelect').value),
-                    ayatAwal: parseInt(document.getElementById('ayatAwal').value),
-                    ayatAkhir: parseInt(document.getElementById('ayatAkhir').value),
+                    ayatAwal: ayatAwal,
+                    ayatAkhir: ayatAkhir,
                     kualitas: document.querySelector('input[name="kualitas"]:checked').value,
                     catatan: document.getElementById('catatan').value,
                     ustadzId: currentUser.uid,
@@ -696,8 +717,8 @@
         async function loadHistory() {
             try {
                 const hafalanRef = collection(db, "hafalan");
-                const q = query(hafalanRef, orderBy("createdAt", "desc"), limit(50));
-                const snapshot = await getDocs(q);
+                // FIX: Hapus orderBy untuk menghindari index requirement
+                const snapshot = await getDocs(hafalanRef);
                 
                 const historyList = document.getElementById('historyList');
                 
@@ -706,28 +727,40 @@
                     return;
                 }
                 
-                historyList.innerHTML = snapshot.docs.map(doc => {
+                // Convert ke array dan sort di client
+                const allData = [];
+                snapshot.forEach(doc => {
                     const data = doc.data();
-                    return `
-                        <div class="p-4 rounded-xl bg-secondary-50 dark:bg-secondary-700/50 flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full ${data.kualitas === 'baik' ? 'bg-green-100 text-green-600' : data.kualitas === 'cukup' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'} flex items-center justify-center">
-                                <i class="fas fa-${data.kualitas === 'baik' ? 'check' : data.kualitas === 'cukup' ? 'exclamation' : 'times'}"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="font-semibold text-secondary-900 dark:text-white">${data.santriNama}</p>
-                                <p class="text-sm text-secondary-600 dark:text-secondary-400">${data.surahNama} (Juz ${data.juz})</p>
-                                <p class="text-xs text-secondary-500">Ayat ${data.ayatAwal}-${data.ayatAkhir} • ${data.ustadzNama}</p>
-                            </div>
-                            <span class="text-xs text-secondary-400 whitespace-nowrap">
-                                ${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString('id-ID') : '-'}
-                            </span>
+                    allData.push({
+                        id: doc.id,
+                        ...data,
+                        sortTime: data.createdAt?.toMillis ? data.createdAt.toMillis() : 0
+                    });
+                });
+                
+                // Sort descending by time, limit 50
+                allData.sort((a, b) => b.sortTime - a.sortTime);
+                const recentData = allData.slice(0, 50);
+                
+                historyList.innerHTML = recentData.map(data => `
+                    <div class="p-4 rounded-xl bg-secondary-50 dark:bg-secondary-700/50 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full ${data.kualitas === 'baik' ? 'bg-green-100 text-green-600' : data.kualitas === 'cukup' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'} flex items-center justify-center">
+                            <i class="fas fa-${data.kualitas === 'baik' ? 'check' : data.kualitas === 'cukup' ? 'exclamation' : 'times'}"></i>
                         </div>
-                    `;
-                }).join('');
+                        <div class="flex-1">
+                            <p class="font-semibold text-secondary-900 dark:text-white">${data.santriNama}</p>
+                            <p class="text-sm text-secondary-600 dark:text-secondary-400">${data.surahNama} (Juz ${data.juz})</p>
+                            <p class="text-xs text-secondary-500">Ayat ${data.ayatAwal}-${data.ayatAkhir} • ${data.ustadzNama}</p>
+                        </div>
+                        <span class="text-xs text-secondary-400 whitespace-nowrap">
+                            ${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString('id-ID') : '-'}
+                        </span>
+                    </div>
+                `).join('');
                 
             } catch (error) {
                 console.error('Error loading history:', error);
-                document.getElementById('historyList').innerHTML = '<p class="text-center text-red-400 py-8">Gagal memuat riwayat</p>';
+                document.getElementById('historyList').innerHTML = `<p class="text-center text-red-400 py-8">Gagal memuat riwayat: ${error.message}</p>`;
             }
         }
 
