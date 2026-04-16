@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kegiatan | Portal Santri</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                        purple: { 50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7c3aed', 800: '#6b21a8', 900: '#581c87' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); }
+        .glass-dark { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); }
+        .gradient-purple { background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 pb-24">
+    
+    <!-- Header -->
+    <header class="sticky top-0 z-40 glass dark:glass-dark border-b border-gray-200 dark:border-gray-800">
+        <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+            <button onclick="history.back()" class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="font-bold text-lg">Kegiatan & Event</h1>
+            <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-yellow-400">
+                <i class="fas fa-moon dark:hidden"></i>
+                <i class="fas fa-sun hidden dark:block"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
+        
+        <!-- My Activities -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 class="font-bold text-gray-900 dark:text-white mb-4">Ekstrakurikuler Saya</h3>
+            <div class="space-y-3" id="myActivities">
+                <div class="flex items-center gap-4 p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
+                    <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
+                        <i class="fas fa-futbol text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 dark:text-white">Futsal</p>
+                        <p class="text-xs text-gray-500">Setiap Jumat, 15:30 - 17:00</p>
+                    </div>
+                    <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-lg text-xs font-medium">Aktif</span>
+                </div>
+                <div class="flex items-center gap-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
+                        <i class="fas fa-microphone text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 dark:text-white">Hadroh</p>
+                        <p class="text-xs text-gray-500">Setiap Sabtu, 19:00 - 21:00</p>
+                    </div>
+                    <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-lg text-xs font-medium">Aktif</span>
+                </div>
+            </div>
+            <button onclick="joinActivity()" class="w-full mt-4 py-3 rounded-xl border-2 border-dashed border-purple-300 dark:border-purple-700 text-purple-600 font-medium hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Gabung Ekstrakurikuler
+            </button>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 class="font-bold text-gray-900 dark:text-white mb-4">Event Mendatang</h3>
+            <div class="space-y-4" id="eventList">
+                <div class="relative pl-6 border-l-2 border-purple-200 dark:border-purple-800 pb-4">
+                    <div class="absolute -left-2 top-0 w-4 h-4 rounded-full bg-purple-500 border-4 border-white dark:border-gray-800"></div>
+                    <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="px-2 py-1 bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 rounded-lg text-xs font-medium">20 Apr 2025</span>
+                            <span class="text-xs text-gray-500">08:00 - 12:00</span>
+                        </div>
+                        <h4 class="font-bold text-gray-900 dark:text-white mb-1">Lomba MTQ Antar Kelas</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Lomba Musabaqah Tilawatil Qur'an antar kelas 6. Ayo raih juara!</p>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Aula Utama</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative pl-6 border-l-2 border-blue-200 dark:border-blue-800 pb-4">
+                    <div class="absolute -left-2 top-0 w-4 h-4 rounded-full bg-blue-500 border-4 border-white dark:border-gray-800"></div>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="px-2 py-1 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-lg text-xs font-medium">25 Apr 2025</span>
+                            <span class="text-xs text-gray-500">19:00 - 21:00</span>
+                        </div>
+                        <h4 class="font-bold text-gray-900 dark:text-white mb-1">Maulid Nabi Muhammad SAW</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Peringatan Maulid Nabi bersama seluruh santri dan wali santri.</p>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Masjid Al-Hidayah</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative pl-6 border-l-2 border-green-200 dark:border-green-800">
+                    <div class="absolute -left-2 top-0 w-4 h-4 rounded-full bg-green-500 border-4 border-white dark:border-gray-800"></div>
+                    <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="px-2 py-1 bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 rounded-lg text-xs font-medium">1 Mei 2025</span>
+                            <span class="text-xs text-gray-500">07:00 - 15:00</span>
+                        </div>
+                        <h4 class="font-bold text-gray-900 dark:text-white mb-1">Outbond Study Tour</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Kunjungan edukasi ke museum dan tempat bersejarah.</p>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Museum Nasional</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievement Gallery -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-gray-900 dark:text-white">Galeri Prestasi</h3>
+                <button onclick="viewAllAchievements()" class="text-purple-600 text-sm font-medium">Lihat Semua</button>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div class="aspect-square rounded-xl bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-trophy text-2xl text-amber-500 mb-1"></i>
+                        <p class="text-[10px] font-medium text-gray-600 dark:text-gray-400">Juara 2 MTQ</p>
+                    </div>
+                </div>
+                <div class="aspect-square rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-medal text-2xl text-blue-500 mb-1"></i>
+                        <p class="text-[10px] font-medium text-gray-600 dark:text-gray-400">Best Player</p>
+                    </div>
+                </div>
+                <div class="aspect-square rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-award text-2xl text-purple-500 mb-1"></i>
+                        <p class="text-[10px] font-medium text-gray-600 dark:text-gray-400">Santri Teladan</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 safe-area-pb">
+        <div class="max-w-lg mx-auto px-6 py-2 flex justify-around items-center">
+            <a href="dashboard-santri.html" class="flex flex-col items-center gap-1 py-2 px-3 text-gray-400">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-[10px] font-medium">Beranda</span>
+            </a>
+            <a href="jadwal-santri.html" class="flex flex-col items-center gap-1 py-2 px-3 text-gray-400">
+                <i class="fas fa-calendar text-lg"></i>
+                <span class="text-[10px] font-medium">Jadwal</span>
+            </a>
+            <a href="hafalan-santri.html" class="flex flex-col items-center gap-1 py-2 px-3 text-gray-400">
+                <i class="fas fa-book text-lg"></i>
+                <span class="text-[10px] font-medium">Hafalan</span>
+            </a>
+            <a href="dashboard-santri.html?tab=profil" class="flex flex-col items-center gap-1 py-2 px-3 text-gray-400">
+                <i class="fas fa-user text-lg"></i>
+                <span class="text-[10px] font-medium">Profil</span>
+            </a>
+        </div>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        window.joinActivity = () => {
+            alert('Form pendaftaran ekstrakurikuler akan ditampilkan');
+        };
+
+        window.viewAllAchievements = () => {
+            alert('Galeri lengkap prestasi akan ditampilkan');
+        };
+
+        window.toggleDarkMode = () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</body>
+</html>

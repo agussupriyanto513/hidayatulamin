@@ -2,45 +2,41 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Hidayatullah Amin</title>
-    
-    <!-- Preconnect untuk mempercepat loading Firebase -->
-    <link rel="preconnect" href="https://www.gstatic.com">
-    <link rel="preconnect" href="https://firestore.googleapis.com">
-    <link rel="preconnect" href="https://identitytoolkit.googleapis.com">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Login | Portal Santri Hidayatullah Amin</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                        purple: { 50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7c3aed', 800: '#6b21a8', 900: '#581c87' }
+                    },
                     animation: {
-                        'blob': 'blob 7s infinite',
-                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'slide-up': 'slideUp 0.5s ease-out',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
                     },
                     keyframes: {
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(30px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
                         },
                         shake: {
                             '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
                             '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
                             '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
                             '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' }
                         }
                     }
                 }
@@ -48,590 +44,280 @@
         }
     </script>
     <style>
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        .glass-dark {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        .input-group:focus-within label {
-            color: #059669;
-            transform: translateY(-24px) scale(0.85);
-        }
-        .input-group label {
-            transition: all 0.2s ease-out;
-            transform-origin: left top;
-        }
-        .input-group input:not(:placeholder-shown) + label,
-        .input-group input:focus + label {
-            transform: translateY(-24px) scale(0.85);
-        }
-        .role-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .role-card:hover {
-            transform: translateY(-4px);
-        }
-        .role-card.selected {
-            border-color: #059669;
-            background: rgba(5, 150, 105, 0.05);
-            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-        }
-        .gradient-mesh {
-            background-color: #0f172a;
-            background-image: 
-                radial-gradient(at 40% 20%, hsla(160,100%,40%,0.3) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, hsla(190,100%,50%,0.2) 0px, transparent 50%),
-                radial-gradient(at 0% 50%, hsla(340,100%,60%,0.2) 0px, transparent 50%),
-                radial-gradient(at 80% 50%, hsla(160,100%,40%,0.3) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, hsla(220,100%,50%,0.2) 0px, transparent 50%),
-                radial-gradient(at 80% 100%, hsla(160,100%,30%,0.3) 0px, transparent 50%);
-        }
-        .loader {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top: 3px solid white;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-purple { background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); }
+        .glass-dark { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); }
+        .input-group:focus-within label { color: #7c3aed; transform: translateY(-24px) scale(0.85); }
+        .input-group label { transition: all 0.3s ease; }
+        .floating-shape { position: absolute; border-radius: 50%; filter: blur(40px); opacity: 0.6; }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #7c3aed; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Loading overlay */
-        .firebase-loading {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.3s;
-        }
-        .firebase-loading.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+        .shake-animation { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
     </style>
 </head>
-<body class="font-sans antialiased min-h-screen flex items-center justify-center p-4 gradient-mesh">
+<body class="font-sans antialiased min-h-screen gradient-bg flex items-center justify-center p-4 relative overflow-hidden">
     
-    <!-- Firebase Loading Overlay -->
-    <div id="firebaseLoading" class="firebase-loading">
-        <div class="text-center">
-            <div class="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p class="text-white text-sm">Memuat sistem...</p>
+    <!-- Animated Background Shapes -->
+    <div class="floating-shape w-72 h-72 bg-purple-400 top-10 left-10 animate-float" style="animation-delay: 0s;"></div>
+    <div class="floating-shape w-96 h-96 bg-blue-400 bottom-20 right-10 animate-float" style="animation-delay: 2s;"></div>
+    <div class="floating-shape w-64 h-64 bg-pink-400 top-1/2 left-1/3 animate-float" style="animation-delay: 4s;"></div>
+    
+    <!-- Login Container -->
+    <div class="w-full max-w-md animate-slide-up relative z-10">
+        <!-- Logo Section -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 mx-auto rounded-2xl bg-white/20 backdrop-blur-lg flex items-center justify-center mb-4 shadow-2xl">
+                <i class="fas fa-mosque text-4xl text-white"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-white mb-1">Portal Santri</h1>
+            <p class="text-white/80 text-sm">Yayasan Hidayatullah Amin</p>
         </div>
-    </div>
-
-    <!-- Animated Background Blobs -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-        <div class="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob" style="animation-delay: 2s;"></div>
-        <div class="absolute -bottom-32 left-1/3 w-96 h-96 bg-purple-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob" style="animation-delay: 4s;"></div>
-    </div>
-
-    <!-- Main Container -->
-    <div class="relative w-full max-w-5xl animate-slide-up">
         
-        <!-- Back Button -->
-        <a href="index.html" class="absolute -top-16 left-0 flex items-center gap-2 text-white/80 hover:text-white transition">
-            <i class="fas fa-arrow-left"></i>
-            <span>Kembali ke Beranda</span>
-        </a>
-
-        <div class="grid lg:grid-cols-2 gap-0 rounded-3xl overflow-hidden shadow-2xl">
+        <!-- Login Card -->
+        <div class="glass dark:glass-dark rounded-3xl shadow-2xl p-8 border border-white/20">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Masuk ke Akun</h2>
             
-            <!-- Left Side - Branding -->
-            <div class="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-emerald-600 to-emerald-800 text-white relative overflow-hidden">
-                <div class="absolute inset-0 opacity-20">
-                    <div class="absolute top-0 left-0 w-full h-full" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 rounded-xl text-red-700 dark:text-red-300 text-sm flex items-center gap-2">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText">Email atau password salah</span>
+            </div>
+            
+            <form id="loginForm" class="space-y-5">
+                <!-- Email Input -->
+                <div class="input-group relative">
+                    <input type="email" id="email" required 
+                           class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-transparent dark:bg-gray-800/50 text-gray-800 dark:text-white focus:border-purple-500 focus:outline-none transition-colors peer"
+                           placeholder=" ">
+                    <label for="email" 
+                           class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 pointer-events-none origin-left">
+                        <i class="fas fa-envelope mr-2"></i>Email
+                    </label>
                 </div>
                 
-                <div class="relative z-10">
-                    <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mb-8">
-                        <i class="fas fa-mosque text-3xl"></i>
-                    </div>
-                    <h2 class="text-4xl font-bold mb-4">Selamat Datang</h2>
-                    <p class="text-emerald-100 text-lg leading-relaxed">
-                        Sistem manajemen pesantren modern untuk generasi emas. 
-                        Terhubung, terintegrasi, dan berkelas.
-                    </p>
+                <!-- Password Input -->
+                <div class="input-group relative">
+                    <input type="password" id="password" required 
+                           class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-transparent dark:bg-gray-800/50 text-gray-800 dark:text-white focus:border-purple-500 focus:outline-none transition-colors peer pr-12"
+                           placeholder=" ">
+                    <label for="password" 
+                           class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 pointer-events-none origin-left">
+                        <i class="fas fa-lock mr-2"></i>Password
+                    </label>
+                    <button type="button" onclick="togglePassword()" class="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <i class="fas fa-eye" id="toggleIcon"></i>
+                    </button>
                 </div>
                 
-                <div class="relative z-10 space-y-4">
-                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur">
-                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold">Keamanan Terjamin</p>
-                            <p class="text-sm text-emerald-200">Enkripsi data end-to-end</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur">
-                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <div>
-                            <p class="font-semibold">Real-time Update</p>
-                            <p class="text-sm text-emerald-200">Data selalu terkini</p>
-                        </div>
-                    </div>
+                <!-- Remember Me & Forgot Password -->
+                <div class="flex items-center justify-between text-sm">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="rememberMe" class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                        <span class="text-gray-600 dark:text-gray-400">Ingat saya</span>
+                    </label>
+                    <a href="#" onclick="showForgotPassword()" class="text-purple-600 hover:text-purple-700 font-medium">Lupa password?</a>
+                </div>
+                
+                <!-- Login Button -->
+                <button type="submit" id="loginBtn"
+                        class="w-full py-3.5 rounded-xl gradient-purple text-white font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+                    <span id="btnText">Masuk</span>
+                    <div id="btnLoading" class="loading-spinner hidden"></div>
+                </button>
+            </form>
+            
+            <!-- Divider -->
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white dark:bg-gray-800 text-gray-500">atau masuk sebagai</span>
                 </div>
             </div>
-
-            <!-- Right Side - Login Form -->
-            <div class="glass dark:glass-dark p-8 lg:p-12">
-                <div class="mb-8">
-                    <h1 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Masuk ke Akun</h1>
-                    <p class="text-gray-500 dark:text-gray-400">Pilih peran Anda untuk melanjutkan</p>
-                </div>
-
-                <!-- Role Selection -->
-                <div class="grid grid-cols-2 gap-3 mb-8">
-                    <button onclick="selectRole('admin')" id="role-admin" class="role-card p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-500 text-left transition-all">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center mb-3">
-                            <i class="fas fa-user-shield"></i>
-                        </div>
-                        <p class="font-semibold text-gray-800 dark:text-white text-sm">Administrator</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Kelola sistem</p>
-                    </button>
-                    
-                    <button onclick="selectRole('ustadz')" id="role-ustadz" class="role-card p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 text-left transition-all">
-                        <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center mb-3">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                        </div>
-                        <p class="font-semibold text-gray-800 dark:text-white text-sm">Ustadz</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Input nilai</p>
-                    </button>
-                    
-                    <button onclick="selectRole('wali')" id="role-wali" class="role-card p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-500 text-left transition-all">
-                        <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center mb-3">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <p class="font-semibold text-gray-800 dark:text-white text-sm">Wali Santri</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Monitoring anak</p>
-                    </button>
-                    
-                    <button onclick="selectRole('santri')" id="role-santri" class="role-card p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-500 text-left transition-all">
-                        <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center mb-3">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                        <p class="font-semibold text-gray-800 dark:text-white text-sm">Santri</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Lihat profil</p>
-                    </button>
-                </div>
-
-                <!-- Login Form -->
-                <form id="loginForm" onsubmit="handleLogin(event)">
-                    <div class="space-y-5">
-                        <!-- Email Input -->
-                        <div class="input-group relative">
-                            <input type="email" id="email" placeholder=" " required
-                                class="w-full px-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white focus:border-emerald-500 focus:outline-none transition-colors peer">
-                            <label for="email" class="absolute left-4 top-4 text-gray-500 dark:text-gray-400 pointer-events-none">
-                                <i class="fas fa-envelope mr-2"></i>Email Address
-                            </label>
-                        </div>
-                        
-                        <!-- Password Input -->
-                        <div class="input-group relative">
-                            <input type="password" id="password" autocomplete="current-password" placeholder=" " required
-                                class="w-full px-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white focus:border-emerald-500 focus:outline-none transition-colors peer">
-                            <label for="password" class="absolute left-4 top-4 text-gray-500 dark:text-gray-400 pointer-events-none">
-                                <i class="fas fa-lock mr-2"></i>Password
-                            </label>
-                            <button type="button" onclick="togglePassword()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                <i class="fas fa-eye" id="eyeIcon"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between mt-6 mb-8">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Ingat saya</span>
-                        </label>
-                        <a href="#" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium">Lupa password?</a>
-                    </div>
-
-                    <button type="submit" id="submitBtn" class="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                        <span id="btnText">Masuk Sekarang</span>
-                        <div id="btnLoader" class="loader hidden"></div>
-                    </button>
-                </form>
-
-                <div class="mt-8 text-center">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Belum punya akun? 
-                        <a href="#" onclick="showRegisterModal()" class="text-emerald-600 font-semibold hover:underline">Hubungi Admin</a>
-                    </p>
-                </div>
-
-                <!-- Debug Info (sembunyikan di production) -->
-                <div id="debugInfo" class="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hidden">
-                    <p class="text-xs text-red-600 dark:text-red-400 font-mono" id="debugText"></p>
-                </div>
-
-                <!-- Demo Credentials -->
-                <div class="mt-8 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Demo Credentials</p>
-                    <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400 font-mono">
-                        <p><span class="text-emerald-600 font-bold">Admin:</span> admin@hidayatulamin.pi / 513513</p>
-                        <p><span class="text-blue-600 font-bold">Ustadz:</span> ustadz@ponpes.id / ustadz123</p>
-                        <p><span class="text-amber-600 font-bold">Wali:</span> wali@ponpes.id / wali123</p>
-                        <p><span class="text-purple-600 font-bold">Santri:</span> santri@ponpes.id / santri123</p>
-                    </div>
-                </div>
+            
+            <!-- Quick Login Buttons -->
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="quickLogin('santri')" class="py-2.5 rounded-xl border-2 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-medium hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors text-sm">
+                    <i class="fas fa-user-graduate mr-2"></i>Santri
+                </button>
+                <button onclick="quickLogin('wali')" class="py-2.5 rounded-xl border-2 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-medium hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-sm">
+                    <i class="fas fa-users mr-2"></i>Wali
+                </button>
             </div>
         </div>
+        
+        <!-- Footer -->
+        <p class="text-center text-white/70 text-xs mt-6">
+            © 2025 Yayasan Hidayatullah Amin<br>
+            Sistem Informasi Pondok Pesantren
+        </p>
     </div>
-
+    
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 flex items-center gap-3 border-l-4 border-red-500 min-w-[300px]">
-            <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center">
-                <i class="fas fa-exclamation-circle"></i>
-            </div>
-            <div>
-                <p class="font-semibold text-gray-800 dark:text-white" id="toastTitle">Error</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400" id="toastMessage">Something went wrong</p>
-            </div>
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 -translate-y-20 transition-all duration-300 z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-3 border-l-4 border-purple-500 min-w-max">
+            <i class="fas fa-info-circle text-purple-500 text-xl"></i>
+            <p class="text-sm text-gray-700 dark:text-gray-300 font-medium" id="toastMessage">Notifikasi</p>
         </div>
     </div>
 
     <script type="module">
-        // Lazy load Firebase untuk mempercepat initial page load
-        let app, auth, db;
-        let firebaseInitialized = false;
-        let selectedRole = null;
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Initialize Firebase dengan timeout protection
-        async function initializeFirebase() {
-            if (firebaseInitialized) return;
-            
-            try {
-                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
-                const { getAuth, signInWithEmailAndPassword, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-                const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-
-                const firebaseConfig = {
-                    apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-                    authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-                    projectId: "hidayatulamin-e6f22",
-                    storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-                    messagingSenderId: "80743607267",
-                    appId: "1:80743607267:web:f5f94165de021759958ed6"
-                };
-
-                // Timeout wrapper untuk initialization
-                const initPromise = new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => {
-                        reject(new Error('Firebase initialization timeout'));
-                    }, 10000);
-
-                    try {
-                        app = initializeApp(firebaseConfig);
-                        auth = getAuth(app);
-                        db = getFirestore(app);
-                        firebaseInitialized = true;
-                        clearTimeout(timeout);
-                        resolve();
-                    } catch (err) {
-                        clearTimeout(timeout);
-                        reject(err);
-                    }
-                });
-
-                await initPromise;
-                
-                // Check auth state dengan localStorage optimization
-                checkAuthState();
-                
-                // Hide loading overlay
-                document.getElementById('firebaseLoading').classList.add('hidden');
-                
-            } catch (error) {
-                console.error('Firebase init error:', error);
-                showToast('Error Sistem', 'Gagal memuat sistem. Silakan refresh halaman.');
-                document.getElementById('firebaseLoading').classList.add('hidden');
-            }
-        }
-
-        // Fungsi untuk membuat user document jika tidak ada [^14^]
-        async function createUserDocumentIfNotExists(user, role) {
-            try {
-                const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-                const db = getFirestore(app);
-                
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                
-                if (!userSnap.exists()) {
-                    // Buat dokumen user baru
-                    const userData = {
-                        uid: user.uid,
-                        email: user.email,
-                        role: role,
-                        displayName: user.displayName || '',
-                        photoURL: user.photoURL || '',
-                        createdAt: serverTimestamp(),
-                        lastLoginAt: serverTimestamp(),
-                        isActive: true
-                    };
-                    
-                    await setDoc(userRef, userData);
-                    console.log('User document created:', userData);
-                    return userData;
-                } else {
-                    // Update last login
-                    await setDoc(userRef, { lastLoginAt: serverTimestamp() }, { merge: true });
-                    return userSnap.data();
-                }
-            } catch (error) {
-                console.error('Error creating user document:', error);
-                throw error;
-            }
-        }
-
-        // Optimized auth check dengan localStorage caching
-        async function checkAuthState() {
-            const cachedRole = localStorage.getItem('userRole');
-            const cachedData = localStorage.getItem('userData');
-            
-            if (cachedRole && cachedData) {
-                const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-                const auth = getAuth(app);
-                
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-                        const db = getFirestore(app);
-                        const uDoc = await getDoc(doc(db, "users", user.uid));
-                        if (uDoc.exists()) {
-                            const userData = uDoc.data();
-                            localStorage.setItem('userRole', userData.role);
-                            localStorage.setItem('userData', JSON.stringify(userData));
-                            redirectBasedOnRole(userData.role);
-                        }
-                    }
-                });
-            } else {
-                document.getElementById('firebaseLoading').classList.add('hidden');
-            }
-        }
-
-        // Initialize saat DOM ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeFirebase);
-        } else {
-            initializeFirebase();
-        }
-
-        window.selectRole = (role) => {
-            selectedRole = role;
-            document.querySelectorAll('.role-card').forEach(card => card.classList.remove('selected'));
-            document.getElementById(`role-${role}`).classList.add('selected');
-            
-            // Auto-fill demo credentials
-            const credentials = {
-                admin: { email: 'admin@hidayatulamin.pi', pass: '513513' },
-                ustadz: { email: 'ustadz@ponpes.id', pass: 'ustadz123' },
-                wali: { email: 'wali@ponpes.id', pass: 'wali123' },
-                santri: { email: 'santri@ponpes.id', pass: 'santri123' }
-            };
-            
-            if (credentials[role]) {
-                document.getElementById('email').value = credentials[role].email;
-                document.getElementById('password').value = credentials[role].pass;
-            }
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
         };
 
-        window.handleLogin = async (e) => {
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Check if already logged in
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                redirectBasedOnRole(user.uid);
+            }
+        });
+
+        async function redirectBasedOnRole(uid) {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            if (userDoc.exists()) {
+                const role = userDoc.data().role;
+                if (role === 'santri') window.location.href = 'dashboard-santri.html';
+                else if (role === 'wali') window.location.href = 'dashboard-wali.html';
+                else if (role === 'pengajar') window.location.href = 'dashboard-pengajar.html';
+                else if (role === 'admin') window.location.href = 'dashboard-admin.html';
+            }
+        }
+
+        // Login Form Handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            if (!selectedRole) {
-                showToast('Pilih Peran', 'Silakan pilih peran terlebih dahulu');
-                return;
-            }
-
-            if (!firebaseInitialized) {
-                showToast('Mohon Tunggu', 'Sistem masih memuat, silakan coba lagi');
-                return;
-            }
-
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const btn = document.getElementById('submitBtn');
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const loginBtn = document.getElementById('loginBtn');
             const btnText = document.getElementById('btnText');
-            const btnLoader = document.getElementById('btnLoader');
-
-            // Loading state
-            btn.disabled = true;
-            btnText.textContent = 'Memuat...';
-            btnLoader.classList.remove('hidden');
-
+            const btnLoading = document.getElementById('btnLoading');
+            const errorDiv = document.getElementById('errorMessage');
+            
+            // Show loading
+            loginBtn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoading.classList.remove('hidden');
+            errorDiv.classList.add('hidden');
+            
             try {
-                // Timeout wrapper untuk login
-                const loginPromise = new Promise(async (resolve, reject) => {
-                    const timeout = setTimeout(() => {
-                        reject(new Error('Login timeout - periksa koneksi internet'));
-                    }, 15000);
-
-                    try {
-                        const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-                        
-                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                        const user = userCredential.user;
-                        
-                        clearTimeout(timeout);
-                        resolve(user);
-                    } catch (err) {
-                        clearTimeout(timeout);
-                        reject(err);
-                    }
-                });
-
-                const user = await loginPromise;
+                // Set persistence
+                const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+                await setPersistence(auth, persistence);
                 
-                // Coba ambil atau buat user document
-                let userData;
-                try {
-                    userData = await createUserDocumentIfNotExists(user, selectedRole);
-                } catch (docError) {
-                    console.error('Document error:', docError);
-                    // Jika gagal akses Firestore, gunakan data dari Auth saja
-                    userData = {
-                        uid: user.uid,
-                        email: user.email,
-                        role: selectedRole
-                    };
-                    showToast('Peringatan', 'Data user tidak lengkap di database, menggunakan data default');
-                }
-                
-                // Verify role
-                if (userData.role && userData.role !== selectedRole) {
-                    throw new Error(`Anda terdaftar sebagai ${userData.role}, bukan ${selectedRole}`);
-                }
-                
-                // Jika role belum di-set di database, update dengan selectedRole
-                if (!userData.role) {
-                    userData.role = selectedRole;
-                    try {
-                        const { getFirestore, doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-                        const db = getFirestore(app);
-                        await setDoc(doc(db, "users", user.uid), { role: selectedRole }, { merge: true });
-                    } catch (e) {
-                        console.log('Could not update role:', e);
-                    }
-                }
-                
-                // Success animation
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    colors: ['#059669', '#10b981', '#34d399']
-                });
-                
-                // Save session
-                localStorage.setItem('userRole', userData.role);
-                localStorage.setItem('userData', JSON.stringify(userData));
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                showToast('Login berhasil! Mengalihkan...', 'success');
                 
                 setTimeout(() => {
-                    redirectBasedOnRole(userData.role);
+                    redirectBasedOnRole(userCredential.user.uid);
                 }, 1000);
                 
             } catch (error) {
-                btn.disabled = false;
-                btnText.textContent = 'Masuk Sekarang';
-                btnLoader.classList.add('hidden');
+                console.error('Login error:', error);
+                let errorMsg = 'Terjadi kesalahan. Silakan coba lagi.';
                 
-                // Shake animation
-                btn.classList.add('animate-shake');
-                setTimeout(() => btn.classList.remove('animate-shake'), 500);
-                
-                // Show debug info untuk development
-                if (error.message && error.message.includes('user document')) {
-                    showDebugInfo(error.message);
+                switch(error.code) {
+                    case 'auth/user-not-found':
+                        errorMsg = 'Email tidak terdaftar'; break;
+                    case 'auth/wrong-password':
+                        errorMsg = 'Password salah'; break;
+                    case 'auth/invalid-email':
+                        errorMsg = 'Format email tidak valid'; break;
+                    case 'auth/too-many-requests':
+                        errorMsg = 'Terlalu banyak percobaan. Coba lagi nanti.'; break;
                 }
                 
-                showToast('Login Gagal', getErrorMessage(error.code || error.message));
+                document.getElementById('errorText').textContent = errorMsg;
+                errorDiv.classList.remove('hidden');
+                loginBtn.classList.add('shake-animation');
+                setTimeout(() => loginBtn.classList.remove('shake-animation'), 500);
+            } finally {
+                loginBtn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoading.classList.add('hidden');
             }
-        };
+        });
 
-        function redirectBasedOnRole(role) {
-            const routes = {
-                admin: 'dashboard-admin.html',
-                ustadz: 'dashboard-ustadz.html',
-                wali: 'dashboard-wali.html',
-                santri: 'dashboard-santri.html'
-            };
-            window.location.href = routes[role] || 'login.html';
-        }
-
-        function getErrorMessage(code) {
-            const messages = {
-                'auth/user-not-found': 'Email tidak terdaftar',
-                'auth/wrong-password': 'Password salah',
-                'auth/invalid-email': 'Format email tidak valid',
-                'auth/invalid-credential': 'Email atau password salah',
-                'auth/too-many-requests': 'Terlalu banyak percobaan, coba lagi nanti',
-                'auth/network-request-failed': 'Koneksi internet bermasalah',
-                'auth/internal-error': 'Terjadi kesalahan internal, coba lagi'
-            };
-            return messages[code] || code || 'Terjadi kesalahan, coba lagi';
-        }
-
+        // Toggle Password Visibility
         window.togglePassword = () => {
-            const input = document.getElementById('password');
-            const icon = document.getElementById('eyeIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
             } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
             }
         };
 
-        window.showRegisterModal = () => {
-            showToast('Info', 'Silakan hubungi administrator untuk membuat akun baru');
+        // Quick Login Demo
+        window.quickLogin = (type) => {
+            const demoAccounts = {
+                'santri': { email: 'santri@demo.com', password: 'santri123' },
+                'wali': { email: 'wali@demo.com', password: 'wali123' }
+            };
+            
+            if (demoAccounts[type]) {
+                document.getElementById('email').value = demoAccounts[type].email;
+                document.getElementById('password').value = demoAccounts[type].password;
+                showToast(`Demo akun ${type} diisi otomatis`, 'info');
+            }
         };
 
-        function showToast(title, message) {
+        // Show Toast
+        window.showToast = (message, type = 'info') => {
             const toast = document.getElementById('toast');
-            document.getElementById('toastTitle').textContent = title;
-            document.getElementById('toastMessage').textContent = message;
+            const toastMessage = document.getElementById('toastMessage');
+            const icon = toast.querySelector('i');
             
-            if (title === 'Info') {
-                toast.querySelector('div').classList.replace('border-red-500', 'border-blue-500');
-                toast.querySelector('.rounded-full').className = 'w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center';
+            toastMessage.textContent = message;
+            
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle text-green-500 text-xl';
+                toast.querySelector('div').classList.replace('border-purple-500', 'border-green-500');
             } else {
-                toast.querySelector('div').classList.replace('border-blue-500', 'border-red-500');
-                toast.querySelector('.rounded-full').className = 'w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center';
+                icon.className = 'fas fa-info-circle text-purple-500 text-xl';
+                toast.querySelector('div').classList.replace('border-green-500', 'border-purple-500');
             }
             
-            toast.classList.remove('translate-x-full');
-            setTimeout(() => toast.classList.add('translate-x-full'), 4000);
-        }
+            toast.classList.remove('-translate-y-20');
+            toast.classList.add('translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0');
+                toast.classList.add('-translate-y-20');
+            }, 3000);
+        };
 
-        function showDebugInfo(message) {
-            const debugDiv = document.getElementById('debugInfo');
-            const debugText = document.getElementById('debugText');
-            debugText.textContent = `Debug: ${message}`;
-            debugDiv.classList.remove('hidden');
-        }
+        window.showForgotPassword = () => {
+            showToast('Hubungi admin untuk reset password', 'info');
+        };
 
-        // Check URL params for pre-selected role
-        const urlParams = new URLSearchParams(window.location.search);
-        const preRole = urlParams.get('role');
-        if (preRole) selectRole(preRole);
+        // Dark mode check
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
     </script>
 </body>
 </html>
