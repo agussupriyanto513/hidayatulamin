@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Hidayatullah Amin</title>
+    
+    <!-- Preconnect untuk mempercepat loading Firebase -->
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com">
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -94,10 +100,34 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Loading overlay */
+        .firebase-loading {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s;
+        }
+        .firebase-loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="font-sans antialiased min-h-screen flex items-center justify-center p-4 gradient-mesh">
     
+    <!-- Firebase Loading Overlay -->
+    <div id="firebaseLoading" class="firebase-loading">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-white text-sm">Memuat sistem...</p>
+        </div>
+    </div>
+
     <!-- Animated Background Blobs -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
         <div class="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
@@ -119,7 +149,7 @@
             <!-- Left Side - Branding -->
             <div class="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-emerald-600 to-emerald-800 text-white relative overflow-hidden">
                 <div class="absolute inset-0 opacity-20">
-                    <div class="absolute top-0 left-0 w-full h-full" style="background-image: url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%23ffffff\\' fill-opacity=\\'0.1\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+                    <div class="absolute top-0 left-0 w-full h-full" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
                 </div>
                 
                 <div class="relative z-10">
@@ -200,6 +230,7 @@
                 <!-- Login Form -->
                 <form id="loginForm" onsubmit="handleLogin(event)">
                     <div class="space-y-5">
+                        <!-- Email Input - FIXED -->
                         <div class="input-group relative">
                             <input type="email" id="email" placeholder=" " required
                                 class="w-full px-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white focus:border-emerald-500 focus:outline-none transition-colors peer">
@@ -208,8 +239,9 @@
                             </label>
                         </div>
                         
+                        <!-- Password Input - FIXED (removed broken ... > syntax) -->
                         <div class="input-group relative">
-                            <input type="password" id="password" autocomplete="current-password" placeholder=" " required ... >
+                            <input type="password" id="password" autocomplete="current-password" placeholder=" " required
                                 class="w-full px-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white focus:border-emerald-500 focus:outline-none transition-colors peer">
                             <label for="password" class="absolute left-4 top-4 text-gray-500 dark:text-gray-400 pointer-events-none">
                                 <i class="fas fa-lock mr-2"></i>Password
@@ -269,41 +301,108 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-            projectId: "hidayatulamin-e6f22",
-            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-            messagingSenderId: "80743607267",
-            appId: "1:80743607267:web:f5f94165de021759958ed6"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
+        // Lazy load Firebase untuk mempercepat initial page load
+        let app, auth, db;
+        let firebaseInitialized = false;
         let selectedRole = null;
 
-        // Check if already logged in
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const uDoc = await getDoc(doc(db, "users", user.uid));
-                if (uDoc.exists()) {
-                    redirectBasedOnRole(uDoc.data().role);
-                }
+        // Initialize Firebase dengan timeout protection
+        async function initializeFirebase() {
+            if (firebaseInitialized) return;
+            
+            try {
+                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+                const { getAuth, signInWithEmailAndPassword, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+                const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+                const firebaseConfig = {
+                    apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+                    authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+                    projectId: "hidayatulamin-e6f22",
+                    storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+                    messagingSenderId: "80743607267",
+                    appId: "1:80743607267:web:f5f94165de021759958ed6"
+                };
+
+                // Timeout wrapper untuk initialization
+                const initPromise = new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Firebase initialization timeout'));
+                    }, 10000); // 10 second timeout
+
+                    try {
+                        app = initializeApp(firebaseConfig);
+                        auth = getAuth(app);
+                        db = getFirestore(app);
+                        firebaseInitialized = true;
+                        clearTimeout(timeout);
+                        resolve();
+                    } catch (err) {
+                        clearTimeout(timeout);
+                        reject(err);
+                    }
+                });
+
+                await initPromise;
+                
+                // Check auth state dengan localStorage optimization
+                checkAuthState();
+                
+                // Hide loading overlay
+                document.getElementById('firebaseLoading').classList.add('hidden');
+                
+            } catch (error) {
+                console.error('Firebase init error:', error);
+                showToast('Error Sistem', 'Gagal memuat sistem. Silakan refresh halaman.');
+                document.getElementById('firebaseLoading').classList.add('hidden');
             }
-        });
+        }
+
+        // Optimized auth check dengan localStorage caching
+        async function checkAuthState() {
+            const cachedRole = localStorage.getItem('userRole');
+            const cachedData = localStorage.getItem('userData');
+            
+            // Jika ada cache, cek Firebase di background tanpa blocking UI
+            if (cachedRole && cachedData) {
+                // Redirect immediately based on cache untuk UX yang lebih baik
+                // Firebase akan diverifikasi di halaman tujuan
+                const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+                const auth = getAuth(app);
+                
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        // Verify role masih valid
+                        const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+                        const db = getFirestore(app);
+                        const uDoc = await getDoc(doc(db, "users", user.uid));
+                        if (uDoc.exists()) {
+                            const userData = uDoc.data();
+                            localStorage.setItem('userRole', userData.role);
+                            localStorage.setItem('userData', JSON.stringify(userData));
+                            redirectBasedOnRole(userData.role);
+                        }
+                    }
+                });
+            } else {
+                // No cache, hide loading
+                document.getElementById('firebaseLoading').classList.add('hidden');
+            }
+        }
+
+        // Initialize saat DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeFirebase);
+        } else {
+            initializeFirebase();
+        }
 
         window.selectRole = (role) => {
             selectedRole = role;
             document.querySelectorAll('.role-card').forEach(card => card.classList.remove('selected'));
             document.getElementById(`role-${role}`).classList.add('selected');
             
-            // Auto-fill demo credentials based on role
+            // Auto-fill demo credentials
             const credentials = {
                 admin: { email: 'admin@hidayatulamin.pi', pass: '513513' },
                 ustadz: { email: 'ustadz@ponpes.id', pass: 'ustadz123' },
@@ -321,7 +420,12 @@
             e.preventDefault();
             
             if (!selectedRole) {
-                showToast('Pilih peran terlebih dahulu', 'error');
+                showToast('Pilih Peran', 'Silakan pilih peran terlebih dahulu');
+                return;
+            }
+
+            if (!firebaseInitialized) {
+                showToast('Mohon Tunggu', 'Sistem masih memuat, silakan coba lagi');
                 return;
             }
 
@@ -337,34 +441,56 @@
             btnLoader.classList.remove('hidden');
 
             try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                const uDoc = await getDoc(doc(db, "users", user.uid));
-                if (uDoc.exists()) {
-                    const userData = uDoc.data();
-                    
-                    // Verify role matches
-                    if (userData.role !== selectedRole) {
-                        throw new Error(`Anda terdaftar sebagai ${userData.role}, bukan ${selectedRole}`);
+                // Timeout wrapper untuk login
+                const loginPromise = new Promise(async (resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Login timeout - periksa koneksi internet'));
+                    }, 15000); // 15 second timeout
+
+                    try {
+                        const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+                        const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+                        
+                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                        const user = userCredential.user;
+                        
+                        const uDoc = await getDoc(doc(db, "users", user.uid));
+                        clearTimeout(timeout);
+                        
+                        if (uDoc.exists()) {
+                            resolve({ user, userData: uDoc.data() });
+                        } else {
+                            reject(new Error('Data user tidak ditemukan'));
+                        }
+                    } catch (err) {
+                        clearTimeout(timeout);
+                        reject(err);
                     }
-                    
-                    // Success animation
-                    confetti({
-                        particleCount: 100,
-                        spread: 70,
-                        origin: { y: 0.6 },
-                        colors: ['#059669', '#10b981', '#34d399']
-                    });
-                    
-                    // Save session
-                    localStorage.setItem('userRole', userData.role);
-                    localStorage.setItem('userData', JSON.stringify(userData));
-                    
-                    setTimeout(() => {
-                        redirectBasedOnRole(userData.role);
-                    }, 1000);
+                });
+
+                const { userData } = await loginPromise;
+                
+                // Verify role
+                if (userData.role !== selectedRole) {
+                    throw new Error(`Anda terdaftar sebagai ${userData.role}, bukan ${selectedRole}`);
                 }
+                
+                // Success animation
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#059669', '#10b981', '#34d399']
+                });
+                
+                // Save session
+                localStorage.setItem('userRole', userData.role);
+                localStorage.setItem('userData', JSON.stringify(userData));
+                
+                setTimeout(() => {
+                    redirectBasedOnRole(userData.role);
+                }, 1000);
+                
             } catch (error) {
                 btn.disabled = false;
                 btnText.textContent = 'Masuk Sekarang';
@@ -393,9 +519,12 @@
                 'auth/user-not-found': 'Email tidak terdaftar',
                 'auth/wrong-password': 'Password salah',
                 'auth/invalid-email': 'Format email tidak valid',
-                'auth/too-many-requests': 'Terlalu banyak percobaan, coba lagi nanti'
+                'auth/invalid-credential': 'Email atau password salah',
+                'auth/too-many-requests': 'Terlalu banyak percobaan, coba lagi nanti',
+                'auth/network-request-failed': 'Koneksi internet bermasalah',
+                'auth/internal-error': 'Terjadi kesalahan internal, coba lagi'
             };
-            return messages[code] || 'Terjadi kesalahan, coba lagi';
+            return messages[code] || code || 'Terjadi kesalahan, coba lagi';
         }
 
         window.togglePassword = () => {
@@ -410,10 +539,24 @@
             }
         };
 
+        window.showRegisterModal = () => {
+            showToast('Info', 'Silakan hubungi administrator untuk membuat akun baru');
+        };
+
         function showToast(title, message) {
             const toast = document.getElementById('toast');
             document.getElementById('toastTitle').textContent = title;
             document.getElementById('toastMessage').textContent = message;
+            
+            // Update border color based on type
+            if (title === 'Info') {
+                toast.querySelector('div').classList.replace('border-red-500', 'border-blue-500');
+                toast.querySelector('.rounded-full').className = 'w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center';
+            } else {
+                toast.querySelector('div').classList.replace('border-blue-500', 'border-red-500');
+                toast.querySelector('.rounded-full').className = 'w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center';
+            }
+            
             toast.classList.remove('translate-x-full');
             setTimeout(() => toast.classList.add('translate-x-full'), 4000);
         }
