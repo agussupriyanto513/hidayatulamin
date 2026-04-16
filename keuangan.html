@@ -133,25 +133,32 @@
                 </div>
 
                 <!-- Charts -->
-                <div class="grid lg:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="font-bold text-gray-900 dark:text-white">Grafik Keuangan</h3>
-                            <select class="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1 bg-transparent">
-                                <option>6 Bulan Terakhir</option>
-                                <option>Tahun Ini</option>
-                            </select>
-                        </div>
-                        <canvas id="financeChart" height="250"></canvas>
-                    </div>
+                <!-- Charts - FIXED -->
+<div class="grid lg:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-gray-900 dark:text-white">Grafik Keuangan</h3>
+            <select class="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1 bg-transparent">
+                <option>6 Bulan Terakhir</option>
+                <option>Tahun Ini</option>
+            </select>
+        </div>
+        <!-- FIXED: Container dengan height fixed 300px -->
+        <div class="relative h-[300px] w-full">
+            <canvas id="financeChart"></canvas>
+        </div>
+    </div>
 
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="font-bold text-gray-900 dark:text-white">Distribusi Pengeluaran</h3>
-                        </div>
-                        <canvas id="expenseChart" height="250"></canvas>
-                    </div>
-                </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-gray-900 dark:text-white">Distribusi Pengeluaran</h3>
+        </div>
+        <!-- FIXED: Container dengan height fixed 300px -->
+        <div class="relative h-[300px] w-full">
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </div>
+</div>
 
                 <!-- SPP Status -->
                 <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
@@ -287,55 +294,74 @@
         });
 
         function initCharts() {
-            // Finance Chart
-            const ctx1 = document.getElementById('financeChart').getContext('2d');
-            new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: ['Okt', 'Nov', 'Des', 'Jan', 'Feb', 'Mar'],
-                    datasets: [{
-                        label: 'Pemasukan',
-                        data: [18.5, 20.2, 19.8, 22.1, 21.5, 23.2],
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }, {
-                        label: 'Pengeluaran',
-                        data: [12.3, 14.1, 13.5, 15.2, 14.8, 16.1],
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
+    // Finance Chart - FIXED
+    const ctx1 = document.getElementById('financeChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: ['Okt', 'Nov', 'Des', 'Jan', 'Feb', 'Mar'],
+            datasets: [{
+                label: 'Pemasukan',
+                data: [18.5, 20.2, 19.8, 22.1, 21.5, 23.2],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: true,
+                tension: 0.4
+            }, {
+                label: 'Pengeluaran',
+                data: [12.3, 14.1, 13.5, 15.2, 14.8, 16.1],
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // PENTING
+            plugins: { 
+                legend: { position: 'bottom' } 
+            },
+            scales: { 
+                y: { 
+                    beginAtZero: true 
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } },
-                    scales: { y: { beginAtZero: true } }
+                x: {
+                    grid: {
+                        display: false
+                    }
                 }
-            });
-
-            // Expense Chart
-            const ctx2 = document.getElementById('expenseChart').getContext('2d');
-            new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Operasional', 'Gaji', 'Sarana', 'Kegiatan', 'Lainnya'],
-                    datasets: [{
-                        data: [35, 30, 15, 12, 8],
-                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#6b7280'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
+            }
         }
+    });
+
+    // Expense Chart - FIXED
+    const ctx2 = document.getElementById('expenseChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Operasional', 'Gaji', 'Sarana', 'Kegiatan', 'Lainnya'],
+            datasets: [{
+                data: [35, 30, 15, 12, 8],
+                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#6b7280'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // PENTING
+            plugins: { 
+                legend: { 
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                } 
+            }
+        }
+    });
+}
 
         window.toggleDarkMode = () => {
             document.documentElement.classList.toggle('dark');

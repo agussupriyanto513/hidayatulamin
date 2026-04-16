@@ -197,31 +197,37 @@
                 </div>
             </div>
 
-            <!-- Charts Section -->
-            <div class="grid lg:grid-cols-2 gap-6 mb-8">
-                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Grafik Kehadiran</h3>
-                        <select class="text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg px-3 py-1 bg-transparent">
-                            <option>Minggu Ini</option>
-                            <option>Bulan Ini</option>
-                        </select>
-                    </div>
-                    <canvas id="attendanceChart" height="250"></canvas>
-                </div>
+            <!-- Charts Section - FIXED -->
+<div class="grid lg:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Grafik Kehadiran</h3>
+            <select class="text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg px-3 py-1 bg-transparent">
+                <option>Minggu Ini</option>
+                <option>Bulan Ini</option>
+            </select>
+        </div>
+        <!-- FIXED: Container dengan height fixed 300px -->
+        <div class="relative h-[300px] w-full">
+            <canvas id="attendanceChart"></canvas>
+        </div>
+    </div>
 
-                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Progres Hafalan per Kelas</h3>
-                        <select class="text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg px-3 py-1 bg-transparent">
-                            <option>Semua Kelas</option>
-                            <option>Kelas A</option>
-                            <option>Kelas B</option>
-                        </select>
-                    </div>
-                    <canvas id="hafalanChart" height="250"></canvas>
-                </div>
-            </div>
+    <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-secondary-900 dark:text-white">Progres Hafalan per Kelas</h3>
+            <select class="text-sm border border-secondary-200 dark:border-secondary-700 rounded-lg px-3 py-1 bg-transparent">
+                <option>Semua Kelas</option>
+                <option>Kelas A</option>
+                <option>Kelas B</option>
+            </select>
+        </div>
+        <!-- FIXED: Container dengan height fixed 300px -->
+        <div class="relative h-[300px] w-full">
+            <canvas id="hafalanChart"></canvas>
+        </div>
+    </div>
+</div>
 
             <!-- Recent Activity & Quick Actions -->
             <div class="grid lg:grid-cols-3 gap-6">
@@ -390,57 +396,80 @@
         }
 
         function initCharts() {
-            // Attendance Chart
-            const ctx1 = document.getElementById('attendanceChart').getContext('2d');
-            new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-                    datasets: [{
-                        label: 'Hadir',
-                        data: [95, 92, 98, 96, 94, 90, 88],
-                        borderColor: '#059669',
-                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }, {
-                        label: 'Absen',
-                        data: [5, 8, 2, 4, 6, 10, 12],
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
+    // Attendance Chart - FIXED OPTIONS
+    const ctx1 = document.getElementById('attendanceChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+            datasets: [{
+                label: 'Hadir',
+                data: [95, 92, 98, 96, 94, 90, 88],
+                borderColor: '#059669',
+                backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                fill: true,
+                tension: 0.4
+            }, {
+                label: 'Absen',
+                data: [5, 8, 2, 4, 6, 10, 12],
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // PENTING: false agar mengikuti container
+            plugins: { 
+                legend: { position: 'bottom' } 
+            },
+            scales: { 
+                y: { 
+                    beginAtZero: true, 
+                    max: 100 
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } },
-                    scales: { y: { beginAtZero: true, max: 100 } }
+                x: {
+                    grid: {
+                        display: false
+                    }
                 }
-            });
-
-            // Hafalan Chart
-            const ctx2 = document.getElementById('hafalanChart').getContext('2d');
-            new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: ['Kelas A', 'Kelas B', 'Kelas C', 'Kelas D'],
-                    datasets: [{
-                        label: 'Rata-rata Juz',
-                        data: [4.2, 3.8, 5.1, 4.5],
-                        backgroundColor: ['#059669', '#3b82f6', '#f59e0b', '#8b5cf6'],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
+            }
         }
+    });
+
+    // Hafalan Chart - FIXED OPTIONS
+    const ctx2 = document.getElementById('hafalanChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: ['Kelas A', 'Kelas B', 'Kelas C', 'Kelas D'],
+            datasets: [{
+                label: 'Rata-rata Juz',
+                data: [4.2, 3.8, 5.1, 4.5],
+                backgroundColor: ['#059669', '#3b82f6', '#f59e0b', '#8b5cf6'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // PENTING: false agar mengikuti container
+            plugins: { 
+                legend: { display: false } 
+            },
+            scales: { 
+                y: { 
+                    beginAtZero: true 
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
 
         window.toggleSidebar = () => {
             const sidebar = document.getElementById('sidebar');
