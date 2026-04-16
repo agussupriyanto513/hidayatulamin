@@ -295,9 +295,10 @@
     <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
     <script type="module">
+        // TAMBAHKAN getDoc di import - ini yang menyebabkan error!
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
@@ -312,22 +313,62 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Auth Check
+        // Auth Check dengan error handling yang lebih baik
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
             
-            // Verify admin role
-            const uDoc = await getDoc(doc(db, "users", user.uid));
-            if (!uDoc.exists() || uDoc.data().role !== 'admin') {
-                await signOut(auth);
-                window.location.href = 'login.html';
-                return;
+            try {
+                // Verify admin role dengan getDoc yang sudah di-import
+                const userRef = doc(db, "users", user.uid);
+                const uDoc = await getDoc(userRef);
+                
+                if (!uDoc.exists()) {
+                    console.error('User document not found for UID:', user.uid);
+                    showToast('Error', 'Data user tidak ditemukan. Membuat data default...');
+                    
+                    // Auto-create user document jika tidak ada (sama seperti di login)
+                    const { setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+                    await setDoc(userRef, {
+                        uid: user.uid,
+                        email: user.email,
+                        role: 'admin',
+                        displayName: user.displayName || 'Administrator',
+                        createdAt: serverTimestamp(),
+                        lastLoginAt: serverTimestamp(),
+                        isActive: true
+                    });
+                    
+                    showToast('Sukses', 'Data admin berhasil dibuat');
+                    loadDashboardData();
+                    return;
+                }
+                
+                const userData = uDoc.data();
+                
+                if (userData.role !== 'admin') {
+                    showToast('Akses Ditolak', `Anda terdaftar sebagai ${userData.role}, bukan admin`);
+                    await signOut(auth);
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                    return;
+                }
+                
+                // Update UI dengan data user
+                const userNameEl = document.querySelector('.sidebar-text .font-semibold');
+                const userEmailEl = document.querySelector('.sidebar-text .text-xs');
+                if (userNameEl) userNameEl.textContent = userData.displayName || 'Administrator';
+                if (userEmailEl) userEmailEl.textContent = user.email;
+                
+                loadDashboardData();
+                
+            } catch (error) {
+                console.error('Auth check error:', error);
+                showToast('Error', 'Gagal memverifikasi akses: ' + error.message);
             }
-            
-            loadDashboardData();
         });
 
         async function loadDashboardData() {
@@ -344,7 +385,7 @@
                 initCharts();
             } catch (error) {
                 console.error("Error loading data:", error);
-                showToast('Error', 'Gagal memuat data dashboard');
+                showToast('Error', 'Gagal memuat data dashboard: ' + error.message);
             }
         }
 
@@ -424,15 +465,29 @@
 
         window.handleLogout = async () => {
             if (confirm('Apakah Anda yakin ingin logout?')) {
-                await signOut(auth);
-                window.location.href = 'login.html';
+                try {
+                    await signOut(auth);
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('userData');
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    showToast('Error', 'Gagal logout: ' + error.message);
+                }
             }
+        };
+
+        window.showAddSantriModal = () => {
+            showToast('Info', 'Fitur tambah santri akan segera hadir');
+        };
+
+        window.toggleUserMenu = () => {
+            showToast('Info', 'Menu pengaturan user akan segera hadir');
         };
 
         function showToast(title, message) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            toast.className = 'bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-4 flex items-center gap-3 border-l-4 border-primary-500 animate-fade-in';
+            toast.className = 'bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-4 flex items-center gap-3 border-l-4 border-primary-500 animate-fade-in mb-2';
             toast.innerHTML = `
                 <i class="fas fa-info-circle text-primary-500"></i>
                 <div>
@@ -441,7 +496,11 @@
                 </div>
             `;
             container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
         // Set current date
