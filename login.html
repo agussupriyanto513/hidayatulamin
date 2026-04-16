@@ -318,53 +318,81 @@
 
        window.handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Ambil elemen UI
+    const btn = document.getElementById('loginBtn');
+    const btnLoader = btn.querySelector('.btn-loader');
+    const btnText = btn.querySelector('.btn-text') || btn; // Fallback ke btn jika .btn-text tidak ada
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // 1. Validasi Peran (Role)
     if (!selectedRole) {
-        showToast('Pilih peran terlebih dahulu', 'error');
+        showToast('Silakan pilih peran (Admin/Ustadz/Wali/Santri) terlebih dahulu', 'error');
         return;
     }
 
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const btn = e.target.querySelector('button');
-    const btnText = btn.querySelector('.btn-text');
-    const btnLoader = btn.querySelector('.btn-loader');
-
-    // Mulai Loading
-    btn.disabled = true;
-    btnText.textContent = 'Memuat...';
-    btnLoader.classList.remove('hidden');
-
     try {
+        // Aktifkan Loading
+        btn.disabled = true;
+        if (btnLoader) btnLoader.classList.remove('hidden');
+        if (btnText !== btn) btnText.textContent = 'Memuat...';
+
+        // 2. Proses Autentikasi Firebase
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Ambil data dari Firestore
+        // 3. Verifikasi Role di Firestore
         const uDoc = await getDoc(doc(db, "users", user.uid));
         
         if (uDoc.exists()) {
             const userData = uDoc.data();
+            
+            // Cek apakah role di DB sama dengan role yang dipilih di UI
             if (userData.role === selectedRole) {
-                showToast('Login Berhasil!', 'success');
-                // Arahkan ke dashboard sesuai role
+                showToast('Login berhasil! Mengalihkan...', 'success');
+                
+                // Simpan data ke session/local storage jika perlu
+                localStorage.setItem('userRole', userData.role);
+                
+                // Alihkan ke dashboard sesuai role
                 setTimeout(() => {
-                    window.location.href = `dashboard-${selectedRole}.html`;
+                    window.location.href = `dashboard-${userData.role}.html`;
                 }, 1500);
             } else {
-                throw new Error(`Anda terdaftar sebagai ${userData.role}, bukan ${selectedRole}`);
+                // Logout otomatis jika role tidak cocok
+                await signOut(auth);
+                throw new Error(`Akses ditolak. Anda terdaftar sebagai ${userData.role.toUpperCase()}.`);
             }
         } else {
-            // JIKA DATA TIDAK ADA DI FIRESTORE
-            throw new Error('Data profil user tidak ditemukan di database.');
+            await signOut(auth);
+            throw new Error('Data profil tidak ditemukan di database.');
         }
 
     } catch (error) {
-        console.error(error);
-        showToast('Gagal Masuk', error.message);
+        console.error('Login error:', error);
         
-        // KEMBALIKAN TOMBOL KE NORMAL JIKA GAGAL
+        // Terjemahkan error umum Firebase agar mudah dibaca user
+        let friendlyMessage = error.message;
+        if (error.code === 'auth/invalid-credential') {
+            friendlyMessage = 'Email atau Password salah.';
+        } else if (error.code === 'auth/user-not-found') {
+            friendlyMessage = 'Akun tidak ditemukan.';
+        } else if (error.code === 'auth/too-many-requests') {
+            friendlyMessage = 'Terlalu banyak percobaan. Coba lagi nanti.';
+        }
+        
+        showToast(friendlyMessage, 'error');
+
+    } finally {
+        // Matikan Loading (Apapun hasilnya, tombol kembali normal)
         btn.disabled = false;
-        btnText.textContent = 'Masuk Sekarang';
-        btnLoader.classList.add('hidden');
+        if (btnLoader) btnLoader.classList.add('hidden');
+        if (btnText !== btn) {
+            btnText.textContent = 'Masuk Sekarang';
+        } else {
+            btn.textContent = 'Masuk Sekarang';
+        }
     }
 };
 
