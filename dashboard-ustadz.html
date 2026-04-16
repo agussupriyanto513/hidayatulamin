@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Ustadz | Hidayatullah Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                        blue: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar { transition: all 0.3s; }
+        .nav-item { transition: all 0.2s; }
+        .nav-item:hover { background: rgba(59, 130, 246, 0.1); }
+        .nav-item.active { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); }
+        .glass-dark { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); }
+        .card-hover { transition: all 0.3s; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.2); }
+    </style>
+</head>
+<body class="font-sans antialiased bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+    
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col">
+            <div class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-700">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="ml-3">
+                    <h1 class="font-bold text-slate-900 dark:text-white">Portal Ustadz</h1>
+                </div>
+            </div>
+            
+            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                <a href="#" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium">
+                    <i class="fas fa-home w-5"></i>
+                    Dashboard
+                </a>
+                <a href="absensi.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <i class="fas fa-qrcode w-5"></i>
+                    Absensi QR
+                </a>
+                <a href="hafalan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <i class="fas fa-book-open w-5"></i>
+                    Input Hafalan
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <i class="fas fa-users w-5"></i>
+                    Data Santri
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <i class="fas fa-chart-line w-5"></i>
+                    Laporan
+                </a>
+            </nav>
+            
+            <div class="p-4 border-t border-slate-200 dark:border-slate-700">
+                <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                    <i class="fas fa-sign-out-alt w-5"></i>
+                    <span class="font-medium">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="sticky top-0 z-30 glass dark:glass-dark border-b border-slate-200 dark:border-slate-700 px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Ustadz</h2>
+                        <p class="text-sm text-slate-500">Kelas: <span class="font-semibold text-blue-600">6A & 6B</span></p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 flex items-center justify-center">
+                            <i class="fas fa-moon dark:hidden"></i>
+                            <i class="fas fa-sun hidden dark:block"></i>
+                        </button>
+                        <div class="flex items-center gap-3">
+                            <img src="https://ui-avatars.com/api/?name=Ustadz&background=3b82f6&color=fff" class="w-10 h-10 rounded-full">
+                            <div class="hidden md:block">
+                                <p class="text-sm font-semibold text-slate-900 dark:text-white">Ust. Abdullah</p>
+                                <p class="text-xs text-slate-500">Pengajar Tahfidz</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-8">
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <a href="absensi.html" class="card-hover bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
+                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-qrcode text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-1">Scan Absensi</h3>
+                        <p class="text-blue-100 text-sm">Absensi dengan QR Code</p>
+                    </a>
+                    <a href="hafalan.html" class="card-hover bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white">
+                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-book-open text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-1">Input Hafalan</h3>
+                        <p class="text-emerald-100 text-sm">Catat setoran santri</p>
+                    </a>
+                    <button onclick="showJadwalModal()" class="card-hover bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white text-left">
+                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-calendar-alt text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-1">Jadwal Mengajar</h3>
+                        <p class="text-purple-100 text-sm">Lihat jadwal hari ini</p>
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">42</h3>
+                        <p class="text-sm text-slate-500">Santri Bimbingan</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">38</h3>
+                        <p class="text-sm text-slate-500">Hadir Hari Ini</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center">
+                                <i class="fas fa-book-quran"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">12</h3>
+                        <p class="text-sm text-slate-500">Setoran Hari Ini</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">4.2</h3>
+                        <p class="text-sm text-slate-500">Rata-rata Juz</p>
+                    </div>
+                </div>
+
+                <!-- Content Grid -->
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- Santri List -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Santri Bimbingan</h3>
+                            <button class="text-sm text-blue-600 hover:text-blue-700 font-medium">Lihat Semua</button>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                                <img src="https://ui-avatars.com/api/?name=Ahmad&background=10b981&color=fff" class="w-10 h-10 rounded-full">
+                                <div class="flex-1">
+                                    <p class="font-semibold text-slate-900 dark:text-white text-sm">Ahmad Fauzi</p>
+                                    <p class="text-xs text-slate-500">Juz 5 • 85% Selesai</p>
+                                </div>
+                                <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 text-xs rounded-full font-medium">Aktif</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                                <img src="https://ui-avatars.com/api/?name=Muhammad&background=3b82f6&color=fff" class="w-10 h-10 rounded-full">
+                                <div class="flex-1">
+                                    <p class="font-semibold text-slate-900 dark:text-white text-sm">Muhammad Rizky</p>
+                                    <p class="text-xs text-slate-500">Juz 4 • 60% Selesai</p>
+                                </div>
+                                <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 text-xs rounded-full font-medium">Proses</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                                <img src="https://ui-avatars.com/api/?name=Abdul&background=f59e0b&color=fff" class="w-10 h-10 rounded-full">
+                                <div class="flex-1">
+                                    <p class="font-semibold text-slate-900 dark:text-white text-sm">Abdul Rahman</p>
+                                    <p class="text-xs text-slate-500">Juz 6 • 90% Selesai</p>
+                                </div>
+                                <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 text-xs rounded-full font-medium">Aktif</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Today's Schedule -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Jadwal Hari Ini</h3>
+                            <span class="text-sm text-slate-500">Rabu, 5 Maret 2026</span>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex gap-4">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                                    <div class="w-0.5 h-full bg-slate-200 dark:bg-slate-700"></div>
+                                </div>
+                                <div class="pb-4">
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">07:00 - 08:30</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Tahfidz Kelas 6A</p>
+                                    <p class="text-xs text-slate-500">Ruang Tahfidz 1</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                    <div class="w-0.5 h-full bg-slate-200 dark:bg-slate-700"></div>
+                                </div>
+                                <div class="pb-4">
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">09:00 - 10:30</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Tahfidz Kelas 6B</p>
+                                    <p class="text-xs text-slate-500">Ruang Tahfidz 2</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-3 h-3 rounded-full bg-purple-500"></div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">13:00 - 14:30</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Muroja'ah Kelas 6A</p>
+                                    <p class="text-xs text-slate-500">Ruang Tahfidz 1</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const uDoc = await getDoc(doc(db, "users", user.uid));
+            if (!uDoc.exists() || uDoc.data().role !== 'ustadz') {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            }
+        });
+
+        window.toggleDarkMode = () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        };
+
+        window.handleLogout = async () => {
+            if (confirm('Apakah Anda yakin ingin logout?')) {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            }
+        };
+
+        window.showJadwalModal = () => {
+            alert('Fitur jadwal lengkap akan segera hadir!');
+        };
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</body>
+</html>

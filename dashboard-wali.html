@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portal Wali | Hidayatullah Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                        amber: { 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309', 800: '#92400e', 900: '#78350f' }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s ease-in-out infinite',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'bounce-slow': 'bounce 2s infinite',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .glass-dark { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .gradient-amber { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:active { transform: scale(0.98); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .progress-ring { transform: rotate(-90deg); }
+        .wave { position: absolute; bottom: 0; left: 0; width: 100%; overflow: hidden; line-height: 0; }
+        .wave svg { position: relative; display: block; width: calc(100% + 1.3px); height: 60px; }
+        .notification-badge {
+            position: absolute; top: -2px; right: -2px;
+            width: 18px; height: 18px;
+            background: #ef4444; color: white;
+            border-radius: 50%; font-size: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; border: 2px solid white;
+        }
+        .tab-active { color: #059669; position: relative; }
+        .tab-active::after {
+            content: ''; position: absolute; bottom: -12px; left: 0; right: 0;
+            height: 3px; background: #059669; border-radius: 3px 3px 0 0;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 pb-24">
+    
+    <!-- Header -->
+    <header class="sticky top-0 z-40 glass dark:glass-dark border-b border-gray-200 dark:border-gray-800">
+        <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl gradient-amber flex items-center justify-center text-white shadow-lg">
+                    <i class="fas fa-users text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-gray-900 dark:text-white text-sm">Portal Wali</h1>
+                    <p class="text-xs text-gray-500">Hidayatullah Amin</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-yellow-400 flex items-center justify-center">
+                    <i class="fas fa-moon dark:hidden text-sm"></i>
+                    <i class="fas fa-sun hidden dark:block text-sm"></i>
+                </button>
+                <button class="relative w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center">
+                    <i class="fas fa-bell text-sm"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- News Ticker -->
+        <div class="bg-amber-500 text-white py-2 overflow-hidden">
+            <div class="flex whitespace-nowrap animate-[scroll_20s_linear_infinite]">
+                <span class="mx-4 text-xs font-medium"><i class="fas fa-bullhorn mr-2"></i>Pengumuman: Jadwal Ujian Semester akan dimulai tanggal 15 Maret 2026</span>
+                <span class="mx-4 text-xs font-medium"><i class="fas fa-info-circle mr-2"></i>SPP bulan Maret sudah bisa dibayarkan</span>
+                <span class="mx-4 text-xs font-medium"><i class="fas fa-calendar mr-2"></i>Kegiatan Outbound kelas 6 akan dilaksanakan minggu depan</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-lg mx-auto px-4 pt-4 space-y-4">
+        
+        <!-- Profile Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-lg border border-gray-100 dark:border-gray-700 animate-slide-up">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <img src="https://ui-avatars.com/api/?name=Ahmad&background=059669&color=fff&size=128" 
+                         class="w-16 h-16 rounded-2xl shadow-lg">
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                        <i class="fas fa-check text-white text-xs"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h2 class="font-bold text-lg text-gray-900 dark:text-white">Ahmad Fauzi</h2>
+                    <p class="text-sm text-gray-500">Kelas 6A • NIS: 2024001</p>
+                    <div class="flex items-center gap-2 mt-2">
+                        <span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full font-medium">
+                            Aktif
+                        </span>
+                        <span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs rounded-full font-medium">
+                            Tahfidz
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <div class="text-center">
+                    <p class="text-lg font-bold text-amber-600">5.2</p>
+                    <p class="text-xs text-gray-500">Juz Hafalan</p>
+                </div>
+                <div class="text-center border-x border-gray-100 dark:border-gray-700">
+                    <p class="text-lg font-bold text-green-600">98%</p>
+                    <p class="text-xs text-gray-500">Kehadiran</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-lg font-bold text-blue-600">A</p>
+                    <p class="text-xs text-gray-500">Ranking</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Hafalan -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-lg border border-gray-100 dark:border-gray-700 animate-slide-up" style="animation-delay: 0.1s">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-gray-900 dark:text-white">Progres Hafalan</h3>
+                <button class="text-xs text-amber-600 font-medium">Lihat Detail</button>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <div class="relative w-24 h-24">
+                    <svg class="w-24 h-24 transform -rotate-90">
+                        <circle cx="48" cy="48" r="40" stroke="#e5e7eb" stroke-width="8" fill="none"/>
+                        <circle cx="48" cy="48" r="40" stroke="#f59e0b" stroke-width="8" fill="none"
+                                stroke-dasharray="251.2" stroke-dashoffset="120" stroke-linecap="round"/>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center">
+                            <span class="text-xl font-bold text-gray-900 dark:text-white">52%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 space-y-2">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-500">Juz 5</span>
+                            <span class="text-amber-600 font-medium">Sedang Dihafal</span>
+                        </div>
+                        <div class="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-amber-500 rounded-full" style="width: 65%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-500">Target Tahun Ini</span>
+                            <span class="text-green-600 font-medium">10 Juz</span>
+                        </div>
+                        <div class="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-green-500 rounded-full" style="width: 52%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Grid -->
+        <div class="grid grid-cols-4 gap-3 animate-slide-up" style="animation-delay: 0.2s">
+            <button onclick="showFeature('absensi')" class="card-hover flex flex-col items-center gap-2 p-3 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
+                    <i class="fas fa-calendar-check text-lg"></i>
+                </div>
+                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Absensi</span>
+            </button>
+            <button onclick="showFeature('hafalan')" class="card-hover flex flex-col items-center gap-2 p-3 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center">
+                    <i class="fas fa-book-quran text-lg"></i>
+                </div>
+                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Hafalan</span>
+            </button>
+            <button onclick="showFeature('pembayaran')" class="card-hover flex flex-col items-center gap-2 p-3 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center">
+                    <i class="fas fa-credit-card text-lg"></i>
+                </div>
+                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Bayar SPP</span>
+            </button>
+            <button onclick="showFeature('rapor')" class="card-hover flex flex-col items-center gap-2 p-3 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
+                    <i class="fas fa-file-alt text-lg"></i>
+                </div>
+                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Rapor</span>
+            </button>
+        </div>
+
+        <!-- Payment Status -->
+        <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-5 shadow-lg text-white animate-slide-up" style="animation-delay: 0.3s">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-amber-100 text-sm">SPP Bulan Maret 2026</p>
+                    <h3 class="text-2xl font-bold">Rp 850.000</h3>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
+                    <i class="fas fa-wallet text-2xl"></i>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+                <span class="px-3 py-1 bg-red-500/80 rounded-full text-xs font-medium">
+                    <i class="fas fa-clock mr-1"></i>Belum Lunas
+                </span>
+                <span class="text-xs text-amber-100">Jatuh tempo: 10 Maret 2026</span>
+            </div>
+            <button onclick="showPaymentModal()" class="w-full py-3 bg-white text-amber-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                <i class="fas fa-money-bill-wave"></i>
+                Bayar Sekarang
+            </button>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-lg border border-gray-100 dark:border-gray-700 animate-slide-up" style="animation-delay: 0.4s">
+            <h3 class="font-bold text-gray-900 dark:text-white mb-4">Aktivitas Terbaru</h3>
+            <div class="space-y-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">Setoran Juz 5 Selesai</p>
+                        <p class="text-xs text-gray-500">Ustadz Abdullah • 2 jam lalu</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">Absensi Hadir</p>
+                        <p class="text-xs text-gray-500">Hari ini • 07:30 WIB</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">Juara 2 Lomba Tahfidz</p>
+                        <p class="text-xs text-gray-500">Tingkat Kelas • Kemarin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="grid grid-cols-2 gap-3 animate-slide-up" style="animation-delay: 0.5s">
+            <a href="sagatama-mart.html" class="card-hover flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
+                    <i class="fas fa-store"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900 dark:text-white text-sm">Sagatama Mart</p>
+                    <p class="text-xs text-gray-500">Belanja Online</p>
+                </div>
+            </a>
+            <a href="#" class="card-hover flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900 dark:text-white text-sm">Chat Ustadz</p>
+                    <p class="text-xs text-gray-500">Komunikasi</p>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 safe-area-pb">
+        <div class="max-w-lg mx-auto px-6 py-2 flex justify-around items-center">
+            <button onclick="switchTab('home')" id="tab-home" class="tab-active flex flex-col items-center gap-1 py-2 px-3 text-gray-400 hover:text-gray-600 transition">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-[10px] font-medium">Beranda</span>
+            </button>
+            <button onclick="switchTab('activity')" id="tab-activity" class="flex flex-col items-center gap-1 py-2 px-3 text-gray-400 hover:text-gray-600 transition">
+                <i class="fas fa-chart-line text-lg"></i>
+                <span class="text-[10px] font-medium">Aktivitas</span>
+            </button>
+            <button onclick="switchTab('payment')" id="tab-payment" class="flex flex-col items-center gap-1 py-2 px-3 text-gray-400 hover:text-gray-600 transition">
+                <i class="fas fa-wallet text-lg"></i>
+                <span class="text-[10px] font-medium">Pembayaran</span>
+            </button>
+            <button onclick="switchTab('profile')" id="tab-profile" class="flex flex-col items-center gap-1 py-2 px-3 text-gray-400 hover:text-gray-600 transition">
+                <i class="fas fa-user text-lg"></i>
+                <span class="text-[10px] font-medium">Profil</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closePaymentModal()"></div>
+        <div class="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-3xl p-6 animate-slide-up max-w-lg mx-auto">
+            <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Pembayaran SPP</h3>
+            
+            <div class="space-y-4 mb-6">
+                <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-700">
+                    <p class="text-sm text-gray-500 mb-1">Total Pembayaran</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white">Rp 850.000</p>
+                </div>
+                
+                <div class="space-y-3">
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Metode Pembayaran:</p>
+                    <button class="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-900/20">
+                        <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                            <i class="fas fa-qrcode text-amber-600 text-xl"></i>
+                        </div>
+                        <div class="flex-1 text-left">
+                            <p class="font-medium text-gray-900 dark:text-white">QRIS</p>
+                            <p class="text-xs text-gray-500">Scan untuk bayar</p>
+                        </div>
+                        <i class="fas fa-check-circle text-amber-500"></i>
+                    </button>
+                    <button class="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-university text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="flex-1 text-left">
+                            <p class="font-medium text-gray-900 dark:text-white">Transfer Bank</p>
+                            <p class="text-xs text-gray-500">BRI, BCA, Mandiri</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <button class="w-full py-4 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition">
+                Bayar Sekarang
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed top-20 left-4 right-4 transform -translate-y-full transition-transform duration-300 z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 flex items-center gap-3 border-l-4 border-amber-500">
+            <i class="fas fa-info-circle text-amber-500"></i>
+            <p class="text-sm text-gray-700 dark:text-gray-300" id="toastMessage">Fitur ini akan segera hadir</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Auth check
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const uDoc = await getDoc(doc(db, "users", user.uid));
+            if (!uDoc.exists() || uDoc.data().role !== 'wali') {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            }
+        });
+
+        window.toggleDarkMode = () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        };
+
+        window.showFeature = (feature) => {
+            showToast('Fitur ' + feature + ' sedang dikembangkan');
+        };
+
+        window.showPaymentModal = () => {
+            document.getElementById('paymentModal').classList.remove('hidden');
+        };
+
+        window.closePaymentModal = () => {
+            document.getElementById('paymentModal').classList.add('hidden');
+        };
+
+        window.switchTab = (tab) => {
+            document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.remove('tab-active'));
+            document.getElementById('tab-' + tab).classList.add('tab-active');
+        };
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('-translate-y-full');
+            setTimeout(() => toast.classList.add('-translate-y-full'), 3000);
+        }
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</body>
+</html>

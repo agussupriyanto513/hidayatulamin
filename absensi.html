@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Absensi QR | Hidayatullah Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'scan': 'scan 2s linear infinite',
+                    },
+                    keyframes: {
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); }
+        .glass-dark { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); }
+        .scanner-container { position: relative; overflow: hidden; }
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            box-shadow: 0 0 10px #10b981, 0 0 20px #10b981;
+            animation: scan 2s linear infinite;
+        }
+        .corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #10b981;
+        }
+        .corner-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+        .corner-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+        .corner-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+        #reader { border-radius: 24px; overflow: hidden; }
+        #reader video { border-radius: 24px; }
+    </style>
+</head>
+<body class="font-sans antialiased bg-gray-900 text-white min-h-screen">
+    
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-dark border-b border-gray-800">
+        <div class="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="dashboard-ustadz.html" class="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white transition">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="text-center">
+                <h1 class="font-bold text-lg">Absensi QR</h1>
+                <p class="text-xs text-gray-400">Scan kartu santri</p>
+            </div>
+            <button onclick="toggleFlash()" class="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:text-yellow-400 transition">
+                <i class="fas fa-bolt"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-8 px-4 max-w-lg mx-auto">
+        
+        <!-- Scanner -->
+        <div class="scanner-container rounded-3xl bg-gray-800 p-2 mb-6">
+            <div class="relative rounded-2xl overflow-hidden bg-black">
+                <div id="reader" class="w-full aspect-square"></div>
+                
+                <!-- Overlay -->
+                <div class="absolute inset-0 pointer-events-none">
+                    <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50"></div>
+                    <div class="scanner-line"></div>
+                    <div class="corner corner-tl"></div>
+                    <div class="corner corner-tr"></div>
+                    <div class="corner corner-bl"></div>
+                    <div class="corner corner-br"></div>
+                    
+                    <!-- Center Text -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="w-20 h-20 rounded-full border-2 border-dashed border-emerald-500/50 flex items-center justify-center mb-2 animate-pulse-slow">
+                                <i class="fas fa-qrcode text-3xl text-emerald-500/50"></i>
+                            </div>
+                            <p class="text-sm text-gray-400">Arahkan kamera ke QR Code</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div id="statusCard" class="hidden rounded-2xl p-4 mb-6 text-center">
+            <div id="statusIcon" class="w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center text-3xl"></div>
+            <h3 id="statusTitle" class="text-xl font-bold mb-1"></h3>
+            <p id="statusMessage" class="text-sm text-gray-400"></p>
+        </div>
+
+        <!-- Recent Scans -->
+        <div class="bg-gray-800 rounded-3xl p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold">Riwayat Scan</h3>
+                <button onclick="clearHistory()" class="text-xs text-red-400 hover:text-red-300">Hapus</button>
+            </div>
+            <div id="scanHistory" class="space-y-3 max-h-64 overflow-y-auto">
+                <p class="text-center text-gray-500 text-sm py-8">Belum ada scan</p>
+            </div>
+        </div>
+
+        <!-- Manual Input -->
+        <button onclick="toggleManualInput()" class="w-full mt-6 py-4 rounded-2xl bg-gray-800 text-gray-300 font-medium hover:bg-gray-700 transition flex items-center justify-center gap-2">
+            <i class="fas fa-keyboard"></i>
+            Input Manual NIS
+        </button>
+    </main>
+
+    <!-- Manual Input Modal -->
+    <div id="manualModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleManualInput()"></div>
+        <div class="absolute bottom-0 left-0 right-0 bg-gray-800 rounded-t-3xl p-6 animate-slide-up max-w-lg mx-auto">
+            <div class="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6"></div>
+            <h3 class="text-xl font-bold mb-4 text-center">Input Manual</h3>
+            <input type="text" id="manualNIS" placeholder="Masukkan NIS" 
+                   class="w-full px-4 py-4 rounded-xl bg-gray-700 border border-gray-600 text-white text-center text-lg tracking-widest mb-4 focus:border-emerald-500 focus:outline-none">
+            <button onclick="submitManual()" class="w-full py-4 bg-emerald-600 rounded-xl font-bold hover:bg-emerald-700 transition">
+                Konfirmasi Absensi
+            </button>
+        </div>
+    </div>
+
+    <!-- Success Sound -->
+    <audio id="successSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleR0NZKrk7rNsGgxJkNTsvXwkDk+L0O+0eyUOUIjN7LR+JQ1Ph8ztsn4lDU6HzOu0fSINTofM6bN+JQ1Oh8znsn4lDU2HzOazfiUNTYbM5bJ+JQ1MhszksX4lDUyGzOOxfiUNTIbM4bB+JQ1LhszgsH4lDUqGzN+wfiUNSYXM3a9+JQ1Ihczcrn4lDUeFzNqufiUNRoXMWq1+JQ1FhMxZrH4lDUSFzFmrfiUNQ4TMWKp+JQ1ChMtYqX4lDUKEzFeofiUNQYPLVqZ+JQ0+g8pVpX4lDTyDylWkfiUNO4PKVaJ+JQ07g8lVoX4lDTqDyVWefiUNOYPJVZx+JQ05g8hVm34lDTmDyFWZfiUNN4PIVZd+JQ03g8hVlX4lDTaDyFWUfiUNNYPHVZN+JQ0zg8dVkX4lDTOBx1WQfiUNMoHGVY9+JQ0xgcVVjn4lDTGBxVWNfiUNMH/FVYp+JQ0vf8RViX4lDS5/xFWIfiUNLX/DVX9+JQ0sf8JVfX4lDSx/wlV6fiUNK3+9VXh+JQ0qf7tVd34lDSh/uVV2fiUNKH+4VXV+JQ0nf7dVc34lDSZ/t1VufiUNJX+0VWx+JQ0kf7NVa34lDSN/sVVqfiUNIn+uVWl+JQ0hf6xVaH4lDR9/q1VdfiUNH3+lVVp+JQ0ff6NVWX4lDR5/o1VVfiUNHX+eVVF+JQ0bf5pVTH4lDRl/mlVIfiUNFv+VUQN+JQ0S/5JQ" type="audio/wav">
+    </audio>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let html5QrCode;
+        let isScanning = false;
+        let scanHistory = [];
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            initScanner();
+        });
+
+        function initScanner() {
+            html5QrCode = new Html5Qrcode("reader");
+            
+            const config = { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+            
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).then(() => {
+                isScanning = true;
+            }).catch(err => {
+                console.error("Scanner error:", err);
+                showStatus('error', 'Gagal mengakses kamera', 'Pastikan izin kamera diaktifkan');
+            });
+        }
+
+        async function onScanSuccess(decodedText, decodedResult) {
+            if (!isScanning) return;
+            
+            // Pause scanning
+            isScanning = false;
+            
+            try {
+                // Parse QR data
+                let qrData;
+                try {
+                    qrData = JSON.parse(decodedText);
+                } catch {
+                    qrData = { nis: decodedText, nama: 'Unknown' };
+                }
+                
+                // Record attendance
+                await recordAttendance(qrData);
+                
+                // Success feedback
+                showStatus('success', 'Absensi Berhasil!', `${qrData.nama || 'Santri'} telah tercatat hadir`);
+                playSuccessSound();
+                fireConfetti();
+                
+                // Add to history
+                addToHistory(qrData, 'success');
+                
+                // Resume scanning after delay
+                setTimeout(() => {
+                    isScanning = true;
+                    hideStatus();
+                }, 3000);
+                
+            } catch (error) {
+                console.error("Error:", error);
+                showStatus('error', 'Gagal Mencatat', 'Terjadi kesalahan sistem');
+                addToHistory({ nis: decodedText }, 'error');
+                isScanning = true;
+            }
+        }
+
+        function onScanFailure(error) {
+            // Silent fail - keep scanning
+        }
+
+        async function recordAttendance(data) {
+            const attendanceData = {
+                nis: data.nis,
+                nama: data.nama || 'Unknown',
+                timestamp: serverTimestamp(),
+                date: new Date().toISOString().split('T')[0],
+                status: 'hadir',
+                scannedBy: auth.currentUser.uid
+            };
+            
+            await addDoc(collection(db, "absensi"), attendanceData);
+        }
+
+        function showStatus(type, title, message) {
+            const card = document.getElementById('statusCard');
+            const icon = document.getElementById('statusIcon');
+            const titleEl = document.getElementById('statusTitle');
+            const msgEl = document.getElementById('statusMessage');
+            
+            card.classList.remove('hidden', 'bg-emerald-500/20', 'bg-red-500/20');
+            card.classList.add(type === 'success' ? 'bg-emerald-500/20' : 'bg-red-500/20');
+            
+            icon.className = `w-16 h-16 rounded-full mx-auto mb-3 flex items-center justify-center text-3xl ${type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`;
+            icon.innerHTML = type === 'success' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
+            
+            titleEl.textContent = title;
+            titleEl.className = `text-xl font-bold mb-1 ${type === 'success' ? 'text-emerald-400' : 'text-red-400'}`;
+            msgEl.textContent = message;
+        }
+
+        function hideStatus() {
+            document.getElementById('statusCard').classList.add('hidden');
+        }
+
+        function addToHistory(data, status) {
+            const history = document.getElementById('scanHistory');
+            const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            
+            if (scanHistory.length === 0) {
+                history.innerHTML = '';
+            }
+            
+            scanHistory.unshift({ ...data, status, time });
+            
+            const item = document.createElement('div');
+            item.className = 'flex items-center gap-3 p-3 rounded-xl bg-gray-700/50 animate-fade-in';
+            item.innerHTML = `
+                <div class="w-10 h-10 rounded-full ${status === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'} flex items-center justify-center">
+                    <i class="fas ${status === 'success' ? 'fa-check' : 'fa-times'}"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="font-medium text-sm">${data.nama || data.nis}</p>
+                    <p class="text-xs text-gray-500">${data.nis} • ${time}</p>
+                </div>
+            `;
+            
+            history.insertBefore(item, history.firstChild);
+        }
+
+        function playSuccessSound() {
+            const audio = document.getElementById('successSound');
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log('Audio play failed:', e));
+        }
+
+        function fireConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#10b981', '#34d399', '#059669']
+            });
+        }
+
+        window.toggleManualInput = () => {
+            const modal = document.getElementById('manualModal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                document.getElementById('manualNIS').focus();
+            }
+        };
+
+        window.submitManual = async () => {
+            const nis = document.getElementById('manualNIS').value.trim();
+            if (!nis) return;
+            
+            try {
+                // Check if santri exists
+                const santriDoc = await getDoc(doc(db, "santri", nis));
+                const nama = santriDoc.exists() ? santriDoc.data().nama : 'Unknown';
+                
+                await recordAttendance({ nis, nama });
+                showStatus('success', 'Absensi Berhasil!', `${nama} telah tercatat hadir`);
+                playSuccessSound();
+                fireConfetti();
+                addToHistory({ nis, nama }, 'success');
+                
+                toggleManualInput();
+                document.getElementById('manualNIS').value = '';
+                
+                setTimeout(hideStatus, 3000);
+            } catch (error) {
+                showStatus('error', 'Gagal', 'NIS tidak ditemukan');
+            }
+        };
+
+        window.clearHistory = () => {
+            scanHistory = [];
+            document.getElementById('scanHistory').innerHTML = '<p class="text-center text-gray-500 text-sm py-8">Belum ada scan</p>';
+        };
+
+        window.toggleFlash = () => {
+            // Flash toggle would require torch capability check
+            alert('Fitur flash akan segera hadir');
+        };
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (html5QrCode) {
+                html5QrCode.stop();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Sedang memproses akun Admin Pak Agus...</h2>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // GANTI ID DI BAWAH INI dengan UID Bapak (Lihat di Screenshot 18:09:27 bagian 'Akun Wali')
+        const userUID = "rVppVAbMfyUSH3o6AoSKBNnk5Ht2"; 
+
+        async function jadikanAdmin() {
+            try {
+                await setDoc(doc(db, "users", userUID), {
+                    role: "admin",
+                    email: "email-bapak@gmail.com" // Sesuaikan email Bapak
+                }, { merge: true });
+                alert("SUKSES! Akun Bapak sekarang adalah ADMIN MUTLAK. Silakan Login ulang.");
+                window.location.href = "login.html";
+            } catch (e) {
+                alert("Gagal: " + e.message + ". Pastikan Rules Firestore sudah PUBLISH!");
+            }
+        }
+        jadikanAdmin();
+    </script>
+</body>
+</html>
