@@ -230,7 +230,7 @@
                 <!-- Login Form -->
                 <form id="loginForm" onsubmit="handleLogin(event)">
                     <div class="space-y-5">
-                        <!-- Email Input - FIXED -->
+                        <!-- Email Input -->
                         <div class="input-group relative">
                             <input type="email" id="email" placeholder=" " required
                                 class="w-full px-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white focus:border-emerald-500 focus:outline-none transition-colors peer">
@@ -239,7 +239,7 @@
                             </label>
                         </div>
                         
-                        <!-- Password Input - FIXED (removed broken ... > syntax) -->
+                        <!-- Password Input -->
                         <div class="input-group relative">
                             <input type="password" id="password" autocomplete="current-password" placeholder=" " required
                                 class="w-full px-4 py-4 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white focus:border-emerald-500 focus:outline-none transition-colors peer">
@@ -271,6 +271,11 @@
                         Belum punya akun? 
                         <a href="#" onclick="showRegisterModal()" class="text-emerald-600 font-semibold hover:underline">Hubungi Admin</a>
                     </p>
+                </div>
+
+                <!-- Debug Info (sembunyikan di production) -->
+                <div id="debugInfo" class="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hidden">
+                    <p class="text-xs text-red-600 dark:text-red-400 font-mono" id="debugText"></p>
                 </div>
 
                 <!-- Demo Credentials -->
@@ -313,7 +318,7 @@
             try {
                 const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
                 const { getAuth, signInWithEmailAndPassword, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-                const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+                const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
 
                 const firebaseConfig = {
                     apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
@@ -328,7 +333,7 @@
                 const initPromise = new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => {
                         reject(new Error('Firebase initialization timeout'));
-                    }, 10000); // 10 second timeout
+                    }, 10000);
 
                     try {
                         app = initializeApp(firebaseConfig);
@@ -358,21 +363,53 @@
             }
         }
 
+        // Fungsi untuk membuat user document jika tidak ada [^14^]
+        async function createUserDocumentIfNotExists(user, role) {
+            try {
+                const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+                const db = getFirestore(app);
+                
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                
+                if (!userSnap.exists()) {
+                    // Buat dokumen user baru
+                    const userData = {
+                        uid: user.uid,
+                        email: user.email,
+                        role: role,
+                        displayName: user.displayName || '',
+                        photoURL: user.photoURL || '',
+                        createdAt: serverTimestamp(),
+                        lastLoginAt: serverTimestamp(),
+                        isActive: true
+                    };
+                    
+                    await setDoc(userRef, userData);
+                    console.log('User document created:', userData);
+                    return userData;
+                } else {
+                    // Update last login
+                    await setDoc(userRef, { lastLoginAt: serverTimestamp() }, { merge: true });
+                    return userSnap.data();
+                }
+            } catch (error) {
+                console.error('Error creating user document:', error);
+                throw error;
+            }
+        }
+
         // Optimized auth check dengan localStorage caching
         async function checkAuthState() {
             const cachedRole = localStorage.getItem('userRole');
             const cachedData = localStorage.getItem('userData');
             
-            // Jika ada cache, cek Firebase di background tanpa blocking UI
             if (cachedRole && cachedData) {
-                // Redirect immediately based on cache untuk UX yang lebih baik
-                // Firebase akan diverifikasi di halaman tujuan
                 const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
                 const auth = getAuth(app);
                 
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
-                        // Verify role masih valid
                         const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
                         const db = getFirestore(app);
                         const uDoc = await getDoc(doc(db, "users", user.uid));
@@ -385,7 +422,6 @@
                     }
                 });
             } else {
-                // No cache, hide loading
                 document.getElementById('firebaseLoading').classList.add('hidden');
             }
         }
@@ -445,34 +481,54 @@
                 const loginPromise = new Promise(async (resolve, reject) => {
                     const timeout = setTimeout(() => {
                         reject(new Error('Login timeout - periksa koneksi internet'));
-                    }, 15000); // 15 second timeout
+                    }, 15000);
 
                     try {
                         const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-                        const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
                         
                         const userCredential = await signInWithEmailAndPassword(auth, email, password);
                         const user = userCredential.user;
                         
-                        const uDoc = await getDoc(doc(db, "users", user.uid));
                         clearTimeout(timeout);
-                        
-                        if (uDoc.exists()) {
-                            resolve({ user, userData: uDoc.data() });
-                        } else {
-                            reject(new Error('Data user tidak ditemukan'));
-                        }
+                        resolve(user);
                     } catch (err) {
                         clearTimeout(timeout);
                         reject(err);
                     }
                 });
 
-                const { userData } = await loginPromise;
+                const user = await loginPromise;
+                
+                // Coba ambil atau buat user document
+                let userData;
+                try {
+                    userData = await createUserDocumentIfNotExists(user, selectedRole);
+                } catch (docError) {
+                    console.error('Document error:', docError);
+                    // Jika gagal akses Firestore, gunakan data dari Auth saja
+                    userData = {
+                        uid: user.uid,
+                        email: user.email,
+                        role: selectedRole
+                    };
+                    showToast('Peringatan', 'Data user tidak lengkap di database, menggunakan data default');
+                }
                 
                 // Verify role
-                if (userData.role !== selectedRole) {
+                if (userData.role && userData.role !== selectedRole) {
                     throw new Error(`Anda terdaftar sebagai ${userData.role}, bukan ${selectedRole}`);
+                }
+                
+                // Jika role belum di-set di database, update dengan selectedRole
+                if (!userData.role) {
+                    userData.role = selectedRole;
+                    try {
+                        const { getFirestore, doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+                        const db = getFirestore(app);
+                        await setDoc(doc(db, "users", user.uid), { role: selectedRole }, { merge: true });
+                    } catch (e) {
+                        console.log('Could not update role:', e);
+                    }
                 }
                 
                 // Success animation
@@ -499,6 +555,11 @@
                 // Shake animation
                 btn.classList.add('animate-shake');
                 setTimeout(() => btn.classList.remove('animate-shake'), 500);
+                
+                // Show debug info untuk development
+                if (error.message && error.message.includes('user document')) {
+                    showDebugInfo(error.message);
+                }
                 
                 showToast('Login Gagal', getErrorMessage(error.code || error.message));
             }
@@ -548,7 +609,6 @@
             document.getElementById('toastTitle').textContent = title;
             document.getElementById('toastMessage').textContent = message;
             
-            // Update border color based on type
             if (title === 'Info') {
                 toast.querySelector('div').classList.replace('border-red-500', 'border-blue-500');
                 toast.querySelector('.rounded-full').className = 'w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center';
@@ -559,6 +619,13 @@
             
             toast.classList.remove('translate-x-full');
             setTimeout(() => toast.classList.add('translate-x-full'), 4000);
+        }
+
+        function showDebugInfo(message) {
+            const debugDiv = document.getElementById('debugInfo');
+            const debugText = document.getElementById('debugText');
+            debugText.textContent = `Debug: ${message}`;
+            debugDiv.classList.remove('hidden');
         }
 
         // Check URL params for pre-selected role
