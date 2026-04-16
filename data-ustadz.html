@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Ustadz | Hidayatullah Amin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                        secondary: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-collapsed { width: 80px; }
+        .sidebar-expanded { width: 280px; }
+        .nav-item { transition: all 0.2s; }
+        .nav-item:hover { background: rgba(5, 150, 105, 0.1); }
+        .nav-item.active { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3); }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .modal { opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.9) translateY(20px); transition: all 0.3s; }
+        .modal.active .modal-content { transform: scale(1) translateY(0); }
+        .card-hover { transition: all 0.3s; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="font-sans antialiased bg-secondary-50 dark:bg-secondary-900 text-secondary-800 dark:text-secondary-200">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar sidebar-expanded fixed left-0 top-0 h-full bg-white dark:bg-secondary-800 border-r border-secondary-200 dark:border-secondary-700 z-40 flex flex-col">
+        <div class="h-20 flex items-center px-6 border-b border-secondary-200 dark:border-secondary-700">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white shadow-lg shadow-primary-500/30">
+                <i class="fas fa-mosque text-lg"></i>
+            </div>
+            <div class="ml-3 sidebar-text">
+                <h1 class="font-bold text-secondary-900 dark:text-white">Hidayatullah</h1>
+                <p class="text-xs text-primary-600">Admin Panel</p>
+            </div>
+            <button onclick="toggleSidebar()" class="ml-auto text-secondary-400 hover:text-secondary-600">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            <a href="dashboard-admin.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                <i class="fas fa-home w-5"></i>
+                <span class="sidebar-text">Dashboard</span>
+            </a>
+            <a href="absensi.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                <i class="fas fa-qrcode w-5"></i>
+                <span class="sidebar-text">Absensi QR</span>
+            </a>
+            <a href="hafalan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                <i class="fas fa-book-open w-5"></i>
+                <span class="sidebar-text">Input Hafalan</span>
+            </a>
+            <a href="keuangan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                <i class="fas fa-wallet w-5"></i>
+                <span class="sidebar-text">Keuangan</span>
+            </a>
+            <a href="sagatama-mart.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                <i class="fas fa-store w-5"></i>
+                <span class="sidebar-text">Sagatama Mart</span>
+            </a>
+
+            <div class="pt-4 mt-4 border-t border-secondary-200 dark:border-secondary-700">
+                <p class="sidebar-text px-4 text-xs font-semibold text-secondary-400 uppercase tracking-wider mb-2">Manajemen</p>
+                <a href="dashboard-admin.html" onclick="openUserModal()" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                    <i class="fas fa-user-plus w-5"></i>
+                    <span class="sidebar-text">Buat User Baru</span>
+                </a>
+                <a href="dashboard-admin.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                    <i class="fas fa-users-cog w-5"></i>
+                    <span class="sidebar-text">Kelola Users</span>
+                </a>
+                <a href="data-ustadz.html" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium">
+                    <i class="fas fa-chalkboard-teacher w-5"></i>
+                    <span class="sidebar-text">Data Ustadz</span>
+                </a>
+                <a href="data-wali.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                    <i class="fas fa-user-friends w-5"></i>
+                    <span class="sidebar-text">Data Wali</span>
+                </a>
+                <a href="data-santri.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
+                    <i class="fas fa-user-graduate w-5"></i>
+                    <span class="sidebar-text">Data Santri</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="p-4 border-t border-secondary-200 dark:border-secondary-700">
+            <div class="flex items-center gap-3">
+                <img id="userAvatar" src="https://ui-avatars.com/api/?name=Admin&background=059669&color=fff" class="w-10 h-10 rounded-full">
+                <div class="sidebar-text flex-1 min-w-0">
+                    <p id="userName" class="text-sm font-semibold text-secondary-900 dark:text-white truncate">Administrator</p>
+                    <p id="userEmail" class="text-xs text-secondary-500 truncate">admin@ponpes.id</p>
+                </div>
+                <button onclick="handleLogout()" class="text-secondary-400 hover:text-red-500 transition">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="mainContent" class="ml-[280px] transition-all duration-300 min-h-screen">
+        <!-- Header -->
+        <header class="sticky top-0 z-30 glass dark:bg-secondary-800/70 border-b border-secondary-200 dark:border-secondary-700 px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-secondary-900 dark:text-white">Data Ustadz</h2>
+                    <p class="text-sm text-secondary-500">Kelola data seluruh pengajar / ustadz</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-yellow-400 flex items-center justify-center hover:bg-secondary-200 transition">
+                        <i class="fas fa-moon dark:hidden"></i>
+                        <i class="fas fa-sun hidden dark:block"></i>
+                    </button>
+                    <button onclick="openAddModal()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm font-semibold shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Tambah Ustadz</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-8">
+            <!-- Stats Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 card-hover">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center text-xl">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-secondary-500">Total Ustadz</p>
+                            <p class="text-2xl font-bold text-secondary-900 dark:text-white" id="totalUstadz">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 card-hover">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center text-xl">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-secondary-500">Ustadz Aktif</p>
+                            <p class="text-2xl font-bold text-secondary-900 dark:text-white" id="ustadzAktif">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 card-hover">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 flex items-center justify-center text-xl">
+                            <i class="fas fa-user-slash"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-secondary-500">Ustadz Non-aktif</p>
+                            <p class="text-2xl font-bold text-secondary-900 dark:text-white" id="ustadzNonAktif">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter & Search -->
+            <div class="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 mb-6">
+                <div class="p-5 flex flex-col sm:flex-row gap-4">
+                    <div class="flex-1 relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"></i>
+                        <input type="text" id="searchInput" placeholder="Cari nama atau email ustadz..." oninput="filterData()"
+                            class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition text-sm">
+                    </div>
+                    <select id="filterStatus" onchange="filterData()"
+                        class="px-4 py-2.5 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition text-sm">
+                        <option value="">Semua Status</option>
+                        <option value="aktif">Aktif</option>
+                        <option value="nonaktif">Non-aktif</option>
+                    </select>
+                    <button onclick="exportData()" class="px-4 py-2.5 rounded-xl bg-secondary-100 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-300 text-sm font-medium hover:bg-secondary-200 transition flex items-center gap-2">
+                        <i class="fas fa-download"></i>
+                        <span>Export</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-secondary-50 dark:bg-secondary-700/50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Ustadz</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Email</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">No. HP</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Mata Pelajaran</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Status</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Bergabung</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-secondary-200 dark:divide-secondary-700" id="ustadzTable">
+                            <tr>
+                                <td colspan="7" class="px-6 py-12 text-center text-secondary-400">
+                                    <i class="fas fa-spinner fa-spin text-2xl mb-3 block"></i>
+                                    Memuat data ustadz...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-4 border-t border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
+                    <p class="text-sm text-secondary-500" id="paginationInfo">Menampilkan 0 data</p>
+                    <div class="flex gap-2" id="paginationButtons"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div id="addModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-lg shadow-2xl">
+            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-secondary-900 dark:text-white" id="modalTitle">Tambah Ustadz</h3>
+                <button onclick="closeAddModal()" class="w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center hover:bg-secondary-200 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[70vh] space-y-4">
+                <input type="hidden" id="editUid">
+                <div>
+                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
+                    <input type="text" id="inputNama" placeholder="Nama ustadz" required
+                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Email <span class="text-red-500">*</span></label>
+                    <input type="email" id="inputEmail" placeholder="ustadz@ponpes.id"
+                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">No. HP</label>
+                    <input type="tel" id="inputHP" placeholder="08123456789"
+                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Mata Pelajaran / Bidang</label>
+                    <input type="text" id="inputMapel" placeholder="Tahfidz, Fiqih, dll"
+                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Alamat</label>
+                    <textarea id="inputAlamat" rows="2" placeholder="Alamat lengkap"
+                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Status</label>
+                    <select id="inputStatus"
+                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                        <option value="true">Aktif</option>
+                        <option value="false">Non-aktif</option>
+                    </select>
+                </div>
+            </div>
+            <div class="p-6 border-t border-secondary-200 dark:border-secondary-700 flex gap-3">
+                <button onclick="closeAddModal()" class="flex-1 py-3 rounded-xl border border-secondary-200 dark:border-secondary-600 text-secondary-600 dark:text-secondary-400 font-medium hover:bg-secondary-50 transition">Batal</button>
+                <button onclick="saveUstadz()" id="saveBtn" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i>
+                    <span>Simpan</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-md shadow-2xl">
+            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-secondary-900 dark:text-white">Detail Ustadz</h3>
+                <button onclick="closeDetailModal()" class="w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center hover:bg-secondary-200 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6" id="detailContent"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, where, doc, updateDoc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+            projectId: "hidayatulamin-e6f22",
+            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+            messagingSenderId: "80743607267",
+            appId: "1:80743607267:web:f5f94165de021759958ed6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const perPage = 10;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            const userDoc = await getDoc(doc(db, "users", user.uid)).catch(() => null);
+            if (userDoc) {
+                document.getElementById('userName').textContent = userDoc.data()?.displayName || user.displayName || 'Admin';
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userDoc.data()?.displayName || 'A')}&background=059669&color=fff`;
+            }
+            await loadData();
+        });
+
+        async function loadData() {
+            try {
+                const q = query(collection(db, "users"), where("role", "==", "ustadz"));
+                const snap = await getDocs(q);
+                allData = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+                updateStats();
+                filterData();
+            } catch (e) {
+                showToast('Error', 'Gagal memuat data: ' + e.message, 'error');
+                document.getElementById('ustadzTable').innerHTML = `<tr><td colspan="7" class="px-6 py-12 text-center text-red-400"><i class="fas fa-exclamation-circle mr-2"></i>Gagal memuat data</td></tr>`;
+            }
+        }
+
+        function updateStats() {
+            const aktif = allData.filter(u => u.isActive !== false);
+            const nonAktif = allData.filter(u => u.isActive === false);
+            document.getElementById('totalUstadz').textContent = allData.length;
+            document.getElementById('ustadzAktif').textContent = aktif.length;
+            document.getElementById('ustadzNonAktif').textContent = nonAktif.length;
+        }
+
+        window.filterData = () => {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('filterStatus').value;
+            filteredData = allData.filter(u => {
+                const matchSearch = !search || (u.displayName || '').toLowerCase().includes(search) || (u.email || '').toLowerCase().includes(search);
+                const matchStatus = !status || (status === 'aktif' ? u.isActive !== false : u.isActive === false);
+                return matchSearch && matchStatus;
+            });
+            currentPage = 1;
+            renderTable();
+        };
+
+        function renderTable() {
+            const start = (currentPage - 1) * perPage;
+            const pageData = filteredData.slice(start, start + perPage);
+            const tbody = document.getElementById('ustadzTable');
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-12 text-center text-secondary-400"><i class="fas fa-search text-3xl mb-3 block opacity-30"></i>Tidak ada data ditemukan</td></tr>`;
+                document.getElementById('paginationInfo').textContent = 'Menampilkan 0 data';
+                document.getElementById('paginationButtons').innerHTML = '';
+                return;
+            }
+
+            tbody.innerHTML = pageData.map(u => {
+                const isAktif = u.isActive !== false;
+                const joinDate = u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+                return `
+                <tr class="hover:bg-secondary-50 dark:hover:bg-secondary-700/30 transition animate-fade-in">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName || 'U')}&background=3b82f6&color=fff" class="w-9 h-9 rounded-full">
+                            <div>
+                                <p class="font-semibold text-secondary-900 dark:text-white text-sm">${u.displayName || '-'}</p>
+                                <p class="text-xs text-secondary-400">${u.uid?.substring(0, 8)}...</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-secondary-600 dark:text-secondary-400">${u.email || '-'}</td>
+                    <td class="px-6 py-4 text-sm text-secondary-600 dark:text-secondary-400">${u.phone || u.hp || '-'}</td>
+                    <td class="px-6 py-4 text-sm text-secondary-600 dark:text-secondary-400">${u.mapel || u.bidang || '-'}</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${isAktif ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">
+                            <span class="w-1.5 h-1.5 rounded-full ${isAktif ? 'bg-green-500' : 'bg-red-500'}"></span>
+                            ${isAktif ? 'Aktif' : 'Non-aktif'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-secondary-500">${joinDate}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <button onclick="viewDetail('${u.uid}')" title="Detail" class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition">
+                                <i class="fas fa-eye text-xs"></i>
+                            </button>
+                            <button onclick="editUstadz('${u.uid}')" title="Edit" class="w-8 h-8 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 flex items-center justify-center hover:bg-yellow-100 transition">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>
+                            <button onclick="toggleStatus('${u.uid}', ${!isAktif})" title="${isAktif ? 'Non-aktifkan' : 'Aktifkan'}" class="w-8 h-8 rounded-lg ${isAktif ? 'bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-100' : 'bg-green-50 dark:bg-green-900/20 text-green-600 hover:bg-green-100'} flex items-center justify-center transition">
+                                <i class="fas ${isAktif ? 'fa-user-slash' : 'fa-user-check'} text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            // Pagination
+            const totalPages = Math.ceil(filteredData.length / perPage);
+            document.getElementById('paginationInfo').textContent = `Menampilkan ${start + 1}–${Math.min(start + perPage, filteredData.length)} dari ${filteredData.length} data`;
+            let btns = '';
+            for (let i = 1; i <= totalPages; i++) {
+                btns += `<button onclick="goPage(${i})" class="w-8 h-8 rounded-lg text-sm font-medium transition ${i === currentPage ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-300 hover:bg-secondary-200'}">${i}</button>`;
+            }
+            document.getElementById('paginationButtons').innerHTML = btns;
+        }
+
+        window.goPage = (p) => { currentPage = p; renderTable(); };
+
+        window.viewDetail = (uid) => {
+            const u = allData.find(x => x.uid === uid);
+            if (!u) return;
+            const isAktif = u.isActive !== false;
+            const joinDate = u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+            document.getElementById('detailContent').innerHTML = `
+                <div class="text-center mb-6">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName || 'U')}&background=3b82f6&color=fff&size=80" class="w-20 h-20 rounded-full mx-auto mb-3">
+                    <h4 class="text-lg font-bold text-secondary-900 dark:text-white">${u.displayName || '-'}</h4>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold mt-1 ${isAktif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                        <span class="w-1.5 h-1.5 rounded-full ${isAktif ? 'bg-green-500' : 'bg-red-500'}"></span>
+                        ${isAktif ? 'Aktif' : 'Non-aktif'}
+                    </span>
+                </div>
+                <div class="space-y-3">
+                    ${row('fa-envelope', 'Email', u.email)}
+                    ${row('fa-phone', 'No. HP', u.phone || u.hp)}
+                    ${row('fa-book', 'Mata Pelajaran', u.mapel || u.bidang)}
+                    ${row('fa-map-marker-alt', 'Alamat', u.alamat)}
+                    ${row('fa-calendar', 'Bergabung', joinDate)}
+                </div>
+            `;
+            document.getElementById('detailModal').classList.add('active');
+        };
+
+        function row(icon, label, val) {
+            return `<div class="flex items-start gap-3 p-3 rounded-xl bg-secondary-50 dark:bg-secondary-700/30">
+                <i class="fas ${icon} text-primary-600 mt-0.5 w-4"></i>
+                <div><p class="text-xs text-secondary-400">${label}</p><p class="text-sm font-medium text-secondary-800 dark:text-secondary-200">${val || '-'}</p></div>
+            </div>`;
+        }
+
+        window.editUstadz = (uid) => {
+            const u = allData.find(x => x.uid === uid);
+            if (!u) return;
+            document.getElementById('modalTitle').textContent = 'Edit Ustadz';
+            document.getElementById('editUid').value = uid;
+            document.getElementById('inputNama').value = u.displayName || '';
+            document.getElementById('inputEmail').value = u.email || '';
+            document.getElementById('inputHP').value = u.phone || u.hp || '';
+            document.getElementById('inputMapel').value = u.mapel || u.bidang || '';
+            document.getElementById('inputAlamat').value = u.alamat || '';
+            document.getElementById('inputStatus').value = u.isActive !== false ? 'true' : 'false';
+            document.getElementById('addModal').classList.add('active');
+        };
+
+        window.openAddModal = () => {
+            document.getElementById('modalTitle').textContent = 'Tambah Ustadz';
+            document.getElementById('editUid').value = '';
+            document.getElementById('inputNama').value = '';
+            document.getElementById('inputEmail').value = '';
+            document.getElementById('inputHP').value = '';
+            document.getElementById('inputMapel').value = '';
+            document.getElementById('inputAlamat').value = '';
+            document.getElementById('inputStatus').value = 'true';
+            document.getElementById('addModal').classList.add('active');
+        };
+
+        window.closeAddModal = () => document.getElementById('addModal').classList.remove('active');
+        window.closeDetailModal = () => document.getElementById('detailModal').classList.remove('active');
+
+        window.saveUstadz = async () => {
+            const uid = document.getElementById('editUid').value;
+            const nama = document.getElementById('inputNama').value.trim();
+            if (!nama) { showToast('Error', 'Nama tidak boleh kosong', 'error'); return; }
+
+            const data = {
+                displayName: nama,
+                email: document.getElementById('inputEmail').value.trim(),
+                phone: document.getElementById('inputHP').value.trim(),
+                mapel: document.getElementById('inputMapel').value.trim(),
+                alamat: document.getElementById('inputAlamat').value.trim(),
+                isActive: document.getElementById('inputStatus').value === 'true',
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                document.getElementById('saveBtn').disabled = true;
+                if (uid) {
+                    await updateDoc(doc(db, "users", uid), data);
+                    showToast('Sukses', 'Data ustadz berhasil diperbarui');
+                } else {
+                    data.role = 'ustadz';
+                    data.createdAt = serverTimestamp();
+                    await addDoc(collection(db, "users"), data);
+                    showToast('Sukses', 'Ustadz baru berhasil ditambahkan');
+                }
+                closeAddModal();
+                await loadData();
+            } catch (e) {
+                showToast('Error', 'Gagal menyimpan: ' + e.message, 'error');
+            } finally {
+                document.getElementById('saveBtn').disabled = false;
+            }
+        };
+
+        window.toggleStatus = async (uid, newStatus) => {
+            try {
+                await updateDoc(doc(db, "users", uid), { isActive: newStatus, updatedAt: serverTimestamp() });
+                showToast('Sukses', `Ustadz berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`);
+                await loadData();
+            } catch (e) {
+                showToast('Error', 'Gagal mengubah status: ' + e.message, 'error');
+            }
+        };
+
+        window.exportData = () => {
+            const headers = ['Nama', 'Email', 'No. HP', 'Mata Pelajaran', 'Alamat', 'Status'];
+            const rows = filteredData.map(u => [
+                u.displayName || '', u.email || '', u.phone || u.hp || '',
+                u.mapel || u.bidang || '', u.alamat || '', u.isActive !== false ? 'Aktif' : 'Non-aktif'
+            ]);
+            const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'data-ustadz.csv'; a.click();
+            showToast('Sukses', 'Data berhasil diexport');
+        };
+
+        window.toggleSidebar = () => {
+            const sidebar = document.getElementById('sidebar');
+            const main = document.getElementById('mainContent');
+            const texts = document.querySelectorAll('.sidebar-text');
+            if (sidebar.classList.contains('sidebar-expanded')) {
+                sidebar.classList.replace('sidebar-expanded', 'sidebar-collapsed');
+                main.style.marginLeft = '80px';
+                texts.forEach(t => t.style.display = 'none');
+            } else {
+                sidebar.classList.replace('sidebar-collapsed', 'sidebar-expanded');
+                main.style.marginLeft = '280px';
+                texts.forEach(t => t.style.display = 'block');
+            }
+        };
+
+        window.toggleDarkMode = () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        };
+
+        window.handleLogout = async () => {
+            if (confirm('Yakin ingin logout?')) {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            }
+        };
+
+        function showToast(title, message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-4 flex items-center gap-3 border-l-4 ${type === 'error' ? 'border-red-500' : 'border-primary-500'} animate-fade-in mb-2`;
+            toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle text-red-500' : 'fa-check-circle text-primary-500'}"></i><div><p class="font-semibold text-sm">${title}</p><p class="text-xs text-secondary-500">${message}</p></div>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+
+        // Import getDoc yang terlupa
+        import { getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    </script>
+</body>
+</html>
