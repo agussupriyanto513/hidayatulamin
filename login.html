@@ -319,80 +319,89 @@
        window.handleLogin = async (e) => {
     e.preventDefault();
     
-    // Ambil elemen UI
+    // 1. Ambil elemen tombol dengan aman
     const btn = document.getElementById('loginBtn');
-    const btnLoader = btn.querySelector('.btn-loader');
-    const btnText = btn.querySelector('.btn-text') || btn; // Fallback ke btn jika .btn-text tidak ada
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    
+    // Proteksi jika ID loginBtn tidak ditemukan di HTML
+    if (!btn) {
+        console.error("Error: Tombol dengan ID 'loginBtn' tidak ditemukan!");
+        alert("Terjadi kesalahan teknis pada tombol login.");
+        return;
+    }
 
-    // 1. Validasi Peran (Role)
+    const btnLoader = btn.querySelector('.btn-loader');
+    const btnText = btn.querySelector('.btn-text');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+
+    // 2. Validasi Input Dasar
+    if (!emailInput.value || !passwordInput.value) {
+        showToast('Email dan Password harus diisi', 'error');
+        return;
+    }
+
     if (!selectedRole) {
-        showToast('Silakan pilih peran (Admin/Ustadz/Wali/Santri) terlebih dahulu', 'error');
+        showToast('Pilih peran (Admin/Ustadz/Wali/Santri) terlebih dahulu', 'error');
         return;
     }
 
     try {
-        // Aktifkan Loading
+        // --- MULAI LOADING ---
         btn.disabled = true;
         if (btnLoader) btnLoader.classList.remove('hidden');
-        if (btnText !== btn) btnText.textContent = 'Memuat...';
+        if (btnText) btnText.textContent = 'Memuat...';
 
-        // 2. Proses Autentikasi Firebase
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // 3. Proses Login Firebase
+        const userCredential = await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
         const user = userCredential.user;
 
-        // 3. Verifikasi Role di Firestore
+        // 4. Cek Data di Firestore
         const uDoc = await getDoc(doc(db, "users", user.uid));
         
         if (uDoc.exists()) {
             const userData = uDoc.data();
             
-            // Cek apakah role di DB sama dengan role yang dipilih di UI
+            // Validasi apakah Role di database cocok dengan yang dipilih di layar
             if (userData.role === selectedRole) {
-                showToast('Login berhasil! Mengalihkan...', 'success');
+                showToast('Berhasil masuk! Mengalihkan...', 'success');
                 
-                // Simpan data ke session/local storage jika perlu
+                // Simpan info login jika perlu
                 localStorage.setItem('userRole', userData.role);
                 
-                // Alihkan ke dashboard sesuai role
+                // Redirect ke halaman masing-masing
                 setTimeout(() => {
                     window.location.href = `dashboard-${userData.role}.html`;
-                }, 1500);
+                }, 1000);
             } else {
-                // Logout otomatis jika role tidak cocok
+                // Jika role tidak cocok, keluarkan user (Sign Out)
                 await signOut(auth);
-                throw new Error(`Akses ditolak. Anda terdaftar sebagai ${userData.role.toUpperCase()}.`);
+                throw new Error(`Anda terdaftar sebagai ${userData.role}, bukan ${selectedRole}.`);
             }
         } else {
             await signOut(auth);
-            throw new Error('Data profil tidak ditemukan di database.');
+            throw new Error('Profil Anda belum terdaftar di database.');
         }
 
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login Error Detail:', error);
         
-        // Terjemahkan error umum Firebase agar mudah dibaca user
-        let friendlyMessage = error.message;
+        // Terjemahan pesan error agar user paham
+        let pesan = error.message;
         if (error.code === 'auth/invalid-credential') {
-            friendlyMessage = 'Email atau Password salah.';
-        } else if (error.code === 'auth/user-not-found') {
-            friendlyMessage = 'Akun tidak ditemukan.';
+            pesan = 'Email atau Password salah.';
+        } else if (error.code === 'auth/network-request-failed') {
+            pesan = 'Koneksi internet bermasalah.';
         } else if (error.code === 'auth/too-many-requests') {
-            friendlyMessage = 'Terlalu banyak percobaan. Coba lagi nanti.';
+            pesan = 'Terlalu banyak mencoba, silakan tunggu sebentar.';
         }
         
-        showToast(friendlyMessage, 'error');
+        showToast(pesan, 'error');
 
     } finally {
-        // Matikan Loading (Apapun hasilnya, tombol kembali normal)
+        // --- SELESAI LOADING (Apapun hasilnya, tombol kembali normal) ---
         btn.disabled = false;
         if (btnLoader) btnLoader.classList.add('hidden');
-        if (btnText !== btn) {
-            btnText.textContent = 'Masuk Sekarang';
-        } else {
-            btn.textContent = 'Masuk Sekarang';
-        }
+        if (btnText) btnText.textContent = 'Masuk Sekarang';
     }
 };
 
