@@ -4,584 +4,258 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Ustadz | Hidayatullah Amin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                        blue: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root { 
-            --primary: #3b82f6; 
-            --primary-light: #dbeafe;
-            --dark: #0f172a; 
-            --bg: #f8fafc; 
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-        }
-        
-        * { box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); 
-            margin: 0;
-            min-height: 100vh;
-        }
-        
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        
-        /* Loading */
-        .loading-overlay {
-            position: fixed; inset: 0;
-            background: rgba(255,255,255,0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 9999;
-        }
-        .loading-overlay.active { display: flex; }
-        .spinner {
-            width: 60px; height: 60px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #0f172a;
-            color: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            z-index: 9999;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .toast.show { display: flex; }
-        .toast.error { background: var(--danger); }
-        
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 24px;
-            margin-bottom: 30px;
-        }
-        .header h1 { margin: 0 0 10px 0; font-size: 1.6rem; }
-        .header p { margin: 0; opacity: 0.9; }
-        
-        /* User Bar */
-        .user-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 20px 25px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .user-avatar {
-            width: 50px; height: 50px;
-            background: var(--primary-light);
-            color: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            font-weight: 700;
-        }
-        .btn-logout {
-            background: #fee2e2;
-            color: var(--danger);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .btn-logout:hover { background: var(--danger); color: white; }
-        
-        /* Stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-        .stat-box {
-            background: white;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border-left: 5px solid var(--primary);
-        }
-        .stat-box.success { border-left-color: var(--success); }
-        .stat-box.warning { border-left-color: var(--warning); }
-        .stat-box h4 { margin: 0 0 10px 0; color: #64748b; font-size: 0.9rem; text-transform: uppercase; }
-        .stat-value { font-size: 2.2rem; font-weight: 700; color: var(--dark); }
-        
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-        .tab-btn {
-            padding: 14px 28px;
-            border: none;
-            background: #f1f5f9;
-            color: #64748b;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-        }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
-            border: 1px solid #e2e8f0;
-        }
-        .card-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .card-title i { color: var(--primary); }
-        
-        /* Santri Selector */
-        .santri-selector {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .santri-card {
-            padding: 20px;
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        .santri-card:hover, .santri-card.active {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-        .santri-card h4 { margin: 0 0 5px 0; color: var(--dark); font-size: 1rem; }
-        .santri-card p { margin: 0; font-size: 0.9rem; color: #64748b; }
-        
-        /* Forms */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        .form-group { margin-bottom: 20px; }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #475569;
-        }
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        .btn {
-            padding: 14px 28px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
-            color: white;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
-        }
-        .btn-success {
-            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-            color: white;
-        }
-        
-        /* Tables */
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th {
-            background: #f8fafc;
-            padding: 16px;
-            text-align: left;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #64748b;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        td { padding: 16px; border-bottom: 1px solid #f1f5f9; }
-        tr:hover { background: #f8fafc; }
-        
-        .badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        .badge-success { background: #dcfce7; color: #166534; }
-        .badge-warning { background: #fef3c7; color: #92400e; }
-        .badge-purple { background: #ede9fe; color: #7c3aed; }
-        
-        /* Pi Badge */
-        .pi-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            background: linear-gradient(135deg, #ede9fe 0%, #fef3c7 100%);
-            color: #7c3aed;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .form-grid { grid-template-columns: 1fr; }
-            .tabs { overflow-x: auto; flex-wrap: nowrap; }
-        }
-
-        /* Mobile Responsive Sidebar */
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 15px; left: 15px;
-            z-index: 200;
-            background: #10b981;
-            color: white;
-            border: none;
-            width: 45px; height: 45px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1.2rem;
-            align-items: center;
-            justify-content: center;
-        }
-        .overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 99;
-        }
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); z-index: 150; }
-            .sidebar.open { transform: translateX(0); }
-            .main-content { margin-left: 0 !important; }
-            .sidebar-toggle { display: flex; }
-            .overlay.active { display: block; }
-            .stats-grid { grid-template-columns: 1fr 1fr !important; }
-            .portal-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: 1fr !important; }
-            .main-content { padding: 15px !important; padding-top: 70px !important; }
-        }
+        .sidebar { transition: all 0.3s; }
+        .nav-item { transition: all 0.2s; }
+        .nav-item:hover { background: rgba(59, 130, 246, 0.1); }
+        .nav-item.active { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); }
+        .glass-dark { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); }
+        .card-hover { transition: all 0.3s; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.2); }
     </style>
 </head>
-<body>
-
-    <!-- Mobile Toggle -->
-    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
-    </button>
-    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
-
-    <!-- Loading -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <p style="margin-top: 20px; color: #64748b;">Memuat portal ustadz...</p>
-    </div>
-
-    <!-- Toast -->
-    <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMessage">Operasi berhasil!</span>
-    </div>
-
-    <div class="container">
-        
-        <!-- User Bar -->
-        <div class="user-bar">
-            <div class="user-info">
-                <div class="user-avatar" id="ustadzAvatar">U</div>
-                <div>
-                    <div style="font-weight: 700; color: var(--dark);" id="ustadzName">Ustadz</div>
-                    <div style="font-size: 0.9rem; color: #64748b;" id="ustadzEmail">email@pondok.com</div>
+<body class="font-sans antialiased bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+    
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col">
+            <div class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-700">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="ml-3">
+                    <h1 class="font-bold text-slate-900 dark:text-white">Portal Ustadz</h1>
                 </div>
             </div>
-            <button class="btn-logout" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> Keluar
-            </button>
-        </div>
-
-        <!-- Header -->
-        <div class="header">
-            <h1><i class="fas fa-book-open" style="margin-right: 15px;"></i>Selamat Datang, Ustadz</h1>
-            <p>Kelola hafalan, nilai, dan perkembangan santri</p>
-        </div>
-
-        <!-- Stats -->
-        <div class="stats-grid">
-            <div class="stat-box">
-                <h4>Santri Bimbingan</h4>
-                <div class="stat-value" id="statSantri">0</div>
+            
+            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                <a href="#" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium">
+                    <i class="fas fa-home w-5"></i>
+                    Dashboard
+                </a>
+                <a href="absensi.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <i class="fas fa-qrcode w-5"></i>
+                    Absensi QR
+                </a>
+                <a href="hafalan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <i class="fas fa-book-open w-5"></i>
+                    Input Hafalan
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <i class="fas fa-users w-5"></i>
+                    Data Santri
+                </a>
+                <a href="#" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <i class="fas fa-chart-line w-5"></i>
+                    Laporan
+                </a>
+            </nav>
+            
+            <div class="p-4 border-t border-slate-200 dark:border-slate-700">
+                <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                    <i class="fas fa-sign-out-alt w-5"></i>
+                    <span class="font-medium">Logout</span>
+                </button>
             </div>
-            <div class="stat-box success">
-                <h4>Hafalan Minggu Ini</h4>
-                <div class="stat-value" id="statHafalan">0</div>
-            </div>
-            <div class="stat-box warning">
-                <h4>Pi Pending</h4>
-                <div class="stat-value" id="statPending">0</div>
-            </div>
-            <div class="stat-box">
-                <h4>Total Input Nilai</h4>
-                <div class="stat-value" id="statNilai">0</div>
-            </div>
-        </div>
+        </aside>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('hafalan')">
-                <i class="fas fa-book-quran"></i> Input Hafalan
-            </button>
-            <button class="tab-btn" onclick="switchTab('nilai')">
-                <i class="fas fa-clipboard-list"></i> Input Nilai
-            </button>
-            <button class="tab-btn" onclick="switchTab('santri')">
-                <i class="fas fa-users"></i> Data Santri
-            </button>
-            <button class="tab-btn" onclick="switchTab('pi')">
-                <i class="fas fa-coins"></i> Verifikasi Pi
-            </button>
-        </div>
-
-        <!-- Tab: Input Hafalan -->
-        <div id="tab-hafalan" class="tab-content active">
-            <div class="card">
-                <div class="card-title"><i class="fas fa-plus-circle"></i> Input Setoran Hafalan</div>
-                
-                <div class="santri-selector" id="hafalanSantriList">
-                    <p style="grid-column: 1/-1; text-align: center; color: #64748b;">Memuat data santri...</p>
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="sticky top-0 z-30 glass dark:glass-dark border-b border-slate-200 dark:border-slate-700 px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Ustadz</h2>
+                        <p class="text-sm text-slate-500">Kelas: <span class="font-semibold text-blue-600">6A & 6B</span></p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 flex items-center justify-center">
+                            <i class="fas fa-moon dark:hidden"></i>
+                            <i class="fas fa-sun hidden dark:block"></i>
+                        </button>
+                        <div class="flex items-center gap-3">
+                            <img src="https://ui-avatars.com/api/?name=Ustadz&background=3b82f6&color=fff" class="w-10 h-10 rounded-full">
+                            <div class="hidden md:block">
+                                <p class="text-sm font-semibold text-slate-900 dark:text-white">Ust. Abdullah</p>
+                                <p class="text-xs text-slate-500">Pengajar Tahfidz</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
-                <form id="formHafalan" style="display: none;">
-                    <input type="hidden" id="hafalanSantriId">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Juz *</label>
-                            <input type="number" id="hafalanJuz" min="1" max="30" required>
+            </header>
+
+            <div class="p-8">
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <a href="absensi.html" class="card-hover bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
+                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-qrcode text-2xl"></i>
                         </div>
-                        <div class="form-group">
-                            <label>Surat *</label>
-                            <input type="text" id="hafalanSurat" placeholder="Contoh: Al-Baqarah" required>
+                        <h3 class="text-lg font-bold mb-1">Scan Absensi</h3>
+                        <p class="text-blue-100 text-sm">Absensi dengan QR Code</p>
+                    </a>
+                    <a href="hafalan.html" class="card-hover bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white">
+                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-book-open text-2xl"></i>
                         </div>
-                        <div class="form-group">
-                            <label>Ayat *</label>
-                            <input type="text" id="hafalanAyat" placeholder="Contoh: 1-10" required>
+                        <h3 class="text-lg font-bold mb-1">Input Hafalan</h3>
+                        <p class="text-emerald-100 text-sm">Catat setoran santri</p>
+                    </a>
+                    <button onclick="showJadwalModal()" class="card-hover bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white text-left">
+                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-calendar-alt text-2xl"></i>
                         </div>
-                        <div class="form-group">
-                            <label>Nilai/Makhraj *</label>
-                            <select id="hafalanStatus" required>
-                                <option value="Mumtaz">Mumtaz (Sempurna)</option>
-                                <option value="Jayyid Jiddan">Jayyid Jiddan (Sangat Baik)</option>
-                                <option value="Jayyid">Jayyid (Baik)</option>
-                                <option value="Maqbul">Maqbul (Cukup)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Catatan Perbaikan</label>
-                        <textarea id="hafalanCatatan" rows="3" placeholder="Catatan untuk santri..."></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save"></i> Simpan Hafalan
+                        <h3 class="text-lg font-bold mb-1">Jadwal Mengajar</h3>
+                        <p class="text-purple-100 text-sm">Lihat jadwal hari ini</p>
                     </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Tab: Input Nilai -->
-        <div id="tab-nilai" class="tab-content">
-            <div class="card">
-                <div class="card-title"><i class="fas fa-edit"></i> Input Nilai Rapor</div>
-                
-                <div class="santri-selector" id="nilaiSantriList">
-                    <p style="grid-column: 1/-1; text-align: center; color: #64748b;">Memuat data santri...</p>
                 </div>
-                
-                <form id="formNilai" style="display: none;">
-                    <input type="hidden" id="nilaiSantriId">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Mata Pelajaran *</label>
-                            <select id="nilaiMapel" required>
-                                <option value="Al-Quran">Al-Quran</option>
-                                <option value="Tajwid">Tajwid</option>
-                                <option value="Fiqih">Fiqih</option>
-                                <option value="Hadits">Hadits</option>
-                                <option value="Bahasa Arab">Bahasa Arab</option>
-                                <option value="Akhlaq">Akhlaq</option>
-                            </select>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
+                                <i class="fas fa-users"></i>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Semester *</label>
-                            <select id="nilaiSemester" required>
-                                <option value="Ganjil 2024/2025">Ganjil 2024/2025</option>
-                                <option value="Genap 2024/2025">Genap 2024/2025</option>
-                            </select>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">42</h3>
+                        <p class="text-sm text-slate-500">Santri Bimbingan</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Nilai Harian *</label>
-                            <input type="number" id="nilaiHarian" min="0" max="100" required>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">38</h3>
+                        <p class="text-sm text-slate-500">Hadir Hari Ini</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center">
+                                <i class="fas fa-book-quran"></i>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Nilai UTS *</label>
-                            <input type="number" id="nilaiUTS" min="0" max="100" required>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">12</h3>
+                        <p class="text-sm text-slate-500">Setoran Hari Ini</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Nilai UAS *</label>
-                            <input type="number" id="nilaiUAS" min="0" max="100" required>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">4.2</h3>
+                        <p class="text-sm text-slate-500">Rata-rata Juz</p>
+                    </div>
+                </div>
+
+                <!-- Content Grid -->
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- Santri List -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Santri Bimbingan</h3>
+                            <button class="text-sm text-blue-600 hover:text-blue-700 font-medium">Lihat Semua</button>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                                <img src="https://ui-avatars.com/api/?name=Ahmad&background=10b981&color=fff" class="w-10 h-10 rounded-full">
+                                <div class="flex-1">
+                                    <p class="font-semibold text-slate-900 dark:text-white text-sm">Ahmad Fauzi</p>
+                                    <p class="text-xs text-slate-500">Juz 5 • 85% Selesai</p>
+                                </div>
+                                <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 text-xs rounded-full font-medium">Aktif</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                                <img src="https://ui-avatars.com/api/?name=Muhammad&background=3b82f6&color=fff" class="w-10 h-10 rounded-full">
+                                <div class="flex-1">
+                                    <p class="font-semibold text-slate-900 dark:text-white text-sm">Muhammad Rizky</p>
+                                    <p class="text-xs text-slate-500">Juz 4 • 60% Selesai</p>
+                                </div>
+                                <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 text-xs rounded-full font-medium">Proses</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer">
+                                <img src="https://ui-avatars.com/api/?name=Abdul&background=f59e0b&color=fff" class="w-10 h-10 rounded-full">
+                                <div class="flex-1">
+                                    <p class="font-semibold text-slate-900 dark:text-white text-sm">Abdul Rahman</p>
+                                    <p class="text-xs text-slate-500">Juz 6 • 90% Selesai</p>
+                                </div>
+                                <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 text-xs rounded-full font-medium">Aktif</span>
+                            </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Simpan Nilai
-                    </button>
-                </form>
-            </div>
-        </div>
 
-        <!-- Tab: Data Santri -->
-        <div id="tab-santri" class="tab-content">
-            <div class="card">
-                <div class="card-title"><i class="fas fa-list"></i> Daftar Santri Bimbingan</div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nama</th>
-                                <th>Kelas</th>
-                                <th>Total Hafalan</th>
-                                <th>Status SPP</th>
-                                <th>Pi Payment</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbodySantri">
-                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Memuat data...</td></tr>
-                        </tbody>
-                    </table>
+                    <!-- Today's Schedule -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Jadwal Hari Ini</h3>
+                            <span class="text-sm text-slate-500">Rabu, 5 Maret 2026</span>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex gap-4">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                                    <div class="w-0.5 h-full bg-slate-200 dark:bg-slate-700"></div>
+                                </div>
+                                <div class="pb-4">
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">07:00 - 08:30</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Tahfidz Kelas 6A</p>
+                                    <p class="text-xs text-slate-500">Ruang Tahfidz 1</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                    <div class="w-0.5 h-full bg-slate-200 dark:bg-slate-700"></div>
+                                </div>
+                                <div class="pb-4">
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">09:00 - 10:30</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Tahfidz Kelas 6B</p>
+                                    <p class="text-xs text-slate-500">Ruang Tahfidz 2</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-3 h-3 rounded-full bg-purple-500"></div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">13:00 - 14:30</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Muroja'ah Kelas 6A</p>
+                                    <p class="text-xs text-slate-500">Ruang Tahfidz 1</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Tab: Verifikasi Pi -->
-        <div id="tab-pi" class="tab-content">
-            <div class="card">
-                <div class="card-title"><i class="fas fa-coins" style="color: #8b5cf6;"></i> Verifikasi Pembayaran Pi</div>
-                <p style="color: #64748b; margin-bottom: 20px;">
-                    Verifikasi pembayaran SPP dari wali santri yang menggunakan Pi Network.
-                </p>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Waktu</th>
-                                <th>Santri</th>
-                                <th>Wali</th>
-                                <th>Jumlah</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbodyPi">
-                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Memuat data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
+        </main>
     </div>
 
-    <script>
-        // ==========================================
-        // FIREBASE CONFIG
-        // ==========================================
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
             authDomain: "hidayatulamin-e6f22.firebaseapp.com",
@@ -591,408 +265,42 @@
             appId: "1:80743607267:web:f5f94165de021759958ed6"
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // ==========================================
-        // GLOBAL VARIABLES
-        // ==========================================
-        let currentUstadz = null;
-        let santriList = [];
-        let selectedSantriHafalan = null;
-        let selectedSantriNilai = null;
-
-        // ==========================================
-        // AUTHENTICATION
-        // ==========================================
-
-        document.addEventListener('DOMContentLoaded', () => {
-            showLoading(true);
-            
-            auth.onAuthStateChanged(async (user) => {
-                if (user) {
-                    // Verify ustadz role
-                    const ustadzDoc = await db.collection('ustadz').doc(user.uid).get();
-                    
-                    if (!ustadzDoc.exists) {
-                        showToast('Anda tidak memiliki akses sebagai ustadz!', 'error');
-                        await auth.signOut();
-                        window.location.href = 'login.html';
-                        return;
-                    }
-                    
-                    currentUstadz = { id: user.uid, ...ustadzDoc.data() };
-                    
-                    // Update UI
-                    document.getElementById('ustadzName').textContent = currentUstadz.nama || 'Ustadz';
-                    document.getElementById('ustadzEmail').textContent = user.email;
-                    document.getElementById('ustadzAvatar').textContent = (currentUstadz.nama || 'U').charAt(0).toUpperCase();
-                    
-                    await loadData();
-                    showLoading(false);
-                    
-                } else {
-                    window.location.href = 'login.html';
-                }
-            });
-        });
-
-        // ==========================================
-        // DATA LOADING
-        // ==========================================
-
-        async function loadData() {
-            // Load santri yang dibimbing ustadz ini
-            const santriSnap = await db.collection('santri')
-                .where('ustadzId', '==', currentUstadz.id)
-                .get();
-            
-            santriList = [];
-            santriSnap.forEach(doc => {
-                santriList.push({ id: doc.id, ...doc.data() });
-            });
-            
-            document.getElementById('statSantri').textContent = santriList.length;
-            
-            // Render selectors
-            renderSantriSelector('hafalanSantriList', 'hafalan');
-            renderSantriSelector('nilaiSantriList', 'nilai');
-            
-            // Render tables
-            renderSantriTable();
-            
-            // Load stats
-            await loadStats();
-            await loadPiVerifikasi();
-        }
-
-        async function loadStats() {
-            const semingguLalu = new Date();
-            semingguLalu.setDate(semingguLalu.getDate() - 7);
-            
-            let totalHafalan = 0;
-            let totalNilai = 0;
-            
-            for (const santri of santriList) {
-                // Count hafalan this week
-                const hafalanSnap = await db.collection('santri').doc(santri.id).collection('hafalan')
-                    .where('tanggal', '>=', semingguLalu)
-                    .get();
-                totalHafalan += hafalanSnap.size;
-                
-                // Count nilai inputs
-                const nilaiSnap = await db.collection('santri').doc(santri.id).collection('rapor')
-                    .where('ustadzId', '==', currentUstadz.id)
-                    .get();
-                totalNilai += nilaiSnap.size;
-            }
-            
-            document.getElementById('statHafalan').textContent = totalHafalan;
-            document.getElementById('statNilai').textContent = totalNilai;
-        }
-
-        function renderSantriSelector(containerId, type) {
-            const container = document.getElementById(containerId);
-            
-            if (santriList.length === 0) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #64748b;">Tidak ada santri yang dibimbing</p>';
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
                 return;
             }
             
-            container.innerHTML = santriList.map(santri => `
-                <div class="santri-card" onclick="pilihSantri('${santri.id}', '${santri.nama}', '${type}', this)">
-                    <h4>${santri.nama}</h4>
-                    <p>${santri.kelas || 'Kelas -'}</p>
-                </div>
-            `).join('');
-        }
-
-        function renderSantriTable() {
-            const tbody = document.getElementById('tbodySantri');
-            
-            if (santriList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Tidak ada data santri</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = santriList.map(santri => {
-                const piBadge = santri.piPendingPayment ? 
-                    `<span class="pi-badge"><i class="fas fa-coins"></i> ${santri.piPendingPayment.amount} π</span>` : '-';
-                
-                return `
-                    <tr>
-                        <td><strong>${santri.nama}</strong></td>
-                        <td>${santri.kelas || '-'}</td>
-                        <td>${santri.totalHafalan || 0} Juz</td>
-                        <td><span class="badge badge-success">Lunas</span></td>
-                        <td>${piBadge}</td>
-                        <td>
-                            <button class="btn btn-primary" style="padding: 8px 16px;" onclick="lihatDetail('${santri.id}')">
-                                <i class="fas fa-eye"></i> Detail
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        async function loadPiVerifikasi() {
-            const tbody = document.getElementById('tbodyPi');
-            
-            // Find santri with pending Pi payments
-            const pendingSantri = santriList.filter(s => s.piPendingPayment);
-            
-            if (pendingSantri.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Tidak ada pembayaran Pi yang menunggu</td></tr>';
-                document.getElementById('statPending').textContent = '0';
-                return;
-            }
-            
-            document.getElementById('statPending').textContent = pendingSantri.length;
-            
-            let html = '';
-            for (const santri of pendingSantri) {
-                const waliDoc = await db.collection('wali_santri').doc(santri.waliId).get();
-                const waliData = waliDoc.exists ? waliDoc.data() : {};
-                
-                const time = santri.piPendingPayment.createdAt ? 
-                    (santri.piPendingPayment.createdAt.toDate ? 
-                        santri.piPendingPayment.createdAt.toDate().toLocaleString('id-ID') : 
-                        new Date(santri.piPendingPayment.createdAt).toLocaleString('id-ID')) : '-';
-                
-                html += `
-                    <tr>
-                        <td>${time}</td>
-                        <td><strong>${santri.nama}</strong></td>
-                        <td>${waliData.nama || waliData.email || '-'}</td>
-                        <td style="font-weight: 700; color: #8b5cf6;">${santri.piPendingPayment.amount} π</td>
-                        <td><span class="badge badge-warning">Menunggu</span></td>
-                        <td>
-                            <button class="btn btn-success" onclick="verifikasiPi('${santri.id}', '${santri.piPendingPayment.txRef}')">
-                                <i class="fas fa-check"></i> Verifikasi
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }
-            
-            tbody.innerHTML = html;
-        }
-
-        // ==========================================
-        // INTERACTION FUNCTIONS
-        // ==========================================
-
-        function pilihSantri(santriId, nama, type, element) {
-            // Remove active from all in this container
-            element.parentElement.querySelectorAll('.santri-card').forEach(c => c.classList.remove('active'));
-            element.classList.add('active');
-            
-            if (type === 'hafalan') {
-                selectedSantriHafalan = { id: santriId, nama: nama };
-                document.getElementById('hafalanSantriId').value = santriId;
-                document.getElementById('formHafalan').style.display = 'block';
-            } else {
-                selectedSantriNilai = { id: santriId, nama: nama };
-                document.getElementById('nilaiSantriId').value = santriId;
-                document.getElementById('formNilai').style.display = 'block';
-            }
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById('tab-' + tabName).classList.add('active');
-            
-            if (tabName === 'pi') {
-                loadPiVerifikasi();
-            }
-        }
-
-        // ==========================================
-        // FORM HANDLERS
-        // ==========================================
-
-        document.getElementById('formHafalan').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!selectedSantriHafalan) {
-                showToast('Pilih santri terlebih dahulu!', 'error');
-                return;
-            }
-            
-            showLoading(true);
-            
-            const data = {
-                juz: parseInt(document.getElementById('hafalanJuz').value),
-                surat: document.getElementById('hafalanSurat').value,
-                ayat: document.getElementById('hafalanAyat').value,
-                status: document.getElementById('hafalanStatus').value,
-                catatan: document.getElementById('hafalanCatatan').value,
-                penguji: currentUstadz.nama,
-                ustadzId: currentUstadz.id,
-                santriId: selectedSantriHafalan.id,
-                tanggal: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            try {
-                await db.collection('santri').doc(selectedSantriHafalan.id).collection('hafalan').add(data);
-                
-                // Update total hafalan
-                const hafalanSnap = await db.collection('santri').doc(selectedSantriHafalan.id).collection('hafalan').get();
-                const uniqueJuz = new Set(hafalanSnap.docs.map(d => d.data().juz)).size;
-                await db.collection('santri').doc(selectedSantriHafalan.id).update({
-                    totalHafalan: uniqueJuz
-                });
-                
-                showToast(`Hafalan ${selectedSantriHafalan.nama} berhasil disimpan!`);
-                
-                // Reset form
-                document.getElementById('formHafalan').reset();
-                document.querySelectorAll('#hafalanSantriList .santri-card').forEach(c => c.classList.remove('active'));
-                document.getElementById('formHafalan').style.display = 'none';
-                selectedSantriHafalan = null;
-                
-                await loadStats();
-                
-            } catch (error) {
-                showToast('Gagal menyimpan: ' + error.message, 'error');
-            } finally {
-                showLoading(false);
+            const uDoc = await getDoc(doc(db, "users", user.uid));
+            if (!uDoc.exists() || uDoc.data().role !== 'ustadz') {
+                await signOut(auth);
+                window.location.href = 'login.html';
             }
         });
 
-        document.getElementById('formNilai').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!selectedSantriNilai) {
-                showToast('Pilih santri terlebih dahulu!', 'error');
-                return;
+        window.toggleDarkMode = () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        };
+
+        window.handleLogout = async () => {
+            if (confirm('Apakah Anda yakin ingin logout?')) {
+                await signOut(auth);
+                window.location.href = 'login.html';
             }
-            
-            showLoading(true);
-            
-            const harian = parseInt(document.getElementById('nilaiHarian').value);
-            const uts = parseInt(document.getElementById('nilaiUTS').value);
-            const uas = parseInt(document.getElementById('nilaiUAS').value);
-            const akhir = Math.round((harian + uts + uas) / 3);
-            
-            const data = {
-                mapel: document.getElementById('nilaiMapel').value,
-                semester: document.getElementById('nilaiSemester').value,
-                nilai: { harian, uts, uas, akhir },
-                predikat: hitungPredikat(akhir),
-                ustadzId: currentUstadz.id,
-                ustadzNama: currentUstadz.nama,
-                santriId: selectedSantriNilai.id,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            try {
-                await db.collection('santri').doc(selectedSantriNilai.id).collection('rapor').add(data);
-                
-                showToast(`Nilai ${selectedSantriNilai.nama} berhasil disimpan!`);
-                
-                // Reset form
-                document.getElementById('formNilai').reset();
-                document.querySelectorAll('#nilaiSantriList .santri-card').forEach(c => c.classList.remove('active'));
-                document.getElementById('formNilai').style.display = 'none';
-                selectedSantriNilai = null;
-                
-                await loadStats();
-                
-            } catch (error) {
-                showToast('Gagal menyimpan: ' + error.message, 'error');
-            } finally {
-                showLoading(false);
-            }
-        });
+        };
 
-        async function verifikasiPi(santriId, txRef) {
-            if (!confirm('Verifikasi pembayaran Pi ini? Pastikan Anda telah memeriksa transaksi.')) return;
-            
-            showLoading(true);
-            
-            try {
-                // Update pi_payments
-                await db.collection('pi_payments').doc(txRef).update({
-                    status: 'completed',
-                    verifiedBy: currentUstadz.id,
-                    verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Update SPP
-                const sppSnap = await db.collection('santri').doc(santriId).collection('spp')
-                    .where('txRef', '==', txRef)
-                    .get();
-                
-                sppSnap.forEach(doc => {
-                    doc.ref.update({
-                        status: 'Lunas',
-                        verifiedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                });
-                
-                // Remove pending payment
-                await db.collection('santri').doc(santriId).update({
-                    piPendingPayment: firebase.firestore.FieldValue.delete()
-                });
-                
-                showToast('Pembayaran Pi berhasil diverifikasi!');
-                await loadData();
-                
-            } catch (error) {
-                showToast('Gagal verifikasi: ' + error.message, 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
+        window.showJadwalModal = () => {
+            alert('Fitur jadwal lengkap akan segera hadir!');
+        };
 
-        // ==========================================
-        // UTILITIES
-        // ==========================================
-
-        function hitungPredikat(nilai) {
-            if (nilai >= 85) return 'A';
-            if (nilai >= 75) return 'B+';
-            if (nilai >= 70) return 'B';
-            if (nilai >= 65) return 'C+';
-            if (nilai >= 60) return 'C';
-            return 'D';
-        }
-
-        function showLoading(show) {
-            document.getElementById('loadingOverlay').classList.toggle('active', show);
-        }
-
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const msg = document.getElementById('toastMessage');
-            
-            msg.textContent = message;
-            toast.className = 'toast ' + (type === 'error' ? 'error' : '');
-            toast.classList.add('show');
-            
-            setTimeout(() => toast.classList.remove('show'), 4000);
-        }
-
-        function logout() {
-            if (confirm('Yakin ingin keluar?')) {
-                auth.signOut().then(() => {
-                    window.location.href = 'login.html';
-                });
-            }
-        }
-
-        function lihatDetail(santriId) {
-            showToast('Detail santri: ' + santriId);
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
         }
     </script>
-
 </body>
 </html>
