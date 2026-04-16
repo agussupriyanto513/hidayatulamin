@@ -14,29 +14,46 @@
                 extend: {
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
                     colors: {
-                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
-                        purple: { 50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7c3aed', 800: '#6b21a8', 900: '#581c87' }
+                        primary: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+                        islamic: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e' },
+                        gold: { 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309', 800: '#92400e', 900: '#78350f' }
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'slide-up': 'slideUp 0.5s ease-out',
+                        'slide-up': 'slideUp 0.6s ease-out',
+                        'fade-in': 'fadeIn 0.8s ease-out',
+                        'scale-in': 'scaleIn 0.5s ease-out',
                         'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
                     },
                     keyframes: {
                         float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-20px)' },
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-30px) rotate(5deg)' },
                         },
                         slideUp: {
-                            '0%': { transform: 'translateY(30px)', opacity: '0' },
+                            '0%': { transform: 'translateY(40px)', opacity: '0' },
                             '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        scaleIn: {
+                            '0%': { transform: 'scale(0.9)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
                         },
                         shake: {
                             '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
                             '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
                             '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
                             '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 20px rgba(14, 165, 233, 0.3)' },
+                            '100%': { boxShadow: '0 0 40px rgba(14, 165, 233, 0.6)' },
                         }
                     }
                 }
@@ -44,122 +61,303 @@
         }
     </script>
     <style>
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .gradient-purple { background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); }
-        .glass-dark { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); }
-        .input-group:focus-within label { color: #7c3aed; transform: translateY(-24px) scale(0.85); }
-        .input-group label { transition: all 0.3s ease; }
-        .floating-shape { position: absolute; border-radius: 50%; filter: blur(40px); opacity: 0.6; }
-        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #7c3aed; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .gradient-bg { 
+            background: linear-gradient(135deg, #0c4a6e 0%, #075985 25%, #0369a1 50%, #0ea5e9 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .gradient-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+        .gradient-islamic { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%); }
+        .glass { 
+            background: rgba(255, 255, 255, 0.98); 
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .glass-dark { 
+            background: rgba(15, 23, 42, 0.98); 
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .input-group { position: relative; }
+        .input-group input:focus ~ label,
+        .input-group input:not(:placeholder-shown) ~ label {
+            transform: translateY(-28px) scale(0.85);
+            color: #0284c7;
+            font-weight: 600;
+        }
+        .input-group label { 
+            position: absolute;
+            left: 16px;
+            top: 14px;
+            color: #94a3b8;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: left;
+            font-size: 14px;
+        }
+        .floating-shape { 
+            position: absolute; 
+            border-radius: 50%; 
+            filter: blur(60px); 
+            opacity: 0.4;
+        }
+        .floating-ornament {
+            position: absolute;
+            font-size: 120px;
+            opacity: 0.08;
+            color: white;
+            animation: float 8s ease-in-out infinite;
+        }
+        .loading-spinner { 
+            border: 3px solid rgba(255,255,255,0.3); 
+            border-top: 3px solid #ffffff; 
+            border-radius: 50%; 
+            width: 20px; 
+            height: 20px; 
+            animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
         .shake-animation { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        .btn-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-hover::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        .btn-hover:active::before {
+            width: 300px;
+            height: 300px;
+        }
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(14, 165, 233, 0.5);
+        }
+        .input-focus-ring:focus {
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+        }
+        .role-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+        }
+        .role-card:hover {
+            transform: translateY(-3px);
+            border-color: #0ea5e9;
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.2);
+        }
+        .role-card:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
-<body class="font-sans antialiased min-h-screen gradient-bg flex items-center justify-center p-4 relative overflow-hidden">
+<body class="font-sans antialiased min-h-screen gradient-bg flex items-center justify-center p-4 relative">
     
-    <!-- Animated Background Shapes -->
-    <div class="floating-shape w-72 h-72 bg-purple-400 top-10 left-10 animate-float" style="animation-delay: 0s;"></div>
-    <div class="floating-shape w-96 h-96 bg-blue-400 bottom-20 right-10 animate-float" style="animation-delay: 2s;"></div>
-    <div class="floating-shape w-64 h-64 bg-pink-400 top-1/2 left-1/3 animate-float" style="animation-delay: 4s;"></div>
+    <!-- Animated Background Elements -->
+    <div class="floating-shape w-96 h-96 bg-sky-400 top-[-10%] left-[-10%] animate-float"></div>
+    <div class="floating-shape w-[500px] h-[500px] bg-blue-500 bottom-[-15%] right-[-15%] animate-float-delayed"></div>
+    <div class="floating-shape w-80 h-80 bg-cyan-400 top-[40%] left-[20%] animate-float" style="animation-delay: 2s;"></div>
     
-    <!-- Login Container -->
+    <!-- Islamic Ornaments -->
+    <div class="floating-ornament top-10 left-10">
+        <i class="fas fa-mosque"></i>
+    </div>
+    <div class="floating-ornament bottom-20 right-10" style="animation-delay: 4s;">
+        <i class="fas fa-star-and-crescent"></i>
+    </div>
+    <div class="floating-ornament top-1/3 right-20" style="animation-delay: 2s;">
+        <i class="fas fa-book-quran"></i>
+    </div>
+    
+    <!-- Main Container -->
     <div class="w-full max-w-md animate-slide-up relative z-10">
-        <!-- Logo Section -->
-        <div class="text-center mb-8">
-            <div class="w-20 h-20 mx-auto rounded-2xl bg-white/20 backdrop-blur-lg flex items-center justify-center mb-4 shadow-2xl">
-                <i class="fas fa-mosque text-4xl text-white"></i>
+        
+        <!-- Logo Section dengan Glow Effect -->
+        <div class="text-center mb-8 animate-fade-in">
+            <div class="relative inline-block mb-6">
+                <div class="absolute inset-0 bg-sky-400 rounded-3xl blur-2xl opacity-30 animate-pulse-slow"></div>
+                <div class="relative w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl flex items-center justify-center shadow-2xl border border-white/30">
+                    <i class="fas fa-mosque text-5xl text-white drop-shadow-lg"></i>
+                </div>
+                <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-4 border-white dark:border-gray-900 shadow-lg">
+                    <i class="fas fa-check text-white text-sm"></i>
+                </div>
             </div>
-            <h1 class="text-2xl font-bold text-white mb-1">Portal Santri</h1>
-            <p class="text-white/80 text-sm">Yayasan Hidayatullah Amin</p>
+            <h1 class="text-3xl font-extrabold text-white mb-2 tracking-tight drop-shadow-md">Portal Santri</h1>
+            <p class="text-sky-100 text-sm font-medium tracking-wide uppercase">Yayasan Hidayatullah Amin</p>
+            <div class="mt-3 flex items-center justify-center gap-2">
+                <span class="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-xs text-white/90 border border-white/20">
+                    <i class="fas fa-shield-alt mr-1"></i>Sistem Terintegrasi
+                </span>
+            </div>
         </div>
         
         <!-- Login Card -->
-        <div class="glass dark:glass-dark rounded-3xl shadow-2xl p-8 border border-white/20">
-            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Masuk ke Akun</h2>
+        <div class="glass dark:glass-dark rounded-3xl shadow-2xl p-8 border border-white/40 dark:border-white/10 animate-scale-in">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-1">Selamat Datang</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">Silakan masuk untuk melanjutkan</p>
+            </div>
             
             <!-- Error Message -->
-            <div id="errorMessage" class="hidden mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 rounded-xl text-red-700 dark:text-red-300 text-sm flex items-center gap-2">
-                <i class="fas fa-exclamation-circle"></i>
+            <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r-xl text-red-700 dark:text-red-300 text-sm flex items-start gap-3 animate-shake">
+                <i class="fas fa-exclamation-circle mt-0.5 flex-shrink-0"></i>
                 <span id="errorText">Email atau password salah</span>
             </div>
             
             <form id="loginForm" class="space-y-5">
                 <!-- Email Input -->
-                <div class="input-group relative">
+                <div class="input-group">
                     <input type="email" id="email" required 
-                           class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-transparent dark:bg-gray-800/50 text-gray-800 dark:text-white focus:border-purple-500 focus:outline-none transition-colors peer"
+                           class="input-focus-ring w-full px-4 py-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-800 dark:text-white focus:border-sky-500 focus:outline-none transition-all peer text-base"
                            placeholder=" ">
-                    <label for="email" 
-                           class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 pointer-events-none origin-left">
-                        <i class="fas fa-envelope mr-2"></i>Email
+                    <label for="email" class="flex items-center gap-2">
+                        <i class="fas fa-envelope text-sky-500"></i>
+                        <span>Email Address</span>
                     </label>
                 </div>
                 
                 <!-- Password Input -->
-                <div class="input-group relative">
+                <div class="input-group">
                     <input type="password" id="password" required 
-                           class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-transparent dark:bg-gray-800/50 text-gray-800 dark:text-white focus:border-purple-500 focus:outline-none transition-colors peer pr-12"
+                           class="input-focus-ring w-full px-4 py-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-800 dark:text-white focus:border-sky-500 focus:outline-none transition-all peer pr-12 text-base"
                            placeholder=" ">
-                    <label for="password" 
-                           class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 pointer-events-none origin-left">
-                        <i class="fas fa-lock mr-2"></i>Password
+                    <label for="password" class="flex items-center gap-2">
+                        <i class="fas fa-lock text-sky-500"></i>
+                        <span>Password</span>
                     </label>
-                    <button type="button" onclick="togglePassword()" class="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <button type="button" onclick="togglePassword()" 
+                            class="absolute right-4 top-4 text-gray-400 hover:text-sky-500 transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                         <i class="fas fa-eye" id="toggleIcon"></i>
                     </button>
                 </div>
                 
                 <!-- Remember Me & Forgot Password -->
-                <div class="flex items-center justify-between text-sm">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="rememberMe" class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                        <span class="text-gray-600 dark:text-gray-400">Ingat saya</span>
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative">
+                            <input type="checkbox" id="rememberMe" class="peer sr-only">
+                            <div class="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded-md peer-checked:bg-sky-500 peer-checked:border-sky-500 transition-all"></div>
+                            <i class="fas fa-check text-white text-xs absolute top-1 left-1 opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                        </div>
+                        <span class="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors">Ingat saya</span>
                     </label>
-                    <a href="#" onclick="showForgotPassword()" class="text-purple-600 hover:text-purple-700 font-medium">Lupa password?</a>
+                    <button type="button" onclick="showForgotPassword()" class="text-sm text-sky-600 hover:text-sky-700 font-semibold hover:underline transition-all">
+                        Lupa password?
+                    </button>
                 </div>
                 
                 <!-- Login Button -->
                 <button type="submit" id="loginBtn"
-                        class="w-full py-3.5 rounded-xl gradient-purple text-white font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
-                    <span id="btnText">Masuk</span>
+                        class="btn-hover w-full py-4 rounded-xl gradient-islamic text-white font-bold text-lg shadow-lg flex items-center justify-center gap-3 group">
+                    <span id="btnText">Masuk ke Portal</span>
                     <div id="btnLoading" class="loading-spinner hidden"></div>
+                    <i id="btnIcon" class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                 </button>
             </form>
             
-            <!-- Divider -->
-            <div class="relative my-6">
+            <!-- Divider dengan ornament -->
+            <div class="relative my-8">
                 <div class="absolute inset-0 flex items-center">
                     <div class="w-full border-t border-gray-200 dark:border-gray-700"></div>
                 </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="px-2 bg-white dark:bg-gray-800 text-gray-500">atau masuk sebagai</span>
+                <div class="relative flex justify-center">
+                    <div class="px-4 bg-white dark:bg-gray-800 flex items-center gap-2">
+                        <div class="w-8 h-[1px] bg-gradient-to-r from-transparent to-gray-300 dark:to-gray-600"></div>
+                        <span class="text-xs text-gray-400 uppercase tracking-wider font-medium">atau masuk sebagai</span>
+                        <div class="w-8 h-[1px] bg-gradient-to-l from-transparent to-gray-300 dark:to-gray-600"></div>
+                    </div>
                 </div>
             </div>
             
-            <!-- Quick Login Buttons -->
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="quickLogin('santri')" class="py-2.5 rounded-xl border-2 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-medium hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors text-sm">
-                    <i class="fas fa-user-graduate mr-2"></i>Santri
+            <!-- Role Selection Cards -->
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="quickLogin('santri')" class="role-card p-4 rounded-2xl bg-gradient-to-br from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 border border-sky-100 dark:border-sky-800 text-center group">
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-user-graduate text-xl"></i>
+                    </div>
+                    <p class="font-bold text-gray-800 dark:text-white text-sm">Santri</p>
+                    <p class="text-xs text-gray-500 mt-1">Demo: santri@demo.com</p>
                 </button>
-                <button onclick="quickLogin('wali')" class="py-2.5 rounded-xl border-2 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-medium hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-sm">
-                    <i class="fas fa-users mr-2"></i>Wali
+                <button onclick="quickLogin('wali')" class="role-card p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 border border-emerald-100 dark:border-emerald-800 text-center group">
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                    <p class="font-bold text-gray-800 dark:text-white text-sm">Wali Santri</p>
+                    <p class="text-xs text-gray-500 mt-1">Demo: wali@demo.com</p>
+                </button>
+            </div>
+            
+            <!-- Additional Roles -->
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <button onclick="quickLogin('pengajar')" class="role-card p-3 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-100 dark:border-amber-800 text-center group">
+                    <div class="w-10 h-10 mx-auto mb-2 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform">
+                        <i class="fas fa-chalkboard-teacher text-lg"></i>
+                    </div>
+                    <p class="font-bold text-gray-800 dark:text-white text-xs">Pengajar</p>
+                </button>
+                <button onclick="quickLogin('admin')" class="role-card p-3 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-100 dark:border-purple-800 text-center group">
+                    <div class="w-10 h-10 mx-auto mb-2 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white shadow-md group-hover:scale-110 transition-transform">
+                        <i class="fas fa-user-shield text-lg"></i>
+                    </div>
+                    <p class="font-bold text-gray-800 dark:text-white text-xs">Admin</p>
                 </button>
             </div>
         </div>
         
         <!-- Footer -->
-        <p class="text-center text-white/70 text-xs mt-6">
-            © 2025 Yayasan Hidayatullah Amin<br>
-            Sistem Informasi Pondok Pesantren
-        </p>
+        <div class="text-center mt-8 animate-fade-in">
+            <p class="text-white/60 text-xs mb-2">© 2025 Yayasan Hidayatullah Amin</p>
+            <div class="flex items-center justify-center gap-4 text-white/40 text-xs">
+                <span class="flex items-center gap-1"><i class="fas fa-shield-alt"></i> Secure</span>
+                <span class="flex items-center gap-1"><i class="fas fa-bolt"></i> Fast</span>
+                <span class="flex items-center gap-1"><i class="fas fa-mobile-alt"></i> Responsive</span>
+            </div>
+        </div>
     </div>
     
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 -translate-y-20 transition-all duration-300 z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl px-6 py-4 flex items-center gap-3 border-l-4 border-purple-500 min-w-max">
-            <i class="fas fa-info-circle text-purple-500 text-xl"></i>
-            <p class="text-sm text-gray-700 dark:text-gray-300 font-medium" id="toastMessage">Notifikasi</p>
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 -translate-y-24 transition-all duration-500 z-50 w-full max-w-sm px-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 flex items-center gap-4 border-l-4 border-sky-500">
+            <div id="toastIcon" class="w-10 h-10 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-info-circle text-sky-500 text-xl"></i>
+            </div>
+            <div class="flex-1">
+                <p class="font-semibold text-gray-800 dark:text-white text-sm" id="toastTitle">Notifikasi</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400" id="toastMessage">Pesan notifikasi</p>
+            </div>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl">
+            <div class="w-16 h-16 rounded-full border-4 border-sky-200 border-t-sky-500 animate-spin"></div>
+            <p class="text-gray-700 dark:text-gray-300 font-medium">Memuat...</p>
         </div>
     </div>
 
@@ -181,21 +379,53 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Demo accounts
+        const demoAccounts = {
+            'santri': { email: 'ahmad.fauzi@hidayatullah.sch.id', password: 'santri2025', nama: 'Ahmad Fauzi' },
+            'wali': { email: 'bapak.ahmad@email.com', password: 'wali2025', nama: 'Bapak Ahmad' },
+            'pengajar': { email: 'ust.hasan@hidayatullah.sch.id', password: 'guru2025', nama: 'Ustadz Hasan' },
+            'admin': { email: 'admin@hidayatullah.sch.id', password: 'admin2025', nama: 'Administrator' }
+        };
+
         // Check if already logged in
-        auth.onAuthStateChanged((user) => {
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
-                redirectBasedOnRole(user.uid);
+                showLoading(true);
+                await redirectBasedOnRole(user.uid);
             }
         });
 
         async function redirectBasedOnRole(uid) {
-            const userDoc = await getDoc(doc(db, "users", uid));
-            if (userDoc.exists()) {
-                const role = userDoc.data().role;
-                if (role === 'santri') window.location.href = 'dashboard-santri.html';
-                else if (role === 'wali') window.location.href = 'dashboard-wali.html';
-                else if (role === 'pengajar') window.location.href = 'dashboard-pengajar.html';
-                else if (role === 'admin') window.location.href = 'dashboard-admin.html';
+            try {
+                const userDoc = await getDoc(doc(db, "users", uid));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    const role = data.role;
+                    
+                    const roleNames = {
+                        'santri': 'Dashboard Santri',
+                        'wali': 'Dashboard Wali',
+                        'pengajar': 'Dashboard Pengajar',
+                        'admin': 'Dashboard Admin'
+                    };
+                    
+                    showToast('success', 'Login Berhasil', `Mengalihkan ke ${roleNames[role]}...`);
+                    
+                    setTimeout(() => {
+                        const pages = {
+                            'santri': 'dashboard-santri.html',
+                            'wali': 'dashboard-wali.html',
+                            'pengajar': 'dashboard-pengajar.html',
+                            'admin': 'dashboard-admin.html'
+                        };
+                        window.location.href = pages[role] || 'dashboard-santri.html';
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error('Redirect error:', error);
+                showToast('error', 'Error', 'Gagal mengalihkan halaman');
+            } finally {
+                showLoading(false);
             }
         }
 
@@ -203,57 +433,109 @@
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
-            const loginBtn = document.getElementById('loginBtn');
-            const btnText = document.getElementById('btnText');
-            const btnLoading = document.getElementById('btnLoading');
-            const errorDiv = document.getElementById('errorMessage');
             
-            // Show loading
-            loginBtn.disabled = true;
-            btnText.classList.add('hidden');
-            btnLoading.classList.remove('hidden');
-            errorDiv.classList.add('hidden');
+            if (!email || !password) {
+                showError('Email dan password wajib diisi');
+                return;
+            }
+            
+            setLoadingState(true);
+            hideError();
             
             try {
-                // Set persistence
                 const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
                 await setPersistence(auth, persistence);
                 
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                showToast('Login berhasil! Mengalihkan...', 'success');
                 
-                setTimeout(() => {
-                    redirectBasedOnRole(userCredential.user.uid);
-                }, 1000);
+                // Simpan email jika remember me
+                if (rememberMe) {
+                    localStorage.setItem('savedEmail', email);
+                } else {
+                    localStorage.removeItem('savedEmail');
+                }
+                
+                await redirectBasedOnRole(userCredential.user.uid);
                 
             } catch (error) {
                 console.error('Login error:', error);
-                let errorMsg = 'Terjadi kesalahan. Silakan coba lagi.';
-                
-                switch(error.code) {
-                    case 'auth/user-not-found':
-                        errorMsg = 'Email tidak terdaftar'; break;
-                    case 'auth/wrong-password':
-                        errorMsg = 'Password salah'; break;
-                    case 'auth/invalid-email':
-                        errorMsg = 'Format email tidak valid'; break;
-                    case 'auth/too-many-requests':
-                        errorMsg = 'Terlalu banyak percobaan. Coba lagi nanti.'; break;
-                }
-                
-                document.getElementById('errorText').textContent = errorMsg;
-                errorDiv.classList.remove('hidden');
-                loginBtn.classList.add('shake-animation');
-                setTimeout(() => loginBtn.classList.remove('shake-animation'), 500);
+                handleLoginError(error);
             } finally {
-                loginBtn.disabled = false;
-                btnText.classList.remove('hidden');
-                btnLoading.classList.add('hidden');
+                setLoadingState(false);
             }
         });
+
+        function handleLoginError(error) {
+            let errorMsg = 'Terjadi kesalahan. Silakan coba lagi.';
+            let errorType = 'error';
+            
+            switch(error.code) {
+                case 'auth/user-not-found':
+                    errorMsg = 'Email tidak terdaftar dalam sistem'; break;
+                case 'auth/wrong-password':
+                    errorMsg = 'Password yang Anda masukkan salah'; break;
+                case 'auth/invalid-email':
+                    errorMsg = 'Format email tidak valid'; break;
+                case 'auth/user-disabled':
+                    errorMsg = 'Akun Anda telah dinonaktifkan. Hubungi admin.'; break;
+                case 'auth/too-many-requests':
+                    errorMsg = 'Terlalu banyak percobaan gagal. Silakan coba lagi nanti.'; break;
+                case 'auth/network-request-failed':
+                    errorMsg = 'Koneksi internet bermasalah. Periksa jaringan Anda.'; break;
+                default:
+                    errorMsg = 'Login gagal: ' + error.message;
+            }
+            
+            showError(errorMsg);
+            shakeButton();
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        function shakeButton() {
+            const btn = document.getElementById('loginBtn');
+            btn.classList.add('shake-animation');
+            setTimeout(() => btn.classList.remove('shake-animation'), 500);
+        }
+
+        function setLoadingState(loading) {
+            const loginBtn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoading = document.getElementById('btnLoading');
+            const btnIcon = document.getElementById('btnIcon');
+            
+            loginBtn.disabled = loading;
+            
+            if (loading) {
+                btnText.classList.add('hidden');
+                btnIcon.classList.add('hidden');
+                btnLoading.classList.remove('hidden');
+                loginBtn.classList.add('cursor-not-allowed', 'opacity-80');
+            } else {
+                btnText.classList.remove('hidden');
+                btnIcon.classList.remove('hidden');
+                btnLoading.classList.add('hidden');
+                loginBtn.classList.remove('cursor-not-allowed', 'opacity-80');
+            }
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) overlay.classList.remove('hidden');
+            else overlay.classList.add('hidden');
+        }
 
         // Toggle Password Visibility
         window.togglePassword = () => {
@@ -273,51 +555,84 @@
 
         // Quick Login Demo
         window.quickLogin = (type) => {
-            const demoAccounts = {
-                'santri': { email: 'santri@demo.com', password: 'santri123' },
-                'wali': { email: 'wali@demo.com', password: 'wali123' }
-            };
-            
-            if (demoAccounts[type]) {
-                document.getElementById('email').value = demoAccounts[type].email;
-                document.getElementById('password').value = demoAccounts[type].password;
-                showToast(`Demo akun ${type} diisi otomatis`, 'info');
+            const account = demoAccounts[type];
+            if (account) {
+                document.getElementById('email').value = account.email;
+                document.getElementById('password').value = account.password;
+                
+                // Visual feedback
+                const inputs = document.querySelectorAll('.input-group input');
+                inputs.forEach(input => {
+                    input.parentElement.classList.add('animate-pulse');
+                    setTimeout(() => input.parentElement.classList.remove('animate-pulse'), 500);
+                });
+                
+                showToast('info', 'Demo Mode', `Akun ${account.nama} siap digunakan`);
             }
         };
 
         // Show Toast
-        window.showToast = (message, type = 'info') => {
+        window.showToast = (type, title, message) => {
             const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
             const toastMessage = document.getElementById('toastMessage');
-            const icon = toast.querySelector('i');
+            const toastIconDiv = document.getElementById('toastIcon');
+            const toastIcon = toastIconDiv.querySelector('i');
             
+            toastTitle.textContent = title;
             toastMessage.textContent = message;
             
+            // Reset classes
+            toast.querySelector('div').className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 flex items-center gap-4 border-l-4';
+            toastIconDiv.className = 'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0';
+            
             if (type === 'success') {
-                icon.className = 'fas fa-check-circle text-green-500 text-xl';
-                toast.querySelector('div').classList.replace('border-purple-500', 'border-green-500');
+                toast.querySelector('div').classList.add('border-green-500');
+                toastIconDiv.classList.add('bg-green-100', 'dark:bg-green-900/30');
+                toastIcon.className = 'fas fa-check-circle text-green-500 text-xl';
+            } else if (type === 'error') {
+                toast.querySelector('div').classList.add('border-red-500');
+                toastIconDiv.classList.add('bg-red-100', 'dark:bg-red-900/30');
+                toastIcon.className = 'fas fa-exclamation-circle text-red-500 text-xl';
             } else {
-                icon.className = 'fas fa-info-circle text-purple-500 text-xl';
-                toast.querySelector('div').classList.replace('border-green-500', 'border-purple-500');
+                toast.querySelector('div').classList.add('border-sky-500');
+                toastIconDiv.classList.add('bg-sky-100', 'dark:bg-sky-900/30');
+                toastIcon.className = 'fas fa-info-circle text-sky-500 text-xl';
             }
             
-            toast.classList.remove('-translate-y-20');
+            toast.classList.remove('-translate-y-24');
             toast.classList.add('translate-y-0');
             
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0');
-                toast.classList.add('-translate-y-20');
-            }, 3000);
+            setTimeout(hideToast, 4000);
+        };
+
+        window.hideToast = () => {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-0');
+            toast.classList.add('-translate-y-24');
         };
 
         window.showForgotPassword = () => {
-            showToast('Hubungi admin untuk reset password', 'info');
+            showToast('info', 'Lupa Password?', 'Silakan hubungi admin pondok untuk reset password Anda');
         };
+
+        // Load saved email
+        const savedEmail = localStorage.getItem('savedEmail');
+        if (savedEmail) {
+            document.getElementById('email').value = savedEmail;
+            document.getElementById('rememberMe').checked = true;
+        }
 
         // Dark mode check
         if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
+
+        // Toggle dark mode
+        window.toggleDarkMode = () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        };
     </script>
 </body>
 </html>
