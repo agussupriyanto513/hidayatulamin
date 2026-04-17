@@ -880,22 +880,6 @@
                 
                 console.log('Login successful, UID:', user.uid);
                 debugInfo.user = { uid: user.uid, email: user.email };
-				
-				// Di dalam fungsi handleLoginSuccess atau setelah auth.signInWithEmailAndPassword
-
-const user = await auth.currentUser;
-const userDoc = await db.collection('users').doc(user.uid).get();
-const userData = userDoc.data();
-
-if (userData.role === 'admin') {
-    window.location.href = 'admin-panel.html';
-} else if (userData.role === 'wali') {
-    window.location.href = 'dashboard-wali.html';
-} else if (userData.role === 'ustadz') {
-    window.location.href = 'dashboard-ustadz.html';
-} else if (userData.role === 'santri') {
-    window.location.href = 'dashboard-santri.html';
-}
                 
                 // Verify role with detailed error handling
                 console.log('Verifying role:', selectedRole);
