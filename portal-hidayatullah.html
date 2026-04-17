@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Yayasan Hidayatullah Amin | Terpadu</title>
+    <meta name="description" content="Portal Terpadu Yayasan Hidayatullah Amin - Sistem Sekolah & Marketplace">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                        },
+                        purple: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(135deg, #f0fdf4 0%, #f5f3ff 100%); min-height: 100vh; }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+        
+        .app-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.3) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .app-card:hover::before { opacity: 1; }
+        
+        .app-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple-animation 0.6s ease-out;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple-animation {
+            to { transform: scale(4); opacity: 0; }
+        }
+        
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .role-wali { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .role-santri { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+        .role-ustadz { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .role-admin { background: #fce7f3; color: #be185d; border: 1px solid #f9a8d4; }
+        
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            border-color: #8b5cf6;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+        }
+        
+        .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 8px;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+            max-width: 350px;
+        }
+        
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
+        .toast.warning { border-left: 4px solid #f59e0b; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Header -->
+    <header class="glass-panel sticky top-0 z-50 px-6 py-4 mb-6">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg">
+                        <i class="fas fa-mosque"></i>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white flex items-center justify-center">
+                        <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800 tracking-tight">Yayasan Hidayatullah Amin</h1>
+                    <p class="text-xs text-gray-500 font-medium">Portal Terpadu v2.0</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-3 bg-white/50 px-4 py-2 rounded-full border border-gray-200">
+                    <i class="fas fa-user-circle text-gray-400"></i>
+                    <span id="headerUsername" class="text-sm font-semibold text-gray-700">Loading...</span>
+                    <span id="headerRoleBadge" class="role-badge text-[10px] py-1 px-2">...</span>
+                </div>
+                
+                <button onclick="toggleUserMenu()" class="relative p-2 hover:bg-gray-100 rounded-lg transition">
+                    <i class="fas fa-ellipsis-v text-gray-600"></i>
+                </button>
+                
+                <button onclick="logout()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-xl font-semibold text-sm transition flex items-center gap-2 border border-red-200">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="hidden sm:inline">Logout</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- User Dropdown Menu (Hidden by default) -->
+    <div id="userMenu" class="hidden fixed top-20 right-6 bg-white rounded-xl shadow-xl border border-gray-100 p-2 z-50 w-56">
+        <div class="p-3 border-b border-gray-100">
+            <p class="text-xs text-gray-500">Masuk sebagai</p>
+            <p id="menuUserName" class="font-bold text-gray-800">...</p>
+            <p id="menuUserEmail" class="text-xs text-gray-500">...</p>
+        </div>
+        <button onclick="openProfile()" class="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg text-sm flex items-center gap-2">
+            <i class="fas fa-user text-gray-400"></i> Profil Saya
+        </button>
+        <button onclick="openSettings()" class="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg text-sm flex items-center gap-2">
+            <i class="fas fa-cog text-gray-400"></i> Pengaturan
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 pb-12">
+        
+        <!-- Welcome Section -->
+        <section class="glass-panel rounded-3xl p-8 mb-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-200/30 to-purple-200/30 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+            
+            <div class="relative z-10">
+                <div class="flex items-start justify-between flex-wrap gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium mb-1" id="greetingText">Selamat datang kembali,</p>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-2" id="welcomeName">...</h2>
+                        <p class="text-gray-600 max-w-lg">
+                            Akses sistem sekolah dan marketplace Sagatama Mart dari satu tempat. 
+                            <span class="text-emerald-600 font-semibold">Semua dalam satu akun.</span>
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-white/60 px-4 py-2 rounded-full border border-white">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-semibold text-gray-600">SSO Aktif</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+		
+		        <!-- Admin Quick Actions (Hanya untuk Admin) -->
+        <section id="adminQuickActions" class="hidden mt-8">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-bolt text-amber-500"></i>
+                Admin Quick Actions
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button onclick="SagatamaIntegration.goToAdmin()" class="bg-white border-2 border-amber-200 hover:border-amber-400 rounded-2xl p-4 text-left transition group">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-users-cog text-xl"></i>
+                    </div>
+                    <p class="font-bold text-gray-800 text-sm">User Management</p>
+                    <p class="text-xs text-gray-500">Kelola wali, santri, ustadz</p>
+                </button>
+                
+                <button onclick="quickAction('products')" class="bg-white border-2 border-purple-200 hover:border-purple-400 rounded-2xl p-4 text-left transition group">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-boxes text-xl"></i>
+                    </div>
+                    <p class="font-bold text-gray-800 text-sm">Kelola Produk</p>
+                    <p class="text-xs text-gray-500">Sagatama Mart</p>
+                </button>
+                
+                <button onclick="quickAction('orders')" class="bg-white border-2 border-emerald-200 hover:border-emerald-400 rounded-2xl p-4 text-left transition group">
+                    <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-clipboard-check text-xl"></i>
+                    </div>
+                    <p class="font-bold text-gray-800 text-sm">Verifikasi Pesanan</p>
+                    <p class="text-xs text-gray-500">Pending orders</p>
+                </button>
+                
+                <button onclick="quickAction('analytics')" class="bg-white border-2 border-blue-200 hover:border-blue-400 rounded-2xl p-4 text-left transition group">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-3 group-hover:scale-110 transition">
+                        <i class="fas fa-chart-line text-xl"></i>
+                    </div>
+                    <p class="font-bold text-gray-800 text-sm">Laporan</p>
+                    <p class="text-xs text-gray-500">Statistik & analitik</p>
+                </button>
+            </div>
+        </section>
+
+        <!-- Quick Stats -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <span class="text-xs font-bold text-green-500 flex items-center gap-1">
+                        <i class="fas fa-arrow-up text-[10px]"></i> Live
+                    </span>
+                </div>
+                <p class="text-2xl font-bold text-gray-800" id="statCart">0</p>
+                <p class="text-xs text-gray-500">Item di Keranjang</p>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-gray-800" id="statOrders">0</p>
+                <p class="text-xs text-gray-500">Pesanan Aktif</p>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-gray-800" id="statPi">π --</p>
+                <p class="text-xs text-gray-500">Saldo Pi</p>
+            </div>
+            
+            <div class="stat-card">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <span id="notifBadge" class="hidden bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+                </div>
+                <p class="text-2xl font-bold text-gray-800" id="statNotif">0</p>
+                <p class="text-xs text-gray-500">Notifikasi</p>
+            </div>
+        </section>
+
+        <!-- Applications Grid -->
+        <section>
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-th-large text-emerald-500"></i>
+                Aplikasi Tersedia
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Sagatama Mart -->
+                <div onclick="openSagatamaMart(event)" class="app-card bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl p-6 text-white relative overflow-hidden group h-64">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 transition-transform duration-500 group-hover:scale-150"></div>
+                    <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-10 -mb-10 transition-transform duration-500 group-hover:scale-125"></div>
+                    
+                    <div class="relative z-10 h-full flex flex-col justify-between">
+                        <div>
+                            <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-2xl mb-4 border border-white/30">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold mb-1">Sagatama Mart</h4>
+                            <p class="text-purple-100 text-sm">Marketplace Pi Native</p>
+                        </div>
+                        
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold border border-white/30 flex items-center gap-1">
+                                    <i class="fas fa-coins text-amber-300"></i>
+                                    Pi Network
+                                </span>
+                                <span class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold border border-white/30">
+                                    E-Commerce
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-purple-200">sagatama-mart.vercel.app</span>
+                                <i class="fas fa-external-link-alt text-white/60 group-hover:text-white transition"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sistem Sekolah -->
+                <div onclick="openSekolah(event)" class="app-card bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white relative overflow-hidden group h-64">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 transition-transform duration-500 group-hover:scale-150"></div>
+                    
+                    <div class="relative z-10 h-full flex flex-col justify-between">
+                        <div>
+                            <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-2xl mb-4 border border-white/30">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold mb-1">Sistem Sekolah</h4>
+                            <p class="text-emerald-100 text-sm">Manajemen Pendidikan</p>
+                        </div>
+                        
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <span id="sekolahAccessBadge" class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold border border-white/30">
+                                    Loading...
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-emerald-200">hidayatullah.sch.id</span>
+                                <i class="fas fa-external-link-alt text-white/60 group-hover:text-white transition"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Panel (Conditional) -->
+                <div id="adminCard" onclick="openAdminPanel(event)" class="hidden app-card bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-6 text-white relative overflow-hidden group h-64">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-10 -mt-10 transition-transform duration-500 group-hover:scale-150"></div>
+                    
+                    <div class="absolute top-4 right-4">
+                        <span class="bg-white/30 px-2 py-1 rounded text-[10px] font-bold border border-white/40">ADMIN ONLY</span>
+                    </div>
+                    
+                    <div class="relative z-10 h-full flex flex-col justify-between">
+                        <div>
+                            <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-2xl mb-4 border border-white/30">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold mb-1">Admin Panel</h4>
+                            <p class="text-amber-100 text-sm">Kelola Sistem</p>
+                        </div>
+                        
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold border border-white/30">
+                                    <i class="fas fa-shield-alt mr-1"></i>
+                                    Full Access
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-amber-200">Manage Users & Products</span>
+                                <i class="fas fa-external-link-alt text-white/60 group-hover:text-white transition"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="mt-8 glass-panel rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-history text-emerald-500"></i>
+                    Aktivitas Terbaru
+                </h3>
+                <button onclick="refreshActivity()" class="text-sm text-emerald-600 hover:text-emerald-700 font-semibold flex items-center gap-1">
+                    <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
+                </button>
+            </div>
+            
+            <div id="activityList" class="space-y-3">
+                <div class="loading-skeleton h-16 w-full"></div>
+                <div class="loading-skeleton h-16 w-full"></div>
+                <div class="loading-skeleton h-16 w-full"></div>
+            </div>
+            
+            <div id="emptyActivity" class="hidden text-center py-8 text-gray-500">
+                <i class="fas fa-inbox text-4xl mb-3 opacity-30"></i>
+                <p class="text-sm">Belum ada aktivitas terbaru</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto px-6 py-6 text-center text-sm text-gray-500">
+        <p>&copy; 2026 Yayasan Hidayatullah Amin. All rights reserved.</p>
+        <p class="mt-1 text-xs">Integrated with Sagatama Mart | Pi Network Enabled</p>
+    </footer>
+
+    <script>
+        // ============================================
+        // CONFIGURATION & STATE
+        // ============================================
+        
+        const CONFIG = {
+            sagatamaUrl: 'https://sagatama-mart.vercel.app',
+            sekolahUrl: 'index.html', // Ganti dengan URL sekolah yang sebenarnya
+            ssoTokenExpiry: 24 * 60 * 60 * 1000, // 24 jam dalam ms
+            sessionCheckInterval: 5 * 60 * 1000 // Cek session tiap 5 menit
+        };
+
+        let currentUser = null;
+        let userRole = 'guest';
+        let activityData = [];
+        let sessionCheckTimer = null;
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initializePortal();
+            startSessionChecker();
+            setupEventListeners();
+        });
+
+        function initializePortal() {
+            // Cek autentikasi
+            if (!checkAuthentication()) {
+                redirectToLogin();
+                return;
+            }
+            
+            // Load data
+            updateUI();
+            loadSagatamaData();
+            loadActivityData();
+            
+            // Setup greeting berdasarkan waktu
+            updateGreeting();
+        }
+
+        function checkAuthentication() {
+            // Cek dari localStorage sistem sekolah (prioritas utama)
+            const sekolahUser = localStorage.getItem('hidayatullah_user');
+            const sagatamaUser = localStorage.getItem('sagatama_user');
+            
+            if (sekolahUser) {
+                try {
+                    const userData = JSON.parse(sekolahUser);
+                    
+                    // Validasi SSO token
+                    if (userData.ssoTimestamp && (Date.now() - userData.ssoTimestamp > CONFIG.ssoTokenExpiry)) {
+                        showToast('Sesi SSO telah expired. Silakan login ulang.', 'warning');
+                        clearAuthData();
+                        return false;
+                    }
+                    
+                    currentUser = {
+                        uid: userData.uid || generateUID(),
+                        username: userData.username || userData.fullName || 'user',
+                        fullName: userData.fullName || userData.username || 'User',
+                        email: userData.email || '',
+                        role: userData.role || 'wali',
+                        authType: userData.authType || 'sekolah',
+                        ssoTimestamp: Date.now()
+                    };
+                    
+                    userRole = currentUser.role;
+                    
+                    // Sync ke Sagatama jika belum ada
+                    if (!sagatamaUser) {
+                        syncToSagatama(currentUser);
+                    }
+                    
+                    return true;
+                    
+                } catch (e) {
+                    console.error('Auth parse error:', e);
+                    return false;
+                }
+            }
+            
+            // Jika ada data Sagatama tapi tidak ada data sekolah
+            if (sagatamaUser) {
+                try {
+                    const piUser = JSON.parse(sagatamaUser);
+                    
+                    currentUser = {
+                        uid: piUser.uid || generateUID(),
+                        username: piUser.username || 'pioneer',
+                        fullName: piUser.username || 'Pi Pioneer',
+                        email: piUser.email || '',
+                        role: mapPiRoleToSekolah(piUser.role),
+                        authType: 'pi',
+                        ssoTimestamp: Date.now()
+                    };
+                    
+                    userRole = currentUser.role;
+                    
+                    // Sync ke sistem sekolah
+                    localStorage.setItem('hidayatullah_user', JSON.stringify(currentUser));
+                    
+                    return true;
+                    
+                } catch (e) {
+                    console.error('Pi auth parse error:', e);
+                    return false;
+                }
+            }
+            
+            return false;
+        }
+
+        function generateUID() {
+            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function mapPiRoleToSekolah(piRole) {
+            const roleMap = {
+                'admin': 'admin',
+                'buyer': 'wali',
+                'seller': 'ustadz',
+                'guest': 'wali'
+            };
+            return roleMap[piRole] || 'wali';
+        }
+
+        function mapSekolahRoleToPi(sekolahRole) {
+            const roleMap = {
+                'admin': 'admin',
+                'wali': 'buyer',
+                'santri': 'buyer',
+                'ustadz': 'buyer'
+            };
+            return roleMap[sekolahRole] || 'buyer';
+        }
+
+        function syncToSagatama(userData) {
+            const sagatamaAuth = {
+                uid: userData.uid,
+                username: userData.username,
+                fullName: userData.fullName,
+                role: mapSekolahRoleToPi(userData.role),
+                authType: 'hidayatullah_sso',
+                sekolahRole: userData.role,
+                ssoTimestamp: Date.now(),
+                source: 'hidayatullah_portal'
+            };
+            
+            localStorage.setItem('sagatama_user', JSON.stringify(sagatamaAuth));
+            localStorage.setItem('sagatama_sso_source', 'hidayatullah');
+        }
+
+        // ============================================
+        // ADMIN QUICK ACTIONS
+        // ============================================
+        
+        function quickAction(action) {
+            const actions = {
+                'products': () => {
+                    const url = `${CONFIG.sagatamaUrl}/admin-products?sso=true&admin=true&t=${Date.now()}`;
+                    window.open(url, '_blank');
+                    showToast('Membuka manajemen produk...', 'success');
+                },
+                'orders': () => {
+                    const url = `${CONFIG.sagatamaUrl}/admin-orders?sso=true&admin=true&t=${Date.now()}`;
+                    window.open(url, '_blank');
+                    showToast('Membuka verifikasi pesanan...', 'success');
+                },
+                'analytics': () => {
+                    const url = `${CONFIG.sagatamaUrl}/admin-analytics?sso=true&admin=true&t=${Date.now()}`;
+                    window.open(url, '_blank');
+                    showToast('Membuka laporan analitik...', 'success');
+                }
+            };
+            
+            if (actions[action]) {
+                actions[action]();
+                logActivity({
+                    type: 'admin',
+                    title: `Admin: ${action}`,
+                    description: `Quick action - ${action}`,
+                    icon: 'fa-bolt',
+                    timestamp: Date.now()
+                });
+            }
+        }
+
+        // Update UI untuk admin
+        function updateUI() {
+            if (!currentUser) return;
+            
+            // ... kode updateUI yang sudah ada ...
+            
+            // Show admin quick actions jika admin
+            if (userRole === 'admin') {
+                document.getElementById('adminQuickActions').classList.remove('hidden');
+            }
+        }
+
+
+        // ============================================
+        // UI UPDATES
+        // ============================================
+        
+        function updateUI() {
+            if (!currentUser) return;
+            
+            // Update header
+            document.getElementById('headerUsername').textContent = currentUser.fullName || currentUser.username;
+            document.getElementById('welcomeName').textContent = (currentUser.fullName || currentUser.username) + '!';
+            
+            // Update menu
+            document.getElementById('menuUserName').textContent = currentUser.fullName || currentUser.username;
+            document.getElementById('menuUserEmail').textContent = currentUser.email || 'No email';
+            
+            // Update role badge
+            const badge = document.getElementById('headerRoleBadge');
+            const roleClasses = {
+                'wali': 'role-wali',
+                'santri': 'role-santri',
+                'ustadz': 'role-ustadz',
+                'admin': 'role-admin'
+            };
+            badge.className = `role-badge ${roleClasses[userRole] || 'role-wali'}`;
+            badge.innerHTML = `<i class="fas fa-user-check"></i>${userRole}`;
+            
+            // Update sekolah access badge
+            const accessText = {
+                'wali': 'Akses: Data Anak & Pembayaran',
+                'santri': 'Akses: Jadwal & Nilai',
+                'ustadz': 'Akses: Mengajar & Input Nilai',
+                'admin': 'Akses: Full Management'
+            };
+            document.getElementById('sekolahAccessBadge').textContent = accessText[userRole] || 'Akses Terbatas';
+            
+            // Show admin card if admin
+            if (userRole === 'admin') {
+                document.getElementById('adminCard').classList.remove('hidden');
+            }
+        }
+
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            let greeting = 'Selamat datang kembali,';
+            
+            if (hour < 11) greeting = 'Selamat pagi,';
+            else if (hour < 15) greeting = 'Selamat siang,';
+            else if (hour < 18) greeting = 'Selamat sore,';
+            else greeting = 'Selamat malam,';
+            
+            document.getElementById('greetingText').textContent = greeting;
+        }
+
+        // ============================================
+        // DATA LOADING
+        // ============================================
+        
+        function loadSagatamaData() {
+            // Ambil data cart dari Sagatama
+            const cart = JSON.parse(localStorage.getItem('sagatama_cart') || '[]');
+            const orders = JSON.parse(localStorage.getItem('sagatama_orders') || '[]');
+            const notifications = parseInt(localStorage.getItem('sagatama_notifications') || '0');
+            
+            // Update stats
+            const cartCount = cart.reduce((sum, item) => sum + (item.qty || 0), 0);
+            document.getElementById('statCart').textContent = cartCount;
+            document.getElementById('statOrders').textContent = orders.length;
+            document.getElementById('statNotif').textContent = notifications;
+            
+            // Show notification badge if any
+            if (notifications > 0) {
+                const badge = document.getElementById('notifBadge');
+                badge.textContent = notifications > 99 ? '99+' : notifications;
+                badge.classList.remove('hidden');
+            }
+            
+            // Pi balance (placeholder - Pi tidak expose balance ke frontend)
+            document.getElementById('statPi').textContent = 'π --';
+        }
+
+        function loadActivityData() {
+            // Simulasi load aktivitas (ganti dengan fetch dari backend jika ada)
+            const activities = JSON.parse(localStorage.getItem('hidayatullah_activity') || '[]');
+            
+            const container = document.getElementById('activityList');
+            const emptyState = document.getElementById('emptyActivity');
+            
+            if (activities.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            // Tampilkan 5 aktivitas terakhir
+            const recent = activities.slice(0, 5);
+            
+            container.innerHTML = recent.map(act => `
+                <div class="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:border-emerald-200 transition">
+                    <div class="w-10 h-10 ${act.type === 'sagatama' ? 'bg-purple-100 text-purple-600' : 'bg-emerald-100 text-emerald-600'} rounded-xl flex items-center justify-center">
+                        <i class="fas ${act.icon || 'fa-circle'}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-800">${act.title}</p>
+                        <p class="text-xs text-gray-500">${act.description}</p>
+                    </div>
+                    <span class="text-xs text-gray-400">${formatTime(act.timestamp)}</span>
+                </div>
+            `).join('');
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '-';
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000); // detik
+            
+            if (diff < 60) return 'Baru saja';
+            if (diff < 3600) return `${Math.floor(diff/60)} menit lalu`;
+            if (diff < 86400) return `${Math.floor(diff/3600)} jam lalu`;
+            return date.toLocaleDateString('id-ID');
+        }
+
+        // ============================================
+        // NAVIGATION FUNCTIONS
+        // ============================================
+        
+        function openSagatamaMart(event) {
+            createRipple(event);
+            
+            // Persiapkan SSO data
+            const ssoData = {
+                uid: currentUser.uid,
+                username: currentUser.username,
+                fullName: currentUser.fullName,
+                role: mapSekolahRoleToPi(userRole),
+                authType: 'hidayatullah_sso',
+                sekolahRole: userRole,
+                ssoTimestamp: Date.now(),
+                source: 'hidayatullah_portal'
+            };
+            
+            // Simpan ke localStorage Sagatama
+            localStorage.setItem('sagatama_user', JSON.stringify(ssoData));
+            localStorage.setItem('sagatama_sso_source', 'hidayatullah');
+            
+            // Log aktivitas
+            logActivity({
+                type: 'sagatama',
+                title: 'Akses Sagatama Mart',
+                description: 'Membuka marketplace via portal',
+                icon: 'fa-store',
+                timestamp: Date.now()
+            });
+            
+            showToast('Membuka Sagatama Mart...', 'success');
+            
+            // Buka dengan delay untuk efek ripple
+            setTimeout(() => {
+                const url = `${CONFIG.sagatamaUrl}?sso=true&source=hidayatullah&t=${Date.now()}`;
+                window.open(url, '_blank');
+            }, 300);
+        }
+
+        function openSekolah(event) {
+            createRipple(event);
+            
+            logActivity({
+                type: 'sekolah',
+                title: 'Akses Sistem Sekolah',
+                description: 'Kembali ke dashboard sekolah',
+                icon: 'fa-graduation-cap',
+                timestamp: Date.now()
+            });
+            
+            showToast('Membuka Sistem Sekolah...', 'success');
+            
+            setTimeout(() => {
+                window.location.href = CONFIG.sekolahUrl;
+            }, 300);
+        }
+
+        function openAdminPanel(event) {
+            createRipple(event);
+            
+            if (userRole !== 'admin') {
+                showToast('Akses ditolak! Hanya admin yang dapat mengakses.', 'error');
+                return;
+            }
+            
+            showToast('Membuka Admin Panel...', 'success');
+            
+            // Buka admin panel (bisa di tab baru atau embed)
+            setTimeout(() => {
+                window.open('admin-panel.html', '_blank');
+            }, 300);
+        }
+
+        function openProfile() {
+            showToast('Fitur profil sedang dikembangkan', 'info');
+            toggleUserMenu();
+        }
+
+        function openSettings() {
+            showToast('Fitur pengaturan sedang dikembangkan', 'info');
+            toggleUserMenu();
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        function createRipple(event) {
+            const card = event.currentTarget;
+            const rect = card.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            
+            card.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+        }
+
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function logActivity(activity) {
+            const activities = JSON.parse(localStorage.getItem('hidayatullah_activity') || '[]');
+            activities.unshift(activity);
+            
+            // Keep only last 20 activities
+            if (activities.length > 20) activities.pop();
+            
+            localStorage.setItem('hidayatullah_activity', JSON.stringify(activities));
+            
+            // Refresh display
+            loadActivityData();
+        }
+
+        function refreshActivity() {
+            const icon = document.getElementById('refreshIcon');
+            icon.classList.add('fa-spin');
+            
+            setTimeout(() => {
+                loadActivityData();
+                icon.classList.remove('fa-spin');
+                showToast('Aktivitas diperbarui', 'success');
+            }, 1000);
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: 'fa-check-circle text-green-500',
+                error: 'fa-exclamation-circle text-red-500',
+                warning: 'fa-exclamation-triangle text-amber-500',
+                info: 'fa-info-circle text-blue-500'
+            };
+            
+            toast.innerHTML = `
+                <i class="fas ${icons[type] || icons.info} text-xl"></i>
+                <div>
+                    <p class="font-semibold text-gray-800 text-sm">${message}</p>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function logout() {
+            if (!confirm('Apakah Anda yakin ingin logout?')) return;
+            
+            clearAuthData();
+            showToast('Anda telah logout. Sampai jumpa!', 'success');
+            
+            setTimeout(() => {
+                redirectToLogin();
+            }, 1500);
+        }
+
+        function clearAuthData() {
+            // Hapus semua data autentikasi
+            localStorage.removeItem('hidayatullah_user');
+            localStorage.removeItem('sagatama_user');
+            localStorage.removeItem('sagatama_sso_source');
+            // Cart dan orders tetap disimpan untuk histori
+            
+            currentUser = null;
+            userRole = 'guest';
+        }
+
+        function redirectToLogin() {
+            window.location.href = 'login.html';
+        }
+
+        function startSessionChecker() {
+            // Cek session setiap interval tertentu
+            sessionCheckTimer = setInterval(() => {
+                if (!checkAuthentication()) {
+                    showToast('Sesi Anda telah expired. Silakan login ulang.', 'warning');
+                    setTimeout(redirectToLogin, 2000);
+                }
+            }, CONFIG.sessionCheckInterval);
+        }
+
+        function setupEventListeners() {
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                const menu = document.getElementById('userMenu');
+                const toggle = e.target.closest('button[onclick="toggleUserMenu()"]');
+                
+                if (!toggle && !menu.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+            
+            // Handle visibility change (tab switching)
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    // Refresh data when user returns to tab
+                    loadSagatamaData();
+                }
+            });
+        }
+
+        // ============================================
+        // SECURITY FUNCTIONS
+        // ============================================
+        
+        function validateSSOSession() {
+            // Fungsi tambahan untuk validasi keamanan
+            const user = JSON.parse(localStorage.getItem('hidayatullah_user') || '{}');
+            
+            if (user.authType === 'hidayatullah_sso' && user.ssoTimestamp) {
+                const hoursDiff = (Date.now() - user.ssoTimestamp) / (1000 * 60 * 60);
+                if (hoursDiff > 24) {
+                    return false; // Expired
+                }
+            }
+            
+            return true;
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (sessionCheckTimer) {
+                clearInterval(sessionCheckTimer);
+            }
+        });
+    </script>
+</body>
+</html>
