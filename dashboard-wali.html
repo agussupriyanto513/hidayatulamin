@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Wali - Yayasan Hidayatul Amin</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Dashboard Wali Santri — Yayasan Hidayatul Amin</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -14,790 +11,1799 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Outfit + Noto Serif -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     
     <style>
-        * { font-family: 'Poppins', sans-serif; }
-        
-        .glass {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        :root {
+            --bg-deep:     #0b1120;
+            --bg-card:     rgba(255,255,255,0.05);
+            --bg-card-h:   rgba(255,255,255,0.09);
+            --border:      rgba(255,255,255,0.1);
+            --border-h:    rgba(99,233,190,0.4);
+            --emerald:     #3de8a0;
+            --teal:        #2bc9b0;
+            --blue:        #4da9ff;
+            --amber:       #ffc94d;
+            --rose:        #ff6b8a;
+            --purple:      #c084fc;
+            --text:        #e8f0fe;
+            --text-muted:  #7a8fb5;
+            --sidebar-w:   260px;
+            --header-h:    68px;
+            --radius:      14px;
         }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #1e3a5f 0%, #0f2027 50%, #203a43 100%);
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
-        
-        .card-hover {
-            transition: all 0.3s ease;
+
+        /* ── Background mesh ── */
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse 80% 60% at 10% 0%,   rgba(61,232,160,.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 90% 100%, rgba(77,169,255,.10) 0%, transparent 55%),
+                radial-gradient(ellipse 70% 80% at 50% 50%,  rgba(11,17,32,1)     0%, transparent 100%);
         }
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(99,233,190,.35); border-radius: 6px; }
+
+        /* ════════════════════════════════════
+           SIDEBAR
+        ════════════════════════════════════ */
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-w);
+            background: rgba(11,17,32,.92);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            z-index: 200;
+            transition: transform .35s cubic-bezier(.4,0,.2,1);
         }
-        
-        .loading-spinner {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top: 3px solid #10b981;
-            width: 40px;
-            height: 40px;
+        .sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
+
+        .sidebar-logo {
+            display: flex; align-items: center; gap: 12px;
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .logo-icon {
+            width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--emerald), var(--teal));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: var(--bg-deep);
+        }
+        .logo-text h1 { font-size: 15px; font-weight: 700; line-height: 1.2; }
+        .logo-text p  { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .sidebar-nav { flex: 1; padding: 14px 12px; overflow-y: auto; }
+        .nav-label {
+            font-size: 10px; font-weight: 600; letter-spacing: .12em;
+            color: var(--text-muted); text-transform: uppercase;
+            padding: 14px 10px 6px;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 14px; border-radius: 10px;
+            cursor: pointer; text-decoration: none; color: var(--text-muted);
+            font-size: 14px; font-weight: 500;
+            transition: all .2s;
+            position: relative;
+            border: 1px solid transparent;
+        }
+        .nav-item:hover {
+            background: var(--bg-card); color: var(--text);
+            border-color: var(--border);
+        }
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(61,232,160,.15), rgba(43,201,176,.08));
+            color: var(--emerald);
+            border-color: rgba(61,232,160,.25);
+        }
+        .nav-item.active .nav-icon { color: var(--emerald); }
+        .nav-icon { width: 18px; text-align: center; font-size: 15px; flex-shrink: 0; }
+        .nav-badge {
+            margin-left: auto; background: var(--rose);
+            color: #fff; font-size: 10px; font-weight: 700;
+            padding: 1px 7px; border-radius: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 14px 12px;
+            border-top: 1px solid var(--border);
+        }
+        .logout-btn {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 14px; border-radius: 10px;
+            cursor: pointer; color: #ff6b8a;
+            font-size: 14px; font-weight: 500;
+            background: transparent; border: 1px solid transparent;
+            width: 100%; transition: all .2s;
+        }
+        .logout-btn:hover { background: rgba(255,107,138,.12); border-color: rgba(255,107,138,.25); }
+
+        /* ════════════════════════════════════
+           MAIN LAYOUT
+        ════════════════════════════════════ */
+        .layout {
+            margin-left: var(--sidebar-w);
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            position: relative; z-index: 1;
+            transition: margin-left .35s cubic-bezier(.4,0,.2,1);
+        }
+        .layout.full-width { margin-left: 0; }
+
+        /* ── Header ── */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            height: var(--header-h);
+            background: rgba(11,17,32,.88);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center;
+            padding: 0 24px; gap: 16px;
+        }
+        .topbar-toggle {
+            width: 36px; height: 36px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--bg-card); border: 1px solid var(--border);
+            cursor: pointer; color: var(--text); font-size: 15px;
+            transition: all .2s; flex-shrink: 0;
+        }
+        .topbar-toggle:hover { background: var(--bg-card-h); }
+
+        .topbar-title {
+            font-size: 17px; font-weight: 700; flex: 1;
+        }
+
+        .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+        .notif-btn {
+            position: relative;
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--bg-card); border: 1px solid var(--border);
+            cursor: pointer; color: var(--text); font-size: 15px;
+            transition: all .2s;
+        }
+        .notif-btn:hover { background: var(--bg-card-h); }
+        .notif-dot {
+            position: absolute; top: 7px; right: 7px;
+            width: 8px; height: 8px; background: var(--rose);
+            border-radius: 50%; border: 2px solid var(--bg-deep);
+        }
+
+        .user-chip {
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 10px 6px 6px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 50px; cursor: pointer;
+            transition: all .2s;
+        }
+        .user-chip:hover { background: var(--bg-card-h); }
+        .user-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--emerald), var(--teal));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; color: var(--bg-deep);
+            flex-shrink: 0;
+        }
+        .user-info { line-height: 1.3; }
+        .user-info .name { font-size: 13px; font-weight: 600; white-space: nowrap; }
+        .user-info .role { font-size: 10px; color: var(--text-muted); }
+
+        /* ── Page content ── */
+        .page-content { flex: 1; padding: 28px 28px 40px; }
+
+        /* ════════════════════════════════════
+           SECTIONS
+        ════════════════════════════════════ */
+        .section { display: none; }
+        .section.active { display: block; animation: fadeUp .4s ease; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Page heading ── */
+        .page-heading { margin-bottom: 24px; }
+        .page-heading h2 {
+            font-size: 22px; font-weight: 800;
+            background: linear-gradient(135deg, #fff 40%, var(--emerald));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .page-heading p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+        /* ════════════════════════════════════
+           CARDS
+        ════════════════════════════════════ */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            transition: all .3s;
+        }
+        .card:hover { background: var(--bg-card-h); border-color: var(--border-h); }
+        .card-p { padding: 22px 24px; }
+
+        /* ── Stat cards ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px; margin-bottom: 28px;
+        }
+        .stat-card { padding: 22px 24px; }
+        .stat-top {
+            display: flex; align-items: flex-start;
+            justify-content: space-between; margin-bottom: 14px;
+        }
+        .stat-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; text-align: right; }
+        .stat-value { font-size: 30px; font-weight: 800; line-height: 1; }
+        .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+        .stat-trend { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 12px; }
+        .trend-up   { color: var(--emerald); }
+        .trend-down { color: var(--rose); }
+
+        /* ── Welcome banner ── */
+        .welcome-banner {
+            background: linear-gradient(135deg, rgba(61,232,160,.12) 0%, rgba(77,169,255,.08) 100%);
+            border: 1px solid rgba(61,232,160,.2);
+            border-radius: var(--radius);
+            padding: 28px 30px;
+            margin-bottom: 28px;
+            position: relative; overflow: hidden;
+        }
+        .welcome-banner::after {
+            content: '\f549';
+            font-family: 'Font Awesome 6 Free'; font-weight: 900;
+            position: absolute; right: 24px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px; color: rgba(61,232,160,.08);
+            pointer-events: none;
+        }
+        .welcome-greeting {
+            font-size: 24px; font-weight: 800; margin-bottom: 4px;
+        }
+        .welcome-greeting span { color: var(--emerald); }
+        .welcome-sub { font-size: 14px; color: var(--text-muted); }
+        .welcome-meta { margin-top: 14px; display: flex; gap: 18px; flex-wrap: wrap; }
+        .meta-chip {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 13px; color: var(--text-muted);
+            background: var(--bg-card); border: 1px solid var(--border);
+            padding: 5px 12px; border-radius: 20px;
+        }
+        .meta-chip i { color: var(--emerald); font-size: 12px; }
+
+        /* ── Table ── */
+        .table-wrap { overflow-x: auto; border-radius: var(--radius); }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            text-align: left; font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .08em;
+            color: var(--text-muted); padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        td {
+            padding: 14px 16px; font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,.04);
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,.025); }
+
+        /* ── Badges ── */
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 600;
+        }
+        .badge-green  { background: rgba(61,232,160,.15); color: var(--emerald); }
+        .badge-red    { background: rgba(255,107,138,.15); color: var(--rose); }
+        .badge-blue   { background: rgba(77,169,255,.15);  color: var(--blue); }
+        .badge-amber  { background: rgba(255,201,77,.15);  color: var(--amber); }
+        .badge-purple { background: rgba(192,132,252,.15); color: var(--purple); }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 9px 18px; border-radius: 9px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all .2s;
+            border: 1px solid transparent; white-space: nowrap;
+            font-family: 'Outfit', sans-serif;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--emerald), var(--teal));
+            color: var(--bg-deep);
+        }
+        .btn-primary:hover { opacity: .88; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(61,232,160,.3); }
+        .btn-ghost {
+            background: var(--bg-card); color: var(--text);
+            border-color: var(--border);
+        }
+        .btn-ghost:hover { background: var(--bg-card-h); }
+        .btn-danger { background: rgba(255,107,138,.15); color: var(--rose); border-color: rgba(255,107,138,.25); }
+        .btn-danger:hover { background: rgba(255,107,138,.25); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        /* ── Section header ── */
+        .sec-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+        }
+        .sec-header h3 { font-size: 18px; font-weight: 700; }
+
+        /* ── Search bar ── */
+        .search-bar {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .search-input-wrap {
+            position: relative;
+        }
+        .search-input-wrap i {
+            position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%); color: var(--text-muted); font-size: 13px;
+        }
+        .search-input {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 9px; padding: 9px 14px 9px 36px;
+            color: var(--text); font-size: 13px; font-family: 'Outfit', sans-serif;
+            width: 220px; transition: all .2s;
+        }
+        .search-input:focus {
+            outline: none; border-color: var(--emerald);
+            background: var(--bg-card-h);
+        }
+        .search-input::placeholder { color: var(--text-muted); }
+
+        /* ── Santri card ── */
+        .santri-card {
+            display: flex; align-items: center; gap: 16px;
+            padding: 18px 20px; border-radius: var(--radius);
+            background: var(--bg-card); border: 1px solid var(--border);
+            transition: all .25s; margin-bottom: 12px; cursor: pointer;
+        }
+        .santri-card:hover { background: var(--bg-card-h); border-color: var(--border-h); transform: translateX(4px); }
+        .santri-avatar {
+            width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--emerald), var(--teal));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 800; color: var(--bg-deep);
+        }
+        .santri-info { flex: 1; min-width: 0; }
+        .santri-info h4 { font-size: 15px; font-weight: 700; }
+        .santri-info p  { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+        .santri-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+        .santri-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+        /* ── Payment items ── */
+        .payment-item {
+            display: flex; align-items: center; gap: 16px;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,.04);
+        }
+        .payment-item:last-child { border-bottom: none; }
+        .payment-icon {
+            width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px;
+        }
+        .payment-info { flex: 1; }
+        .payment-info h4 { font-size: 14px; font-weight: 600; }
+        .payment-info p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .payment-amount { font-size: 15px; font-weight: 700; text-align: right; }
+        .payment-amount small { display: block; font-size: 11px; color: var(--text-muted); font-weight: 400; }
+
+        /* ── Raport ── */
+        .raport-subject {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255,255,255,.04);
+        }
+        .raport-subject:last-child { border-bottom: none; }
+        .subject-icon {
+            width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+        .subject-name { flex: 1; font-size: 14px; font-weight: 500; }
+        .subject-grade {
+            font-size: 18px; font-weight: 800;
+            width: 50px; text-align: center;
+        }
+        .grade-bar-wrap { width: 80px; background: rgba(255,255,255,.07); height: 6px; border-radius: 3px; }
+        .grade-bar { height: 6px; border-radius: 3px; }
+
+        /* ── Calendar ── */
+        .calendar-grid {
+            display: grid; grid-template-columns: repeat(7,1fr); gap: 4px;
+        }
+        .cal-header-cell {
+            text-align: center; font-size: 11px; font-weight: 600;
+            color: var(--text-muted); padding: 8px 4px;
+        }
+        .cal-day {
+            aspect-ratio: 1; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; cursor: pointer; transition: all .2s;
+            position: relative;
+        }
+        .cal-day:hover { background: var(--bg-card-h); }
+        .cal-day.today {
+            background: linear-gradient(135deg, var(--emerald), var(--teal));
+            color: var(--bg-deep); font-weight: 800;
+        }
+        .cal-day.has-event::after {
+            content: ''; position: absolute; bottom: 4px;
+            left: 50%; transform: translateX(-50%);
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--amber);
+        }
+        .cal-day.other-month { color: var(--text-muted); opacity: .4; }
+        .event-list-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255,255,255,.04);
+        }
+        .event-list-item:last-child { border-bottom: none; }
+        .event-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+        .event-info h4 { font-size: 14px; font-weight: 600; }
+        .event-info p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        /* ── Pengumuman ── */
+        .announcement-card {
+            padding: 20px 22px; border-radius: var(--radius);
+            background: var(--bg-card); border: 1px solid var(--border);
+            margin-bottom: 14px; transition: all .25s;
+        }
+        .announcement-card:hover { background: var(--bg-card-h); border-color: var(--border-h); }
+        .ann-head {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 12px; margin-bottom: 10px;
+        }
+        .ann-head h4 { font-size: 15px; font-weight: 700; }
+        .ann-body { font-size: 13.5px; color: var(--text-muted); line-height: 1.7; }
+        .ann-foot {
+            display: flex; align-items: center; gap: 14px;
+            margin-top: 14px; font-size: 12px; color: var(--text-muted);
+        }
+        .ann-foot i { font-size: 11px; }
+
+        /* ── Quick actions ── */
+        .quick-actions {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px; margin-top: 28px;
+        }
+        .qa-card {
+            padding: 22px 20px; border-radius: var(--radius);
+            cursor: pointer; text-align: left; transition: all .25s;
+        }
+        .qa-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.3); }
+        .qa-icon {
+            width: 46px; height: 46px; border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 19px; margin-bottom: 14px;
+        }
+        .qa-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 5px; }
+        .qa-card p  { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+        /* ── Modal overlay ── */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 400;
+            background: rgba(0,0,0,.7); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; opacity: 0; pointer-events: none;
+            transition: opacity .25s;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal {
+            background: #111d30; border: 1px solid var(--border);
+            border-radius: 18px; width: 100%; max-width: 540px;
+            transform: scale(.92); transition: transform .25s;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-overlay.open .modal { transform: scale(1); }
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 22px 24px 18px; border-bottom: 1px solid var(--border);
+        }
+        .modal-header h3 { font-size: 17px; font-weight: 700; }
+        .modal-close {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--bg-card); border: 1px solid var(--border);
+            cursor: pointer; color: var(--text-muted); transition: all .2s;
+        }
+        .modal-close:hover { background: var(--bg-card-h); color: var(--text); }
+        .modal-body { padding: 22px 24px; }
+
+        /* ── Profile detail ── */
+        .detail-row {
+            display: flex; gap: 12px; margin-bottom: 14px;
+        }
+        .detail-row label {
+            width: 140px; flex-shrink: 0;
+            font-size: 12px; font-weight: 600; color: var(--text-muted);
+            padding-top: 2px;
+        }
+        .detail-row span { font-size: 14px; }
+
+        /* ── Loading & Toast ── */
+        .loading-overlay {
+            position: fixed; inset: 0; z-index: 500;
+            background: var(--bg-deep);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 16px;
+            transition: opacity .4s;
+        }
+        .loading-overlay.hide { opacity: 0; pointer-events: none; }
+        .spinner {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 3px solid rgba(61,232,160,.2);
+            border-top-color: var(--emerald);
             animation: spin 1s linear infinite;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 600;
+            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
         }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .sidebar-item {
-            transition: all 0.3s ease;
-        }
-        .sidebar-item:hover {
-            background: rgba(16, 185, 129, 0.2);
-            border-left: 4px solid #10b981;
-        }
-        .sidebar-item.active {
-            background: rgba(16, 185, 129, 0.3);
-            border-left: 4px solid #10b981;
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f2027;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #10b981;
-            border-radius: 4px;
-        }
-        
         .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 16px 24px;
-            border-radius: 12px;
-            color: white;
-            font-weight: 500;
-            z-index: 9999;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+            display: flex; align-items: center; gap: 10px;
+            padding: 13px 18px; border-radius: 12px; color: #fff;
+            font-size: 13px; font-weight: 500;
+            backdrop-filter: blur(12px);
+            transform: translateX(120%);
+            transition: transform .35s cubic-bezier(.4,0,.2,1);
+            pointer-events: all; box-shadow: 0 8px 30px rgba(0,0,0,.4);
+            max-width: 340px;
         }
-        .toast.show {
-            transform: translateX(0);
+        .toast.show { transform: translateX(0); }
+        .toast-success { background: linear-gradient(135deg,rgba(61,232,160,.9),rgba(43,201,176,.9)); color: var(--bg-deep); }
+        .toast-error   { background: linear-gradient(135deg,rgba(255,107,138,.9),rgba(220,38,38,.9)); }
+        .toast-info    { background: linear-gradient(135deg,rgba(77,169,255,.9),rgba(37,99,235,.9)); }
+        .toast-warning { background: linear-gradient(135deg,rgba(255,201,77,.9),rgba(217,119,6,.9)); color: var(--bg-deep); }
+
+        /* ── Auth denied ── */
+        .auth-overlay {
+            position: fixed; inset: 0; z-index: 500;
+            background: var(--bg-deep);
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column; gap: 16px; text-align: center; padding: 24px;
         }
-        .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
-        .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
-        .toast.info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .auth-overlay.show { display: flex; }
+
+        /* ── Divider ── */
+        .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+        /* ── Grid helpers ── */
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+
+        /* ── Mobile sidebar backdrop ── */
+        .sidebar-backdrop {
+            position: fixed; inset: 0; z-index: 199;
+            background: rgba(0,0,0,.6);
+            display: none;
+        }
+        .sidebar-backdrop.show { display: block; }
+
+        /* ════════════════════════════════════
+           RESPONSIVE
+        ════════════════════════════════════ */
+        @media (max-width: 860px) {
+            .sidebar { transform: translateX(calc(-1 * var(--sidebar-w))); }
+            .sidebar.open { transform: translateX(0); }
+            .layout { margin-left: 0 !important; }
+            .page-content { padding: 20px 16px 36px; }
+            .welcome-banner::after { display: none; }
+            .search-input { width: 160px; }
+            .user-info { display: none; }
+        }
+        @media (max-width: 520px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .quick-actions { grid-template-columns: 1fr 1fr; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
-<body class="gradient-bg min-h-screen text-white">
-    
-    <!-- Toast Notification -->
-    <div id="toast" class="toast"></div>
-    
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div class="text-center">
-            <div class="loading-spinner mx-auto mb-4"></div>
-            <p class="text-lg">Memuat Dashboard...</p>
+<body>
+
+<!-- ══════════════════════════════════════
+     LOADING
+══════════════════════════════════════ -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p style="font-size:14px;color:var(--text-muted)">Memuat Dashboard...</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     AUTH DENIED
+══════════════════════════════════════ -->
+<div class="auth-overlay" id="authOverlay">
+    <div style="width:72px;height:72px;border-radius:20px;background:rgba(255,107,138,.15);border:1px solid rgba(255,107,138,.3);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--rose)">
+        <i class="fas fa-lock"></i>
+    </div>
+    <h2 style="font-size:22px;font-weight:800">Akses Ditolak</h2>
+    <p style="color:var(--text-muted);font-size:14px;max-width:320px">Anda tidak memiliki izin untuk mengakses halaman ini. Silakan login terlebih dahulu.</p>
+    <button class="btn btn-primary" onclick="window.location.href='login.html'">
+        <i class="fas fa-sign-in-alt"></i> Kembali ke Login
+    </button>
+</div>
+
+<!-- ══════════════════════════════════════
+     TOAST
+══════════════════════════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ══════════════════════════════════════
+     SIDEBAR BACKDROP (mobile)
+══════════════════════════════════════ -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+<!-- ══════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon"><i class="fas fa-mosque"></i></div>
+        <div class="logo-text">
+            <h1>Yayasan</h1>
+            <p>Hidayatul Amin</p>
         </div>
     </div>
-    
-    <!-- Auth Check Overlay -->
-    <div id="authOverlay" class="fixed inset-0 bg-gradient-to-br from-gray-900 to-black z-50 flex items-center justify-center hidden">
-        <div class="text-center p-8">
-            <i class="fas fa-lock text-6xl text-red-500 mb-4"></i>
-            <h2 class="text-2xl font-bold mb-2">Akses Ditolak</h2>
-            <p class="text-gray-400 mb-6">Anda tidak memiliki izin untuk mengakses halaman ini</p>
-            <button onclick="window.location.href='login.html'" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg hover:shadow-lg transition-all">
-                Kembali ke Login
+
+    <nav class="sidebar-nav">
+        <div class="nav-label">Menu Utama</div>
+        <a class="nav-item active" data-section="dashboard" onclick="showSection('dashboard',this)">
+            <i class="nav-icon fas fa-th-large"></i> Dashboard
+        </a>
+        <a class="nav-item" data-section="santri" onclick="showSection('santri',this)">
+            <i class="nav-icon fas fa-user-graduate"></i> Data Santri
+        </a>
+        <a class="nav-item" data-section="pembayaran" onclick="showSection('pembayaran',this)">
+            <i class="nav-icon fas fa-wallet"></i> Pembayaran
+        </a>
+        <a class="nav-item" data-section="raport" onclick="showSection('raport',this)">
+            <i class="nav-icon fas fa-chart-bar"></i> Raport Nilai
+        </a>
+
+        <div class="nav-label">Informasi</div>
+        <a class="nav-item" data-section="kalender" onclick="showSection('kalender',this)">
+            <i class="nav-icon fas fa-calendar-alt"></i> Kalender Akademik
+        </a>
+        <a class="nav-item" data-section="pengumuman" onclick="showSection('pengumuman',this)">
+            <i class="nav-icon fas fa-bullhorn"></i> Pengumuman
+            <span class="nav-badge">3</span>
+        </a>
+
+        <div class="nav-label">Akun</div>
+        <a class="nav-item" data-section="profil" onclick="showSection('profil',this)">
+            <i class="nav-icon fas fa-user-circle"></i> Profil Saya
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt" style="width:18px;text-align:center"></i> Logout
+        </button>
+    </div>
+</aside>
+
+<!-- ══════════════════════════════════════
+     MAIN LAYOUT
+══════════════════════════════════════ -->
+<div class="layout" id="layout">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <button class="topbar-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <span class="topbar-title" id="topbarTitle">Dashboard</span>
+
+        <div class="topbar-actions">
+            <div class="notif-btn" onclick="showSection('pengumuman', document.querySelector('[data-section=pengumuman]'))">
+                <i class="fas fa-bell"></i>
+                <span class="notif-dot"></span>
+            </div>
+            <div class="user-chip" onclick="showSection('profil', document.querySelector('[data-section=profil]'))">
+                <div class="user-avatar" id="topUserAvatar">W</div>
+                <div class="user-info">
+                    <div class="name" id="topUserName">Memuat...</div>
+                    <div class="role">Wali Santri</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+
+        <!-- ══════════════════
+             SECTION: DASHBOARD
+        ══════════════════ -->
+        <div class="section active" id="sec-dashboard">
+            <!-- Welcome -->
+            <div class="welcome-banner">
+                <div class="welcome-greeting">
+                    Assalamu'alaikum, <span id="welcomeName">Wali Santri</span>!
+                </div>
+                <div class="welcome-sub">Selamat datang di portal monitoring santri Yayasan Hidayatul Amin</div>
+                <div class="welcome-meta">
+                    <div class="meta-chip"><i class="fas fa-calendar-day"></i> <span id="currentDate">-</span></div>
+                    <div class="meta-chip"><i class="fas fa-clock"></i> <span id="currentTime">-</span></div>
+                    <div class="meta-chip"><i class="fas fa-wifi"></i> <span id="connectionStatus">Online</span></div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="card stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon" style="background:rgba(77,169,255,.15)"><i class="fas fa-user-graduate" style="color:var(--blue)"></i></div>
+                        <span class="stat-label">Total Santri</span>
+                    </div>
+                    <div class="stat-value" id="statTotalSantri">–</div>
+                    <div class="stat-sub">Dalam pengawasan Anda</div>
+                    <div class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> Semua aktif</div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon" style="background:rgba(61,232,160,.15)"><i class="fas fa-check-circle" style="color:var(--emerald)"></i></div>
+                        <span class="stat-label">Status Pembayaran</span>
+                    </div>
+                    <div class="stat-value" id="statPembayaran" style="font-size:22px;margin-top:4px">–</div>
+                    <div class="stat-sub">Bulan ini</div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon" style="background:rgba(255,201,77,.15)"><i class="fas fa-star" style="color:var(--amber)"></i></div>
+                        <span class="stat-label">Rata-rata Nilai</span>
+                    </div>
+                    <div class="stat-value" id="statNilai">–</div>
+                    <div class="stat-sub">Semester ini</div>
+                    <div class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> Meningkat</div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon" style="background:rgba(192,132,252,.15)"><i class="fas fa-calendar-check" style="color:var(--purple)"></i></div>
+                        <span class="stat-label">Kehadiran</span>
+                    </div>
+                    <div class="stat-value" id="statKehadiran">–</div>
+                    <div class="stat-sub">Rata-rata hadir</div>
+                    <div class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> Sangat baik</div>
+                </div>
+            </div>
+
+            <!-- Santri cards preview -->
+            <div class="grid-2">
+                <div class="card card-p">
+                    <div class="sec-header">
+                        <h3>Santri Saya</h3>
+                        <button class="btn btn-ghost btn-sm" onclick="showSection('santri', document.querySelector('[data-section=santri]'))">
+                            Lihat Semua <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div id="dashSantriList">
+                        <div style="text-align:center;padding:24px;color:var(--text-muted)">
+                            <i class="fas fa-spinner fa-spin" style="font-size:20px"></i>
+                            <p style="margin-top:10px;font-size:13px">Memuat data...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-p">
+                    <div class="sec-header">
+                        <h3>Pengumuman Terbaru</h3>
+                        <button class="btn btn-ghost btn-sm" onclick="showSection('pengumuman', document.querySelector('[data-section=pengumuman]'))">
+                            Semua <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div id="dashPengumuman"></div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="card qa-card" onclick="showSection('pembayaran', document.querySelector('[data-section=pembayaran]'))">
+                    <div class="qa-icon" style="background:rgba(61,232,160,.15)"><i class="fas fa-wallet" style="color:var(--emerald)"></i></div>
+                    <h4>Cek Pembayaran</h4>
+                    <p>Lihat status & riwayat pembayaran SPP</p>
+                </div>
+                <div class="card qa-card" onclick="showSection('raport', document.querySelector('[data-section=raport]'))">
+                    <div class="qa-icon" style="background:rgba(77,169,255,.15)"><i class="fas fa-chart-bar" style="color:var(--blue)"></i></div>
+                    <h4>Lihat Raport</h4>
+                    <p>Pantau perkembangan nilai santri</p>
+                </div>
+                <div class="card qa-card" onclick="contactAdmin()">
+                    <div class="qa-icon" style="background:rgba(255,201,77,.15)"><i class="fas fa-headset" style="color:var(--amber)"></i></div>
+                    <h4>Hubungi Admin</h4>
+                    <p>Chat langsung dengan pihak yayasan</p>
+                </div>
+                <div class="card qa-card" onclick="showSection('kalender', document.querySelector('[data-section=kalender]'))">
+                    <div class="qa-icon" style="background:rgba(192,132,252,.15)"><i class="fas fa-calendar-alt" style="color:var(--purple)"></i></div>
+                    <h4>Kalender Akademik</h4>
+                    <p>Jadwal kegiatan dan libur pesantren</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════
+             SECTION: DATA SANTRI
+        ══════════════════ -->
+        <div class="section" id="sec-santri">
+            <div class="page-heading">
+                <h2>Data Santri</h2>
+                <p>Informasi lengkap santri yang berada di bawah pengawasan Anda</p>
+            </div>
+
+            <div class="card card-p" style="margin-bottom:20px">
+                <div class="sec-header">
+                    <div class="search-bar">
+                        <div class="search-input-wrap">
+                            <i class="fas fa-search"></i>
+                            <input class="search-input" type="text" placeholder="Cari nama / NIS..." id="searchSantri" oninput="filterSantri()">
+                        </div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div id="santriListFull"></div>
+            </div>
+        </div>
+
+        <!-- ══════════════════
+             SECTION: PEMBAYARAN
+        ══════════════════ -->
+        <div class="section" id="sec-pembayaran">
+            <div class="page-heading">
+                <h2>Pembayaran</h2>
+                <p>Riwayat dan status pembayaran SPP, uang asrama, dan biaya lainnya</p>
+            </div>
+
+            <!-- Summary -->
+            <div class="grid-3" style="margin-bottom:24px">
+                <div class="card stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon" style="background:rgba(61,232,160,.15)"><i class="fas fa-check-circle" style="color:var(--emerald)"></i></div>
+                        <span class="stat-label">Lunas</span>
+                    </div>
+                    <div class="stat-value" id="payLunas">8</div>
+                    <div class="stat-sub">bulan pembayaran</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon" style="background:rgba(255,201,77,.15)"><i class="fas fa-clock" style="color:var(--amber)"></i></div>
+                        <span class="stat-label">Menunggu</span>
+                    </div>
+                    <div class="stat-value" id="payPending">1</div>
+                    <div class="stat-sub">bulan belum dibayar</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon" style="background:rgba(77,169,255,.15)"><i class="fas fa-money-bill-wave" style="color:var(--blue)"></i></div>
+                        <span class="stat-label">Total Dibayar</span>
+                    </div>
+                    <div class="stat-value" style="font-size:20px">Rp 6,4 Jt</div>
+                    <div class="stat-sub">Tahun ajaran ini</div>
+                </div>
+            </div>
+
+            <div class="card card-p">
+                <div class="sec-header">
+                    <h3>Riwayat Pembayaran</h3>
+                    <button class="btn btn-ghost btn-sm" onclick="downloadRaport()">
+                        <i class="fas fa-download"></i> Unduh PDF
+                    </button>
+                </div>
+                <div class="table-wrap">
+                    <table id="paymentTable">
+                        <thead>
+                            <tr>
+                                <th>Keterangan</th>
+                                <th>Santri</th>
+                                <th>Nominal</th>
+                                <th>Tanggal</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════
+             SECTION: RAPORT
+        ══════════════════ -->
+        <div class="section" id="sec-raport">
+            <div class="page-heading">
+                <h2>Raport Nilai</h2>
+                <p>Hasil belajar santri per mata pelajaran dan semester</p>
+            </div>
+
+            <div class="grid-2">
+                <!-- Nilai per mapel -->
+                <div class="card card-p">
+                    <div class="sec-header">
+                        <h3>Nilai Semester Ini</h3>
+                        <select id="semesterSelect" class="search-input" style="width:auto;padding:7px 12px" onchange="renderRaport()">
+                            <option value="1">Semester 1 — 2024/2025</option>
+                            <option value="2" selected>Semester 2 — 2024/2025</option>
+                        </select>
+                    </div>
+                    <div id="raportSubjects"></div>
+                </div>
+
+                <!-- Ringkasan -->
+                <div>
+                    <div class="card card-p" style="margin-bottom:20px">
+                        <h3 style="margin-bottom:16px">Ringkasan Akademik</h3>
+                        <div class="grid-2" style="gap:12px">
+                            <div style="background:rgba(61,232,160,.07);border:1px solid rgba(61,232,160,.2);border-radius:12px;padding:16px">
+                                <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Rata-rata Nilai</div>
+                                <div style="font-size:28px;font-weight:800;color:var(--emerald);margin-top:6px" id="avgNilai">85.4</div>
+                            </div>
+                            <div style="background:rgba(77,169,255,.07);border:1px solid rgba(77,169,255,.2);border-radius:12px;padding:16px">
+                                <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Peringkat Kelas</div>
+                                <div style="font-size:28px;font-weight:800;color:var(--blue);margin-top:6px">5</div>
+                            </div>
+                            <div style="background:rgba(255,201,77,.07);border:1px solid rgba(255,201,77,.2);border-radius:12px;padding:16px">
+                                <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Mapel Terbaik</div>
+                                <div style="font-size:16px;font-weight:700;color:var(--amber);margin-top:6px">Tahfidz</div>
+                            </div>
+                            <div style="background:rgba(192,132,252,.07);border:1px solid rgba(192,132,252,.2);border-radius:12px;padding:16px">
+                                <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Kehadiran</div>
+                                <div style="font-size:28px;font-weight:800;color:var(--purple);margin-top:6px">95%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card card-p">
+                        <h3 style="margin-bottom:16px">Catatan Wali Kelas</h3>
+                        <div style="background:rgba(255,201,77,.07);border:1px solid rgba(255,201,77,.15);border-radius:12px;padding:16px">
+                            <p style="font-size:13.5px;color:var(--text-muted);line-height:1.8;font-family:'Noto Serif',serif;font-style:italic">
+                                "Santri menunjukkan perkembangan yang sangat baik terutama dalam hafalan Al-Qur'an. Disiplin dan aktif dalam kegiatan pondok. Diharapkan terus meningkatkan pemahaman matematika dan sains."
+                            </p>
+                            <p style="font-size:12px;color:var(--text-muted);margin-top:10px">— Ustadz Ahmad Fauzi, Wali Kelas VII-B</p>
+                        </div>
+                        <div style="margin-top:16px;display:flex;gap:10px">
+                            <button class="btn btn-primary" onclick="downloadRaport()">
+                                <i class="fas fa-download"></i> Download Raport PDF
+                            </button>
+                            <button class="btn btn-ghost" onclick="contactAdmin()">
+                                <i class="fas fa-comment"></i> Konsultasi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════
+             SECTION: KALENDER
+        ══════════════════ -->
+        <div class="section" id="sec-kalender">
+            <div class="page-heading">
+                <h2>Kalender Akademik</h2>
+                <p>Jadwal kegiatan, libur, dan agenda penting pesantren</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card card-p">
+                    <div class="sec-header">
+                        <h3 id="calMonthLabel">April 2025</h3>
+                        <div style="display:flex;gap:8px">
+                            <button class="btn btn-ghost btn-sm" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                            <button class="btn btn-ghost btn-sm" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+
+                <div class="card card-p">
+                    <h3 style="margin-bottom:18px">Agenda Mendatang</h3>
+                    <div id="eventList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════
+             SECTION: PENGUMUMAN
+        ══════════════════ -->
+        <div class="section" id="sec-pengumuman">
+            <div class="page-heading">
+                <h2>Pengumuman</h2>
+                <p>Informasi dan pengumuman resmi dari pihak yayasan</p>
+            </div>
+
+            <div class="sec-header" style="margin-bottom:20px">
+                <div class="search-bar">
+                    <div class="search-input-wrap">
+                        <i class="fas fa-search"></i>
+                        <input class="search-input" type="text" placeholder="Cari pengumuman..." id="searchAnn" oninput="filterAnn()">
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-ghost btn-sm ann-filter active" data-cat="all" onclick="setAnnFilter('all',this)">Semua</button>
+                    <button class="btn btn-ghost btn-sm ann-filter" data-cat="penting" onclick="setAnnFilter('penting',this)">Penting</button>
+                    <button class="btn btn-ghost btn-sm ann-filter" data-cat="kegiatan" onclick="setAnnFilter('kegiatan',this)">Kegiatan</button>
+                </div>
+            </div>
+
+            <div id="pengumumanList"></div>
+        </div>
+
+        <!-- ══════════════════
+             SECTION: PROFIL
+        ══════════════════ -->
+        <div class="section" id="sec-profil">
+            <div class="page-heading">
+                <h2>Profil Saya</h2>
+                <p>Informasi data diri dan akun Anda</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card card-p">
+                    <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px">
+                        <div id="profileAvatar" style="width:70px;height:70px;border-radius:20px;background:linear-gradient(135deg,var(--emerald),var(--teal));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:var(--bg-deep);flex-shrink:0">W</div>
+                        <div>
+                            <h3 id="profileName" style="font-size:20px;font-weight:800">Wali Santri</h3>
+                            <p id="profileEmail" style="font-size:13px;color:var(--text-muted);margin-top:4px">—</p>
+                            <span class="badge badge-green" style="margin-top:8px"><i class="fas fa-circle" style="font-size:7px"></i> Akun Aktif</span>
+                        </div>
+                    </div>
+                    <hr class="divider">
+                    <div id="profilDetail"></div>
+                    <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+                        <button class="btn btn-ghost" onclick="showToast('Hubungi admin untuk mengubah data profil','info')">
+                            <i class="fas fa-pen"></i> Edit Profil
+                        </button>
+                        <button class="btn btn-ghost" onclick="showToast('Tautan reset password dikirim ke email','success')">
+                            <i class="fas fa-lock"></i> Ganti Password
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card card-p" style="margin-bottom:20px">
+                        <h3 style="margin-bottom:16px">Santri Terdaftar</h3>
+                        <div id="profilSantri"></div>
+                    </div>
+                    <div class="card card-p">
+                        <h3 style="margin-bottom:16px">Keamanan Akun</h3>
+                        <div style="display:flex;flex-direction:column;gap:12px">
+                            <div style="display:flex;align-items:center;justify-content:space-between">
+                                <div style="font-size:13px">Verifikasi Email</div>
+                                <span class="badge badge-green"><i class="fas fa-check"></i> Terverifikasi</span>
+                            </div>
+                            <div style="display:flex;align-items:center;justify-content:space-between">
+                                <div style="font-size:13px">Login Terakhir</div>
+                                <div style="font-size:12px;color:var(--text-muted)" id="lastLogin">–</div>
+                            </div>
+                            <div style="display:flex;align-items:center;justify-content:space-between">
+                                <div style="font-size:13px">Status Akun</div>
+                                <span class="badge badge-green">Aktif</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page-content -->
+</div><!-- /layout -->
+
+<!-- ══════════════════════════════════════
+     MODAL: Santri Detail
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modalSantri" onclick="if(event.target===this)closeModal('modalSantri')">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Detail Santri</h3>
+            <div class="modal-close" onclick="closeModal('modalSantri')"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="modal-body" id="modalSantriBody"></div>
+    </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   FIREBASE CONFIG
+════════════════════════════════════════ */
+const firebaseConfig = {
+    apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+    authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+    projectId: "hidayatulamin-e6f22",
+    storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+    messagingSenderId: "80743607267",
+    appId: "1:80743607267:web:f5f94165de021759958ed6"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+let currentUser  = null;
+let userData     = null;
+let santriData   = [];
+let currentMonth, currentYear;
+let annFilter    = 'all';
+
+/* ── DEMO DATA (used when Firebase is unavailable) ── */
+const DEMO_USER = {
+    nama: 'Bapak Ahmad Fauzan',
+    email: 'ahmad.fauzan@email.com',
+    phone: '0812-3456-7890',
+    alamat: 'Jl. Raya No. 12, Surabaya',
+    role: 'wali',
+    santriIds: ['demo1','demo2']
+};
+
+const DEMO_SANTRI = [
+    {
+        id: 'demo1', nama: 'Muhammad Fauzi', nis: '2024001',
+        kelas: 'VII-B', asrama: 'Al-Fatih',
+        status: 'Aktif', jenis_kelamin: 'Laki-laki',
+        tanggal_masuk: '15 Juli 2024', nilaiRata: 86
+    },
+    {
+        id: 'demo2', nama: 'Aisyah Nur Fadhilah', nis: '2024002',
+        kelas: 'VIII-A', asrama: 'Khadijah',
+        status: 'Aktif', jenis_kelamin: 'Perempuan',
+        tanggal_masuk: '15 Juli 2023', nilaiRata: 88
+    }
+];
+
+const DEMO_PAYMENTS = [
+    { id:'p1', ket:'SPP Bulan April 2025',  santri:'Muhammad Fauzi',     nominal:800000, tgl:'5 Apr 2025',   status:'Lunas' },
+    { id:'p2', ket:'SPP Bulan Maret 2025',  santri:'Muhammad Fauzi',     nominal:800000, tgl:'4 Mar 2025',   status:'Lunas' },
+    { id:'p3', ket:'SPP Bulan April 2025',  santri:'Aisyah Nur Fadhilah',nominal:800000, tgl:'6 Apr 2025',   status:'Lunas' },
+    { id:'p4', ket:'Biaya Asrama Q2 2025',  santri:'Muhammad Fauzi',     nominal:1200000,tgl:'1 Apr 2025',   status:'Lunas' },
+    { id:'p5', ket:'Biaya Asrama Q2 2025',  santri:'Aisyah Nur Fadhilah',nominal:1200000,tgl:'2 Apr 2025',   status:'Lunas' },
+    { id:'p6', ket:'SPP Bulan Mei 2025',    santri:'Muhammad Fauzi',     nominal:800000, tgl:'–',            status:'Belum Bayar' },
+    { id:'p7', ket:'Buku & LKS Sem. 2',     santri:'Muhammad Fauzi',     nominal:250000, tgl:'10 Jan 2025',  status:'Lunas' },
+    { id:'p8', ket:'Buku & LKS Sem. 2',     santri:'Aisyah Nur Fadhilah',nominal:250000, tgl:'10 Jan 2025',  status:'Lunas' }
+];
+
+const DEMO_RAPORT = [
+    { mapel:'Al-Qur\'an & Tahfidz', kkm:75, nilai:93, icon:'fas fa-book-open', color:'var(--emerald)' },
+    { mapel:'Fiqih & Aqidah',       kkm:75, nilai:88, icon:'fas fa-mosque',    color:'var(--teal)' },
+    { mapel:'Bahasa Arab',           kkm:70, nilai:85, icon:'fas fa-language',  color:'var(--blue)' },
+    { mapel:'Bahasa Indonesia',      kkm:70, nilai:82, icon:'fas fa-pen-nib',   color:'var(--purple)' },
+    { mapel:'Matematika',            kkm:70, nilai:78, icon:'fas fa-calculator',color:'var(--amber)' },
+    { mapel:'IPA',                   kkm:70, nilai:80, icon:'fas fa-flask',     color:'var(--rose)' },
+    { mapel:'IPS',                   kkm:70, nilai:84, icon:'fas fa-globe-asia',color:'var(--blue)' },
+    { mapel:'Bahasa Inggris',        kkm:70, nilai:81, icon:'fas fa-spell-check',color:'var(--emerald)' },
+];
+
+const DEMO_EVENTS = [
+    { date:'2025-04-20', title:'Ujian Tengah Semester 2',      cat:'ujian',    color:'var(--rose)' },
+    { date:'2025-04-25', title:'Kunjungan Wali Santri',        cat:'penting',  color:'var(--amber)' },
+    { date:'2025-05-01', title:'Libur Hari Buruh',             cat:'libur',    color:'var(--blue)' },
+    { date:'2025-05-15', title:'Haflah Akhirusanah',           cat:'kegiatan', color:'var(--emerald)' },
+    { date:'2025-05-20', title:'Pembagian Raport Semester 2',  cat:'penting',  color:'var(--amber)' },
+    { date:'2025-06-01', title:'Libur Akhir Tahun Ajaran',     cat:'libur',    color:'var(--blue)' },
+];
+
+const DEMO_PENGUMUMAN = [
+    {
+        id:'a1', judul:'Kunjungan Wali Santri — April 2025',
+        isi:'Dengan hormat, kami mengundang seluruh wali santri untuk hadir dalam acara Kunjungan Wali Santri yang akan diselenggarakan pada Jumat, 25 April 2025 pukul 08.00 WIB di Aula Yayasan Hidayatul Amin. Agenda: laporan perkembangan santri, konsultasi wali kelas, dan ramah tamah.',
+        tanggal:'16 April 2025', penulis:'Admin Yayasan', cat:'penting', new:true
+    },
+    {
+        id:'a2', judul:'Ujian Tengah Semester 2 — Jadwal & Tata Tertib',
+        isi:'Pelaksanaan Ujian Tengah Semester 2 Tahun Pelajaran 2024/2025 akan dilaksanakan mulai 20 April s.d. 24 April 2025. Santri diwajibkan hadir 15 menit sebelum ujian dimulai. Selengkapnya baca lampiran jadwal.',
+        tanggal:'14 April 2025', penulis:'Bagian Akademik', cat:'kegiatan', new:true
+    },
+    {
+        id:'a3', judul:'Pengumuman Pembayaran SPP Bulan Mei 2025',
+        isi:'Pembayaran SPP bulan Mei 2025 dibuka mulai tanggal 25 April 2025. Harap melakukan pembayaran tepat waktu sebelum tanggal 10 Mei 2025 untuk menghindari denda keterlambatan.',
+        tanggal:'12 April 2025', penulis:'Bendahara Yayasan', cat:'penting', new:true
+    },
+    {
+        id:'a4', judul:'Haflah Akhirusanah — Persiapan & Undangan',
+        isi:'Haflah Akhirusanah insyaAllah akan dilaksanakan pada 15 Mei 2025. Setiap wali santri mendapatkan 2 tiket undangan. Pengambilan tiket dapat dilakukan di sekretariat yayasan mulai 1 Mei 2025.',
+        tanggal:'8 April 2025', penulis:'Panitia Haflah', cat:'kegiatan', new:false
+    },
+    {
+        id:'a5', judul:'Perubahan Jadwal Sholat Tahajud Berjamaah',
+        isi:'Mulai 1 April 2025, jadwal sholat tahajud berjamaah diubah dari pukul 03.00 menjadi pukul 03.30 WIB. Santri tetap diwajibkan hadir tepat waktu.',
+        tanggal:'30 Maret 2025', penulis:'Pengasuh Pondok', cat:'kegiatan', new:false
+    },
+];
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+
+    const now = new Date();
+    currentMonth = now.getMonth();
+    currentYear  = now.getFullYear();
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            initDashboard(user);
+        } else {
+            // Demo mode — skip auth for preview
+            initDemoMode();
+        }
+    }, err => {
+        console.error(err);
+        initDemoMode();
+    });
+});
+
+async function initDashboard(user) {
+    try {
+        await loadUserData(user.uid);
+        await loadSantriData();
+        hideLoading();
+        populateAll();
+    } catch (e) {
+        console.warn('Firebase error, falling back to demo:', e.message);
+        initDemoMode();
+    }
+}
+
+function initDemoMode() {
+    userData   = DEMO_USER;
+    santriData = DEMO_SANTRI;
+    hideLoading();
+    populateAll();
+    showToast('Mode demo aktif — data contoh ditampilkan', 'info');
+}
+
+function populateAll() {
+    updateUserUI();
+    renderDashSantri();
+    renderDashPengumuman();
+    updateStats();
+    renderSantriList();
+    renderPaymentTable();
+    renderRaport();
+    renderCalendar();
+    renderPengumuman();
+    renderProfil();
+}
+
+/* ════════════════════════════════════════
+   FIREBASE LOADERS
+════════════════════════════════════════ */
+async function loadUserData(uid) {
+    const paths = ['users', 'wali', 'wali_santri'];
+    for (const p of paths) {
+        try {
+            const doc = await db.collection(p).doc(uid).get();
+            if (doc.exists) { userData = { uid, ...doc.data() }; return; }
+        } catch(_) {}
+    }
+    userData = { uid, email: currentUser.email, nama: currentUser.displayName || 'Wali Santri', role:'wali', santriIds:[] };
+}
+
+async function loadSantriData() {
+    santriData = [];
+    const ids = userData?.santriIds || [];
+    const queries = ids.length > 0
+        ? ids.map(id => db.collection('santri').doc(id).get())
+        : [
+            db.collection('santri').where('waliId','==',currentUser.uid).get(),
+            db.collection('santri').where('waliEmail','==',currentUser.email).get()
+          ];
+    try {
+        const results = await Promise.allSettled(queries);
+        results.forEach(r => {
+            if (r.status !== 'fulfilled') return;
+            const val = r.value;
+            if (val.exists) {
+                santriData.push({ id: val.id, ...val.data() });
+            } else if (val.forEach) {
+                val.forEach(d => santriData.push({ id: d.id, ...d.data() }));
+            }
+        });
+        // dedupe
+        santriData = [...new Map(santriData.map(s => [s.id, s])).values()];
+    } catch (_) {}
+    if (santriData.length === 0) santriData = DEMO_SANTRI;
+    localStorage.setItem('santriData', JSON.stringify(santriData));
+}
+
+/* ════════════════════════════════════════
+   UI UPDATERS
+════════════════════════════════════════ */
+function updateUserUI() {
+    const name = userData?.nama || 'Wali Santri';
+    const initial = name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    document.getElementById('welcomeName').textContent   = name;
+    document.getElementById('topUserName').textContent   = name;
+    document.getElementById('topUserAvatar').textContent = initial;
+}
+
+function updateStats() {
+    const total = santriData.length;
+    document.getElementById('statTotalSantri').textContent = total;
+
+    const paidCount = DEMO_PAYMENTS.filter(p=>p.status==='Lunas').length;
+    const unpaid    = DEMO_PAYMENTS.filter(p=>p.status!=='Lunas').length;
+    document.getElementById('statPembayaran').textContent = unpaid > 0
+        ? `${unpaid} Belum Bayar`
+        : 'Semua Lunas';
+    document.getElementById('statPembayaran').style.color = unpaid > 0 ? 'var(--amber)' : 'var(--emerald)';
+
+    const avg = santriData.reduce((s,x)=>s+(x.nilaiRata||0),0) / (santriData.length||1);
+    document.getElementById('statNilai').textContent    = avg.toFixed(1);
+    document.getElementById('statKehadiran').textContent = '95%';
+}
+
+/* ── Dashboard santri preview ── */
+function renderDashSantri() {
+    const el = document.getElementById('dashSantriList');
+    if (!santriData.length) {
+        el.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:12px 0">Belum ada data santri.</p>';
+        return;
+    }
+    el.innerHTML = santriData.map(s => `
+        <div class="santri-card" onclick="openSantriModal('${s.id}')">
+            <div class="santri-avatar">${(s.nama||'S')[0].toUpperCase()}</div>
+            <div class="santri-info">
+                <h4>${s.nama||'–'}</h4>
+                <p>NIS: ${s.nis||'–'} &nbsp;|&nbsp; ${s.kelas||'–'}</p>
+                <div class="santri-tags">
+                    <span class="badge badge-green">${s.status||'Aktif'}</span>
+                    <span class="badge badge-blue">${s.asrama||'–'}</span>
+                </div>
+            </div>
+            <i class="fas fa-chevron-right" style="color:var(--text-muted);font-size:12px"></i>
+        </div>
+    `).join('');
+}
+
+/* ── Dashboard pengumuman preview ── */
+function renderDashPengumuman() {
+    const el = document.getElementById('dashPengumuman');
+    el.innerHTML = DEMO_PENGUMUMAN.slice(0,3).map(a => `
+        <div style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)">
+            <div style="width:8px;height:8px;border-radius:50%;background:${a.cat==='penting'?'var(--amber)':'var(--emerald)'};margin-top:5px;flex-shrink:0"></div>
+            <div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:3px">${a.judul}</div>
+                <div style="font-size:11px;color:var(--text-muted)">${a.tanggal}</div>
+            </div>
+            ${a.new ? '<span class="badge badge-red" style="margin-left:auto;align-self:flex-start;flex-shrink:0">Baru</span>' : ''}
+        </div>
+    `).join('') + `<div style="text-align:center;padding-top:14px"><button class="btn btn-ghost btn-sm" onclick="showSection('pengumuman',document.querySelector('[data-section=pengumuman]'))">Lihat Semua</button></div>`;
+}
+
+/* ── Full santri list ── */
+let filteredSantri = [];
+function renderSantriList() {
+    filteredSantri = [...santriData];
+    _renderSantriCards();
+}
+function filterSantri() {
+    const q = document.getElementById('searchSantri').value.toLowerCase();
+    filteredSantri = santriData.filter(s =>
+        (s.nama||'').toLowerCase().includes(q) || (s.nis||'').toLowerCase().includes(q)
+    );
+    _renderSantriCards();
+}
+function _renderSantriCards() {
+    const el = document.getElementById('santriListFull');
+    if (!filteredSantri.length) {
+        el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted)"><i class="fas fa-search" style="font-size:28px;opacity:.4"></i><p style="margin-top:10px;font-size:13px">Tidak ditemukan</p></div>';
+        return;
+    }
+    el.innerHTML = filteredSantri.map(s => `
+        <div class="santri-card" onclick="openSantriModal('${s.id}')">
+            <div class="santri-avatar">${(s.nama||'S')[0].toUpperCase()}</div>
+            <div class="santri-info">
+                <h4>${s.nama||'–'}</h4>
+                <p>NIS: ${s.nis||'–'} &nbsp;|&nbsp; Kelas: ${s.kelas||'–'} &nbsp;|&nbsp; Asrama: ${s.asrama||'–'}</p>
+                <div class="santri-tags">
+                    <span class="badge badge-green">${s.status||'Aktif'}</span>
+                    <span class="badge badge-blue">${s.asrama||'–'}</span>
+                    <span class="badge badge-purple">Masuk: ${s.tanggal_masuk||'–'}</span>
+                </div>
+            </div>
+            <div class="santri-actions">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSantriModal('${s.id}')">
+                    <i class="fas fa-eye"></i> Detail
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+/* ── Santri modal ── */
+function openSantriModal(id) {
+    const s = santriData.find(x=>x.id===id);
+    if (!s) return;
+    const body = document.getElementById('modalSantriBody');
+    body.innerHTML = `
+        <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px">
+            <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--emerald),var(--teal));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:var(--bg-deep)">${(s.nama||'S')[0].toUpperCase()}</div>
+            <div>
+                <h3 style="font-size:18px;font-weight:800">${s.nama||'–'}</h3>
+                <p style="font-size:13px;color:var(--text-muted);margin-top:3px">NIS: ${s.nis||'–'}</p>
+                <span class="badge badge-green" style="margin-top:6px">${s.status||'Aktif'}</span>
+            </div>
+        </div>
+        <hr class="divider">
+        ${row('Kelas', s.kelas||'–')}
+        ${row('Asrama', s.asrama||'–')}
+        ${row('Jenis Kelamin', s.jenis_kelamin||'–')}
+        ${row('Tgl. Masuk', s.tanggal_masuk||'–')}
+        ${row('Rata-rata Nilai', s.nilaiRata ? `<span style="color:var(--emerald);font-weight:700">${s.nilaiRata}</span>` : '–')}
+        <hr class="divider">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="showSection('raport',document.querySelector('[data-section=raport]'));closeModal('modalSantri')">
+                <i class="fas fa-chart-bar"></i> Lihat Raport
+            </button>
+            <button class="btn btn-ghost" onclick="contactAdmin();closeModal('modalSantri')">
+                <i class="fas fa-comment"></i> Konsultasi
             </button>
         </div>
-    </div>
+    `;
+    openModal('modalSantri');
+}
+function row(label, val) {
+    return `<div class="detail-row"><label>${label}</label><span>${val}</span></div>`;
+}
 
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
-        <aside class="w-64 glass hidden md:flex flex-col">
-            <div class="p-6 border-b border-white/10">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
-                        <i class="fas fa-mosque text-xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-lg">Yayasan</h1>
-                        <p class="text-xs text-gray-400">Hidayatullah Amin</p>
-                    </div>
-                </div>
-            </div>
-            
-            <nav class="flex-1 p-4 space-y-2">
-                <a href="#" class="sidebar-item active flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-home w-5"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#santri" onclick="showSection('santri')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-users w-5"></i>
-                    <span>Data Santri</span>
-                </a>
-                <a href="#pembayaran" onclick="showSection('pembayaran')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-money-bill-wave w-5"></i>
-                    <span>Pembayaran</span>
-                </a>
-                <a href="#raport" onclick="showSection('raport')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-file-alt w-5"></i>
-                    <span>Raport</span>
-                </a>
-                <a href="#kalender" onclick="showSection('kalender')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-calendar w-5"></i>
-                    <span>Kalender</span>
-                </a>
-                <a href="#pengumuman" onclick="showSection('pengumuman')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-bullhorn w-5"></i>
-                    <span>Pengumuman</span>
-                </a>
-            </nav>
-            
-            <div class="p-4 border-t border-white/10">
-                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-500/20 transition-all text-red-400">
-                    <i class="fas fa-sign-out-alt w-5"></i>
-                    <span>Logout</span>
-                </button>
-            </div>
-        </aside>
-        
-        <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto">
-            <!-- Header -->
-            <header class="glass sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <button class="md:hidden text-xl" onclick="toggleSidebar()">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <h2 class="text-xl font-semibold">Dashboard Wali Santri</h2>
-                </div>
-                
-                <div class="flex items-center gap-4">
-                    <button class="relative p-2 hover:bg-white/10 rounded-lg transition-all">
-                        <i class="fas fa-bell text-xl"></i>
-                        <span id="notifBadge" class="absolute top-0 right-0 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center hidden">0</span>
-                    </button>
-                    
-                    <div class="flex items-center gap-3">
-                        <div class="text-right hidden sm:block">
-                            <p id="userName" class="font-medium">Loading...</p>
-                            <p id="userRole" class="text-xs text-gray-400">Wali Santri</p>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
-                            <i class="fas fa-user"></i>
-                        </div>
-                    </div>
-                </div>
-            </header>
-            
-            <!-- Content -->
-            <div class="p-6 space-y-6">
-                <!-- Welcome Banner -->
-                <div class="glass rounded-2xl p-6 card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-2xl font-bold mb-2">Assalamu'alaikum, <span id="welcomeName">Wali Santri</span>!</h3>
-                            <p class="text-gray-300">Selamat datang di dashboard monitoring santri Anda</p>
-                        </div>
-                        <div class="text-right">
-                            <p id="currentDate" class="text-lg font-medium"></p>
-                            <p id="currentTime" class="text-sm text-gray-400"></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="glass rounded-xl p-6 card-hover">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                <i class="fas fa-user-graduate text-blue-400 text-xl"></i>
-                            </div>
-                            <span class="text-xs text-gray-400">Total Santri</span>
-                        </div>
-                        <p id="totalSantri" class="text-3xl font-bold">-</p>
-                        <p class="text-sm text-gray-400 mt-1">Dalam pengawasan</p>
-                    </div>
-                    
-                    <div class="glass rounded-xl p-6 card-hover">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                                <i class="fas fa-check-circle text-emerald-400 text-xl"></i>
-                            </div>
-                            <span class="text-xs text-gray-400">Status Pembayaran</span>
-                        </div>
-                        <p id="paymentStatus" class="text-3xl font-bold">-</p>
-                        <p class="text-sm text-gray-400 mt-1">Bulan ini</p>
-                    </div>
-                    
-                    <div class="glass rounded-xl p-6 card-hover">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-                                <i class="fas fa-star text-yellow-400 text-xl"></i>
-                            </div>
-                            <span class="text-xs text-gray-400">Rata-rata Nilai</span>
-                        </div>
-                        <p id="avgGrade" class="text-3xl font-bold">-</p>
-                        <p class="text-sm text-gray-400 mt-1">Semester ini</p>
-                    </div>
-                    
-                    <div class="glass rounded-xl p-6 card-hover">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                                <i class="fas fa-calendar-check text-purple-400 text-xl"></i>
-                            </div>
-                            <span class="text-xs text-gray-400">Kehadiran</span>
-                        </div>
-                        <p id="attendanceRate" class="text-3xl font-bold">-</p>
-                        <p class="text-sm text-gray-400 mt-1">Rata-rata hadir</p>
-                    </div>
-                </div>
-                
-                <!-- Data Santri Section -->
-                <div id="santriSection" class="glass rounded-2xl p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-bold">Data Santri</h3>
-                        <button onclick="refreshData()" class="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-all">
-                            <i class="fas fa-sync-alt mr-2"></i>Refresh
-                        </button>
-                    </div>
-                    
-                    <div id="santriList" class="space-y-4">
-                        <!-- Santri cards will be inserted here -->
-                        <div class="text-center py-8 text-gray-400">
-                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                            <p>Memuat data santri...</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Pembayaran Section -->
-                <div id="pembayaranSection" class="glass rounded-2xl p-6 hidden">
-                    <h3 class="text-xl font-bold mb-6">Riwayat Pembayaran</h3>
-                    <div id="paymentList" class="space-y-4">
-                        <div class="text-center py-8 text-gray-400">
-                            <p>Belum ada data pembayaran</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Quick Actions -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <button onclick="contactAdmin()" class="glass rounded-xl p-6 card-hover text-left">
-                        <div class="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-4">
-                            <i class="fas fa-headset text-emerald-400 text-xl"></i>
-                        </div>
-                        <h4 class="font-semibold mb-1">Hubungi Admin</h4>
-                        <p class="text-sm text-gray-400">Chat dengan admin yayasan</p>
-                    </button>
-                    
-                    <button onclick="downloadRaport()" class="glass rounded-xl p-6 card-hover text-left">
-                        <div class="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center mb-4">
-                            <i class="fas fa-download text-blue-400 text-xl"></i>
-                        </div>
-                        <h4 class="font-semibold mb-1">Download Raport</h4>
-                        <p class="text-sm text-gray-400">Unduh raport santri PDF</p>
-                    </button>
-                    
-                    <button onclick="editProfile()" class="glass rounded-xl p-6 card-hover text-left">
-                        <div class="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center mb-4">
-                            <i class="fas fa-user-edit text-purple-400 text-xl"></i>
-                        </div>
-                        <h4 class="font-semibold mb-1">Edit Profil</h4>
-                        <p class="text-sm text-gray-400">Update data pribadi</p>
-                    </button>
-                </div>
-            </div>
-        </main>
-    </div>
-    
-    <!-- Mobile Sidebar -->
-    <div id="mobileSidebar" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/50" onclick="toggleSidebar()"></div>
-        <aside class="absolute left-0 top-0 h-full w-64 gradient-bg flex flex-col">
-            <div class="p-6 border-b border-white/10">
-                <h1 class="font-bold text-lg">Menu</h1>
-            </div>
-            <nav class="flex-1 p-4 space-y-2">
-                <a href="#" class="sidebar-item active flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-home w-5"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#santri" onclick="showSection('santri'); toggleSidebar()" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-users w-5"></i>
-                    <span>Data Santri</span>
-                </a>
-                <a href="#pembayaran" onclick="showSection('pembayaran'); toggleSidebar()" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-money-bill-wave w-5"></i>
-                    <span>Pembayaran</span>
-                </a>
-							
-            </nav>
-			<div class="p-4 border-t border-white/10">
-                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-500/20 transition-all text-red-400">
-                    <i class="fas fa-sign-out-alt w-5"></i>
-                    <span>Logout</span>
-                </button>
-            </div>
-        </aside>
-    </div>
+/* ── Payment table ── */
+function renderPaymentTable() {
+    const tbody = document.getElementById('paymentTbody');
+    tbody.innerHTML = DEMO_PAYMENTS.map(p => {
+        const isLunas = p.status === 'Lunas';
+        return `
+        <tr>
+            <td style="font-weight:500">${p.ket}</td>
+            <td style="color:var(--text-muted)">${p.santri}</td>
+            <td style="font-weight:700">${formatRp(p.nominal)}</td>
+            <td style="color:var(--text-muted)">${p.tgl}</td>
+            <td><span class="badge ${isLunas?'badge-green':'badge-amber'}">${isLunas?'<i class="fas fa-check"></i>':''} ${p.status}</span></td>
+            <td>
+                ${isLunas
+                    ? `<button class="btn btn-ghost btn-sm" onclick="showToast('Bukti pembayaran dikirim ke email','success')"><i class="fas fa-download"></i></button>`
+                    : `<button class="btn btn-primary btn-sm" onclick="showToast('Silakan transfer ke rekening yayasan','info')"><i class="fas fa-credit-card"></i> Bayar</button>`
+                }
+            </td>
+        </tr>`;
+    }).join('');
+}
 
-    <script>
-        // Firebase Configuration - Ganti dengan config Anda
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-            projectId: "hidayatulamin-e6f22",
-            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-            messagingSenderId: "80743607267",
-            appId: "1:80743607267:web:f5f94165de021759958ed6"
-        };
-        
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        
-        // Global Variables
-        let currentUser = null;
-        let userData = null;
-        let santriData = [];
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            updateDateTime();
-            setInterval(updateDateTime, 1000);
-            
-            // Check Auth State
-            auth.onAuthStateChanged(handleAuthState, handleAuthError);
-        });
-        
-        // Handle Auth State
-        function handleAuthState(user) {
-            if (!user) {
-                showAuthOverlay();
-                return;
-            }
-            
-            currentUser = user;
-            console.log('User authenticated:', user.uid);
-            
-            // Load user data dengan retry mechanism
-            loadUserDataWithRetry(user.uid, 3);
-        }
-        
-        // Handle Auth Error
-        function handleAuthError(error) {
-            console.error('Auth error:', error);
-            showToast('Error autentikasi: ' + error.message, 'error');
-            showAuthOverlay();
-        }
-        
-        // Load User Data dengan Retry
-        async function loadUserDataWithRetry(uid, retries) {
-            try {
-                await loadUserData(uid);
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                if (retries > 0) {
-                    console.log(`Retrying... ${retries} attempts left`);
-                    setTimeout(() => loadUserDataWithRetry(uid, retries - 1), 2000);
-                } else {
-                    handlePermissionError(error);
-                }
-            }
-        }
-        
-        // Load User Data
-        async function loadUserData(uid) {
-            try {
-                // PERBAIKAN: Gunakan collection group query atau path yang benar
-                // Coba beberapa kemungkinan path
-                let userDoc = null;
-                let userRef = null;
-                
-                // Opsi 1: users/{uid}
-                try {
-                    userRef = db.collection('users').doc(uid);
-                    userDoc = await userRef.get();
-                } catch (e) {
-                    console.log('Path users/{uid} failed:', e.message);
-                }
-                
-                // Opsi 2: wali/{uid}
-                if (!userDoc || !userDoc.exists) {
-                    try {
-                        userRef = db.collection('wali').doc(uid);
-                        userDoc = await userRef.get();
-                    } catch (e) {
-                        console.log('Path wali/{uid} failed:', e.message);
-                    }
-                }
-                
-                // Opsi 3: wali_santri/{uid}
-                if (!userDoc || !userDoc.exists) {
-                    try {
-                        userRef = db.collection('wali_santri').doc(uid);
-                        userDoc = await userRef.get();
-                    } catch (e) {
-                        console.log('Path wali_santri/{uid} failed:', e.message);
-                    }
-                }
-                
-                if (!userDoc || !userDoc.exists) {
-                    // Buat data default jika tidak ada
-                    userData = {
-                        uid: uid,
-                        email: currentUser.email,
-                        nama: currentUser.displayName || 'Wali Santri',
-                        role: 'wali',
-                        santriIds: [],
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    
-                    // Simpan ke Firestore (akan gagal jika permissions tidak mengizinkan)
-                    try {
-                        await db.collection('users').doc(uid).set(userData);
-                    } catch (e) {
-                        console.log('Cannot create user data:', e.message);
-                    }
-                } else {
-                    userData = userDoc.data();
-                    userData.uid = uid;
-                }
-                
-                // Update UI
-                updateUserUI();
-                
-                // Load Santri Data
-                await loadSantriData();
-                
-                // Hide loading
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                
-            } catch (error) {
-                throw error;
-            }
-        }
-        
-        // Handle Permission Error
-        function handlePermissionError(error) {
-            console.error('Permission error:', error);
-            
-            if (error.code === 'permission-denied' || error.message.includes('Missing or insufficient permissions')) {
-                showToast('Error permissions: Data tidak dapat diakses. Mohon periksa aturan keamanan Firebase.', 'error');
-                
-                // Tetap tampilkan dashboard dengan data default/local
-                showDashboardWithLocalData();
-            } else {
-                showToast('Error: ' + error.message, 'error');
-                document.getElementById('loadingOverlay').classList.add('hidden');
-            }
-        }
-        
-        // Show Dashboard dengan Local Data
-        function showDashboardWithLocalData() {
-            // Gunakan data dari localStorage atau data default
-            const cachedData = localStorage.getItem('waliData');
-            if (cachedData) {
-                userData = JSON.parse(cachedData);
-                updateUserUI();
-            } else {
-                // Data default
-                userData = {
-                    nama: currentUser?.displayName || currentUser?.email || 'Wali Santri',
-                    email: currentUser?.email || '',
-                    role: 'wali',
-                    santriIds: []
-                };
-                updateUserUI();
-            }
-            
-            // Load santri dari localStorage
-            const cachedSantri = localStorage.getItem('santriData');
-            if (cachedSantri) {
-                santriData = JSON.parse(cachedSantri);
-                renderSantriList();
-            } else {
-                renderEmptySantri();
-            }
-            
-            document.getElementById('loadingOverlay').classList.add('hidden');
-            
-            showToast('Mode offline aktif - Data disimpan lokal', 'info');
-        }
-        
-        // Update User UI
-        function updateUserUI() {
-            if (!userData) return;
-            
-            document.getElementById('userName').textContent = userData.nama || 'Wali Santri';
-            document.getElementById('welcomeName').textContent = userData.nama || 'Wali Santri';
-            document.getElementById('userRole').textContent = userData.role === 'wali' ? 'Wali Santri' : userData.role;
-        }
-        
-        // Load Santri Data
-        async function loadSantriData() {
-            try {
-                santriData = [];
-                
-                // PERBAIKAN: Coba berbagai path untuk santri
-                const santriIds = userData?.santriIds || [];
-                
-                if (santriIds.length === 0) {
-                    // Coba query berdasarkan waliId
-                    try {
-                        const snapshot = await db.collection('santri')
-                            .where('waliId', '==', currentUser.uid)
-                            .get();
-                        
-                        snapshot.forEach(doc => {
-                            santriData.push({ id: doc.id, ...doc.data() });
-                        });
-                    } catch (e) {
-                        console.log('Query by waliId failed:', e.message);
-                    }
-                    
-                    // Coba query berdasarkan waliEmail
-                    if (santriData.length === 0) {
-                        try {
-                            const snapshot = await db.collection('santri')
-                                .where('waliEmail', '==', currentUser.email)
-                                .get();
-                            
-                            snapshot.forEach(doc => {
-                                santriData.push({ id: doc.id, ...doc.data() });
-                            });
-                        } catch (e) {
-                            console.log('Query by waliEmail failed:', e.message);
-                        }
-                    }
-                } else {
-                    // Load by IDs
-                    for (const santriId of santriIds) {
-                        try {
-                            const doc = await db.collection('santri').doc(santriId).get();
-                            if (doc.exists) {
-                                santriData.push({ id: doc.id, ...doc.data() });
-                            }
-                        } catch (e) {
-                            console.log('Error loading santri:', santriId, e.message);
-                        }
-                    }
-                }
-                
-                // Cache ke localStorage
-                localStorage.setItem('santriData', JSON.stringify(santriData));
-                
-                renderSantriList();
-                updateStats();
-                
-            } catch (error) {
-                console.error('Error loading santri:', error);
-                renderEmptySantri();
-            }
-        }
-        
-        // Render Santri List
-        function renderSantriList() {
-            const container = document.getElementById('santriList');
-            
-            if (santriData.length === 0) {
-                renderEmptySantri();
-                return;
-            }
-            
-            container.innerHTML = santriData.map(santri => `
-                <div class="glass rounded-xl p-4 card-hover fade-in">
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-2xl font-bold">
-                            ${(santri.nama || 'S').charAt(0).toUpperCase()}
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="font-semibold text-lg">${santri.nama || 'Nama tidak tersedia'}</h4>
-                            <p class="text-sm text-gray-400">NIS: ${santri.nis || '-'}</p>
-                            <div class="flex items-center gap-4 mt-2 text-sm">
-                                <span class="text-emerald-400"><i class="fas fa-graduation-cap mr-1"></i>${santri.kelas || '-'}</span>
-                                <span class="text-blue-400"><i class="fas fa-building mr-1"></i>${santri.asrama || '-'}</span>
-                                <span class="${santri.status === 'Aktif' ? 'text-emerald-400' : 'text-red-400'}">
-                                    <i class="fas fa-circle text-xs mr-1"></i>${santri.status || 'Aktif'}
-                                </span>
-                            </div>
-                        </div>
-                        <button onclick="viewSantriDetail('${santri.id}')" class="px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 rounded-lg transition-all">
-                            <i class="fas fa-eye mr-2"></i>Detail
-                        </button>
-                    </div>
+/* ── Raport ── */
+function renderRaport() {
+    const el = document.getElementById('raportSubjects');
+    el.innerHTML = DEMO_RAPORT.map(r => {
+        const pct = Math.round(r.nilai / 100 * 100);
+        const color = r.nilai >= 90 ? 'var(--emerald)' : r.nilai >= 80 ? 'var(--blue)' : r.nilai >= 75 ? 'var(--amber)' : 'var(--rose)';
+        return `
+        <div class="raport-subject">
+            <div class="subject-icon" style="background:${r.color}22"><i class="${r.icon}" style="color:${r.color}"></i></div>
+            <div class="subject-name">${r.mapel}</div>
+            <div class="grade-bar-wrap"><div class="grade-bar" style="width:${pct}%;background:${color}"></div></div>
+            <div class="subject-grade" style="color:${color}">${r.nilai}</div>
+        </div>`;
+    }).join('');
+
+    const avg = DEMO_RAPORT.reduce((s,x)=>s+x.nilai,0)/DEMO_RAPORT.length;
+    document.getElementById('avgNilai').textContent = avg.toFixed(1);
+}
+
+/* ── Calendar ── */
+const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const DAYS_ID   = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+
+function renderCalendar() {
+    document.getElementById('calMonthLabel').textContent = `${MONTHS_ID[currentMonth]} ${currentYear}`;
+    const grid = document.getElementById('calendarGrid');
+
+    const today   = new Date();
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+    const prevDays    = new Date(currentYear, currentMonth, 0).getDate();
+
+    // header
+    let html = DAYS_ID.map(d=>`<div class="cal-header-cell">${d}</div>`).join('');
+
+    // prev month fill
+    for (let i = firstDay - 1; i >= 0; i--) {
+        html += `<div class="cal-day other-month">${prevDays - i}</div>`;
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isToday = today.getDate()===d && today.getMonth()===currentMonth && today.getFullYear()===currentYear;
+        const hasEv   = DEMO_EVENTS.some(e=>e.date===dateStr);
+        html += `<div class="cal-day ${isToday?'today':''} ${hasEv?'has-event':''}" title="${hasEv?DEMO_EVENTS.find(e=>e.date===dateStr).title:''}">${d}</div>`;
+    }
+
+    // next month fill
+    const rem = (firstDay + daysInMonth) % 7;
+    if (rem > 0) for (let i=1; i<=7-rem; i++) html += `<div class="cal-day other-month">${i}</div>`;
+
+    grid.innerHTML = html;
+    renderEventList();
+}
+
+function renderEventList() {
+    const el = document.getElementById('eventList');
+    const upcoming = DEMO_EVENTS.filter(e => new Date(e.date) >= new Date()).slice(0,6);
+    el.innerHTML = upcoming.map(e => `
+        <div class="event-list-item">
+            <div class="event-dot" style="background:${e.color}"></div>
+            <div class="event-info">
+                <h4>${e.title}</h4>
+                <p>${formatDate(e.date)}</p>
+            </div>
+        </div>
+    `).join('') || '<p style="color:var(--text-muted);font-size:13px;padding:12px 0">Tidak ada agenda mendatang.</p>';
+}
+
+function changeMonth(delta) {
+    currentMonth += delta;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    if (currentMonth < 0)  { currentMonth = 11; currentYear--; }
+    renderCalendar();
+}
+
+/* ── Pengumuman ── */
+let filteredAnn = [];
+function renderPengumuman() {
+    filteredAnn = annFilter === 'all' ? DEMO_PENGUMUMAN : DEMO_PENGUMUMAN.filter(a=>a.cat===annFilter);
+    _renderAnnCards();
+}
+function filterAnn() {
+    const q = document.getElementById('searchAnn').value.toLowerCase();
+    filteredAnn = (annFilter==='all' ? DEMO_PENGUMUMAN : DEMO_PENGUMUMAN.filter(a=>a.cat===annFilter))
+        .filter(a => a.judul.toLowerCase().includes(q) || a.isi.toLowerCase().includes(q));
+    _renderAnnCards();
+}
+function setAnnFilter(cat, el) {
+    annFilter = cat;
+    document.querySelectorAll('.ann-filter').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    renderPengumuman();
+}
+function _renderAnnCards() {
+    const el = document.getElementById('pengumumanList');
+    if (!filteredAnn.length) {
+        el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)"><i class="fas fa-inbox" style="font-size:32px;opacity:.4"></i><p style="margin-top:12px;font-size:13px">Tidak ada pengumuman</p></div>';
+        return;
+    }
+    el.innerHTML = filteredAnn.map(a => `
+        <div class="announcement-card">
+            <div class="ann-head">
+                <h4>${a.judul}</h4>
+                <div style="display:flex;gap:8px;flex-shrink:0;align-items:center">
+                    ${a.new ? '<span class="badge badge-red">Baru</span>' : ''}
+                    <span class="badge ${a.cat==='penting'?'badge-amber':'badge-green'}">${a.cat==='penting'?'Penting':'Kegiatan'}</span>
                 </div>
-            `).join('');
-            
-            document.getElementById('totalSantri').textContent = santriData.length;
+            </div>
+            <div class="ann-body">${a.isi}</div>
+            <div class="ann-foot">
+                <span><i class="fas fa-user"></i> ${a.penulis}</span>
+                <span><i class="fas fa-calendar"></i> ${a.tanggal}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+/* ── Profil ── */
+function renderProfil() {
+    const u = userData || DEMO_USER;
+    const name = u.nama || '–';
+    const initial = name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+
+    document.getElementById('profileName').textContent  = name;
+    document.getElementById('profileEmail').textContent = u.email || '–';
+    document.getElementById('profileAvatar').textContent = initial;
+
+    document.getElementById('profilDetail').innerHTML = `
+        ${row('Nama Lengkap', name)}
+        ${row('Email', u.email||'–')}
+        ${row('No. HP', u.phone||'–')}
+        ${row('Alamat', u.alamat||'–')}
+        ${row('Peran', 'Wali Santri')}
+    `;
+
+    document.getElementById('lastLogin').textContent = new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric', hour:'2-digit', minute:'2-digit'});
+
+    const ps = document.getElementById('profilSantri');
+    if (santriData.length === 0) {
+        ps.innerHTML = '<p style="color:var(--text-muted);font-size:13px">Belum ada santri terdaftar.</p>';
+        return;
+    }
+    ps.innerHTML = santriData.map(s => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--emerald),var(--teal));display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--bg-deep);flex-shrink:0">${(s.nama||'S')[0].toUpperCase()}</div>
+            <div style="flex:1">
+                <div style="font-size:13px;font-weight:700">${s.nama}</div>
+                <div style="font-size:11px;color:var(--text-muted)">${s.kelas} — ${s.asrama}</div>
+            </div>
+            <span class="badge badge-green">${s.status}</span>
+        </div>
+    `).join('');
+}
+
+/* ════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════ */
+function showSection(id, navEl) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    const sec = document.getElementById('sec-' + id);
+    if (sec) sec.classList.add('active');
+
+    if (navEl) {
+        const item = navEl.closest ? navEl.closest('.nav-item') : navEl;
+        if (item) item.classList.add('active');
+    }
+
+    const titles = {
+        dashboard:'Dashboard', santri:'Data Santri', pembayaran:'Pembayaran',
+        raport:'Raport Nilai', kalender:'Kalender Akademik',
+        pengumuman:'Pengumuman', profil:'Profil Saya'
+    };
+    document.getElementById('topbarTitle').textContent = titles[id] || 'Dashboard';
+
+    // Close mobile sidebar
+    closeSidebar();
+}
+
+/* ════════════════════════════════════════
+   SIDEBAR TOGGLE
+════════════════════════════════════════ */
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const bd = document.getElementById('sidebarBackdrop');
+    const isMobile = window.innerWidth <= 860;
+
+    if (isMobile) {
+        sb.classList.toggle('open');
+        bd.classList.toggle('show');
+    } else {
+        sb.classList.toggle('collapsed');
+        document.getElementById('layout').classList.toggle('full-width');
+    }
+}
+
+function closeSidebar() {
+    if (window.innerWidth <= 860) {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarBackdrop').classList.remove('show');
+    }
+}
+
+/* ════════════════════════════════════════
+   MODAL
+════════════════════════════════════════ */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ════════════════════════════════════════
+   ACTIONS
+════════════════════════════════════════ */
+function refreshData() {
+    showToast('Memperbarui data...', 'info');
+    setTimeout(() => {
+        if (currentUser) {
+            loadSantriData().then(() => { populateAll(); showToast('Data berhasil diperbarui!', 'success'); });
+        } else {
+            showToast('Data demo sudah terbaru', 'success');
         }
-        
-        // Render Empty Santri
-        function renderEmptySantri() {
-            document.getElementById('santriList').innerHTML = `
-                <div class="text-center py-12 text-gray-400">
-                    <i class="fas fa-users text-4xl mb-4 opacity-50"></i>
-                    <p class="mb-4">Belum ada data santri</p>
-                    <button onclick="addSantri()" class="px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 rounded-lg transition-all text-emerald-400">
-                        <i class="fas fa-plus mr-2"></i>Tambah Santri
-                    </button>
-                </div>
-            `;
-            document.getElementById('totalSantri').textContent = '0';
-        }
-        
-        // Update Stats
-        function updateStats() {
-            // Payment Status (dummy logic - sesuaikan dengan data real)
-            document.getElementById('paymentStatus').textContent = 'Lunas';
-            
-            // Average Grade
-            let totalGrade = 0;
-            let count = 0;
-            santriData.forEach(s => {
-                if (s.nilaiRata) {
-                    totalGrade += s.nilaiRata;
-                    count++;
-                }
-            });
-            document.getElementById('avgGrade').textContent = count > 0 ? (totalGrade / count).toFixed(1) : '-';
-            
-            // Attendance
-            document.getElementById('attendanceRate').textContent = '95%';
-        }
-        
-        // View Santri Detail
-        function viewSantriDetail(santriId) {
-            const santri = santriData.find(s => s.id === santriId);
-            if (!santri) return;
-            
-            showToast(`Detail santri: ${santri.nama}`, 'info');
-            // Implementasi modal atau redirect ke halaman detail
-        }
-        
-        // Add Santri
-        function addSantri() {
-            showToast('Fitur tambah santri - hubungi admin', 'info');
-        }
-        
-        // Show Section
-        function showSection(section) {
-            // Hide all sections
-            document.getElementById('santriSection').classList.add('hidden');
-            document.getElementById('pembayaranSection').classList.add('hidden');
-            
-            // Show selected
-            if (section === 'santri') {
-                document.getElementById('santriSection').classList.remove('hidden');
-            } else if (section === 'pembayaran') {
-                document.getElementById('pembayaranSection').classList.remove('hidden');
-            }
-            
-            // Update active sidebar
-            document.querySelectorAll('.sidebar-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            event.target.closest('.sidebar-item').classList.add('active');
-        }
-        
-        // Refresh Data
-        function refreshData() {
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-            loadSantriData().then(() => {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                showToast('Data berhasil diperbarui', 'success');
-            });
-        }
-        
-        // Contact Admin
-        function contactAdmin() {
-            showToast('Menghubungkan ke admin...', 'info');
-            // Implementasi chat atau redirect ke WhatsApp
-        }
-        
-        // Download Raport
-        function downloadRaport() {
-            showToast('Mengunduh raport...', 'info');
-            // Implementasi download PDF
-        }
-        
-        // Edit Profile
-        function editProfile() {
-            showToast('Fitur edit profil - hubungi admin', 'info');
-        }
-        
-        // Toggle Sidebar
-        function toggleSidebar() {
-            const sidebar = document.getElementById('mobileSidebar');
-            sidebar.classList.toggle('hidden');
-        }
-        
-        // Show Auth Overlay
-        function showAuthOverlay() {
-            document.getElementById('loadingOverlay').classList.add('hidden');
-            document.getElementById('authOverlay').classList.remove('hidden');
-        }
-        
-        // Update Date Time
-        function updateDateTime() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('id-ID', options);
-            document.getElementById('currentTime').textContent = now.toLocaleTimeString('id-ID');
-        }
-        
-        // Show Toast
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast ${type}`;
-            
-            setTimeout(() => toast.classList.add('show'), 100);
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-        
-        // Logout
-        function logout() {
-            auth.signOut().then(() => {
-                localStorage.removeItem('waliData');
-                localStorage.removeItem('santriData');
-                window.location.href = 'login.html';
-            }).catch(error => {
-                showToast('Error logout: ' + error.message, 'error');
-            });
-        }
-        
-        // Global Error Handler
-        window.onerror = function(msg, url, lineNo, columnNo, error) {
-            console.error('Global error:', msg, error);
-            if (msg.includes('FirebaseError') || msg.includes('permissions')) {
-                showToast('Error Firebase permissions terdeteksi', 'error');
-            }
-            return false;
-        };
-    </script>
+    }, 800);
+}
+
+function contactAdmin() {
+    showToast('Menghubungkan ke admin via WhatsApp...', 'info');
+    setTimeout(() => window.open('https://wa.me/628123456789?text=Assalamualaikum, saya wali santri dari Yayasan Hidayatul Amin. Saya ingin berkonsultasi.', '_blank'), 600);
+}
+
+function downloadRaport() {
+    showToast('Mengunduh raport... (fitur PDF segera hadir)', 'info');
+}
+
+function logout() {
+    auth.signOut().then(() => {
+        localStorage.removeItem('waliData');
+        localStorage.removeItem('santriData');
+        window.location.href = 'login.html';
+    }).catch(() => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    });
+}
+
+/* ════════════════════════════════════════
+   DATE / TIME
+════════════════════════════════════════ */
+function updateDateTime() {
+    const now = new Date();
+    const dateEl = document.getElementById('currentDate');
+    const timeEl = document.getElementById('currentTime');
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('id-ID');
+}
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+function showToast(msg, type='info') {
+    const container = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    const icons = { success:'check-circle', error:'times-circle', info:'info-circle', warning:'exclamation-triangle' };
+    t.className = `toast toast-${type}`;
+    t.innerHTML = `<i class="fas fa-${icons[type]||'info-circle'}"></i> ${msg}`;
+    container.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 50);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(()=>t.remove(), 400); }, 3500);
+}
+
+/* ════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════ */
+function hideLoading() {
+    const el = document.getElementById('loadingOverlay');
+    el.classList.add('hide');
+    setTimeout(()=>el.style.display='none', 450);
+}
+
+function formatRp(n) {
+    return 'Rp ' + n.toLocaleString('id-ID');
+}
+
+function formatDate(str) {
+    const d = new Date(str);
+    return d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+}
+
+// ann-filter active style helper
+document.querySelectorAll('.ann-filter').forEach(b => {
+    b.addEventListener('click', function() {
+        document.querySelectorAll('.ann-filter').forEach(x=>x.classList.remove('active','btn-primary'));
+        this.classList.add('active');
+    });
+});
+</script>
 </body>
 </html>
