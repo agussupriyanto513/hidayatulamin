@@ -334,27 +334,40 @@
     
     <!-- Mobile Sidebar -->
     <div id="mobileSidebar" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/50" onclick="toggleSidebar()"></div>
-        <aside class="absolute left-0 top-0 h-full w-64 gradient-bg flex flex-col">
-            <div class="p-6 border-b border-white/10">
+    <div class="absolute inset-0 bg-black/50" onclick="toggleSidebar()"></div>
+    <aside class="absolute left-0 top-0 h-full w-64 gradient-bg flex flex-col">
+        <div class="p-6 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
+                    <i class="fas fa-mosque"></i>
+                </div>
                 <h1 class="font-bold text-lg">Menu</h1>
             </div>
-            <nav class="flex-1 p-4 space-y-2">
-                <a href="#" class="sidebar-item active flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-home w-5"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#santri" onclick="showSection('santri'); toggleSidebar()" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-users w-5"></i>
-                    <span>Data Santri</span>
-                </a>
-                <a href="#pembayaran" onclick="showSection('pembayaran'); toggleSidebar()" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
-                    <i class="fas fa-money-bill-wave w-5"></i>
-                    <span>Pembayaran</span>
-                </a>
-            </nav>
-        </aside>
-    </div>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="#" class="sidebar-item active flex items-center gap-3 px-4 py-3 rounded-lg">
+                <i class="fas fa-home w-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#santri" onclick="showSection('santri'); toggleSidebar()" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
+                <i class="fas fa-users w-5"></i>
+                <span>Data Santri</span>
+            </a>
+            <a href="#pembayaran" onclick="showSection('pembayaran'); toggleSidebar()" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-lg">
+                <i class="fas fa-money-bill-wave w-5"></i>
+                <span>Pembayaran</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-white/10">
+            <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500/10 text-red-400">
+                <i class="fas fa-sign-out-alt w-5"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+</div>
 
     <script>
         // Firebase Configuration - Ganti dengan config Anda
