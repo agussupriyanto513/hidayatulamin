@@ -1,649 +1,1413 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dashboard Santri | Hidayatul Amin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-                    colors: {
-                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
-                        purple: { 50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7c3aed', 800: '#6b21a8', 900: '#581c87' }
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'slide-up': 'slideUp 0.5s ease-out',
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <title>Portal Santri — Hidayatul Amin</title>
+
+    <!-- Firebase compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Fonts: Sora (display) + Nunito (body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); }
-        .glass-dark { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); }
-        .gradient-purple { background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); }
-        .gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
-        .gradient-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .gradient-amber { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); }
-        .card-hover:active { transform: scale(0.98); }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
-        .dark .skeleton { background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%); background-size: 200% 100%; }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .tab-active { color: #7c3aed; border-bottom: 2px solid #7c3aed; }
-        .modal-enter { animation: modalEnter 0.3s ease-out; }
-        @keyframes modalEnter { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        /* ══════════════════════════════════
+           CSS VARIABLES — LIGHT / DARK
+        ══════════════════════════════════ */
+        :root {
+            --bg:        #f4f6fb;
+            --bg2:       #ffffff;
+            --bg3:       #eef1f8;
+            --border:    #e4e8f0;
+            --text:      #1a1d2e;
+            --text2:     #5a6285;
+            --text3:     #9aa3c2;
+            --shadow:    0 4px 24px rgba(80,100,180,.08);
+            --shadow-lg: 0 12px 40px rgba(80,100,180,.14);
+            --violet:    #7c3aed;
+            --violet2:   #9333ea;
+            --green:     #10b981;
+            --blue:      #3b82f6;
+            --amber:     #f59e0b;
+            --rose:      #f43f5e;
+            --cyan:      #06b6d4;
+        }
+        html.dark {
+            --bg:        #0f1221;
+            --bg2:       #171b2e;
+            --bg3:       #1e2440;
+            --border:    #252d48;
+            --text:      #e8ecf8;
+            --text2:     #8892b8;
+            --text3:     #4a5578;
+            --shadow:    0 4px 24px rgba(0,0,0,.25);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,.4);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+        html { scroll-behavior:smooth; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 90px;
+            transition: background .3s, color .3s;
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar { width:5px; height:5px; }
+        ::-webkit-scrollbar-thumb { background:rgba(124,58,237,.3); border-radius:4px; }
+
+        /* ══════════════════════════════════
+           HEADER
+        ══════════════════════════════════ */
+        .header {
+            position: sticky; top:0; z-index:100;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: background .3s;
+        }
+        .header-inner {
+            max-width: 540px; margin: 0 auto;
+            padding: 12px 18px;
+            display: flex; align-items: center; justify-content: space-between; gap:12px;
+        }
+        .header-brand { display:flex; align-items:center; gap:10px; }
+        .header-logo {
+            width:40px; height:40px; border-radius:12px; flex-shrink:0;
+            background: linear-gradient(135deg, var(--violet), var(--violet2));
+            display:flex; align-items:center; justify-content:center;
+            color:#fff; font-size:17px; box-shadow: 0 4px 14px rgba(124,58,237,.4);
+        }
+        .header-brand h1 { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; }
+        .header-brand p  { font-size:11px; color:var(--text2); margin-top:1px; }
+
+        .header-actions { display:flex; align-items:center; gap:8px; }
+        .icon-btn {
+            width:36px; height:36px; border-radius:10px; border:none;
+            background:var(--bg3); color:var(--text2); cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:14px; position:relative; transition:all .2s;
+        }
+        .icon-btn:hover { background:var(--border); color:var(--text); }
+        .notif-dot {
+            position:absolute; top:6px; right:6px; width:8px; height:8px;
+            background:var(--rose); border-radius:50%; border:2px solid var(--bg2);
+        }
+
+        /* ══════════════════════════════════
+           MAIN / SECTIONS
+        ══════════════════════════════════ */
+        .main { max-width:540px; margin:0 auto; padding:16px 16px 0; }
+
+        .page { display:none; }
+        .page.active { display:block; animation: fadeUp .35s ease; }
+
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(14px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* ══════════════════════════════════
+           CARDS
+        ══════════════════════════════════ */
+        .card {
+            background:var(--bg2); border:1px solid var(--border);
+            border-radius:20px; box-shadow:var(--shadow);
+            transition: transform .25s, box-shadow .25s, background .3s;
+        }
+        .card:active { transform:scale(.98); }
+        .card-p { padding:18px 20px; }
+        .card-tappable:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+
+        /* ══════════════════════════════════
+           PROFILE HERO
+        ══════════════════════════════════ */
+        .profile-hero {
+            border-radius:24px; padding:22px 20px;
+            background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #9333ea 100%);
+            color:#fff; position:relative; overflow:hidden;
+            box-shadow: 0 8px 30px rgba(124,58,237,.45);
+            margin-bottom:16px;
+        }
+        .hero-blob1 {
+            position:absolute; top:-30px; right:-30px;
+            width:120px; height:120px; border-radius:50%;
+            background:rgba(255,255,255,.1);
+        }
+        .hero-blob2 {
+            position:absolute; bottom:-25px; left:-20px;
+            width:90px; height:90px; border-radius:50%;
+            background:rgba(255,255,255,.08);
+        }
+        .hero-inner { position:relative; z-index:1; display:flex; align-items:center; gap:14px; }
+        .hero-avatar {
+            width:68px; height:68px; border-radius:18px;
+            border:3px solid rgba(255,255,255,.35);
+            object-fit:cover; flex-shrink:0;
+        }
+        .hero-info h2 { font-family:'Sora',sans-serif; font-size:18px; font-weight:800; }
+        .hero-info p  { font-size:12px; color:rgba(255,255,255,.75); margin-top:3px; }
+        .hero-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+        .hero-tag {
+            padding:3px 10px; border-radius:20px;
+            background:rgba(255,255,255,.18); font-size:11px; font-weight:600;
+        }
+        .hero-chevron {
+            margin-left:auto; width:36px; height:36px; border-radius:10px; flex-shrink:0;
+            background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center;
+            cursor:pointer; transition:.2s; border:none; color:#fff; font-size:14px;
+        }
+        .hero-chevron:hover { background:rgba(255,255,255,.28); }
+
+        /* ══════════════════════════════════
+           STAT CHIPS
+        ══════════════════════════════════ */
+        .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
+        .stat-chip {
+            background:var(--bg2); border:1px solid var(--border);
+            border-radius:16px; padding:14px 10px; text-align:center;
+            cursor:pointer; transition:all .25s;
+            box-shadow:var(--shadow);
+        }
+        .stat-chip:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+        .stat-chip-icon {
+            width:38px; height:38px; border-radius:12px; margin:0 auto 8px;
+            display:flex; align-items:center; justify-content:center; font-size:15px;
+        }
+        .stat-chip-val { font-family:'Sora',sans-serif; font-size:20px; font-weight:800; }
+        .stat-chip-lbl { font-size:10px; color:var(--text2); margin-top:2px; font-weight:600; }
+
+        /* ══════════════════════════════════
+           SECTION TITLE
+        ══════════════════════════════════ */
+        .sec-title {
+            display:flex; align-items:center; justify-content:space-between;
+            margin-bottom:12px;
+        }
+        .sec-title h3 { font-family:'Sora',sans-serif; font-size:15px; font-weight:700; }
+        .sec-link { font-size:12px; color:var(--violet); font-weight:700; cursor:pointer; }
+
+        /* ══════════════════════════════════
+           PROGRESS BAR
+        ══════════════════════════════════ */
+        .progress-wrap {
+            background:var(--bg3); height:10px; border-radius:10px; overflow:hidden; margin:10px 0 6px;
+        }
+        .progress-bar {
+            height:10px; border-radius:10px;
+            background:linear-gradient(90deg,var(--violet),var(--violet2));
+            transition:width 1.2s cubic-bezier(.4,0,.2,1);
+        }
+
+        /* ══════════════════════════════════
+           MENU GRID (2x2)
+        ══════════════════════════════════ */
+        .menu-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+        .menu-btn {
+            background:var(--bg2); border:1px solid var(--border);
+            border-radius:18px; padding:16px 14px; text-align:left;
+            cursor:pointer; transition:all .25s; box-shadow:var(--shadow);
+        }
+        .menu-btn:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+        .menu-btn:active { transform:scale(.97); }
+        .menu-icon {
+            width:44px; height:44px; border-radius:14px; margin-bottom:10px;
+            display:flex; align-items:center; justify-content:center; font-size:18px;
+            transition:.25s;
+        }
+        .menu-btn:hover .menu-icon { filter:brightness(1.1); }
+        .menu-btn h4 { font-size:13px; font-weight:800; margin-bottom:3px; }
+        .menu-btn p  { font-size:11px; color:var(--text2); line-height:1.4; }
+
+        /* ══════════════════════════════════
+           SCHEDULE ITEMS
+        ══════════════════════════════════ */
+        .sch-item {
+            display:flex; align-items:center; gap:12px;
+            padding:12px 14px; border-radius:14px; margin-bottom:8px;
+            border-left:4px solid;
+        }
+        .sch-item.done     { background:rgba(16,185,129,.07); border-color:var(--green); }
+        .sch-item.active   { background:rgba(124,58,237,.08); border-color:var(--violet); }
+        .sch-item.upcoming { background:var(--bg3);           border-color:var(--border); }
+        .sch-time { font-size:11px; font-weight:700; min-width:52px; line-height:1.4; color:var(--text2); }
+        .sch-subject { font-size:13px; font-weight:700; }
+        .sch-room { font-size:11px; color:var(--text2); margin-top:2px; }
+        .sch-status-icon { margin-left:auto; font-size:15px; }
+
+        /* ══════════════════════════════════
+           ACHIEVEMENTS
+        ══════════════════════════════════ */
+        .achievements-row {
+            display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;
+            scrollbar-width:none;
+        }
+        .achievements-row::-webkit-scrollbar { display:none; }
+        .ach-chip {
+            flex-shrink:0; text-align:center; min-width:80px;
+        }
+        .ach-icon {
+            width:60px; height:60px; border-radius:18px; margin:0 auto 6px;
+            display:flex; align-items:center; justify-content:center; font-size:22px;
+        }
+        .ach-label { font-size:11px; font-weight:700; }
+        .ach-sub   { font-size:10px; color:var(--text3); }
+
+        /* ══════════════════════════════════
+           QUICK ACTIONS (4 buttons)
+        ══════════════════════════════════ */
+        .quick-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
+        .quick-btn {
+            background:var(--bg2); border:1px solid var(--border);
+            border-radius:14px; padding:10px 6px; cursor:pointer;
+            display:flex; flex-direction:column; align-items:center; gap:6px;
+            transition:all .2s; box-shadow:var(--shadow);
+        }
+        .quick-btn:hover { background:var(--bg3); transform:translateY(-2px); }
+        .quick-btn:active { transform:scale(.96); }
+        .quick-icon {
+            width:38px; height:38px; border-radius:12px;
+            display:flex; align-items:center; justify-content:center; font-size:15px;
+        }
+        .quick-label { font-size:10px; font-weight:700; color:var(--text2); }
+
+        /* ══════════════════════════════════
+           HAFALAN PAGE
+        ══════════════════════════════════ */
+        .juz-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-top:14px; }
+        .juz-cell {
+            aspect-ratio:1; border-radius:10px; display:flex; align-items:center; justify-content:center;
+            font-size:12px; font-weight:700; cursor:pointer; transition:.2s;
+            border:1.5px solid var(--border); background:var(--bg3); color:var(--text2);
+        }
+        .juz-cell.done    { background:linear-gradient(135deg,var(--violet),var(--violet2)); color:#fff; border-color:transparent; }
+        .juz-cell.current { background:rgba(124,58,237,.12); border-color:var(--violet); color:var(--violet); }
+        .juz-cell:hover   { transform:scale(1.08); }
+
+        .setoran-item {
+            display:flex; align-items:flex-start; gap:10px;
+            padding:13px 0; border-bottom:1px solid var(--border);
+        }
+        .setoran-item:last-child { border-bottom:none; }
+        .setoran-dot {
+            width:10px; height:10px; border-radius:50%; margin-top:4px; flex-shrink:0;
+        }
+        .setoran-info h4 { font-size:13px; font-weight:700; }
+        .setoran-info p  { font-size:11px; color:var(--text2); margin-top:2px; }
+        .setoran-badge { margin-left:auto; flex-shrink:0; }
+
+        /* ══════════════════════════════════
+           NILAI / RAPORT PAGE
+        ══════════════════════════════════ */
+        .nilai-row {
+            display:flex; align-items:center; gap:12px;
+            padding:12px 0; border-bottom:1px solid var(--border);
+        }
+        .nilai-row:last-child { border-bottom:none; }
+        .nilai-icon {
+            width:34px; height:34px; border-radius:10px; flex-shrink:0;
+            display:flex; align-items:center; justify-content:center; font-size:13px;
+        }
+        .nilai-mapel { flex:1; font-size:13px; font-weight:600; }
+        .nilai-bar-wrap { width:60px; background:var(--bg3); height:5px; border-radius:5px; }
+        .nilai-bar { height:5px; border-radius:5px; }
+        .nilai-angka { font-family:'Sora',sans-serif; font-size:16px; font-weight:800; width:36px; text-align:right; }
+
+        /* ══════════════════════════════════
+           JADWAL PAGE
+        ══════════════════════════════════ */
+        .day-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:14px; scrollbar-width:none; }
+        .day-tabs::-webkit-scrollbar { display:none; }
+        .day-tab {
+            flex-shrink:0; padding:7px 16px; border-radius:20px; font-size:12px; font-weight:700;
+            background:var(--bg3); border:1px solid var(--border); color:var(--text2);
+            cursor:pointer; transition:.2s;
+        }
+        .day-tab.active { background:linear-gradient(135deg,var(--violet),var(--violet2)); color:#fff; border-color:transparent; }
+
+        /* ══════════════════════════════════
+           PROFIL PAGE
+        ══════════════════════════════════ */
+        .profil-row {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:13px 0; border-bottom:1px solid var(--border);
+        }
+        .profil-row:last-child { border-bottom:none; }
+        .profil-row label { font-size:12px; color:var(--text2); font-weight:600; }
+        .profil-row span  { font-size:13px; font-weight:700; text-align:right; }
+
+        /* ══════════════════════════════════
+           PENGUMUMAN PAGE
+        ══════════════════════════════════ */
+        .ann-card {
+            background:var(--bg2); border:1px solid var(--border);
+            border-radius:18px; padding:16px 18px; margin-bottom:12px;
+            box-shadow:var(--shadow); transition:all .25s;
+        }
+        .ann-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+        .ann-card h4 { font-size:14px; font-weight:800; margin-bottom:6px; }
+        .ann-card p  { font-size:12.5px; color:var(--text2); line-height:1.7; }
+        .ann-foot { display:flex; gap:12px; margin-top:10px; font-size:11px; color:var(--text3); }
+        .ann-foot i { font-size:10px; margin-right:3px; }
+
+        /* ══════════════════════════════════
+           BADGES
+        ══════════════════════════════════ */
+        .badge {
+            display:inline-flex; align-items:center; gap:4px;
+            padding:3px 9px; border-radius:20px;
+            font-size:10px; font-weight:700;
+        }
+        .badge-violet { background:rgba(124,58,237,.12); color:var(--violet); }
+        .badge-green  { background:rgba(16,185,129,.12);  color:var(--green); }
+        .badge-amber  { background:rgba(245,158,11,.12);  color:var(--amber); }
+        .badge-rose   { background:rgba(244,63,94,.12);   color:var(--rose); }
+        .badge-blue   { background:rgba(59,130,246,.12);  color:var(--blue); }
+
+        /* ══════════════════════════════════
+           BOTTOM NAV
+        ══════════════════════════════════ */
+        .bottom-nav {
+            position:fixed; bottom:0; left:0; right:0; z-index:100;
+            background:var(--bg2); border-top:1px solid var(--border);
+            box-shadow:0 -4px 24px rgba(0,0,0,.07);
+            transition:background .3s;
+        }
+        .bottom-nav-inner {
+            max-width:540px; margin:0 auto;
+            display:flex; justify-content:space-around;
+            padding:8px 12px 12px;
+        }
+        .nav-tab {
+            flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;
+            padding:6px 4px; border:none; background:none; cursor:pointer;
+            color:var(--text3); transition:.2s; border-radius:12px;
+            font-family:'Nunito',sans-serif;
+        }
+        .nav-tab.active { color:var(--violet); }
+        .nav-tab i { font-size:18px; transition:.2s; }
+        .nav-tab.active i { transform:scale(1.12); }
+        .nav-tab span { font-size:9.5px; font-weight:700; }
+
+        /* ══════════════════════════════════
+           MODAL
+        ══════════════════════════════════ */
+        .modal-overlay {
+            position:fixed; inset:0; z-index:200;
+            background:rgba(0,0,0,.5); backdrop-filter:blur(6px);
+            display:flex; align-items:flex-end; justify-content:center;
+            opacity:0; pointer-events:none; transition:opacity .25s;
+        }
+        .modal-overlay.open { opacity:1; pointer-events:all; }
+        .modal-sheet {
+            width:100%; max-width:540px;
+            background:var(--bg2); border-radius:24px 24px 0 0;
+            padding:20px 20px 36px;
+            max-height:85vh; overflow-y:auto;
+            transform:translateY(100%);
+            transition:transform .35s cubic-bezier(.4,0,.2,1);
+        }
+        .modal-overlay.open .modal-sheet { transform:translateY(0); }
+        .modal-handle {
+            width:38px; height:4px; background:var(--border);
+            border-radius:4px; margin:0 auto 18px;
+        }
+        .modal-title {
+            display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;
+        }
+        .modal-title h3 { font-family:'Sora',sans-serif; font-size:16px; font-weight:800; }
+        .modal-close {
+            width:32px; height:32px; border-radius:9px; background:var(--bg3);
+            border:1px solid var(--border); cursor:pointer; color:var(--text2);
+            display:flex; align-items:center; justify-content:center; font-size:13px; transition:.2s;
+        }
+        .modal-close:hover { background:var(--border); }
+
+        /* ══════════════════════════════════
+           TOAST
+        ══════════════════════════════════ */
+        .toast-wrap {
+            position:fixed; top:14px; left:50%; transform:translateX(-50%);
+            z-index:500; pointer-events:none; width:calc(100% - 32px); max-width:420px;
+        }
+        .toast {
+            display:flex; align-items:center; gap:10px;
+            background:var(--bg2); border:1px solid var(--border);
+            border-radius:14px; padding:13px 16px;
+            box-shadow:var(--shadow-lg); font-size:13px; font-weight:600;
+            transform:translateY(-80px); transition:transform .35s cubic-bezier(.4,0,.2,1);
+        }
+        .toast.show { transform:translateY(0); }
+        .toast-icon { font-size:16px; flex-shrink:0; }
+
+        /* ══════════════════════════════════
+           LOADING SKELETON
+        ══════════════════════════════════ */
+        .skeleton {
+            border-radius:16px;
+            background:linear-gradient(90deg,var(--bg3) 25%,var(--border) 50%,var(--bg3) 75%);
+            background-size:200% 100%; animation:shimmer 1.6s infinite;
+        }
+        @keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
+
+        /* ══════════════════════════════════
+           UTILITY
+        ══════════════════════════════════ */
+        .gap-section { margin-bottom:16px; }
+        .text-violet { color:var(--violet); }
+        .text-green  { color:var(--green); }
+        .text-amber  { color:var(--amber); }
+        .text-rose   { color:var(--rose); }
+        .text-blue   { color:var(--blue); }
+        .text-muted  { color:var(--text2); }
     </style>
 </head>
-<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 pb-24">
-    
-    <!-- Header -->
-    <header class="sticky top-0 z-40 glass dark:glass-dark border-b border-gray-200 dark:border-gray-800">
-        <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl gradient-purple flex items-center justify-center text-white shadow-lg animate-pulse-slow">
-                    <i class="fas fa-user-graduate text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-gray-900 dark:text-white text-sm">Portal Santri</h1>
-                    <p class="text-xs text-gray-500" id="greeting">Selamat datang!</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-yellow-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                    <i class="fas fa-moon dark:hidden text-sm"></i>
-                    <i class="fas fa-sun hidden dark:block text-sm"></i>
-                </button>
-                <button onclick="showNotifications()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
-                    <i class="fas fa-bell text-sm"></i>
-                    <span id="notifBadge" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center hidden">3</span>
-                </button>
-            </div>
-        </div>
-    </header>
+<body>
 
-    <!-- Main Content -->
-    <main class="max-w-lg mx-auto px-4 pt-4 space-y-4" id="mainContent">
-        
-        <!-- Loading State -->
-        <div id="loadingState" class="space-y-4">
-            <div class="h-32 rounded-3xl skeleton"></div>
-            <div class="grid grid-cols-3 gap-3">
-                <div class="h-24 rounded-2xl skeleton"></div>
-                <div class="h-24 rounded-2xl skeleton"></div>
-                <div class="h-24 rounded-2xl skeleton"></div>
+<!-- ══════════════════════════════════
+     TOAST
+══════════════════════════════════ -->
+<div class="toast-wrap">
+    <div class="toast" id="toast">
+        <i class="toast-icon fas fa-info-circle text-violet" id="toastIcon"></i>
+        <span id="toastMsg">Pesan</span>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     HEADER
+══════════════════════════════════ -->
+<header class="header">
+    <div class="header-inner">
+        <div class="header-brand">
+            <div class="header-logo"><i class="fas fa-mosque"></i></div>
+            <div>
+                <h1>Portal Santri</h1>
+                <p id="greetingText">Selamat datang!</p>
             </div>
-            <div class="h-48 rounded-3xl skeleton"></div>
         </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="toggleDarkMode()" id="darkBtn" title="Mode Gelap">
+                <i class="fas fa-moon" id="darkIcon"></i>
+            </button>
+            <button class="icon-btn" onclick="openNotif()" title="Notifikasi">
+                <i class="fas fa-bell"></i>
+                <span class="notif-dot" id="notifDot"></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ══════════════════════════════════
+     MAIN
+══════════════════════════════════ -->
+<main class="main">
+
+    <!-- SKELETON LOADING -->
+    <div id="loadingState">
+        <div class="skeleton" style="height:110px;margin-bottom:14px"></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+            <div class="skeleton" style="height:90px"></div>
+            <div class="skeleton" style="height:90px"></div>
+            <div class="skeleton" style="height:90px"></div>
+        </div>
+        <div class="skeleton" style="height:130px;margin-bottom:14px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="skeleton" style="height:100px"></div>
+            <div class="skeleton" style="height:100px"></div>
+            <div class="skeleton" style="height:100px"></div>
+            <div class="skeleton" style="height:100px"></div>
+        </div>
+    </div>
+
+    <!-- ════════════════════
+         PAGE: BERANDA
+    ════════════════════ -->
+    <div class="page" id="page-beranda">
 
         <!-- Profile Hero -->
-        <div id="profileHero" class="hidden relative overflow-hidden rounded-3xl gradient-purple text-white p-6 shadow-xl animate-slide-up">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-            <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
-            
-            <div class="relative z-10 flex items-center gap-4">
-                <div class="relative">
-                    <img id="santriPhoto" src="" class="w-20 h-20 rounded-2xl border-4 border-white/30 shadow-lg object-cover">
-                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-2 border-white flex items-center justify-center">
-                        <i class="fas fa-check text-[10px] text-white"></i>
+        <div class="profile-hero">
+            <div class="hero-blob1"></div>
+            <div class="hero-blob2"></div>
+            <div class="hero-inner">
+                <img class="hero-avatar" id="heroPhoto" src="" alt="Foto Santri">
+                <div class="hero-info" style="flex:1">
+                    <h2 id="heroName">—</h2>
+                    <p id="heroSubtitle">NIS — Kelas —</p>
+                    <div class="hero-tags">
+                        <span class="hero-tag" id="heroStatus">Aktif</span>
+                        <span class="hero-tag" id="heroProgram">Tahfidz</span>
                     </div>
                 </div>
-                <div class="flex-1">
-                    <h2 id="santriName" class="text-xl font-bold">Loading...</h2>
-                    <p id="santriInfo" class="text-purple-200 text-sm">Loading...</p>
-                    <div class="flex items-center gap-2 mt-2 flex-wrap">
-                        <span id="santriStatus" class="px-2 py-0.5 bg-white/20 rounded-full text-xs font-medium">Aktif</span>
-                        <span id="santriProgram" class="px-2 py-0.5 bg-white/20 rounded-full text-xs font-medium">Tahfidz</span>
-                    </div>
-                </div>
-                <button onclick="showProfileDetail()" class="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                <button class="hero-chevron" onclick="switchTab('profil')"><i class="fas fa-chevron-right"></i></button>
             </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div id="statsCards" class="hidden grid grid-cols-3 gap-3 animate-slide-up" style="animation-delay: 0.1s;">
-            <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-sm border border-gray-100 dark:border-gray-700 card-hover cursor-pointer" onclick="showDetail('hafalan')">
-                <div class="w-10 h-10 mx-auto rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center mb-2">
-                    <i class="fas fa-book-quran"></i>
+        <!-- Stat Chips -->
+        <div class="stat-row">
+            <div class="stat-chip card-tappable" onclick="switchTab('hafalan')">
+                <div class="stat-chip-icon" style="background:rgba(124,58,237,.1)">
+                    <i class="fas fa-book-quran text-violet"></i>
                 </div>
-                <p id="statJuz" class="text-xl font-bold text-gray-900 dark:text-white">-</p>
-                <p class="text-xs text-gray-500">Juz Hafalan</p>
+                <div class="stat-chip-val text-violet" id="chipJuz">0</div>
+                <div class="stat-chip-lbl">Juz Hafalan</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-sm border border-gray-100 dark:border-gray-700 card-hover cursor-pointer" onclick="showDetail('kehadiran')">
-                <div class="w-10 h-10 mx-auto rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center mb-2">
-                    <i class="fas fa-calendar-check"></i>
+            <div class="stat-chip card-tappable" onclick="switchTab('jadwal')">
+                <div class="stat-chip-icon" style="background:rgba(16,185,129,.1)">
+                    <i class="fas fa-calendar-check text-green"></i>
                 </div>
-                <p id="statKehadiran" class="text-xl font-bold text-gray-900 dark:text-white">-%</p>
-                <p class="text-xs text-gray-500">Kehadiran</p>
+                <div class="stat-chip-val text-green" id="chipKehadiran">0%</div>
+                <div class="stat-chip-lbl">Kehadiran</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-sm border border-gray-100 dark:border-gray-700 card-hover cursor-pointer" onclick="showDetail('ranking')">
-                <div class="w-10 h-10 mx-auto rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center mb-2">
-                    <i class="fas fa-star"></i>
+            <div class="stat-chip card-tappable" onclick="switchTab('nilai')">
+                <div class="stat-chip-icon" style="background:rgba(245,158,11,.1)">
+                    <i class="fas fa-star text-amber"></i>
                 </div>
-                <p id="statRanking" class="text-xl font-bold text-gray-900 dark:text-white">-</p>
-                <p class="text-xs text-gray-500">Ranking</p>
+                <div class="stat-chip-val text-amber" id="chipRanking">—</div>
+                <div class="stat-chip-lbl">Ranking</div>
             </div>
         </div>
 
-        <!-- Progress Section -->
-        <div id="progressSection" class="hidden bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 animate-slide-up" style="animation-delay: 0.2s;">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold text-gray-900 dark:text-white">Progres Hafalan</h3>
-                <button onclick="showDetail('hafalan')" class="text-purple-600 text-sm font-medium hover:underline">Lihat Detail</button>
+        <!-- Hafalan Progress -->
+        <div class="card card-p gap-section">
+            <div class="sec-title">
+                <h3>Progres Hafalan</h3>
+                <span class="sec-link" onclick="switchTab('hafalan')">Detail →</span>
             </div>
-            <div class="relative">
-                <div class="flex mb-2 items-center justify-between">
-                    <span id="currentJuz" class="text-xs font-semibold px-2 py-1 rounded-full text-purple-600 bg-purple-100 dark:bg-purple-900/30">
-                        Juz -
-                    </span>
-                    <span id="progressPercent" class="text-xs font-semibold text-purple-600">-%</span>
-                </div>
-                <div class="overflow-hidden h-3 mb-3 text-xs flex rounded-full bg-purple-100 dark:bg-purple-900/30">
-                    <div id="progressBar" style="width:0%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center gradient-purple transition-all duration-1000"></div>
-                </div>
-                <div class="flex justify-between text-xs text-gray-500">
-                    <span>Target: <span id="targetJuz">-</span> Juz</span>
-                    <span id="estimasiSelesai">Estimasi: -</span>
-                </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <span class="badge badge-violet" id="progressJuzLabel">Juz —</span>
+                <span style="font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:var(--violet)" id="progressPct">—%</span>
+            </div>
+            <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2)">
+                <span>Target: <b id="progressTarget">—</b> Juz</span>
+                <span id="progressEst">Estimasi: —</span>
             </div>
         </div>
 
         <!-- Menu Grid -->
-        <div id="menuGrid" class="hidden grid grid-cols-2 gap-3 animate-slide-up" style="animation-delay: 0.3s;">
-            <button onclick="openPage('jadwal')" class="card-hover bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 text-left group">
-                <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center mb-3 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                    <i class="fas fa-calendar-alt text-xl"></i>
-                </div>
-                <p class="font-bold text-gray-900 dark:text-white text-sm">Jadwal</p>
-                <p class="text-xs text-gray-500 mt-1">Jadwal harian & mingguan</p>
+        <div class="menu-grid gap-section">
+            <button class="menu-btn" onclick="switchTab('jadwal')">
+                <div class="menu-icon" style="background:rgba(59,130,246,.1)"><i class="fas fa-calendar-alt text-blue" style="font-size:20px"></i></div>
+                <h4>Jadwal</h4>
+                <p>Harian & mingguan</p>
             </button>
-            <button onclick="openPage('hafalan')" class="card-hover bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 text-left group">
-                <div class="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center mb-3 group-hover:bg-green-500 group-hover:text-white transition-colors">
-                    <i class="fas fa-book-open text-xl"></i>
-                </div>
-                <p class="font-bold text-gray-900 dark:text-white text-sm">Hafalan</p>
-                <p class="text-xs text-gray-500 mt-1">Riwayat setoran & target</p>
+            <button class="menu-btn" onclick="switchTab('hafalan')">
+                <div class="menu-icon" style="background:rgba(16,185,129,.1)"><i class="fas fa-book-open text-green" style="font-size:20px"></i></div>
+                <h4>Hafalan</h4>
+                <p>Setoran & target juz</p>
             </button>
-            <button onclick="openPage('nilai')" class="card-hover bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 text-left group">
-                <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center mb-3 group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                    <i class="fas fa-file-alt text-xl"></i>
-                </div>
-                <p class="font-bold text-gray-900 dark:text-white text-sm">Nilai</p>
-                <p class="text-xs text-gray-500 mt-1">Rapor & evaluasi</p>
+            <button class="menu-btn" onclick="switchTab('nilai')">
+                <div class="menu-icon" style="background:rgba(245,158,11,.1)"><i class="fas fa-chart-bar text-amber" style="font-size:20px"></i></div>
+                <h4>Nilai</h4>
+                <p>Rapor & evaluasi</p>
             </button>
-            <button onclick="openPage('kegiatan')" class="card-hover bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 text-left group">
-                <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center mb-3 group-hover:bg-purple-500 group-hover:text-white transition-colors">
-                    <i class="fas fa-running text-xl"></i>
-                </div>
-                <p class="font-bold text-gray-900 dark:text-white text-sm">Kegiatan</p>
-                <p class="text-xs text-gray-500 mt-1">Ekstrakurikuler & event</p>
+            <button class="menu-btn" onclick="switchTab('pengumuman')">
+                <div class="menu-icon" style="background:rgba(124,58,237,.1)"><i class="fas fa-bullhorn text-violet" style="font-size:20px"></i></div>
+                <h4>Pengumuman</h4>
+                <p>Info & agenda</p>
             </button>
         </div>
 
-        <!-- Today's Schedule -->
-        <div id="todaySchedule" class="hidden bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 animate-slide-up" style="animation-delay: 0.4s;">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold text-gray-900 dark:text-white">Jadwal Hari Ini</h3>
-                <span id="currentDate" class="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-lg"></span>
+        <!-- Today Schedule -->
+        <div class="card card-p gap-section">
+            <div class="sec-title">
+                <h3>Jadwal Hari Ini</h3>
+                <span class="badge badge-violet" id="todayLabel">—</span>
             </div>
-            <div id="scheduleList" class="space-y-3">
-                <!-- Schedule items will be loaded dynamically -->
-            </div>
+            <div id="todaySchList"></div>
         </div>
 
         <!-- Achievements -->
-        <div id="achievements" class="hidden bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 animate-slide-up" style="animation-delay: 0.5s;">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold text-gray-900 dark:text-white">Pencapaian</h3>
-                <button onclick="showDetail('achievements')" class="text-purple-600 text-sm font-medium hover:underline">Lihat Semua</button>
+        <div class="card card-p gap-section">
+            <div class="sec-title">
+                <h3>Pencapaian</h3>
+                <span class="sec-link" onclick="showToast('Semua pencapaian akan segera tampil','info')">Semua →</span>
             </div>
-            <div id="achievementList" class="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
-                <!-- Achievements will be loaded dynamically -->
-            </div>
+            <div class="achievements-row" id="achRow"></div>
         </div>
 
         <!-- Quick Actions -->
-        <div id="quickActions" class="hidden grid grid-cols-4 gap-2 animate-slide-up" style="animation-delay: 0.6s;">
-            <button onclick="openPage('pembayaran')" class="flex flex-col items-center gap-2 p-3 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <span class="text-[10px] font-medium text-gray-700 dark:text-gray-300">SPP</span>
+        <div class="quick-row gap-section">
+            <button class="quick-btn" onclick="openPageExt('pembayaran')">
+                <div class="quick-icon" style="background:rgba(124,58,237,.1)"><i class="fas fa-wallet text-violet"></i></div>
+                <span class="quick-label">SPP</span>
             </button>
-            <button onclick="openPage('perizinan')" class="flex flex-col items-center gap-2 p-3 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
-                    <i class="fas fa-file-signature"></i>
-                </div>
-                <span class="text-[10px] font-medium text-gray-700 dark:text-gray-300">Izin</span>
+            <button class="quick-btn" onclick="openIzin()">
+                <div class="quick-icon" style="background:rgba(59,130,246,.1)"><i class="fas fa-file-signature text-blue"></i></div>
+                <span class="quick-label">Izin</span>
             </button>
-            <button onclick="openPage('konsultasi')" class="flex flex-col items-center gap-2 p-3 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center">
-                    <i class="fas fa-comments"></i>
-                </div>
-                <span class="text-[10px] font-medium text-gray-700 dark:text-gray-300">Konsul</span>
+            <button class="quick-btn" onclick="openKonsultasi()">
+                <div class="quick-icon" style="background:rgba(16,185,129,.1)"><i class="fas fa-comments text-green"></i></div>
+                <span class="quick-label">Konsul</span>
             </button>
-            <button onclick="openPage('pengumuman')" class="flex flex-col items-center gap-2 p-3 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center">
-                    <i class="fas fa-bullhorn"></i>
-                </div>
-                <span class="text-[10px] font-medium text-gray-700 dark:text-gray-300">Info</span>
+            <button class="quick-btn" onclick="switchTab('pengumuman')">
+                <div class="quick-icon" style="background:rgba(245,158,11,.1)"><i class="fas fa-bullhorn text-amber"></i></div>
+                <span class="quick-label">Info</span>
             </button>
         </div>
-    </main>
 
-    <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 safe-area-pb z-40">
-        <div class="max-w-lg mx-auto px-6 py-2 flex justify-around items-center">
-            <button onclick="setActiveTab('home')" id="tab-home" class="nav-tab flex flex-col items-center gap-1 py-2 px-3 text-purple-600 transition-colors">
-                <i class="fas fa-home text-lg"></i>
-                <span class="text-[10px] font-medium">Beranda</span>
-            </button>
-            <button onclick="setActiveTab('jadwal')" id="tab-jadwal" class="nav-tab flex flex-col items-center gap-1 py-2 px-3 text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="fas fa-calendar text-lg"></i>
-                <span class="text-[10px] font-medium">Jadwal</span>
-            </button>
-            <button onclick="setActiveTab('hafalan')" id="tab-hafalan" class="nav-tab flex flex-col items-center gap-1 py-2 px-3 text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="fas fa-book text-lg"></i>
-                <span class="text-[10px] font-medium">Hafalan</span>
-            </button>
-            <button onclick="setActiveTab('profil')" id="tab-profil" class="nav-tab flex flex-col items-center gap-1 py-2 px-3 text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="fas fa-user text-lg"></i>
-                <span class="text-[10px] font-medium">Profil</span>
-            </button>
+    </div><!-- /beranda -->
+
+    <!-- ════════════════════
+         PAGE: JADWAL
+    ════════════════════ -->
+    <div class="page" id="page-jadwal">
+        <div class="sec-title" style="margin-bottom:14px">
+            <h3 style="font-size:18px">Jadwal Pelajaran</h3>
         </div>
-    </nav>
 
-    <!-- Modal Container -->
-    <div id="modalContainer" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal()"></div>
-        <div class="absolute bottom-0 left-0 right-0 md:top-1/2 md:left-1/2 md:bottom-auto md:right-auto md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg">
-            <div id="modalContent" class="bg-white dark:bg-gray-800 rounded-t-3xl md:rounded-3xl p-6 max-h-[85vh] overflow-y-auto modal-enter">
-                <!-- Modal content will be injected here -->
+        <div class="day-tabs" id="dayTabs"></div>
+
+        <div class="card card-p gap-section" id="jadwalContent"></div>
+    </div>
+
+    <!-- ════════════════════
+         PAGE: HAFALAN
+    ════════════════════ -->
+    <div class="page" id="page-hafalan">
+        <div class="sec-title" style="margin-bottom:14px">
+            <h3 style="font-size:18px">Hafalan Al-Qur'an</h3>
+        </div>
+
+        <!-- Hero progress hafalan -->
+        <div class="card card-p gap-section" style="background:linear-gradient(135deg,#6d28d9,#9333ea);border:none;color:#fff">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+                <div>
+                    <div style="font-size:11px;opacity:.75;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Total Hafalan</div>
+                    <div style="font-family:'Sora',sans-serif;font-size:38px;font-weight:800;line-height:1.1" id="hafJuzBig">0 Juz</div>
+                    <div style="font-size:12px;opacity:.75;margin-top:4px" id="hafHalaman">0 halaman</div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:11px;opacity:.75;font-weight:700">Target</div>
+                    <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800" id="hafTarget">10 Juz</div>
+                </div>
+            </div>
+            <div style="background:rgba(255,255,255,.2);height:8px;border-radius:8px;overflow:hidden">
+                <div id="hafProgressBar" style="height:8px;border-radius:8px;background:#fff;transition:width 1.2s ease;width:0%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;opacity:.75;margin-top:6px">
+                <span>Juz yang sudah hafal</span>
+                <span id="hafPct">0%</span>
+            </div>
+        </div>
+
+        <!-- Peta Juz -->
+        <div class="card card-p gap-section">
+            <div class="sec-title"><h3>Peta 30 Juz</h3></div>
+            <div class="juz-grid" id="juzGrid"></div>
+            <div style="display:flex;gap:14px;margin-top:12px;font-size:11px;color:var(--text2)">
+                <span><span style="display:inline-block;width:12px;height:12px;background:linear-gradient(135deg,var(--violet),var(--violet2));border-radius:3px;margin-right:5px;vertical-align:middle"></span>Hafal</span>
+                <span><span style="display:inline-block;width:12px;height:12px;background:rgba(124,58,237,.12);border:1.5px solid var(--violet);border-radius:3px;margin-right:5px;vertical-align:middle"></span>Sedang Dihafal</span>
+                <span><span style="display:inline-block;width:12px;height:12px;background:var(--bg3);border-radius:3px;margin-right:5px;vertical-align:middle"></span>Belum</span>
+            </div>
+        </div>
+
+        <!-- Riwayat Setoran -->
+        <div class="card card-p gap-section">
+            <div class="sec-title">
+                <h3>Riwayat Setoran</h3>
+                <span class="badge badge-violet" id="hafTotalSetoran">0 setoran</span>
+            </div>
+            <div id="setoranList"></div>
+        </div>
+    </div>
+
+    <!-- ════════════════════
+         PAGE: NILAI
+    ════════════════════ -->
+    <div class="page" id="page-nilai">
+        <div class="sec-title" style="margin-bottom:14px">
+            <h3 style="font-size:18px">Raport & Nilai</h3>
+        </div>
+
+        <!-- Summary cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+            <div class="card card-p" style="text-align:center">
+                <div style="font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Rata-rata</div>
+                <div style="font-family:'Sora',sans-serif;font-size:32px;font-weight:800;color:var(--violet);margin:6px 0" id="nilaiAvg">—</div>
+                <span class="badge badge-violet">Semester Ini</span>
+            </div>
+            <div class="card card-p" style="text-align:center">
+                <div style="font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Peringkat</div>
+                <div style="font-family:'Sora',sans-serif;font-size:32px;font-weight:800;color:var(--amber);margin:6px 0" id="nilaiRanking">—</div>
+                <span class="badge badge-amber">Kelas</span>
+            </div>
+        </div>
+
+        <!-- Nilai mapel -->
+        <div class="card card-p gap-section">
+            <div class="sec-title">
+                <h3>Nilai Per Mata Pelajaran</h3>
+                <select id="semesterSel" onchange="renderNilai()" style="font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 8px;color:var(--text);font-family:'Nunito',sans-serif;font-weight:700">
+                    <option value="1">Sem 1</option>
+                    <option value="2" selected>Sem 2</option>
+                </select>
+            </div>
+            <div id="nilaiList"></div>
+        </div>
+
+        <!-- Catatan wali kelas -->
+        <div class="card card-p gap-section">
+            <h3 style="font-family:'Sora',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px">Catatan Wali Kelas</h3>
+            <div style="background:rgba(124,58,237,.06);border-left:4px solid var(--violet);border-radius:0 12px 12px 0;padding:14px 16px">
+                <p style="font-size:13px;color:var(--text2);line-height:1.8;font-style:italic">
+                    "Santri menunjukkan perkembangan sangat baik dalam hafalan. Aktif dan disiplin dalam kegiatan pondok. Perlu ditingkatkan pada bidang Matematika dan Sains agar semakin optimal."
+                </p>
+                <p style="font-size:11px;color:var(--text3);margin-top:8px">— Ustadz Ahmad Fauzi, Wali Kelas VII-B</p>
             </div>
         </div>
     </div>
 
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    <!-- ════════════════════
+         PAGE: PENGUMUMAN
+    ════════════════════ -->
+    <div class="page" id="page-pengumuman">
+        <div class="sec-title" style="margin-bottom:16px">
+            <h3 style="font-size:18px">Pengumuman</h3>
+            <span class="badge badge-rose">3 Baru</span>
+        </div>
+        <div id="annList"></div>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-            projectId: "hidayatulamin-e6f22",
-            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-            messagingSenderId: "80743607267",
-            appId: "1:80743607267:web:f5f94165de021759958ed6"
-        };
+    <!-- ════════════════════
+         PAGE: PROFIL
+    ════════════════════ -->
+    <div class="page" id="page-profil">
+        <div class="sec-title" style="margin-bottom:16px">
+            <h3 style="font-size:18px">Profil Saya</h3>
+        </div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        <!-- Profile card -->
+        <div class="card card-p gap-section" style="text-align:center">
+            <img id="profilPhoto" src="" style="width:80px;height:80px;border-radius:20px;object-fit:cover;margin:0 auto 12px;border:3px solid rgba(124,58,237,.3)">
+            <h2 style="font-family:'Sora',sans-serif;font-size:18px;font-weight:800" id="profilName">—</h2>
+            <p style="font-size:12px;color:var(--text2);margin-top:4px" id="profilNis">NIS —</p>
+            <div style="display:flex;justify-content:center;gap:8px;margin-top:10px">
+                <span class="badge badge-green">Aktif</span>
+                <span class="badge badge-violet" id="profilProgram">—</span>
+            </div>
+        </div>
 
-        let currentUser = null;
-        let santriData = null;
+        <div class="card card-p gap-section">
+            <h3 style="font-family:'Sora',sans-serif;font-size:14px;font-weight:800;margin-bottom:4px">Data Diri</h3>
+            <div id="profilRows"></div>
+        </div>
 
-        // Auth State Listener
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            currentUser = user;
-            await loadSantriData(user.uid);
-        });
+        <div class="card card-p gap-section">
+            <h3 style="font-family:'Sora',sans-serif;font-size:14px;font-weight:800;margin-bottom:12px">Akun & Keamanan</h3>
+            <div id="akunRows">
+                <div class="profil-row"><label>Status Akun</label><span class="badge badge-green">Aktif</span></div>
+                <div class="profil-row"><label>Verifikasi Email</label><span class="badge badge-green">✓ Terverifikasi</span></div>
+                <div class="profil-row"><label>Login Terakhir</label><span id="lastLoginEl" style="font-size:12px">—</span></div>
+            </div>
+        </div>
 
-        async function loadSantriData(uid) {
-            try {
-                // Get user data
-                const userDoc = await getDoc(doc(db, "users", uid));
-                if (!userDoc.exists()) {
-                    showToast('Data user tidak ditemukan', 'error');
-                    return;
-                }
+        <button onclick="handleLogout()" style="width:100%;padding:14px;border-radius:16px;background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);color:var(--rose);font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.2s;margin-bottom:10px">
+            <i class="fas fa-sign-out-alt" style="margin-right:8px"></i>Logout
+        </button>
+    </div>
 
-                const userData = userDoc.data();
-                if (userData.role !== 'santri') {
-                    showToast('Akses ditolak. Halaman ini hanya untuk santri.', 'error');
-                    await signOut(auth);
-                    return;
-                }
+</main>
 
-                // Get santri profile
-                const santriDoc = await getDoc(doc(db, "santri", uid));
-                if (santriDoc.exists()) {
-                    santriData = santriDoc.data();
-                    updateUI(santriData);
-                } else {
-                    // Create default data if not exists
-                    santriData = createDefaultSantriData(userData);
-                    updateUI(santriData);
-                }
+<!-- ══════════════════════════════════
+     BOTTOM NAV
+══════════════════════════════════ -->
+<nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+        <button class="nav-tab active" id="btn-beranda" onclick="switchTab('beranda')">
+            <i class="fas fa-home"></i><span>Beranda</span>
+        </button>
+        <button class="nav-tab" id="btn-jadwal" onclick="switchTab('jadwal')">
+            <i class="fas fa-calendar-alt"></i><span>Jadwal</span>
+        </button>
+        <button class="nav-tab" id="btn-hafalan" onclick="switchTab('hafalan')">
+            <i class="fas fa-book-open"></i><span>Hafalan</span>
+        </button>
+        <button class="nav-tab" id="btn-nilai" onclick="switchTab('nilai')">
+            <i class="fas fa-chart-bar"></i><span>Nilai</span>
+        </button>
+        <button class="nav-tab" id="btn-profil" onclick="switchTab('profil')">
+            <i class="fas fa-user"></i><span>Profil</span>
+        </button>
+    </div>
+</nav>
 
-                // Load additional data
-                await loadTodaySchedule(uid);
-                await loadAchievements(uid);
-                await loadNotifications(uid);
+<!-- ══════════════════════════════════
+     MODAL: Notifikasi
+══════════════════════════════════ -->
+<div class="modal-overlay" id="modalNotif" onclick="if(event.target===this)closeModal('modalNotif')">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-title">
+            <h3>Notifikasi</h3>
+            <button class="modal-close" onclick="closeModal('modalNotif')"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="notifContent"></div>
+    </div>
+</div>
 
-                // Hide loading, show content
-                document.getElementById('loadingState').classList.add('hidden');
-                ['profileHero', 'statsCards', 'progressSection', 'menuGrid', 'todaySchedule', 'achievements', 'quickActions'].forEach(id => {
-                    document.getElementById(id).classList.remove('hidden');
-                });
-
-            } catch (error) {
-                console.error('Error loading data:', error);
-                showToast('Gagal memuat data', 'error');
-            }
-        }
-
-        function createDefaultSantriData(userData) {
-            return {
-                nama: userData.nama || 'Santri',
-                nis: userData.nis || '-',
-                kelas: userData.kelas || '-',
-                program: userData.program || 'Reguler',
-                status: 'Aktif',
-                juz: 0,
-                targetJuz: 10,
-                kehadiran: 100,
-                ranking: '-',
-                photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.nama || 'S')}&background=7c3aed&color=fff&size=128`
-            };
-        }
-
-        function updateUI(data) {
-            // Update greeting
-            const hour = new Date().getHours();
-            let greeting = 'Selamat datang!';
-            if (hour < 11) greeting = 'Selamat pagi!';
-            else if (hour < 15) greeting = 'Selamat siang!';
-            else if (hour < 18) greeting = 'Selamat sore!';
-            else greeting = 'Selamat malam!';
-            document.getElementById('greeting').textContent = greeting;
-
-            // Update profile hero
-            document.getElementById('santriName').textContent = data.nama;
-            document.getElementById('santriInfo').textContent = `Kelas ${data.kelas} • NIS: ${data.nis}`;
-            document.getElementById('santriProgram').textContent = data.program;
-            document.getElementById('santriStatus').textContent = data.status;
-            document.getElementById('santriPhoto').src = data.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.nama)}&background=7c3aed&color=fff&size=128`;
-
-            // Update stats
-            document.getElementById('statJuz').textContent = data.juz || 0;
-            document.getElementById('statKehadiran').textContent = (data.kehadiran || 0) + '%';
-            document.getElementById('statRanking').textContent = data.ranking || '-';
-
-            // Update progress
-            const target = data.targetJuz || 30;
-            const current = data.juz || 0;
-            const percent = Math.round((current / target) * 100);
-            document.getElementById('currentJuz').textContent = `Juz ${Math.floor(current) + 1}`;
-            document.getElementById('targetJuz').textContent = target;
-            document.getElementById('progressPercent').textContent = percent + '%';
-            document.getElementById('progressBar').style.width = percent + '%';
-            
-            // Calculate estimation
-            const remaining = target - current;
-            const months = Math.ceil(remaining / 1); // Assume 1 juz per month average
-            document.getElementById('estimasiSelesai').textContent = `Estimasi: ${months} bulan lagi`;
-        }
-
-        async function loadTodaySchedule(uid) {
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const today = days[new Date().getDay()];
-            document.getElementById('currentDate').textContent = today + ', ' + new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long' });
-
-            // Mock schedule data - replace with Firestore query
-            const scheduleData = [
-                { waktu: '04:30 - 05:30', matapelajaran: 'Sholat Subuh & Dhuha', ruang: 'Masjid', status: 'done', icon: 'fa-pray' },
-                { waktu: '07:00 - 08:30', matapelajaran: 'Tahfidz', ruang: 'Ruang Tahfidz 1', status: 'active', icon: 'fa-book-quran' },
-                { waktu: '08:45 - 10:15', matapelajaran: 'Bahasa Arab', ruang: 'Kelas 6A', status: 'upcoming', icon: 'fa-language' },
-                { waktu: '10:30 - 12:00', matapelajaran: 'Fiqih', ruang: 'Kelas 6A', status: 'upcoming', icon: 'fa-balance-scale' },
-                { waktu: '13:00 - 14:30', matapelajaran: 'Hadits', ruang: 'Kelas 6A', status: 'upcoming', icon: 'fa-book' },
-            ];
-
-            const scheduleList = document.getElementById('scheduleList');
-            scheduleList.innerHTML = scheduleData.map(item => {
-                const statusClass = item.status === 'done' ? 'bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500' : 
-                                   item.status === 'active' ? 'bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500' :
-                                   'bg-gray-50 dark:bg-gray-700/50 border-l-4 border-gray-300 dark:border-gray-600';
-                const statusIcon = item.status === 'done' ? '<i class="fas fa-check-circle text-green-500"></i>' :
-                                  item.status === 'active' ? '<i class="fas fa-circle text-purple-500 animate-pulse"></i>' :
-                                  '<span class="text-xs text-gray-400">' + item.waktu.split(' - ')[0] + '</span>';
-                
-                return `
-                    <div class="flex items-center gap-4 p-3 rounded-xl ${statusClass}">
-                        <div class="text-center min-w-[60px]">
-                            <p class="text-xs font-medium text-gray-700 dark:text-gray-300">${item.waktu.split(' - ')[0]}</p>
-                            <p class="text-[10px] text-gray-400">${item.waktu.split(' - ')[1]}</p>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-semibold text-gray-900 dark:text-white text-sm">${item.matapelajaran}</p>
-                            <p class="text-xs text-gray-500"><i class="fas fa-map-marker-alt mr-1"></i>${item.ruang}</p>
-                        </div>
-                        ${statusIcon}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        async function loadAchievements(uid) {
-            // Mock achievements - replace with Firestore query
-            const achievements = [
-                { icon: 'fa-trophy', color: 'yellow', label: 'Juara 2', desc: 'MTQ Kelas' },
-                { icon: 'fa-medal', color: 'green', label: 'Hafiz', desc: '5 Juz' },
-                { icon: 'fa-star', color: 'blue', label: 'Santri', desc: 'Teladan' },
-                { icon: 'fa-award', color: 'purple', label: 'Rajin', desc: 'Hadir 100%' },
-            ];
-
-            const achievementList = document.getElementById('achievementList');
-            achievementList.innerHTML = achievements.map(ach => `
-                <div class="flex-shrink-0 text-center min-w-[80px]">
-                    <div class="w-16 h-16 rounded-2xl bg-${ach.color}-100 dark:bg-${ach.color}-900/30 text-${ach.color}-600 flex items-center justify-center mb-2 mx-auto shadow-sm">
-                        <i class="fas ${ach.icon} text-2xl"></i>
-                    </div>
-                    <p class="text-xs font-semibold text-gray-700 dark:text-gray-300">${ach.label}</p>
-                    <p class="text-[10px] text-gray-500">${ach.desc}</p>
+<!-- MODAL: Perizinan -->
+<div class="modal-overlay" id="modalIzin" onclick="if(event.target===this)closeModal('modalIzin')">
+    <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-title">
+            <h3>Ajukan Perizinan</h3>
+            <button class="modal-close" onclick="closeModal('modalIzin')"><i class="fas fa-times"></i></button>
+        </div>
+        <div>
+            <div style="margin-bottom:12px">
+                <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px">Jenis Izin</label>
+                <select style="width:100%;padding:11px 14px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px">
+                    <option>Pulang ke rumah</option>
+                    <option>Sakit</option>
+                    <option>Keperluan keluarga</option>
+                    <option>Lainnya</option>
+                </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+                <div>
+                    <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px">Tanggal Mulai</label>
+                    <input type="date" style="width:100%;padding:11px 14px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px">
                 </div>
-            `).join('');
-        }
-
-        async function loadNotifications(uid) {
-            // Check for unread notifications
-            const notifBadge = document.getElementById('notifBadge');
-            // Mock notification count - replace with Firestore query
-            const unreadCount = 3;
-            if (unreadCount > 0) {
-                notifBadge.textContent = unreadCount;
-                notifBadge.classList.remove('hidden');
-            }
-        }
-
-        // Global functions
-        window.toggleDarkMode = () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        };
-
-        window.showToast = (message, type = 'info') => {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toastMessage');
-            const icon = toast.querySelector('i');
-            
-            toastMessage.textContent = message;
-            
-            if (type === 'error') {
-                icon.className = 'fas fa-exclamation-circle text-red-500';
-                toast.querySelector('div').classList.replace('border-purple-500', 'border-red-500');
-            } else if (type === 'success') {
-                icon.className = 'fas fa-check-circle text-green-500';
-                toast.querySelector('div').classList.replace('border-purple-500', 'border-green-500');
-            } else {
-                icon.className = 'fas fa-info-circle text-purple-500';
-                toast.querySelector('div').classList.replace('border-red-500', 'border-purple-500');
-                toast.querySelector('div').classList.replace('border-green-500', 'border-purple-500');
-            }
-            
-            toast.classList.remove('-translate-y-full');
-            setTimeout(() => toast.classList.add('-translate-y-full'), 3000);
-        };
-
-        window.openPage = (page) => {
-            const pages = {
-                'jadwal': 'jadwal-santri.html',
-                'hafalan': 'hafalan-santri.html',
-                'nilai': 'nilai-santri.html',
-                'kegiatan': 'kegiatan-santri.html',
-                'pembayaran': 'pembayaran-santri.html',
-                'perizinan': 'perizinan-santri.html',
-                'konsultasi': 'konsultasi-santri.html',
-                'pengumuman': 'pengumuman-santri.html'
-            };
-            
-            if (pages[page]) {
-                window.location.href = pages[page];
-            } else {
-                showToast('Halaman ' + page + ' sedang dikembangkan');
-            }
-        };
-
-        window.showDetail = (type) => {
-            showToast('Detail ' + type + ' akan segera tersedia');
-        };
-
-        window.showProfileDetail = () => {
-            openPage('profil');
-        };
-
-        window.showNotifications = () => {
-            showModal('Notifikasi', `
-                <div class="space-y-3">
-                    <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl border-l-4 border-purple-500">
-                        <p class="font-semibold text-sm">Jadwal Ujian</p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400">Ujian tengah semester dimulai besok</p>
-                        <p class="text-[10px] text-gray-400 mt-1">2 jam yang lalu</p>
-                    </div>
-                    <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border-l-4 border-green-500">
-                        <p class="font-semibold text-sm">Setoran Diterima</p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400">Juz 5 halaman 45 telah disetujui</p>
-                        <p class="text-[10px] text-gray-400 mt-1">5 jam yang lalu</p>
-                    </div>
-                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-l-4 border-blue-500">
-                        <p class="font-semibold text-sm">Pembayaran SPP</p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400">SPP bulan April telah diterima</p>
-                        <p class="text-[10px] text-gray-400 mt-1">1 hari yang lalu</p>
-                    </div>
+                <div>
+                    <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px">Tanggal Selesai</label>
+                    <input type="date" style="width:100%;padding:11px 14px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px">
                 </div>
-            `);
-        };
+            </div>
+            <div style="margin-bottom:18px">
+                <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px">Keterangan</label>
+                <textarea rows="3" placeholder="Tulis keterangan izin..." style="width:100%;padding:11px 14px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;resize:none"></textarea>
+            </div>
+            <button onclick="closeModal('modalIzin');showToast('Permohonan izin berhasil dikirim','success')" style="width:100%;padding:13px;border-radius:14px;background:linear-gradient(135deg,var(--violet),var(--violet2));color:#fff;font-size:14px;font-weight:800;border:none;cursor:pointer;font-family:'Nunito',sans-serif">
+                <i class="fas fa-paper-plane" style="margin-right:8px"></i>Kirim Permohonan
+            </button>
+        </div>
+    </div>
+</div>
 
-        window.setActiveTab = (tab) => {
-            document.querySelectorAll('.nav-tab').forEach(el => {
-                el.classList.remove('text-purple-600');
-                el.classList.add('text-gray-400');
-            });
-            document.getElementById('tab-' + tab).classList.remove('text-gray-400');
-            document.getElementById('tab-' + tab).classList.add('text-purple-600');
-            
-            if (tab === 'home') {
-                // Already on home
-            } else if (tab === 'profil') {
-                showModal('Profil Santri', `
-                    <div class="text-center mb-6">
-                        <img src="${santriData?.photoURL || ''}" class="w-24 h-24 rounded-2xl mx-auto mb-3 border-4 border-purple-100 dark:border-purple-900">
-                        <h3 class="font-bold text-lg">${santriData?.nama || 'Santri'}</h3>
-                        <p class="text-sm text-gray-500">NIS: ${santriData?.nis || '-'}</p>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="flex justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                            <span class="text-gray-600 dark:text-gray-400">Kelas</span>
-                            <span class="font-semibold">${santriData?.kelas || '-'}</span>
-                        </div>
-                        <div class="flex justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                            <span class="text-gray-600 dark:text-gray-400">Program</span>
-                            <span class="font-semibold">${santriData?.program || '-'}</span>
-                        </div>
-                        <div class="flex justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                            <span class="text-gray-600 dark:text-gray-400">Status</span>
-                            <span class="font-semibold text-green-600">${santriData?.status || 'Aktif'}</span>
-                        </div>
-                        <button onclick="handleLogout()" class="w-full py-3 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-600 font-semibold hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors mt-4">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                        </button>
-                    </div>
-                `);
-            } else {
-                openPage(tab);
-            }
-        };
+<script>
+/* ══════════════════════════════════════
+   FIREBASE
+══════════════════════════════════════ */
+const firebaseConfig = {
+    apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+    authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+    projectId: "hidayatulamin-e6f22",
+    storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+    messagingSenderId: "80743607267",
+    appId: "1:80743607267:web:f5f94165de021759958ed6"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
 
-        window.showModal = (title, content) => {
-            const modal = document.getElementById('modalContainer');
-            const modalContent = document.getElementById('modalContent');
-            modalContent.innerHTML = `
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-bold text-lg text-gray-900 dark:text-white">${title}</h3>
-                    <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-400">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                ${content}
-            `;
-            modal.classList.remove('hidden');
-        };
+/* ══════════════════════════════════════
+   DEMO DATA
+══════════════════════════════════════ */
+const DEMO = {
+    nama:      'Muhammad Fauzi',
+    nis:       '2024001',
+    kelas:     'VII-B',
+    asrama:    'Al-Fatih',
+    program:   'Tahfidz Plus',
+    status:    'Aktif',
+    juz:       5,
+    targetJuz: 10,
+    kehadiran: 95,
+    ranking:   5,
+    photoURL:  'https://ui-avatars.com/api/?name=Muhammad+Fauzi&background=7c3aed&color=fff&size=200&rounded=true&bold=true',
+    ttl:       'Surabaya, 12 Maret 2012',
+    wali:      'Bapak Ahmad Fauzan',
+    noWali:    '0812-3456-7890',
+};
 
-        window.closeModal = () => {
-            document.getElementById('modalContainer').classList.add('hidden');
-        };
+const DEMO_JADWAL = {
+    Senin:   [
+        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
+        { waktu:'07:00–08:30', mapel:'Tahfidz',               ruang:'Ruang Tahfidz 1',status:'done' },
+        { waktu:'08:45–10:15', mapel:'Bahasa Arab',            ruang:'Kelas VII-B',    status:'active' },
+        { waktu:'10:30–12:00', mapel:'Fiqih',                 ruang:'Kelas VII-B',    status:'upcoming' },
+        { waktu:'13:00–14:30', mapel:'Hadits',                ruang:'Kelas VII-B',    status:'upcoming' },
+        { waktu:'16:00–17:30', mapel:'Olahraga',              ruang:'Lapangan',       status:'upcoming' },
+    ],
+    Selasa:  [
+        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
+        { waktu:'07:00–08:30', mapel:'Tahfidz',               ruang:'Ruang Tahfidz 1',status:'done' },
+        { waktu:'08:45–10:15', mapel:'Matematika',            ruang:'Kelas VII-B',    status:'done' },
+        { waktu:'10:30–12:00', mapel:'IPA',                   ruang:'Lab IPA',        status:'done' },
+        { waktu:'13:00–14:30', mapel:'Bahasa Indonesia',      ruang:'Kelas VII-B',    status:'upcoming' },
+    ],
+    Rabu:    [
+        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
+        { waktu:'07:00–08:30', mapel:'Tahfidz',               ruang:'Ruang Tahfidz 1',status:'upcoming' },
+        { waktu:'08:45–10:15', mapel:'Aqidah Akhlak',         ruang:'Kelas VII-B',    status:'upcoming' },
+        { waktu:'10:30–12:00', mapel:'Bahasa Inggris',        ruang:'Kelas VII-B',    status:'upcoming' },
+    ],
+    Kamis:   [
+        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
+        { waktu:'07:00–08:30', mapel:'Tahfidz + Murojaah',    ruang:'Ruang Tahfidz 1',status:'upcoming' },
+        { waktu:'08:45–10:15', mapel:'IPS',                   ruang:'Kelas VII-B',    status:'upcoming' },
+        { waktu:'10:30–12:00', mapel:'PPKN',                  ruang:'Kelas VII-B',    status:'upcoming' },
+    ],
+    Jumat:   [
+        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
+        { waktu:'07:00–08:00', mapel:'Kebersihan Pondok',     ruang:'Area Pondok',    status:'upcoming' },
+        { waktu:'11:30–13:00', mapel:'Sholat Jumat',          ruang:'Masjid',         status:'upcoming' },
+        { waktu:'14:00–15:30', mapel:'Tahsin Al-Qur\'an',     ruang:'Ruang Tahfidz 2',status:'upcoming' },
+    ],
+    Sabtu:   [
+        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
+        { waktu:'07:00–09:00', mapel:'Ekskul / Kegiatan',     ruang:'Aula / Lapangan',status:'upcoming' },
+        { waktu:'09:00–11:00', mapel:'Muhadharah',            ruang:'Aula',           status:'upcoming' },
+    ],
+    Ahad:    [
+        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
+        { waktu:'06:00–07:00', mapel:'Olahraga Pagi',         ruang:'Lapangan',       status:'done' },
+        { waktu:'08:00–10:00', mapel:'Bebas / Kunjungan',     ruang:'Area Pondok',    status:'upcoming' },
+    ],
+};
 
-        window.handleLogout = async () => {
-            if (confirm('Apakah Anda yakin ingin logout?')) {
-                try {
-                    await signOut(auth);
-                    window.location.href = 'login.html';
-                } catch (error) {
-                    showToast('Gagal logout: ' + error.message, 'error');
-                }
-            }
-        };
+const DEMO_NILAI = [
+    { mapel:'Al-Qur\'an & Tahfidz', nilai:93, icon:'fas fa-book-quran',  color:'#7c3aed' },
+    { mapel:'Fiqih & Aqidah',       nilai:88, icon:'fas fa-mosque',      color:'#06b6d4' },
+    { mapel:'Bahasa Arab',           nilai:85, icon:'fas fa-language',    color:'#3b82f6' },
+    { mapel:'Bahasa Indonesia',      nilai:82, icon:'fas fa-pen-nib',     color:'#a855f7' },
+    { mapel:'Matematika',            nilai:78, icon:'fas fa-calculator',  color:'#f59e0b' },
+    { mapel:'IPA',                   nilai:80, icon:'fas fa-flask',       color:'#10b981' },
+    { mapel:'IPS',                   nilai:84, icon:'fas fa-globe-asia',  color:'#3b82f6' },
+    { mapel:'Bahasa Inggris',        nilai:81, icon:'fas fa-spell-check', color:'#10b981' },
+];
 
-        // Initialize dark mode
-        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
+const DEMO_SETORAN = [
+    { juz:'Juz 5', hari:'Selasa, 15 April 2025',  hal:'Hal. 88–90',  guru:'Ust. Hamid',   status:'Diterima' },
+    { juz:'Juz 5', hari:'Sabtu, 12 April 2025',   hal:'Hal. 85–87',  guru:'Ust. Hamid',   status:'Diterima' },
+    { juz:'Juz 5', hari:'Rabu, 9 April 2025',     hal:'Hal. 82–84',  guru:'Ust. Hamid',   status:'Diterima' },
+    { juz:'Juz 4', hari:'Senin, 7 April 2025',    hal:'Hal. 78–80',  guru:'Ust. Abdullah',status:'Diterima' },
+    { juz:'Juz 4', hari:'Jumat, 4 April 2025',    hal:'Hal. 74–77',  guru:'Ust. Abdullah',status:'Diterima' },
+    { juz:'Juz 4', hari:'Selasa, 1 April 2025',   hal:'Hal. 70–73',  guru:'Ust. Abdullah',status:'Perlu Perbaikan' },
+];
+
+const DEMO_PENGUMUMAN = [
+    {
+        judul:'Ujian Tengah Semester 2 — Jadwal Lengkap',
+        isi:'UTS Semester 2 TA 2024/2025 dilaksanakan mulai 20–24 April 2025. Santri wajib hadir 15 menit sebelum ujian. Bawa alat tulis lengkap. Dilarang membawa HP ke ruang ujian.',
+        tgl:'14 April 2025', penulis:'Bag. Akademik', cat:'penting', baru:true,
+    },
+    {
+        judul:'Kunjungan Wali Santri — 25 April 2025',
+        isi:'Seluruh wali santri diundang hadir pada Jumat 25 April 2025 pukul 08.00 WIB di Aula Yayasan. Agenda: laporan perkembangan santri, konsultasi wali kelas, dan ramah tamah bersama pengurus.',
+        tgl:'12 April 2025', penulis:'Admin Yayasan', cat:'penting', baru:true,
+    },
+    {
+        judul:'Pembayaran SPP Mei 2025 Dibuka',
+        isi:'Pembayaran SPP bulan Mei 2025 dibuka mulai 25 April 2025. Pembayaran dapat dilakukan melalui transfer rekening yayasan atau langsung ke bendahara. Batas waktu 10 Mei 2025.',
+        tgl:'10 April 2025', penulis:'Bendahara', cat:'penting', baru:true,
+    },
+    {
+        judul:'Haflah Akhirusanah — 15 Mei 2025',
+        isi:'Haflah Akhirusanah insyaAllah diadakan 15 Mei 2025. Tiap wali santri mendapat 2 tiket undangan. Pengambilan tiket mulai 1 Mei di sekretariat yayasan.',
+        tgl:'8 April 2025', penulis:'Panitia Haflah', cat:'kegiatan', baru:false,
+    },
+    {
+        judul:'Perubahan Jadwal Tahajud Berjamaah',
+        isi:'Mulai 1 April 2025, tahajud berjamaah diubah dari 03.00 menjadi 03.30 WIB. Seluruh santri wajib mengikuti.',
+        tgl:'30 Maret 2025', penulis:'Pengasuh Pondok', cat:'kegiatan', baru:false,
+    },
+];
+
+const DEMO_NOTIF = [
+    { icon:'fas fa-clock',        color:'#7c3aed', judul:'Jadwal Ujian',       isi:'UTS dimulai besok pukul 07.30', waktu:'2 jam lalu' },
+    { icon:'fas fa-check-circle', color:'#10b981', judul:'Setoran Diterima',   isi:'Juz 5 hal. 88–90 disetujui ustadz', waktu:'5 jam lalu' },
+    { icon:'fas fa-wallet',       color:'#3b82f6', judul:'Pembayaran SPP',     isi:'SPP April telah diterima ✓', waktu:'1 hari lalu' },
+];
+
+const DEMO_ACHIEV = [
+    { icon:'fas fa-trophy',  color:'rgba(245,158,11,.12)',  icolor:'#f59e0b', label:'Juara 2',   sub:'MTQ Kelas' },
+    { icon:'fas fa-medal',   color:'rgba(16,185,129,.12)',  icolor:'#10b981', label:'5 Juz',     sub:'Hafalan' },
+    { icon:'fas fa-star',    color:'rgba(59,130,246,.12)',  icolor:'#3b82f6', label:'Teladan',   sub:'Santri' },
+    { icon:'fas fa-award',   color:'rgba(124,58,237,.12)',  icolor:'#7c3aed', label:'100%',      sub:'Kehadiran' },
+    { icon:'fas fa-pen',     color:'rgba(6,182,212,.12)',   icolor:'#06b6d4', label:'Terbaik',   sub:'Muhadharah' },
+];
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let santriData = null;
+let activeTab  = 'beranda';
+let activeDay  = '';
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+    updateGreeting();
+    setInterval(updateGreeting, 60000);
+
+    // Restore dark mode
+    if (localStorage.getItem('theme') === 'dark') applyDark(true);
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            loadSantriData(user.uid);
+        } else {
+            initDemo();
         }
-    </script>
+    }, () => initDemo());
+});
+
+async function loadSantriData(uid) {
+    try {
+        const snap = await db.collection('santri').doc(uid).get();
+        santriData = snap.exists ? snap.data() : DEMO;
+        if (!santriData.nama) santriData = DEMO;
+    } catch (e) {
+        santriData = DEMO;
+    }
+    init();
+}
+
+function initDemo() {
+    santriData = DEMO;
+    init();
+    showToast('Mode demo aktif', 'info');
+}
+
+function init() {
+    hideLoading();
+    populateAll();
+    switchTab('beranda');
+}
+
+function hideLoading() {
+    document.getElementById('loadingState').style.display = 'none';
+}
+
+/* ══════════════════════════════════════
+   POPULATE ALL
+══════════════════════════════════════ */
+function populateAll() {
+    const s = santriData;
+    const avatarUrl = s.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nama)}&background=7c3aed&color=fff&size=200&bold=true`;
+
+    // Hero
+    document.getElementById('heroPhoto').src      = avatarUrl;
+    document.getElementById('heroName').textContent     = s.nama;
+    document.getElementById('heroSubtitle').textContent = `NIS ${s.nis} · Kelas ${s.kelas}`;
+    document.getElementById('heroStatus').textContent   = s.status || 'Aktif';
+    document.getElementById('heroProgram').textContent  = s.program || 'Reguler';
+
+    // Stats
+    document.getElementById('chipJuz').textContent      = s.juz;
+    document.getElementById('chipKehadiran').textContent = s.kehadiran + '%';
+    document.getElementById('chipRanking').textContent   = s.ranking || '–';
+
+    // Progress
+    const pct = Math.round((s.juz / (s.targetJuz||30)) * 100);
+    document.getElementById('progressJuzLabel').textContent = `Juz ${s.juz}`;
+    document.getElementById('progressPct').textContent      = pct + '%';
+    document.getElementById('progressTarget').textContent   = s.targetJuz;
+    document.getElementById('progressEst').textContent      = `Estimasi: ${s.targetJuz - s.juz} juz lagi`;
+    setTimeout(() => { document.getElementById('progressBar').style.width = pct + '%'; }, 200);
+
+    // Today schedule
+    const days = ['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    activeDay = days[new Date().getDay()];
+    document.getElementById('todayLabel').textContent = activeDay + ', ' + new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+    renderTodaySchedule(activeDay);
+
+    // Achievements
+    renderAchievements();
+
+    // Hafalan page
+    document.getElementById('hafJuzBig').textContent  = s.juz + ' Juz';
+    document.getElementById('hafHalaman').textContent = (s.juz * 20) + ' halaman telah hafal';
+    document.getElementById('hafTarget').textContent  = s.targetJuz + ' Juz';
+    document.getElementById('hafTotalSetoran').textContent = DEMO_SETORAN.length + ' setoran';
+    setTimeout(() => { document.getElementById('hafProgressBar').style.width = pct + '%'; }, 300);
+    document.getElementById('hafPct').textContent = pct + '%';
+    renderJuzGrid();
+    renderSetoran();
+
+    // Nilai page
+    const avg = (DEMO_NILAI.reduce((a,x)=>a+x.nilai,0)/DEMO_NILAI.length).toFixed(1);
+    document.getElementById('nilaiAvg').textContent     = avg;
+    document.getElementById('nilaiRanking').textContent = s.ranking || '–';
+    renderNilai();
+
+    // Pengumuman
+    renderPengumuman();
+
+    // Profil
+    document.getElementById('profilPhoto').src           = avatarUrl;
+    document.getElementById('profilName').textContent    = s.nama;
+    document.getElementById('profilNis').textContent     = 'NIS ' + s.nis;
+    document.getElementById('profilProgram').textContent = s.program || 'Reguler';
+    document.getElementById('lastLoginEl').textContent   = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('profilRows').innerHTML = `
+        ${pRow('Kelas',   s.kelas)}
+        ${pRow('Asrama',  s.asrama||'–')}
+        ${pRow('Program', s.program||'–')}
+        ${pRow('Tgl. Lahir', s.ttl||'–')}
+        ${pRow('Wali Santri', s.wali||'–')}
+        ${pRow('No. Wali', s.noWali||'–')}
+    `;
+
+    // Jadwal page
+    buildDayTabs();
+    renderJadwal(activeDay);
+
+    // Notif dot
+    document.getElementById('notifDot').style.display = 'block';
+}
+
+function pRow(label, val) {
+    return `<div class="profil-row"><label>${label}</label><span>${val}</span></div>`;
+}
+
+/* ══════════════════════════════════════
+   SCHEDULE RENDERS
+══════════════════════════════════════ */
+function renderTodaySchedule(day) {
+    const items = DEMO_JADWAL[day] || [];
+    const el = document.getElementById('todaySchList');
+    if (!items.length) { el.innerHTML = '<p style="font-size:13px;color:var(--text2);padding:10px 0">Tidak ada jadwal hari ini.</p>'; return; }
+    el.innerHTML = items.map(i => {
+        const [start,end] = i.waktu.split('–');
+        const icon = i.status==='done'
+            ? '<i class="fas fa-check-circle sch-status-icon text-green"></i>'
+            : i.status==='active'
+            ? '<i class="fas fa-circle sch-status-icon text-violet" style="animation:blink 1.2s infinite"></i>'
+            : '';
+        return `<div class="sch-item ${i.status}">
+            <div class="sch-time">${start}<br>${end}</div>
+            <div style="flex:1">
+                <div class="sch-subject">${i.mapel}</div>
+                <div class="sch-room"><i class="fas fa-map-marker-alt" style="font-size:9px;margin-right:3px"></i>${i.ruang}</div>
+            </div>
+            ${icon}
+        </div>`;
+    }).join('');
+}
+
+function buildDayTabs() {
+    const days = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Ahad'];
+    const el = document.getElementById('dayTabs');
+    el.innerHTML = days.map(d => `
+        <div class="day-tab ${d===activeDay?'active':''}" onclick="selectDay('${d}')">${d}</div>
+    `).join('');
+}
+
+function selectDay(day) {
+    activeDay = day;
+    document.querySelectorAll('.day-tab').forEach(t => {
+        t.classList.toggle('active', t.textContent === day);
+    });
+    renderJadwal(day);
+}
+
+function renderJadwal(day) {
+    const items = DEMO_JADWAL[day] || [];
+    const el = document.getElementById('jadwalContent');
+    if (!items.length) { el.innerHTML = '<p style="font-size:13px;color:var(--text2)">Tidak ada jadwal.</p>'; return; }
+    el.innerHTML = items.map(i => {
+        const [start,end] = i.waktu.split('–');
+        const statusIcon = i.status==='done'
+            ? '<i class="fas fa-check-circle sch-status-icon text-green"></i>'
+            : i.status==='active'
+            ? '<i class="fas fa-circle sch-status-icon text-violet"></i>'
+            : '';
+        return `<div class="sch-item ${i.status}">
+            <div class="sch-time">${start}<br>${end||''}</div>
+            <div style="flex:1">
+                <div class="sch-subject">${i.mapel}</div>
+                <div class="sch-room"><i class="fas fa-map-marker-alt" style="font-size:9px;margin-right:3px"></i>${i.ruang}</div>
+            </div>
+            ${statusIcon}
+        </div>`;
+    }).join('');
+}
+
+/* ══════════════════════════════════════
+   HAFALAN RENDERS
+══════════════════════════════════════ */
+function renderJuzGrid() {
+    const current = santriData.juz;
+    let html = '';
+    for (let i=1; i<=30; i++) {
+        const cls = i < current ? 'done' : i === current ? 'current' : '';
+        html += `<div class="juz-cell ${cls}" title="Juz ${i}">${i}</div>`;
+    }
+    document.getElementById('juzGrid').innerHTML = html;
+}
+
+function renderSetoran() {
+    document.getElementById('setoranList').innerHTML = DEMO_SETORAN.map(s => {
+        const ok = s.status === 'Diterima';
+        return `<div class="setoran-item">
+            <div class="setoran-dot" style="background:${ok?'var(--green)':'var(--amber)'}"></div>
+            <div class="setoran-info" style="flex:1">
+                <h4>${s.juz} — ${s.hal}</h4>
+                <p>${s.hari} · ${s.guru}</p>
+            </div>
+            <span class="badge ${ok?'badge-green':'badge-amber'} setoran-badge">${s.status}</span>
+        </div>`;
+    }).join('');
+}
+
+/* ══════════════════════════════════════
+   NILAI RENDER
+══════════════════════════════════════ */
+function renderNilai() {
+    document.getElementById('nilaiList').innerHTML = DEMO_NILAI.map(n => {
+        const col = n.nilai>=90?'#7c3aed':n.nilai>=80?'#3b82f6':n.nilai>=75?'#f59e0b':'#f43f5e';
+        return `<div class="nilai-row">
+            <div class="nilai-icon" style="background:${n.color}18"><i class="${n.icon}" style="color:${n.color};font-size:13px"></i></div>
+            <div class="nilai-mapel">${n.mapel}</div>
+            <div class="nilai-bar-wrap"><div class="nilai-bar" style="width:${n.nilai}%;background:${col}"></div></div>
+            <div class="nilai-angka" style="color:${col}">${n.nilai}</div>
+        </div>`;
+    }).join('');
+}
+
+/* ══════════════════════════════════════
+   ACHIEVEMENTS
+══════════════════════════════════════ */
+function renderAchievements() {
+    document.getElementById('achRow').innerHTML = DEMO_ACHIEV.map(a => `
+        <div class="ach-chip">
+            <div class="ach-icon" style="background:${a.color}"><i class="${a.icon}" style="color:${a.icolor}"></i></div>
+            <div class="ach-label">${a.label}</div>
+            <div class="ach-sub">${a.sub}</div>
+        </div>
+    `).join('');
+}
+
+/* ══════════════════════════════════════
+   PENGUMUMAN
+══════════════════════════════════════ */
+function renderPengumuman() {
+    document.getElementById('annList').innerHTML = DEMO_PENGUMUMAN.map(a => `
+        <div class="ann-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px">
+                <h4>${a.judul}</h4>
+                ${a.baru ? '<span class="badge badge-rose" style="flex-shrink:0">Baru</span>' : ''}
+            </div>
+            <p>${a.isi}</p>
+            <div class="ann-foot">
+                <span><i class="fas fa-user"></i>${a.penulis}</span>
+                <span><i class="fas fa-calendar"></i>${a.tgl}</span>
+                <span class="badge ${a.cat==='penting'?'badge-amber':'badge-violet'}">${a.cat==='penting'?'Penting':'Kegiatan'}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+/* ══════════════════════════════════════
+   NOTIFIKASI MODAL
+══════════════════════════════════════ */
+function openNotif() {
+    document.getElementById('notifContent').innerHTML = DEMO_NOTIF.map(n => `
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)">
+            <div style="width:38px;height:38px;border-radius:12px;background:${n.color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="${n.icon}" style="color:${n.color};font-size:15px"></i>
+            </div>
+            <div style="flex:1">
+                <div style="font-size:13px;font-weight:800">${n.judul}</div>
+                <div style="font-size:12px;color:var(--text2);margin-top:3px">${n.isi}</div>
+                <div style="font-size:10px;color:var(--text3);margin-top:4px">${n.waktu}</div>
+            </div>
+        </div>
+    `).join('') + `<button onclick="closeModal('modalNotif')" style="width:100%;padding:12px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;font-family:'Nunito',sans-serif">Tandai Semua Dibaca</button>`;
+    openModal('modalNotif');
+    document.getElementById('notifDot').style.display = 'none';
+}
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+function switchTab(tab) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+
+    const page = document.getElementById('page-' + tab);
+    const btn  = document.getElementById('btn-' + tab);
+    if (page) page.classList.add('active');
+    if (btn)  btn.classList.add('active');
+
+    activeTab = tab;
+    window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+/* ══════════════════════════════════════
+   MODAL
+══════════════════════════════════════ */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openIzin()       { openModal('modalIzin'); }
+function openKonsultasi() {
+    showToast('Membuka WhatsApp admin...','info');
+    setTimeout(() => window.open('https://wa.me/628123456789?text=Assalamualaikum, saya santri Hidayatul Amin ingin berkonsultasi.','_blank'), 600);
+}
+function openPageExt(page) { showToast('Halaman ' + page + ' sedang dikembangkan','info'); }
+
+/* ══════════════════════════════════════
+   DARK MODE
+══════════════════════════════════════ */
+function applyDark(on) {
+    document.documentElement.classList.toggle('dark', on);
+    document.getElementById('darkIcon').className = on ? 'fas fa-sun' : 'fas fa-moon';
+}
+function toggleDarkMode() {
+    const isDark = document.documentElement.classList.contains('dark');
+    applyDark(!isDark);
+    localStorage.setItem('theme', !isDark ? 'dark' : 'light');
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+let toastTimer = null;
+function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    const icons = { success:'fa-check-circle', error:'fa-times-circle', info:'fa-info-circle', warning:'fa-exclamation-triangle' };
+    const colors = { success:'var(--green)', error:'var(--rose)', info:'var(--violet)', warning:'var(--amber)' };
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toastIcon').className  = `toast-icon fas ${icons[type]||icons.info}`;
+    document.getElementById('toastIcon').style.color = colors[type]||colors.info;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ══════════════════════════════════════
+   GREETING
+══════════════════════════════════════ */
+function updateGreeting() {
+    const h = new Date().getHours();
+    const g = h<11 ? 'Selamat pagi! ☀️' : h<15 ? 'Selamat siang! 🌤️' : h<18 ? 'Selamat sore! 🌇' : 'Selamat malam! 🌙';
+    document.getElementById('greetingText').textContent = g;
+}
+
+/* ══════════════════════════════════════
+   LOGOUT
+══════════════════════════════════════ */
+function handleLogout() {
+    if (!confirm('Yakin ingin logout?')) return;
+    auth.signOut().then(() => {
+        window.location.href = 'login.html';
+    }).catch(() => { window.location.href = 'login.html'; });
+}
+</script>
 </body>
 </html>
