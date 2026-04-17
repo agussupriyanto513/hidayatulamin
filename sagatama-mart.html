@@ -1,579 +1,1865 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#0db87a">
-<title>Sagatama Mart | Hidayatullah Amin</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#f0f9f4;--card:#fff;--text:#0f1e14;--text2:#4a6a58;--text3:#8aaa98;
-  --green:#0db87a;--green2:#09926a;--green3:#07704f;
-  --green-bg:#e6f9f2;--green-text:#0a6b4e;
-  --amber:#f59e0b;--amber-bg:#fef3c7;--amber-text:#92400e;
-  --red:#ef4444;--red-bg:#fee2e2;--red-text:#991b1b;
-  --blue:#3b82f6;--blue-bg:#eff6ff;--blue-text:#1d4ed8;
-  --border:#d1fae5;--border2:#e8f5ee;
-  --shadow:0 2px 16px rgba(13,184,122,0.08);--shadow2:0 8px 40px rgba(13,184,122,0.15);
-  --r:14px;--r2:20px;--r3:28px;--nav-h:72px;
-}
-.dark{
-  --bg:#070f0a;--card:#0f1a12;--text:#e2f5ea;--text2:#6aaa88;--text3:#3a6050;
-  --green-bg:#0a2e1c;--green-text:#4ade80;--amber-bg:#2a1a00;--amber-text:#fbbf24;
-  --red-bg:#2a0a0a;--red-text:#f87171;--blue-bg:#0a1628;--blue-text:#60a5fa;
-  --border:#1a3525;--border2:#122018;
-  --shadow:0 2px 16px rgba(0,0,0,0.4);--shadow2:0 8px 40px rgba(0,0,0,0.5);
-}
-html{scroll-behavior:smooth}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;padding-bottom:calc(var(--nav-h) + 20px)}
-.app-header{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(240,249,244,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 16px;height:60px;display:flex;align-items:center;justify-content:space-between}
-.dark .app-header{background:rgba(7,15,10,0.92)}
-.header-brand{display:flex;align-items:center;gap:10px}
-.brand-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#0db87a,#09926a);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;box-shadow:0 4px 12px rgba(13,184,122,0.35)}
-.brand-name{font-size:15px;font-weight:800;color:var(--text)}
-.brand-sub{font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.8px;margin-top:-1px}
-.header-right{display:flex;align-items:center;gap:8px}
-.hbtn{width:36px;height:36px;border-radius:11px;background:var(--green-bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--green);font-size:14px;position:relative;transition:all .2s}
-.hbtn:hover{background:var(--green);color:#fff}
-.cart-badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;border:2px solid var(--card);padding:0 3px}
-.auth-btn{padding:7px 14px;border-radius:10px;font-size:12px;font-weight:700;border:none;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
-.login-btn{background:linear-gradient(135deg,#0db87a,#09926a);color:#fff}
-.login-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(13,184,122,0.4)}
-.logout-btn{background:var(--red-bg);color:var(--red-text)}
-.bottom-nav{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:500px;height:var(--nav-h);background:var(--card);border-radius:24px;box-shadow:0 8px 40px rgba(0,0,0,0.18),0 0 0 1px var(--border);z-index:200;display:flex;align-items:center;justify-content:space-around;padding:0 8px}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:16px;background:none;border:none;color:var(--text3);cursor:pointer;transition:all .25s;font-family:'Outfit',sans-serif;position:relative}
-.nav-btn.active{color:var(--green)}
-.nav-btn i{font-size:20px;transition:transform .2s}
-.nav-btn.active i{transform:scale(1.1)}
-.nav-btn span{font-size:10px;font-weight:700;letter-spacing:0.3px}
-.nav-pill{width:48px;height:48px;background:linear-gradient(135deg,#0db87a,#09926a);border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(13,184,122,0.45)}
-.nav-pill i{font-size:22px;color:#fff}
-.app-main{max-width:540px;margin:0 auto;padding:72px 16px 0}
-.view{display:none;animation:fadeUp .35s ease}
-.view.active{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-.hero{border-radius:var(--r3);overflow:hidden;position:relative;margin:12px 0 16px;height:200px}
-.hero img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
-.hero:hover img{transform:scale(1.04)}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(7,15,10,.9) 0%,rgba(7,112,79,.55) 60%,transparent 100%);padding:24px;display:flex;flex-direction:column;justify-content:flex-end}
-.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(13,184,122,.2);border:1px solid rgba(13,184,122,.4);color:#4ade80;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px;width:fit-content}
-.live-dot{width:8px;height:8px;background:#0db87a;border-radius:50%;position:relative;display:inline-block}
-.live-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:#0db87a;animation:pring 2s ease-out infinite}
-@keyframes pring{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.2);opacity:0}}
-.hero-title{font-family:'Amiri',serif;font-size:28px;font-weight:700;color:#fff;line-height:1.15;margin-bottom:8px}
-.hero-title span{color:#4ade80}
-.hero-sub{font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:14px}
-.hero-btn{display:inline-flex;align-items:center;gap:7px;background:#fff;color:var(--green3);font-size:12px;font-weight:800;padding:10px 18px;border-radius:12px;border:none;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;width:fit-content}
-.hero-btn:hover{background:var(--green);color:#fff}
-.qstat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-.qstat{background:var(--card);border-radius:var(--r);border:1px solid var(--border2);padding:14px 12px;text-align:center}
-.qstat-emoji{font-size:22px;margin-bottom:6px}
-.qstat-val{font-size:18px;font-weight:800;color:var(--text);line-height:1}
-.qstat-lbl{font-size:10px;font-weight:600;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.3px}
-.sec-hd{display:flex;align-items:center;margin-bottom:12px}
-.sec-title{font-size:15px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px}
-.sec-title i{color:var(--green);font-size:14px}
-.see-all{margin-left:auto;font-size:12px;color:var(--green);font-weight:700;cursor:pointer;background:none;border:none;font-family:'Outfit',sans-serif}
-.cat-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin-bottom:20px;scrollbar-width:none}
-.cat-scroll::-webkit-scrollbar{display:none}
-.cat-chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:all .2s}
-.cat-circle{width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:24px;border:1.5px solid var(--border2);background:var(--card);transition:all .2s}
-.cat-chip:hover .cat-circle,.cat-chip.active .cat-circle{background:var(--green);border-color:var(--green);transform:scale(1.05)}
-.cat-name{font-size:10px;font-weight:700;color:var(--text2);text-align:center}
-.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
-.prod-card{background:var(--card);border-radius:var(--r2);border:1px solid var(--border2);overflow:hidden;transition:all .25s;cursor:pointer}
-.prod-card:hover{transform:translateY(-4px);box-shadow:var(--shadow2)}
-.prod-img{height:130px;background:var(--green-bg);position:relative;overflow:hidden}
-.prod-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
-.prod-card:hover .prod-img img{transform:scale(1.08)}
-.prod-cat-badge{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);color:var(--green3);font-size:9px;font-weight:800;padding:3px 8px;border-radius:20px}
-.prod-fav{position:absolute;top:8px;left:8px;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.92);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:13px;transition:all .2s}
-.prod-fav.active{color:#ef4444;background:#fee2e2}
-.prod-body{padding:12px}
-.prod-name{font-size:13px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.prod-price{font-size:16px;font-weight:800;color:var(--green)}
-.prod-stock{font-size:10px;color:var(--text3);margin-top:2px}
-.add-btn{width:100%;margin-top:10px;padding:9px;border-radius:10px;background:var(--green-bg);color:var(--green3);font-size:12px;font-weight:700;border:none;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px}
-.add-btn:hover,.prod-card.in-cart .add-btn{background:var(--green);color:#fff}
-.search-wrap{display:flex;gap:8px;margin-bottom:14px}
-.search-input{flex:1;padding:11px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:14px;font-family:'Outfit',sans-serif;outline:none;transition:border .2s}
-.search-input:focus{border-color:var(--green)}
-.filter-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
-.filter-chips::-webkit-scrollbar{display:none}
-.fchip{flex-shrink:0;padding:6px 14px;border-radius:20px;background:var(--card);border:1.5px solid var(--border);font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap;font-family:'Outfit',sans-serif}
-.fchip.active{background:var(--green);border-color:var(--green);color:#fff}
-.cart-item{background:var(--card);border-radius:var(--r2);border:1px solid var(--border2);padding:14px;display:flex;gap:12px;margin-bottom:10px}
-.ci-img{width:72px;height:72px;border-radius:12px;background:var(--green-bg);object-fit:cover;flex-shrink:0}
-.ci-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3}
-.ci-price{font-size:15px;font-weight:800;color:var(--green)}
-.qty-row{display:flex;align-items:center;gap:10px;margin-top:8px}
-.qty-btn{width:30px;height:30px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.qty-btn.plus{background:var(--green-bg);border-color:var(--green);color:var(--green)}
-.del-btn{margin-left:auto;width:30px;height:30px;border-radius:9px;border:none;background:var(--red-bg);color:var(--red);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.cart-summary{background:var(--card);border-radius:var(--r2);border:1px solid var(--border2);padding:18px;margin-top:8px}
-.sum-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:10px}
-.sum-total{font-size:16px;font-weight:800;color:var(--text);margin-top:12px;padding-top:12px;border-top:1.5px solid var(--border);display:flex;justify-content:space-between}
-.sum-total span:last-child{color:var(--green)}
-.checkout-btn{width:100%;padding:16px;border-radius:var(--r);background:linear-gradient(135deg,#0db87a,#09926a);color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;margin-top:14px;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-.checkout-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(13,184,122,0.4)}
-.pay-option{border:2px solid var(--border);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;margin-bottom:8px;background:var(--card)}
-.pay-option:hover{border-color:var(--green)}
-.pay-option.selected{border-color:var(--green);background:var(--green-bg)}
-.pay-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.pay-option.selected .pay-dot{border-color:var(--green);background:var(--green)}
-.pay-label{font-size:13px;font-weight:700;color:var(--text)}
-.pay-desc{font-size:11px;color:var(--text3)}
-.profile-card{border-radius:var(--r3);background:linear-gradient(135deg,#0a2e1c,#0f4a2a);padding:24px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
-.profile-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(13,184,122,0.1);border-radius:50%}
-.profile-av{width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#0db87a,#09926a);display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;font-weight:800;margin:0 auto 14px;border:3px solid rgba(255,255,255,0.15)}
-.profile-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:4px}
-.profile-email{font-size:12px;color:rgba(255,255,255,.55);margin-bottom:10px}
-.profile-role{display:inline-block;padding:4px 14px;border-radius:20px;background:rgba(13,184,122,.2);border:1px solid rgba(13,184,122,.4);color:#4ade80;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
-.menu-group{background:var(--card);border-radius:var(--r2);border:1px solid var(--border2);overflow:hidden;margin-bottom:12px}
-.menu-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border2);cursor:pointer;transition:all .2s}
-.menu-item:last-child{border-bottom:none}
-.menu-item:hover{background:var(--bg)}
-.mi-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-.mi-label{font-size:13px;font-weight:700;color:var(--text)}
-.mi-sub{font-size:11px;color:var(--text3)}
-.mi-arrow{margin-left:auto;color:var(--text3);font-size:12px}
-.order-card{background:var(--card);border-radius:var(--r2);border:1px solid var(--border2);padding:16px;margin-bottom:10px}
-.order-id{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px;font-family:monospace}
-.order-items{font-size:13px;color:var(--text2);margin-bottom:8px}
-.order-footer{display:flex;align-items:center;justify-content:space-between}
-.order-total{font-size:16px;font-weight:800;color:var(--green)}
-.ostatus{font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
-.os-pending{background:var(--amber-bg);color:var(--amber-text)}
-.os-processing{background:var(--blue-bg);color:var(--blue-text)}
-.os-completed{background:var(--green-bg);color:var(--green-text)}
-.os-cancelled{background:var(--red-bg);color:var(--red-text)}
-.order-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
-.order-tabs::-webkit-scrollbar{display:none}
-.otab{padding:7px 14px;border-radius:20px;background:var(--card);border:1.5px solid var(--border);font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap;font-family:'Outfit',sans-serif}
-.otab.active{background:var(--green);border-color:var(--green);color:#fff}
-.admin-stat{background:var(--card);border-radius:var(--r2);border:1px solid var(--border2);padding:16px;position:relative;overflow:hidden}
-.admin-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#0db87a,#09926a)}
-.as-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:12px}
-.as-val{font-size:26px;font-weight:800;color:var(--text);line-height:1}
-.as-lbl{font-size:11px;color:var(--text2);margin-top:3px}
-.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.admin-prod-item{background:var(--card);border-radius:var(--r);border:1px solid var(--border2);padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.api-img{width:52px;height:52px;border-radius:12px;object-fit:cover;background:var(--green-bg);flex-shrink:0}
-.api-name{font-size:13px;font-weight:700;color:var(--text)}
-.api-price{font-size:14px;font-weight:800;color:var(--green)}
-.api-stock{font-size:11px;color:var(--text3)}
-.api-actions{margin-left:auto;display:flex;gap:6px}
-.api-btn{width:30px;height:30px;border-radius:8px;border:none;cursor:pointer;font-size:12px;transition:all .2s;display:flex;align-items:center;justify-content:center}
-.api-edit{background:var(--blue-bg);color:var(--blue)}
-.api-del{background:var(--red-bg);color:var(--red)}
-.add-prod-btn{width:100%;padding:14px;border-radius:var(--r);background:linear-gradient(135deg,#0db87a,#09926a);color:#fff;font-size:14px;font-weight:800;border:none;cursor:pointer;margin-bottom:14px;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
-.add-prod-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(13,184,122,.4)}
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)}
-.overlay.open{display:flex}
-.modal-sheet{background:var(--card);border-radius:28px 28px 0 0;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;padding:20px 20px 36px;transform:translateY(100%);transition:transform .4s cubic-bezier(0.34,1.56,0.64,1);border-top:1px solid var(--border2)}
-.overlay.open .modal-sheet{transform:translateY(0)}
-.sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 20px}
-.sheet-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
-.fg{margin-bottom:14px}
-.flabel{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
-.finput{width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:'Outfit',sans-serif;outline:none;transition:border .2s}
-.finput:focus{border-color:var(--green)}
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.fselect{width:100%;padding:11px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:'Outfit',sans-serif;outline:none;cursor:pointer}
-.sheet-btns{display:flex;gap:10px;margin-top:18px}
-.sbtn{flex:1;padding:14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .2s}
-.sbtn-cancel{background:var(--bg);color:var(--text2);border:1.5px solid var(--border)}
-.sbtn-primary{background:linear-gradient(135deg,#0db87a,#09926a);color:#fff;box-shadow:0 4px 14px rgba(13,184,122,.3)}
-.toast-stack{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;width:calc(100% - 32px);max-width:500px;pointer-events:none}
-.toast{border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.25);transform:translateY(-16px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:600;pointer-events:all;color:#fff}
-.toast.show{transform:translateY(0);opacity:1}
-.toast.success{background:linear-gradient(135deg,#0db87a,#09926a)}
-.toast.error{background:linear-gradient(135deg,#ef4444,#dc2626)}
-.toast.info{background:linear-gradient(135deg,#3b82f6,#2563eb)}
-.page-top{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-top:4px}
-.back-btn{width:38px;height:38px;border-radius:12px;background:var(--card);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:15px;flex-shrink:0}
-.page-top h2{font-size:20px;font-weight:800;color:var(--text)}
-.empty-state{text-align:center;padding:48px 20px;color:var(--text3)}
-.empty-state i{font-size:48px;margin-bottom:14px;display:block;opacity:.4}
-.empty-state p{font-size:14px;font-weight:600}
-.empty-sub{font-size:12px;margin-top:4px;opacity:.6}
-.portal-banner{background:linear-gradient(135deg,#0a2e1c,#0f4a2a);border-radius:var(--r2);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px;cursor:pointer;transition:all .2s;text-decoration:none}
-.portal-banner:hover{transform:translateY(-2px);box-shadow:var(--shadow2)}
-.pb-icon{width:40px;height:40px;border-radius:12px;background:rgba(13,184,122,.2);display:flex;align-items:center;justify-content:center;font-size:18px;color:#4ade80;flex-shrink:0}
-.pb-title{font-size:13px;font-weight:700;color:#fff}
-.pb-sub{font-size:11px;color:rgba(255,255,255,.5)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#059669">
+    <meta name="description" content="Sagatama Mart - Ekonomi Mandiri Yayasan Hidayatullah Amin">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>Sagatama Mart Elite | Ekonomi Mandiri Yayasan</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/json;base64,eyJzaG9ydF9uYW1lIjoiU2FnYXRhbWEiLCJuYW1lIjoiU2FnYXRhbWEgTWFydCIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsInRoZW1lX2NvbG9yIjoiIzA1OTY2OSIsImJhY2tncm91bmRfY29sb3IiOiIjZjBmOWZmIiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vdmlhLnBsYWNlaG9sZGVyLmNvbS8xOTI/c3ZnPTEiLCJzaXplcyI6IjE5MngxOTIifSx7InNyYyI6Imh0dHBzOi8vdmlhLnBsYWNlaG9sZGVyLmNvbS81MTI/c3ZnPTEiLCJzaXplcyI6IjUxMng1MTIifV19">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        },
+                        dark: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shimmer': 'shimmer 2s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200% 0' },
+                            '100%': { backgroundPosition: '200% 0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        .dark {
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .dark body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #064e3b 100%);
+        }
+
+        /* Glassmorphism Utilities */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Loading Shimmer */
+        .shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            max-width: 420px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 35px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .dark .bottom-nav {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            border-radius: 16px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        .nav-item.active {
+            color: #059669;
+            background: rgba(5, 150, 105, 0.1);
+        }
+
+        .nav-item i {
+            font-size: 1.3rem;
+        }
+
+        /* Floating Elements */
+        .floating-shape {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: -1;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 90%;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: rgba(5, 150, 105, 0.95);
+        }
+
+        .toast.error {
+            background: rgba(239, 68, 68, 0.95);
+        }
+
+        /* Product Card */
+        .product-image-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+
+        .product-image-container img {
+            transition: transform 0.5s;
+        }
+
+        .product-card:hover .product-image-container img {
+            transform: scale(1.1);
+        }
+
+        .badge-category {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #059669;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Cart Badge */
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: 0;
+            background: #ef4444;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 800;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .dark .modal-content {
+            background: #1e293b;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* Hide scrollbar for modal */
+        .modal-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* View Transitions */
+        .view {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+            padding-bottom: 100px;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stats Card */
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dark .stat-card {
+            background: linear-gradient(135deg, rgba(30,41,59,0.9) 0%, rgba(30,41,59,0.7) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #059669, #10b981);
+        }
+
+        /* Payment Methods */
+        .payment-method {
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .payment-method:hover {
+            border-color: #059669;
+            background: rgba(5, 150, 105, 0.05);
+        }
+
+        .payment-method.selected {
+            border-color: #059669;
+            background: rgba(5, 150, 105, 0.1);
+        }
+
+        /* QR Scanner Container */
+        #reader {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        /* Pulse Animation for Live Indicator */
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .live-indicator::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+    </style>
 </head>
-<body>
+<body class="antialiased text-slate-800 dark:text-slate-100">
 
-<header class="app-header">
-  <div class="header-brand">
-    <div class="brand-icon"><i class="fas fa-store-alt"></i></div>
-    <div><div class="brand-name">Sagatama Mart</div><div class="brand-sub" id="roleDisplay">Ekonomi Mandiri</div></div>
-  </div>
-  <div class="header-right">
-    <button class="hbtn" onclick="toggleDark()" id="darkBtn"><i class="fas fa-moon"></i></button>
-    <button class="hbtn" onclick="switchView('cart')"><i class="fas fa-shopping-bag"></i><span class="cart-badge" id="cartBadge" style="display:none">0</span></button>
-    <button class="auth-btn login-btn" id="authBtn" onclick="handleAuth()">Masuk</button>
-  </div>
-</header>
+    <!-- Background Floating Shapes -->
+    <div class="floating-shape w-96 h-96 bg-emerald-400 top-0 left-0 animate-[float_8s_ease-in-out_infinite]"></div>
+    <div class="floating-shape w-80 h-80 bg-teal-300 bottom-0 right-0 animate-[float_10s_ease-in-out_infinite_reverse]"></div>
+    <div class="floating-shape w-64 h-64 bg-cyan-300 top-1/2 left-1/2 animate-[float_12s_ease-in-out_infinite]"></div>
 
-<main class="app-main">
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
 
-  <!-- HOME -->
-  <div class="view active" id="home-view">
-    <div class="hero">
-      <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80" alt="Sagatama Mart" loading="lazy">
-      <div class="hero-overlay">
-        <div class="hero-tag"><span class="live-dot" style="margin-right:6px"></span>Buka Sekarang</div>
-        <h2 class="hero-title">Ekonomi<br><span>Mandiri</span></h2>
-        <p class="hero-sub">Yayasan Hidayatullah Amin</p>
-        <button class="hero-btn" onclick="switchView('products')">Belanja Sekarang <i class="fas fa-arrow-right"></i></button>
-      </div>
-    </div>
-    <div class="qstat-grid">
-      <div class="qstat"><div class="qstat-emoji">📦</div><div class="qstat-val" id="statProds">—</div><div class="qstat-lbl">Produk</div></div>
-      <div class="qstat"><div class="qstat-emoji">👥</div><div class="qstat-val">150+</div><div class="qstat-lbl">Pembeli</div></div>
-      <div class="qstat"><div class="qstat-emoji">⭐</div><div class="qstat-val">4.9</div><div class="qstat-lbl">Rating</div></div>
-    </div>
-    <div style="margin-bottom:12px"><div class="sec-title"><i class="fas fa-th-large"></i>Kategori</div></div>
-    <div class="cat-scroll" id="homeCategories"></div>
-    <div class="sec-hd"><div class="sec-title"><i class="fas fa-fire"></i>Produk Unggulan</div><button class="see-all" onclick="switchView('products')">Lihat Semua →</button></div>
-    <div class="prod-grid" id="featuredGrid"></div>
-  </div>
-
-  <!-- PRODUCTS -->
-  <div class="view" id="products-view">
-    <div class="search-wrap">
-      <input class="search-input" type="text" placeholder="🔍 Cari produk..." id="prodSearch" oninput="renderProducts()">
-    </div>
-    <div class="filter-chips" id="filterChips"></div>
-    <div class="prod-grid" id="productGrid"></div>
-  </div>
-
-  <!-- CART -->
-  <div class="view" id="cart-view">
-    <div class="page-top"><div class="back-btn" onclick="switchView('products')"><i class="fas fa-arrow-left"></i></div><h2>Keranjang <span id="cartCount" style="font-size:13px;color:var(--text3);font-weight:500"></span></h2></div>
-    <div id="cartEmpty" class="empty-state"><i class="fas fa-shopping-bag"></i><p>Keranjang kosong</p><div class="empty-sub">Yuk tambah produk dulu!</div><button onclick="switchView('products')" style="margin-top:16px;padding:10px 22px;border-radius:12px;background:var(--green);color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:'Outfit',sans-serif">Mulai Belanja</button></div>
-    <div id="cartWrap" style="display:none">
-      <div id="cartItems"></div>
-      <div class="cart-summary">
-        <div class="sum-row"><span>Subtotal</span><span id="cartSub">Rp 0</span></div>
-        <div class="sum-row"><span>Biaya Layanan</span><span>Gratis</span></div>
-        <div class="sum-total"><span>Total</span><span id="cartTot">Rp 0</span></div>
-        <div style="margin-top:16px;margin-bottom:6px;font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Metode Pembayaran</div>
-        <div class="pay-option selected" onclick="selPay(this,'qris')"><div class="pay-dot"><div style="width:7px;height:7px;border-radius:50%;background:#fff"></div></div><span style="font-size:20px">💳</span><div><div class="pay-label">QRIS</div><div class="pay-desc">Scan & bayar langsung</div></div></div>
-        <div class="pay-option" onclick="selPay(this,'transfer')"><div class="pay-dot"></div><span style="font-size:20px">🏦</span><div><div class="pay-label">Transfer Bank</div><div class="pay-desc">BRI / BCA / Mandiri</div></div></div>
-        <div class="pay-option" onclick="selPay(this,'cod')"><div class="pay-dot"></div><span style="font-size:20px">💵</span><div><div class="pay-label">Bayar Langsung</div><div class="pay-desc">Ambil & bayar di tempat</div></div></div>
-        <button class="checkout-btn" onclick="checkout()"><i class="fab fa-whatsapp" style="font-size:18px"></i>Pesan via WhatsApp</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ACCOUNT -->
-  <div class="view" id="account-view">
-    <div id="accGuest" style="text-align:center;padding:40px 20px 20px">
-      <div style="width:80px;height:80px;border-radius:24px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 16px">🏪</div>
-      <h3 style="font-size:20px;font-weight:800;margin-bottom:8px">Masuk ke Akun</h3>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:24px">Login untuk melihat pesanan & kelola toko</p>
-      <button onclick="openLogin()" style="width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,#0db87a,#09926a);color:#fff;font-size:15px;font-weight:800;border:none;cursor:pointer;font-family:'Outfit',sans-serif">Masuk / Daftar</button>
-    </div>
-    <div id="accIn" style="display:none">
-      <div class="profile-card"><div class="profile-av" id="profAv">G</div><div class="profile-name" id="profName">—</div><div class="profile-email" id="profEmail">—</div><span class="profile-role" id="profRole">Pembeli</span></div>
-      <div class="menu-group">
-        <div class="menu-item" onclick="switchView('orders')"><div class="mi-icon" style="background:var(--green-bg);color:var(--green)"><i class="fas fa-clipboard-list"></i></div><div><div class="mi-label">Pesanan Saya</div><div class="mi-sub">Riwayat transaksi</div></div><i class="fas fa-chevron-right mi-arrow"></i></div>
-        <div class="menu-item" onclick="switchView('favorites')"><div class="mi-icon" style="background:#fee2e2;color:#ef4444"><i class="fas fa-heart"></i></div><div><div class="mi-label">Favorit</div><div class="mi-sub">Produk tersimpan</div></div><i class="fas fa-chevron-right mi-arrow"></i></div>
-      </div>
-      <div id="adminMenuWrap" style="display:none">
-        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Admin Panel</div>
-        <div class="menu-group">
-          <div class="menu-item" onclick="switchView('admin-dashboard')"><div class="mi-icon" style="background:var(--green-bg);color:var(--green)"><i class="fas fa-chart-line"></i></div><div><div class="mi-label">Dashboard Toko</div><div class="mi-sub">Statistik penjualan</div></div><i class="fas fa-chevron-right mi-arrow"></i></div>
-          <div class="menu-item" onclick="switchView('admin-products')"><div class="mi-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fas fa-box"></i></div><div><div class="mi-label">Kelola Produk</div><div class="mi-sub">Tambah, edit, hapus</div></div><i class="fas fa-chevron-right mi-arrow"></i></div>
-          <div class="menu-item" onclick="switchView('admin-orders')"><div class="mi-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="fas fa-shopping-bag"></i></div><div><div class="mi-label">Kelola Pesanan</div><div class="mi-sub">Update status pesanan</div></div><i class="fas fa-chevron-right mi-arrow"></i></div>
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass px-4 py-3">
+        <div class="max-w-lg mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-lg">
+                    S
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold leading-tight text-slate-800 dark:text-white">SAGATAMA MART</h1>
+                    <p class="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider" id="userRoleDisplay">Guest</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-yellow-400 transition-colors hover:bg-slate-200">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:block"></i>
+                </button>
+                <button onclick="currentUser ? logout() : openLogin()" id="loginBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-full transition-all shadow-lg shadow-emerald-600/30">
+                    Masuk
+                </button>
+            </div>
         </div>
-      </div>
-      <a href="dashboard-admin.html" class="portal-banner"><div class="pb-icon"><i class="fas fa-mosque"></i></div><div><div class="pb-title">Portal Admin Ponpes</div><div class="pb-sub">Hidayatullah Amin — Dashboard Utama</div></div><i class="fas fa-arrow-right" style="margin-left:auto;color:rgba(255,255,255,.4)"></i></a>
-      <button onclick="doLogout()" style="width:100%;padding:14px;border-radius:var(--r);background:var(--red-bg);color:var(--red-text);font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fas fa-sign-out-alt"></i>Logout</button>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="pt-20 px-4 max-w-lg mx-auto">
+
+        <!-- 🏠 HOME VIEW -->
+        <div id="home-view" class="view active">
+            <!-- Hero Section -->
+            <div class="relative rounded-3xl overflow-hidden mb-6 shadow-2xl group">
+                <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80" 
+                     class="w-full h-56 object-cover transition-transform duration-700 group-hover:scale-110" 
+                     alt="Hero">
+                <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-transparent p-6 flex flex-col justify-center">
+                    <div class="live-indicator mb-3"></div>
+                    <h2 class="text-3xl font-black text-white mb-2 leading-tight">Ekonomi<br><span class="text-emerald-400">Mandiri</span></h2>
+                    <p class="text-slate-300 text-sm mb-4 font-medium">Yayasan Hidayatullah Amin</p>
+                    <button onclick="switchView('products')" class="bg-white text-emerald-700 font-bold px-6 py-3 rounded-xl text-sm w-fit shadow-xl hover:shadow-2xl hover:scale-105 transition-all flex items-center gap-2">
+                        Mulai Belanja <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <i class="fas fa-box text-emerald-500 text-xl mb-1"></i>
+                    <p class="text-lg font-black" id="statTotalProducts">0</p>
+                    <p class="text-[10px] text-slate-500 font-semibold">Produk</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <i class="fas fa-users text-blue-500 text-xl mb-1"></i>
+                    <p class="text-lg font-black">150+</p>
+                    <p class="text-[10px] text-slate-500 font-semibold">Pelanggan</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <i class="fas fa-star text-amber-500 text-xl mb-1"></i>
+                    <p class="text-lg font-black">4.9</p>
+                    <p class="text-[10px] text-slate-500 font-semibold">Rating</p>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <h3 class="font-bold text-slate-700 dark:text-slate-200 mb-4 text-lg flex items-center gap-2">
+                <i class="fas fa-th-large text-emerald-500"></i> Kategori
+            </h3>
+            <div class="grid grid-cols-4 gap-3 mb-6" id="homeCategories">
+                <!-- Generated by JS -->
+            </div>
+
+            <!-- Featured Products -->
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-slate-700 dark:text-slate-200 text-lg">Produk Unggulan</h3>
+                <button onclick="switchView('products')" class="text-emerald-600 text-xs font-bold hover:underline">Lihat Semua</button>
+            </div>
+            <div id="featuredProducts" class="grid grid-cols-2 gap-4">
+                <div class="col-span-2 shimmer h-48 rounded-2xl"></div>
+            </div>
+        </div>
+
+        <!-- 🛍️ PRODUCTS VIEW -->
+        <div id="products-view" class="view">
+            <!-- Search & Filter -->
+            <div class="sticky top-20 z-40 glass rounded-2xl p-3 mb-6">
+                <div class="flex gap-3 mb-3">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="productSearch" 
+                               class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl pl-10 pr-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 transition-all"
+                               placeholder="Cari produk...">
+                    </div>
+                    <button onclick="toggleFilter()" class="w-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+                </div>
+                
+                <!-- Filter Tags -->
+                <div id="filterContainer" class="hidden flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <button onclick="filterByCategory('')" class="px-4 py-2 bg-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap">Semua</button>
+                    <button onclick="filterByCategory('Herbal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold whitespace-nowrap">Herbal</button>
+                    <button onclick="filterByCategory('Sembako')" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold whitespace-nowrap">Sembako</button>
+                    <button onclick="filterByCategory('Literasi')" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold whitespace-nowrap">Literasi</button>
+                    <button onclick="filterByCategory('Busana')" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold whitespace-nowrap">Busana</button>
+                    <button onclick="filterByCategory('Kesehatan')" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold whitespace-nowrap">Kesehatan</button>
+                    <button onclick="filterByCategory('Kuliner')" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold whitespace-nowrap">Kuliner</button>
+                    <button onclick="filterByCategory('Elektronik')" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold whitespace-nowrap">Elektronik</button>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div id="productGrid" class="grid grid-cols-2 gap-4">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+                    <!-- 🛒 CART VIEW -->
+        <div id="cart-view" class="view">
+            <h2 class="text-2xl font-black mb-6 flex items-center gap-3">
+                <i class="fas fa-shopping-bag text-emerald-500"></i>
+                Keranjang <span id="cartCount" class="text-sm font-normal text-slate-500">(0 item)</span>
+            </h2>
+
+            <!-- Empty State -->
+            <div id="cartEmpty" class="empty-state glass-card rounded-3xl">
+                <i class="fas fa-shopping-basket text-4xl mb-4 text-slate-300"></i>
+                <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-2">Keranjang Kosong</h3>
+                <p class="text-slate-500 text-sm mb-6">Yuk, tambahkan produk favorit Anda!</p>
+                <button onclick="switchView('products')" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all">
+                    Jelajahi Produk
+                </button>
+            </div>
+
+            <!-- Cart Items Container -->
+            <div id="cartItems" class="space-y-4 hidden">
+                <!-- Cart items will be injected here by JavaScript -->
+            </div>
+           
+            <!-- Cart Summary -->
+            <div id="cartSummary" class="hidden mt-6 glass-card rounded-3xl p-6 sticky bottom-24">
+                <div class="space-y-3 mb-4">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Subtotal</span>
+                        <span class="font-semibold" id="cartSubtotal">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Ongkir</span>
+                        <span class="font-semibold text-emerald-600">Gratis</span>
+                    </div>
+                    <div class="h-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div class="flex justify-between">
+                        <span class="font-bold">Total</span>
+                        <span class="text-2xl font-black text-emerald-600" id="cartTotal">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <h4 class="font-bold text-sm mb-3">Metode Pembayaran</h4>
+                <div class="space-y-2 mb-4">
+                    <div class="payment-method selected" onclick="selectPayment(this, 'qris')">
+                        <i class="fas fa-qrcode text-2xl text-emerald-600"></i>
+                        <div>
+                            <p class="font-bold text-sm">QRIS</p>
+                            <p class="text-xs text-slate-500">Scan QR Code</p>
+                        </div>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment(this, 'transfer')">
+                        <i class="fas fa-university text-2xl text-blue-600"></i>
+                        <div>
+                            <p class="font-bold text-sm">Transfer Bank</p>
+                            <p class="text-xs text-slate-500">BRI / BCA / Mandiri</p>
+                        </div>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment(this, 'cod')">
+                        <i class="fas fa-hand-holding-usd text-2xl text-amber-600"></i>
+                        <div>
+                            <p class="font-bold text-sm">Bayar di Tempat</p>
+                            <p class="text-xs text-slate-500">COD / Tunai</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="checkout()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-emerald-600/30 hover:shadow-2xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+                    <i class="fab fa-whatsapp"></i>
+                    Pesan via WhatsApp
+                </button>
+                <p class="text-center text-xs text-slate-400 mt-3">
+                    <i class="fas fa-shield-alt mr-1"></i> Pembayaran aman & terpercaya
+                </p>
+            </div>
+        </div>
+
+        <!-- 👤 ACCOUNT VIEW -->
+        <div id="account-view" class="view">
+            <div id="accountGuest" class="empty-state glass-card rounded-3xl">
+                <div class="w-20 h-20 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <i class="fas fa-user text-3xl text-slate-400"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">Belum Login</h3>
+                <p class="text-slate-500 text-sm mb-6">Silakan login untuk melihat riwayat pesanan dan kelola akun</p>
+                <button onclick="openLogin()" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all">
+                    Login Sekarang
+                </button>
+            </div>
+
+            <div id="accountLogged" class="hidden space-y-4">
+                <!-- Profile Card -->
+                <div class="glass-card rounded-3xl p-6 text-center">
+                    <div class="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white font-black text-3xl shadow-lg" id="userAvatar">
+                        G
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-1" id="userName">Guest</h3>
+                    <p class="text-slate-500 text-sm mb-3" id="userEmail">guest@email.com</p>
+                    <span id="userRoleBadge" class="inline-block px-4 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                        Pembeli
+                    </span>
+                </div>
+
+                <!-- Menu Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="switchView('orders')" class="glass-card p-4 rounded-2xl text-left hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all">
+                        <i class="fas fa-clipboard-list text-2xl text-emerald-600 mb-2"></i>
+                        <p class="font-bold text-sm">Pesanan Saya</p>
+                        <p class="text-xs text-slate-500">Lihat riwayat</p>
+                    </button>
+                    <button onclick="switchView('favorites')" class="glass-card p-4 rounded-2xl text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
+                        <i class="fas fa-heart text-2xl text-red-500 mb-2"></i>
+                        <p class="font-bold text-sm">Favorit</p>
+                        <p class="text-xs text-slate-500">Produk tersimpan</p>
+                    </button>
+                    <button onclick="switchView('address')" class="glass-card p-4 rounded-2xl text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
+                        <i class="fas fa-map-marker-alt text-2xl text-blue-600 mb-2"></i>
+                        <p class="font-bold text-sm">Alamat</p>
+                        <p class="text-xs text-slate-500">Kelola lokasi</p>
+                    </button>
+                    <button onclick="switchView('help')" class="glass-card p-4 rounded-2xl text-left hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all">
+                        <i class="fas fa-headset text-2xl text-amber-600 mb-2"></i>
+                        <p class="font-bold text-sm">Bantuan</p>
+                        <p class="text-xs text-slate-500">Hubungi kami</p>
+                    </button>
+                </div>
+
+                <!-- Admin Menu (Hidden for non-admin) -->
+                <div id="adminMenu" class="hidden">
+                    <h4 class="font-bold text-sm text-slate-500 uppercase tracking-wider mb-3 mt-6">Admin Panel</h4>
+                    <div class="glass-card rounded-2xl overflow-hidden">
+                        <button onclick="switchView('admin-dashboard')" class="w-full p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all border-b border-slate-100 dark:border-slate-700">
+                            <i class="fas fa-chart-line text-emerald-600"></i>
+                            <span class="font-semibold text-sm">Dashboard</span>
+                            <i class="fas fa-chevron-right ml-auto text-slate-400 text-xs"></i>
+                        </button>
+                        <button onclick="switchView('admin-products')" class="w-full p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all border-b border-slate-100 dark:border-slate-700">
+                            <i class="fas fa-box text-blue-600"></i>
+                            <span class="font-semibold text-sm">Kelola Produk</span>
+                            <i class="fas fa-chevron-right ml-auto text-slate-400 text-xs"></i>
+                        </button>
+                        <button onclick="switchView('admin-orders')" class="w-full p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                            <i class="fas fa-shopping-bag text-amber-600"></i>
+                            <span class="font-semibold text-sm">Kelola Pesanan</span>
+                            <i class="fas fa-chevron-right ml-auto text-slate-400 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="logout()" class="w-full glass-card p-4 rounded-2xl text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center gap-2 mt-6">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- 📋 ORDERS VIEW -->
+        <div id="orders-view" class="view">
+            <div class="flex items-center gap-3 mb-6">
+                <button onclick="switchView('account')" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 class="text-xl font-black">Pesanan Saya</h2>
+            </div>
+
+            <div class="flex gap-2 overflow-x-auto pb-4 mb-4 scrollbar-hide">
+                <button onclick="filterOrders('all')" class="order-tab active px-4 py-2 bg-emerald-600 text-white rounded-full text-xs font-bold whitespace-nowrap">Semua</button>
+                <button onclick="filterOrders('pending')" class="order-tab px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold whitespace-nowrap">Menunggu</button>
+                <button onclick="filterOrders('processing')" class="order-tab px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold whitespace-nowrap">Diproses</button>
+                <button onclick="filterOrders('completed')" class="order-tab px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold whitespace-nowrap">Selesai</button>
+            </div>
+
+            <div id="ordersList" class="space-y-4">
+                <div class="shimmer h-32 rounded-2xl"></div>
+                <div class="shimmer h-32 rounded-2xl"></div>
+            </div>
+        </div>
+
+        <!-- ⚙️ ADMIN DASHBOARD VIEW -->
+        <div id="admin-dashboard-view" class="view">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <button onclick="switchView('account')" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-black">Admin Dashboard</h2>
+                </div>
+                <div class="live-indicator"></div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="stat-card">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                            <i class="fas fa-box text-emerald-600 text-sm"></i>
+                        </div>
+                        <span class="text-xs text-slate-500 font-semibold">Produk</span>
+                    </div>
+                    <p class="text-2xl font-black text-slate-800 dark:text-white" id="adminTotalProducts">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                            <i class="fas fa-shopping-bag text-blue-600 text-sm"></i>
+                        </div>
+                        <span class="text-xs text-slate-500 font-semibold">Pesanan Hari Ini</span>
+                    </div>
+                    <p class="text-2xl font-black text-slate-800 dark:text-white" id="adminTodayOrders">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-amber-600 text-sm"></i>
+                        </div>
+                        <span class="text-xs text-slate-500 font-semibold">Pendapatan</span>
+                    </div>
+                    <p class="text-lg font-black text-emerald-600" id="adminRevenue">Rp 0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                            <i class="fas fa-users text-purple-600 text-sm"></i>
+                        </div>
+                        <span class="text-xs text-slate-500 font-semibold">Pengunjung</span>
+                    </div>
+                    <p class="text-2xl font-black text-slate-800 dark:text-white" id="adminVisitors">0</p>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="glass-card rounded-3xl p-6 mb-6">
+                <h3 class="font-bold mb-4">Grafik Penjualan</h3>
+                <div class="h-48">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <h3 class="font-bold text-sm text-slate-500 uppercase tracking-wider mb-3">Aksi Cepat</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="switchView('admin-products')" class="glass-card p-4 rounded-2xl text-center hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all">
+                    <i class="fas fa-plus-circle text-3xl text-emerald-600 mb-2"></i>
+                    <p class="font-bold text-sm">Tambah Produk</p>
+                </button>
+                <button onclick="switchView('admin-orders')" class="glass-card p-4 rounded-2xl text-center hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
+                    <i class="fas fa-clipboard-check text-3xl text-blue-600 mb-2"></i>
+                    <p class="font-bold text-sm">Kelola Pesanan</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- 📦 ADMIN PRODUCTS VIEW -->
+        <div id="admin-products-view" class="view">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <button onclick="switchView('admin-dashboard')" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-xl font-black">Kelola Produk</h2>
+                </div>
+                <button onclick="openProductModal()" class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-600/30">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <div id="adminProductList" class="space-y-4">
+                <!-- Products injected here -->
+            </div>
+        </div>
+
+        <!-- 📋 ADMIN ORDERS VIEW -->
+        <div id="admin-orders-view" class="view">
+            <div class="flex items-center gap-3 mb-6">
+                <button onclick="switchView('admin-dashboard')" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 class="text-xl font-black">Kelola Pesanan</h2>
+            </div>
+
+            <div id="adminOrdersList" class="space-y-4">
+                <!-- Orders injected here -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button onclick="switchView('home')" class="nav-item active" id="nav-home">
+            <i class="fas fa-home"></i>
+            <span>HOME</span>
+        </button>
+        <button onclick="switchView('products')" class="nav-item" id="nav-products">
+            <i class="fas fa-store"></i>
+            <span>PASAR</span>
+        </button>
+        <button onclick="switchView('cart')" class="nav-item relative" id="nav-cart">
+            <i class="fas fa-shopping-bag"></i>
+            <span id="cartNavBadge" class="cart-badge hidden">0</span>
+            <span>TROLI</span>
+        </button>
+        <button onclick="switchView('account')" class="nav-item" id="nav-account">
+            <i class="fas fa-user"></i>
+            <span>AKUN</span>
+        </button>
+    </nav>
+
+    <!-- 🔐 LOGIN MODAL -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content p-6">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-800 dark:text-white">Login</h3>
+                    <p class="text-sm text-slate-500">Masuk ke akun Anda</p>
+                </div>
+                <button onclick="closeModal('loginModal')" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Email / Username</label>
+                    <input type="text" id="loginEmail" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-4 py-3 font-semibold focus:ring-2 focus:ring-emerald-500" placeholder="admin@sagatama.pi">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Password</label>
+                    <input type="password" id="loginPassword" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-4 py-3 font-semibold focus:ring-2 focus:ring-emerald-500" placeholder="••••••">
+                </div>
+
+                <div class="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                    <button onclick="setLoginType('admin')" id="btnAdmin" class="flex-1 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold transition-all">Admin</button>
+                    <button onclick="setLoginType('buyer')" id="btnBuyer" class="flex-1 py-2 rounded-lg text-slate-600 dark:text-slate-300 text-xs font-bold transition-all">Pembeli</button>
+                </div>
+
+                <button onclick="doLogin()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-600/30 hover:shadow-xl transition-all">
+                    MASUK
+                </button>
+
+                <div class="text-center text-xs text-slate-400">
+                    <p>Demo: admin@sagatama.pi / 513</p>
+                    <p>Pembeli: buyer@email.com / 123</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- ORDERS -->
-  <div class="view" id="orders-view">
-    <div class="page-top"><div class="back-btn" onclick="switchView('account')"><i class="fas fa-arrow-left"></i></div><h2>Pesanan Saya</h2></div>
-    <div class="order-tabs">
-      <button class="otab active" onclick="filtOrders('all',this)">Semua</button>
-      <button class="otab" onclick="filtOrders('pending',this)">Menunggu</button>
-      <button class="otab" onclick="filtOrders('processing',this)">Diproses</button>
-      <button class="otab" onclick="filtOrders('completed',this)">Selesai</button>
+    <!-- 📦 PRODUCT MODAL (Add/Edit) -->
+    <div id="productModal" class="modal">
+        <div class="modal-content p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black" id="productModalTitle">Tambah Produk</h3>
+                <button onclick="closeModal('productModal')" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <input type="hidden" id="editProductId">
+                
+                <div onclick="document.getElementById('productImage').click()" class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl p-6 text-center cursor-pointer hover:border-emerald-500 transition-all">
+                    <input type="file" id="productImage" hidden accept="image/*" onchange="previewImage(this)">
+                    <img id="imagePreview" class="hidden w-full h-40 object-cover rounded-xl mb-3">
+                    <div id="imagePlaceholder">
+                        <i class="fas fa-camera text-3xl text-slate-400 mb-2"></i>
+                        <p class="text-xs font-bold text-slate-500">Tap untuk pilih foto</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Nama Produk</label>
+                    <input type="text" id="productName" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-4 py-3 font-semibold" placeholder="Nama produk">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Harga</label>
+                        <input type="number" id="productPrice" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-4 py-3 font-semibold" placeholder="10000">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Kategori</label>
+                        <select id="productCategory" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-4 py-3 font-semibold">
+                            <option value="Herbal">Herbal</option>
+                            <option value="Sembako">Sembako</option>
+                            <option value="Literasi">Literasi</option>
+                            <option value="Busana">Busana</option>
+                            <option value="Kesehatan">Kesehatan</option>
+                            <option value="Kuliner">Kuliner</option>
+                            <option value="Elektronik">Elektronik</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Deskripsi</label>
+                    <textarea id="productDesc" rows="3" class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl px-4 py-3 font-semibold resize-none" placeholder="Deskripsi produk..."></textarea>
+                </div>
+
+                <button onclick="saveProduct()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-600/30">
+                    SIMPAN PRODUK
+                </button>
+            </div>
+        </div>
     </div>
-    <div id="ordersList"></div>
-  </div>
 
-  <!-- ADMIN DASHBOARD -->
-  <div class="view" id="admin-dashboard-view">
-    <div class="page-top"><div class="back-btn" onclick="switchView('account')"><i class="fas fa-arrow-left"></i></div><h2>Dashboard Toko</h2></div>
-    <div class="admin-grid">
-      <div class="admin-stat"><div class="as-icon" style="background:var(--green-bg);color:var(--green)"><i class="fas fa-box"></i></div><div class="as-val" id="adP">—</div><div class="as-lbl">Produk</div></div>
-      <div class="admin-stat"><div class="as-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fas fa-shopping-bag"></i></div><div class="as-val" id="adO">—</div><div class="as-lbl">Pesanan</div></div>
-      <div class="admin-stat"><div class="as-icon" style="background:var(--amber-bg);color:var(--amber)"><i class="fas fa-money-bill"></i></div><div class="as-val" id="adR" style="font-size:17px">—</div><div class="as-lbl">Pendapatan</div></div>
-      <div class="admin-stat"><div class="as-icon" style="background:var(--red-bg);color:var(--red)"><i class="fas fa-clock"></i></div><div class="as-val" id="adPend">—</div><div class="as-lbl">Pending</div></div>
-    </div>
-    <div style="background:var(--card);border-radius:var(--r2);border:1px solid var(--border2);padding:16px;margin-bottom:16px"><div style="font-size:14px;font-weight:800;margin-bottom:14px">Penjualan 6 Bulan</div><canvas id="salesChart" style="height:180px;max-height:180px"></canvas></div>
-    <a href="dashboard-admin.html" class="portal-banner"><div class="pb-icon"><i class="fas fa-shield-alt"></i></div><div><div class="pb-title">Panel Admin Ponpes</div><div class="pb-sub">Kelola seluruh sistem Hidayatullah</div></div><i class="fas fa-arrow-right" style="margin-left:auto;color:rgba(255,255,255,.4)"></i></a>
-  </div>
+    <!-- JAVASCRIPT -->
+    <script type="module">
+        // ==========================================
+        // FIREBASE CONFIGURATION
+        // ==========================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  <!-- ADMIN PRODUCTS -->
-  <div class="view" id="admin-products-view">
-    <div class="page-top"><div class="back-btn" onclick="switchView('account')"><i class="fas fa-arrow-left"></i></div><h2>Kelola Produk</h2></div>
-    <button class="add-prod-btn" onclick="openProdSheet()"><i class="fas fa-plus"></i>Tambah Produk Baru</button>
-    <div id="adminProdList"></div>
-  </div>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNWOochfAyHjBYUNyq2IAYhA9p7Ie834M",
+            authDomain: "portal-sagatama.firebaseapp.com",
+            projectId: "portal-sagatama",
+            storageBucket: "portal-sagatama.firebasestorage.app",
+            messagingSenderId: "372845954028",
+            appId: "1:372845954028:web:189f2a3127ea8189b9f6c9"
+        };
 
-  <!-- ADMIN ORDERS -->
-  <div class="view" id="admin-orders-view">
-    <div class="page-top"><div class="back-btn" onclick="switchView('account')"><i class="fas fa-arrow-left"></i></div><h2>Kelola Pesanan</h2></div>
-    <div id="adminOrdersList"></div>
-  </div>
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-  <!-- FAVORITES -->
-  <div class="view" id="favorites-view">
-    <div class="page-top"><div class="back-btn" onclick="switchView('account')"><i class="fas fa-arrow-left"></i></div><h2>Favorit</h2></div>
-    <div class="prod-grid" id="favGrid"></div>
-  </div>
+        // ==========================================
+        // STATE MANAGEMENT
+        // ==========================================
+        let currentUser = null;
+        let loginType = 'admin';
+        let products = [];
+        let cart = JSON.parse(localStorage.getItem('sagatama_cart')) || [];
+        let orders = [];
+        let currentFilter = '';
+        let selectedPayment = 'qris';
+        let editingProductId = null;
+        let tempImageData = null;
+        let salesChart = null;
 
-</main>
+        const ADMIN_WHATSAPP = "6285213346061";
 
-<nav class="bottom-nav">
-  <button class="nav-btn active" id="nb-home" onclick="switchView('home')"><i class="fas fa-home"></i><span>Beranda</span></button>
-  <button class="nav-btn" id="nb-products" onclick="switchView('products')"><i class="fas fa-store"></i><span>Produk</span></button>
-  <button class="nav-btn" id="nb-cart" onclick="switchView('cart')" style="position:relative"><div class="nav-pill"><i class="fas fa-shopping-bag"></i></div><span class="cart-badge" id="navBadge" style="display:none;top:-2px;right:calc(50% - 28px)">0</span></button>
-  <button class="nav-btn" id="nb-orders" onclick="switchView('orders')"><i class="fas fa-clipboard-list"></i><span>Pesanan</span></button>
-  <button class="nav-btn" id="nb-account" onclick="switchView('account')"><i class="fas fa-user"></i><span>Akun</span></button>
-</nav>
+        // Categories
+        const categories = [
+            { id: 'herbal', name: 'Herbal', icon: 'leaf', color: 'text-green-600', bg: 'bg-green-100' },
+            { id: 'sembako', name: 'Sembako', icon: 'shopping-basket', color: 'text-amber-600', bg: 'bg-amber-100' },
+            { id: 'literasi', name: 'Literasi', icon: 'book', color: 'text-blue-600', bg: 'bg-blue-100' },
+            { id: 'busana', name: 'Busana', icon: 'tshirt', color: 'text-purple-600', bg: 'bg-purple-100' },
+            { id: 'kesehatan', name: 'Kesehatan', icon: 'heartbeat', color: 'text-red-600', bg: 'bg-red-100' },
+            { id: 'kuliner', name: 'Kuliner', icon: 'utensils', color: 'text-orange-600', bg: 'bg-orange-100' },
+            { id: 'elektronik', name: 'Elektronik', icon: 'plug', color: 'text-cyan-600', bg: 'bg-cyan-100' },
+            { id: 'lainnya', name: 'Lainnya', icon: 'ellipsis-h', color: 'text-slate-600', bg: 'bg-slate-100' }
+        ];
 
-<!-- LOGIN SHEET -->
-<div class="overlay" id="loginOverlay" onclick="closeLogin()">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title"><i class="fas fa-sign-in-alt" style="color:var(--green)"></i>Masuk ke Akun</div>
-    <div class="fg"><label class="flabel">Email *</label><input class="finput" type="email" id="lEmail" placeholder="email@contoh.com"></div>
-    <div class="fg"><label class="flabel">Password *</label><input class="finput" type="password" id="lPass" placeholder="Password kamu"></div>
-    <div class="sheet-btns">
-      <button class="sbtn sbtn-cancel" onclick="closeLogin()">Batal</button>
-      <button class="sbtn sbtn-primary" id="loginBtn2" onclick="doLogin()"><i class="fas fa-sign-in-alt" style="margin-right:6px"></i><span id="loginTxt">Masuk</span></button>
-    </div>
-  </div>
-</div>
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initAuth();
+            renderCategories();
+            setupEventListeners();
+            updateCartUI();
+        });
 
-<!-- PRODUCT SHEET -->
-<div class="overlay" id="prodOverlay" onclick="closeProdSheet()">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="prodSheetTitle"><i class="fas fa-plus" style="color:var(--green)"></i>Tambah Produk</div>
-    <div class="fg"><label class="flabel">Nama Produk *</label><input class="finput" type="text" id="pName" placeholder="Nama produk"></div>
-    <div class="frow">
-      <div class="fg"><label class="flabel">Harga (Rp) *</label><input class="finput" type="number" id="pPrice" placeholder="10000"></div>
-      <div class="fg"><label class="flabel">Stok</label><input class="finput" type="number" id="pStock" placeholder="50"></div>
-    </div>
-    <div class="fg"><label class="flabel">Kategori *</label>
-      <select class="fselect" id="pCat"><option value="">Pilih Kategori</option><option>Herbal</option><option>Sembako</option><option>Literasi</option><option>Busana</option><option>Kesehatan</option><option>Kuliner</option><option>Elektronik</option><option>Lainnya</option></select>
-    </div>
-    <div class="fg"><label class="flabel">URL Foto</label><input class="finput" type="url" id="pImg" placeholder="https://..."></div>
-    <div class="fg"><label class="flabel">Deskripsi</label><textarea class="finput" id="pDesc" rows="2" placeholder="Deskripsi singkat" style="resize:none;line-height:1.5"></textarea></div>
-    <div class="sheet-btns">
-      <button class="sbtn sbtn-cancel" onclick="closeProdSheet()">Batal</button>
-      <button class="sbtn sbtn-primary" id="prodSaveBtn" onclick="saveProd()"><i class="fas fa-save" style="margin-right:6px"></i><span id="prodSaveTxt">Simpan</span></button>
-    </div>
-  </div>
-</div>
+        function initAuth() {
+            signInAnonymously(auth).then(() => {
+                loadProducts();
+                loadOrders();
+            });
+            
+            const savedUser = localStorage.getItem('sagatama_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                updateUIForUser();
+            }
+        }
 
-<div class="toast-stack" id="toastStack"></div>
+        // ==========================================
+        // NAVIGATION & VIEWS
+        // ==========================================
+        window.switchView = (viewName) => {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            // Show selected view
+            const viewMap = {
+                'home': 'home-view',
+                'products': 'products-view',
+                'cart': 'cart-view',
+                'account': 'account-view',
+                'orders': 'orders-view',
+                'admin-dashboard': 'admin-dashboard-view',
+                'admin-products': 'admin-products-view',
+                'admin-orders': 'admin-orders-view'
+            };
+            
+            const viewId = viewMap[viewName];
+            if (viewId) {
+                document.getElementById(viewId).classList.add('active');
+            }
+            
+            // Update nav
+            const navMap = {
+                'home': 'nav-home',
+                'products': 'nav-products',
+                'cart': 'nav-cart',
+                'account': 'nav-account',
+                'orders': 'nav-account',
+                'admin-dashboard': 'nav-account',
+                'admin-products': 'nav-account',
+                'admin-orders': 'nav-account'
+            };
+            
+            const navId = navMap[viewName];
+            if (navId) document.getElementById(navId)?.classList.add('active');
+            
+            window.scrollTo(0, 0);
+            
+            // Refresh data if needed
+            if (viewName === 'cart') renderCart();
+            if (viewName === 'admin-dashboard') updateAdminStats();
+            if (viewName === 'admin-products') renderAdminProducts();
+            if (viewName === 'admin-orders') renderAdminOrders();
+        };
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // ==========================================
+        // PRODUCTS
+        // ==========================================
+        function loadProducts() {
+            onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), (snapshot) => {
+                products = [];
+                snapshot.forEach(doc => {
+                    products.push({ id: doc.id, ...doc.data() });
+                });
+                renderProducts();
+                renderFeaturedProducts();
+                updateStats();
+            });
+        }
 
-const cfg = {apiKey:"AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",authDomain:"hidayatulamin-e6f22.firebaseapp.com",projectId:"hidayatulamin-e6f22",storageBucket:"hidayatulamin-e6f22.firebasestorage.app",messagingSenderId:"80743607267",appId:"1:80743607267:web:f5f94165de021759958ed6"};
-const app=initializeApp(cfg), auth=getAuth(app), db=getFirestore(app);
-const WA="6285213346061";
-const CATS=[{n:'Semua',e:'🏪'},{n:'Herbal',e:'🌿'},{n:'Sembako',e:'🛒'},{n:'Literasi',e:'📚'},{n:'Busana',e:'👕'},{n:'Kesehatan',e:'❤️'},{n:'Kuliner',e:'🍱'},{n:'Elektronik',e:'⚡'},{n:'Lainnya',e:'📦'}];
+        function renderCategories() {
+            const container = document.getElementById('homeCategories');
+            container.innerHTML = categories.map(cat => `
+                <button onclick="switchView('products'); filterByCategory('${cat.name}')" 
+                        class="glass-card p-3 rounded-2xl text-center hover:scale-105 transition-transform">
+                    <div class="w-12 h-12 ${cat.bg} dark:bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-${cat.icon} ${cat.color} text-xl"></i>
+                    </div>
+                    <p class="text-[10px] font-bold text-slate-600 dark:text-slate-300">${cat.name}</p>
+                </button>
+            `).join('');
+        }
 
-let user=null, products=[], orders=[], cart=JSON.parse(localStorage.getItem('sg_cart'))||[], favs=JSON.parse(localStorage.getItem('sg_favs'))||[], curFilter='', selPay_='qris', editProdId=null, ordFilt='all', sChart=null;
+        function renderProducts(filter = '') {
+            const container = document.getElementById('productGrid');
+            const searchTerm = document.getElementById('productSearch')?.value.toLowerCase() || '';
+            
+            let filtered = products;
+            
+            if (searchTerm) {
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+            }
+            
+            if (currentFilter) {
+                filtered = filtered.filter(p => p.category === currentFilter || p.cat === currentFilter);
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-2 empty-state">
+                        <i class="fas fa-search text-4xl mb-4"></i>
+                        <p class="text-slate-500">Produk tidak ditemukan</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(p => `
+                <div class="glass-card product-card rounded-2xl overflow-hidden">
+                    <div class="product-image-container h-40 bg-slate-200">
+                        <img src="${p.image || p.img || 'https://via.placeholder.com/300'}" 
+                             class="w-full h-full object-cover" 
+                             alt="${p.name}"
+                             onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                        <span class="badge-category">${p.category || p.cat || 'Umum'}</span>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-bold text-sm mb-1 line-clamp-1">${p.name}</h4>
+                        <p class="text-emerald-600 font-black text-lg">Rp ${(p.price || 0).toLocaleString()}</p>
+                        ${currentUser?.role === 'buyer' || !currentUser ? `
+                            <button onclick="addToCart('${p.id}')" 
+                                    class="w-full mt-3 bg-slate-900 dark:bg-emerald-600 text-white py-2 rounded-xl text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                                <i class="fas fa-plus"></i> Tambah
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
 
-// Init
-document.addEventListener('DOMContentLoaded',()=>{ renderCats(); renderFilterChips(); updateCartUI(); applyTheme(); });
-signInAnonymously(auth).then(()=>{ loadProds(); loadOrders(); });
-onAuthStateChanged(auth,async u=>{
-  if(u&&!u.isAnonymous){
-    try{ const d=(await getDoc(doc(db,'users',u.uid))).data()||{}; user={uid:u.uid,email:u.email,name:d.displayName||u.email?.split('@')[0]||'User',role:d.role||'buyer',...d}; }
-    catch(e){ user={uid:u.uid,email:u.email,name:u.email?.split('@')[0]||'User',role:'buyer'}; }
-    updateAuthUI();
-  } else { user=null; updateAuthUI(); }
-});
+        function renderFeaturedProducts() {
+            const container = document.getElementById('featuredProducts');
+            const featured = products.slice(0, 4);
+            
+            if (featured.length === 0) {
+                container.innerHTML = '<div class="col-span-2 shimmer h-48 rounded-2xl"></div>';
+                return;
+            }
+            
+            container.innerHTML = featured.map(p => `
+                <div class="glass-card product-card rounded-2xl overflow-hidden cursor-pointer" onclick="switchView('products')">
+                    <div class="h-32 bg-slate-200">
+                        <img src="${p.image || p.img || 'https://via.placeholder.com/300'}" 
+                             class="w-full h-full object-cover" 
+                             onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                    </div>
+                    <div class="p-3">
+                        <h4 class="font-bold text-xs mb-1 line-clamp-1">${p.name}</h4>
+                        <p class="text-emerald-600 font-black text-sm">Rp ${(p.price || 0).toLocaleString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-function updateAuthUI(){
-  const btn=document.getElementById('authBtn');
-  if(user){
-    btn.textContent='Keluar'; btn.className='auth-btn logout-btn';
-    document.getElementById('roleDisplay').textContent=user.role==='admin'?'Admin Toko':user.role==='santri'?'Santri':user.role==='ustadz'?'Ustadz':'Pembeli';
-    document.getElementById('accGuest').style.display='none'; document.getElementById('accIn').style.display='block';
-    document.getElementById('profAv').textContent=user.name[0]?.toUpperCase()||'U';
-    document.getElementById('profName').textContent=user.name;
-    document.getElementById('profEmail').textContent=user.email||'';
-    document.getElementById('profRole').textContent=user.role==='admin'?'Admin Toko':user.role;
-    document.getElementById('adminMenuWrap').style.display=user.role==='admin'?'block':'none';
-  } else {
-    btn.textContent='Masuk'; btn.className='auth-btn login-btn';
-    document.getElementById('roleDisplay').textContent='Ekonomi Mandiri';
-    document.getElementById('accGuest').style.display='block'; document.getElementById('accIn').style.display='none';
-    document.getElementById('adminMenuWrap').style.display='none';
-  }
-}
+        window.toggleFilter = () => {
+            const container = document.getElementById('filterContainer');
+            container.classList.toggle('hidden');
+        };
 
-window.handleAuth=()=>{ if(user) doLogout(); else openLogin(); };
-window.openLogin=()=>document.getElementById('loginOverlay').classList.add('open');
-window.closeLogin=()=>document.getElementById('loginOverlay').classList.remove('open');
-window.doLogin=async()=>{
-  const email=document.getElementById('lEmail').value.trim(), pass=document.getElementById('lPass').value;
-  if(!email||!pass){toast('Isi email & password','error');return;}
-  const btn=document.getElementById('loginBtn2'),txt=document.getElementById('loginTxt');
-  btn.disabled=true; txt.textContent='Masuk...';
-  try{ await signInWithEmailAndPassword(auth,email,pass); closeLogin(); toast('Selamat datang! 👋','success'); switchView('account'); }
-  catch(e){ const m={'auth/invalid-credential':'Email/password salah','auth/user-not-found':'Akun tidak ditemukan'}; toast(m[e.code]||'Gagal login','error'); }
-  finally{ btn.disabled=false; txt.textContent='Masuk'; }
-};
-window.doLogout=async()=>{ if(!confirm('Yakin logout?'))return; await signOut(auth); toast('Berhasil logout','info'); switchView('home'); };
+        window.filterByCategory = (cat) => {
+            currentFilter = cat;
+            document.querySelectorAll('#filterContainer button').forEach(btn => {
+                if ((cat === '' && btn.textContent === 'Semua') || btn.textContent === cat) {
+                    btn.classList.add('bg-emerald-600', 'text-white');
+                    btn.classList.remove('bg-slate-200', 'text-slate-600');
+                } else {
+                    btn.classList.remove('bg-emerald-600', 'text-white');
+                    btn.classList.add('bg-slate-200', 'text-slate-600');
+                }
+            });
+            renderProducts();
+        };
 
-// Navigation
-const navMap={home:'nb-home',products:'nb-products',cart:'nb-cart',orders:'nb-orders',account:'nb-account',favorites:'nb-account','admin-dashboard':'nb-account','admin-products':'nb-account','admin-orders':'nb-account'};
-window.switchView=name=>{
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(name+'-view')?.classList.add('active');
-  document.getElementById(navMap[name])?.classList.add('active');
-  window.scrollTo(0,0);
-  if(name==='cart')renderCart();
-  if(name==='orders')renderOrders();
-  if(name==='favorites')renderFavs();
-  if(name==='admin-dashboard')renderAdminDash();
-  if(name==='admin-products')renderAdminProds();
-  if(name==='admin-orders')renderAdminOrders();
-};
+        // ==========================================
+        // CART FUNCTIONS
+        // ==========================================
+        window.addToCart = (productId) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const existing = cart.find(item => item.id === productId);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            
+            saveCart();
+            updateCartUI();
+            showToast('Produk ditambahkan ke keranjang');
+        };
 
-// Products
-function loadProds(){ onSnapshot(query(collection(db,'products'),orderBy('createdAt','desc')),snap=>{ products=[]; snap.forEach(d=>products.push({id:d.id,...d.data()})); renderProducts(); renderFeatured(); document.getElementById('statProds').textContent=products.length; }); }
-function renderCats(){ document.getElementById('homeCategories').innerHTML=CATS.map((c,i)=>`<div class="cat-chip" onclick="quickCat('${c.n}')" id="cc${i}"><div class="cat-circle">${c.e}</div><div class="cat-name">${c.n}</div></div>`).join(''); }
-function renderFilterChips(){ document.getElementById('filterChips').innerHTML=CATS.map(c=>`<button class="fchip${c.n==='Semua'?' active':''}" onclick="filtCat('${c.n==='Semua'?'':c.n}',this)">${c.n}</button>`).join(''); }
-window.quickCat=cat=>{ switchView('products'); filtCat(cat==='Semua'?'':cat,null); };
-window.filtCat=(cat,btn)=>{ curFilter=cat; if(btn){document.querySelectorAll('.fchip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}else{document.querySelectorAll('.fchip').forEach(b=>b.classList.toggle('active',b.textContent===(cat||'Semua')));} renderProducts(); };
-window.renderProducts=()=>{ const el=document.getElementById('productGrid'),q=document.getElementById('prodSearch')?.value.toLowerCase()||'',list=products.filter(p=>(!q||p.name?.toLowerCase().includes(q))&&(!curFilter||p.category===curFilter)); el.innerHTML=list.length?list.map(p=>pcHTML(p)).join(''):'<div style="grid-column:span 2" class="empty-state"><i class="fas fa-search"></i><p>Produk tidak ditemukan</p></div>'; };
-function renderFeatured(){ const el=document.getElementById('featuredGrid'),list=products.slice(0,4); el.innerHTML=list.length?list.map(p=>pcHTML(p)).join(''):'<div style="grid-column:span 2;height:60px"></div>'; }
-function pcHTML(p){ const inCart=cart.some(c=>c.id===p.id),isFav=favs.includes(p.id),img=p.image||p.img||'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&q=80'; return `<div class="prod-card${inCart?' in-cart':''}"><div class="prod-img"><img src="${img}" alt="${p.name||''}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&q=80'"><span class="prod-cat-badge">${p.category||'Umum'}</span><button class="prod-fav${isFav?' active':''}" onclick="toggleFav('${p.id}',event)"><i class="fas fa-heart"></i></button></div><div class="prod-body"><div class="prod-name">${p.name||'Produk'}</div><div class="prod-price">Rp ${(p.price||0).toLocaleString('id-ID')}</div><div class="prod-stock">Stok: ${p.stock??'∞'}</div><button class="add-btn" onclick="addCart('${p.id}')"><i class="fas fa-${inCart?'check':'plus'}"></i>${inCart?'Ditambahkan':'Tambah'}</button></div></div>`; }
+        window.removeFromCart = (index) => {
+            cart.splice(index, 1);
+            saveCart();
+            renderCart();
+            updateCartUI();
+        };
 
-// Cart
-window.addCart=pid=>{ const p=products.find(x=>x.id===pid); if(!p)return; const ex=cart.find(x=>x.id===pid); if(ex)ex.qty++; else cart.push({...p,qty:1}); saveCart(); updateCartUI(); renderProducts(); renderFeatured(); toast(`${p.name} ditambahkan 🛒`,'success'); };
-window.rmCart=idx=>{ cart.splice(idx,1); saveCart(); updateCartUI(); renderCart(); };
-window.updQty=(idx,d)=>{ cart[idx].qty+=d; if(cart[idx].qty<=0)cart.splice(idx,1); saveCart(); updateCartUI(); renderCart(); };
-function saveCart(){ localStorage.setItem('sg_cart',JSON.stringify(cart)); }
-function updateCartUI(){ const c=cart.reduce((s,i)=>s+i.qty,0); ['cartBadge','navBadge'].forEach(id=>{ const el=document.getElementById(id); if(el){el.textContent=c;el.style.display=c?'flex':'none';} }); }
-function renderCart(){
-  const emp=document.getElementById('cartEmpty'),wrap=document.getElementById('cartWrap');
-  document.getElementById('cartCount').textContent=cart.length?`(${cart.reduce((s,i)=>s+i.qty,0)} item)`:'';
-  if(!cart.length){emp.style.display='block';wrap.style.display='none';return;}
-  emp.style.display='none';wrap.style.display='block';
-  const fb='https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=200&q=80';
-  document.getElementById('cartItems').innerHTML=cart.map((item,i)=>`<div class="cart-item"><img class="ci-img" src="${item.image||item.img||fb}" alt="${item.name}" onerror="this.src='${fb}'"><div style="flex:1;min-width:0"><div class="ci-name">${item.name}</div><div class="ci-price">Rp ${(item.price*item.qty).toLocaleString('id-ID')}</div><div class="qty-row"><button class="qty-btn" onclick="updQty(${i},-1)"><i class="fas fa-minus" style="font-size:11px"></i></button><span style="font-size:15px;font-weight:800;min-width:22px;text-align:center">${item.qty}</span><button class="qty-btn plus" onclick="updQty(${i},1)"><i class="fas fa-plus" style="font-size:11px"></i></button><button class="del-btn" onclick="rmCart(${i})"><i class="fas fa-trash"></i></button></div></div></div>`).join('');
-  const sub=cart.reduce((s,i)=>s+(i.price*i.qty),0);
-  document.getElementById('cartSub').textContent=`Rp ${sub.toLocaleString('id-ID')}`;
-  document.getElementById('cartTot').textContent=`Rp ${sub.toLocaleString('id-ID')}`;
-}
-window.selPay=(el,m)=>{ document.querySelectorAll('.pay-option').forEach(p=>{p.classList.remove('selected');p.querySelector('.pay-dot').innerHTML='';}); el.classList.add('selected'); el.querySelector('.pay-dot').innerHTML='<div style="width:7px;height:7px;border-radius:50%;background:#fff"></div>'; selPay_=m; };
-window.checkout=async()=>{
-  if(!cart.length){toast('Keranjang kosong','error');return;}
-  if(!user){openLogin();toast('Silakan login dulu','info');return;}
-  const sub=cart.reduce((s,i)=>s+(i.price*i.qty),0);
-  try{
-    await addDoc(collection(db,'orders'),{items:cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty})),total:sub,paymentMethod:selPay_,buyerName:user.name,buyerEmail:user.email||'',buyerId:user.uid,status:'pending',createdAt:serverTimestamp()});
-    let msg=`🛒 *ORDER SAGATAMA MART*\n\n👤 *Pembeli:* ${user.name}\n📧 *Email:* ${user.email||'-'}\n\n*Detail:*\n`;
-    cart.forEach((item,i)=>{msg+=`${i+1}. ${item.name} x${item.qty} = Rp ${(item.price*item.qty).toLocaleString('id-ID')}\n`;});
-    msg+=`\n💰 *Total: Rp ${sub.toLocaleString('id-ID')}*\n💳 *Bayar:* ${selPay_.toUpperCase()}\n\nMohon konfirmasi. Terima kasih 🙏`;
-    cart=[]; saveCart(); updateCartUI(); renderCart();
-    confetti({particleCount:80,spread:60,origin:{y:.7},colors:['#0db87a','#34d399']});
-    toast('Pesanan dibuat! Mengarahkan ke WhatsApp...','success');
-    setTimeout(()=>window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`, '_blank'), 1500);
-    switchView('orders');
-  }catch(e){toast('Gagal: '+e.message,'error');}
-};
+        window.updateQty = (index, change) => {
+            cart[index].qty += change;
+            if (cart[index].qty <= 0) {
+                cart.splice(index, 1);
+            }
+            saveCart();
+            renderCart();
+            updateCartUI();
+        };
 
-// Orders
-function loadOrders(){ onSnapshot(query(collection(db,'orders'),orderBy('createdAt','desc')),snap=>{ orders=[]; snap.forEach(d=>orders.push({id:d.id,...d.data()})); }); }
-window.filtOrders=(type,btn)=>{ ordFilt=type; document.querySelectorAll('.otab').forEach(b=>b.classList.remove('active')); btn?.classList.add('active'); renderOrders(); };
-function renderOrders(){
-  const el=document.getElementById('ordersList');
-  let list=user?orders.filter(o=>o.buyerId===user.uid):[];
-  if(ordFilt!=='all')list=list.filter(o=>o.status===ordFilt);
-  const labels={pending:'Menunggu',processing:'Diproses',completed:'Selesai',cancelled:'Dibatalkan'};
-  el.innerHTML=list.length?list.map(o=>`<div class="order-card"><div class="order-id">ORDER #${o.id.slice(-8).toUpperCase()}</div><div class="order-items">${(o.items||[]).map(i=>`${i.name} x${i.qty}`).join(', ')}</div><div style="font-size:11px;color:var(--text3);margin-bottom:10px">${o.createdAt?.toDate?o.createdAt.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'-'}</div><div class="order-footer"><div class="order-total">Rp ${(o.total||0).toLocaleString('id-ID')}</div><span class="ostatus os-${o.status||'pending'}">${labels[o.status]||'Menunggu'}</span></div></div>`).join(''):'<div class="empty-state"><i class="fas fa-clipboard-list"></i><p>Belum ada pesanan</p><div class="empty-sub">Mulai belanja sekarang!</div></div>';
-}
+        function saveCart() {
+            localStorage.setItem('sagatama_cart', JSON.stringify(cart));
+        }
 
-// Favorites
-window.toggleFav=(id,e)=>{ e?.stopPropagation(); const idx=favs.indexOf(id); if(idx>-1)favs.splice(idx,1); else favs.push(id); localStorage.setItem('sg_favs',JSON.stringify(favs)); renderProducts(); renderFeatured(); toast(idx>-1?'Dihapus dari favorit':'Ditambah ke favorit ❤️',idx>-1?'info':'success'); };
-function renderFavs(){ const el=document.getElementById('favGrid'),list=products.filter(p=>favs.includes(p.id)); el.innerHTML=list.length?list.map(p=>pcHTML(p)).join(''):'<div style="grid-column:span 2" class="empty-state"><i class="fas fa-heart"></i><p>Belum ada favorit</p></div>'; }
+        function updateCartUI() {
+            const count = cart.reduce((sum, item) => sum + item.qty, 0);
+            const badges = [document.getElementById('cartNavBadge'), document.getElementById('cartCount')];
+            
+            badges.forEach(badge => {
+                if (badge) {
+                    badge.textContent = count;
+                    badge.classList.toggle('hidden', count === 0);
+                }
+            });
+            
+            if (document.getElementById('cartCount')) {
+                document.getElementById('cartCount').textContent = `(${count} item)`;
+            }
+        }
 
-// Admin
-function renderAdminDash(){
-  document.getElementById('adP').textContent=products.length;
-  document.getElementById('adO').textContent=orders.length;
-  const rev=orders.filter(o=>o.status==='completed').reduce((s,o)=>s+(o.total||0),0);
-  document.getElementById('adR').textContent=`Rp ${(rev/1000000).toFixed(1)}Jt`;
-  document.getElementById('adPend').textContent=orders.filter(o=>o.status==='pending').length;
-  const ctx=document.getElementById('salesChart').getContext('2d');
-  if(sChart)sChart.destroy();
-  sChart=new Chart(ctx,{type:'bar',data:{labels:['Nov','Des','Jan','Feb','Mar','Apr'],datasets:[{label:'(Rb)',data:[820,1240,980,1560,1120,1890],backgroundColor:'rgba(13,184,122,0.85)',borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{family:'Outfit',size:10},callback:v=>v+'k'}},x:{grid:{display:false},ticks:{font:{family:'Outfit',size:11}}}}}});
-}
-function renderAdminProds(){
-  const el=document.getElementById('adminProdList'),fb='https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=200&q=80';
-  el.innerHTML=products.length?products.map(p=>`<div class="admin-prod-item"><img class="api-img" src="${p.image||p.img||fb}" alt="${p.name}" onerror="this.src='${fb}'"><div style="flex:1;min-width:0"><div class="api-name">${p.name||'—'}</div><div class="api-price">Rp ${(p.price||0).toLocaleString('id-ID')}</div><div class="api-stock">Stok: ${p.stock??'∞'} • ${p.category||'Umum'}</div></div><div class="api-actions"><button class="api-btn api-edit" onclick="editProd('${p.id}')"><i class="fas fa-pen"></i></button><button class="api-btn api-del" onclick="delProd('${p.id}')"><i class="fas fa-trash"></i></button></div></div>`).join(''):'<div class="empty-state"><i class="fas fa-box"></i><p>Belum ada produk</p></div>';
-}
-function renderAdminOrders(){
-  const el=document.getElementById('adminOrdersList'),labels={pending:'Menunggu',processing:'Diproses',completed:'Selesai',cancelled:'Dibatalkan'},nextStatus={pending:'processing',processing:'completed',completed:'completed'};
-  el.innerHTML=orders.length?orders.map(o=>`<div class="order-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div class="order-id">ORDER #${o.id.slice(-8).toUpperCase()}</div><span class="ostatus os-${o.status||'pending'}">${labels[o.status]||'Menunggu'}</span></div><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">${o.buyerName||'—'}</div><div class="order-items">${(o.items||[]).map(i=>`${i.name} x${i.qty}`).join(', ')}</div><div class="order-footer" style="margin-top:10px"><div class="order-total">Rp ${(o.total||0).toLocaleString('id-ID')}</div>${o.status!=='completed'&&o.status!=='cancelled'?`<button onclick="updOrderStatus('${o.id}','${nextStatus[o.status||'pending']}')" style="padding:6px 14px;border-radius:10px;background:var(--green-bg);color:var(--green-text);font-size:11px;font-weight:700;border:none;cursor:pointer;font-family:'Outfit',sans-serif">→ ${labels[nextStatus[o.status||'pending']]}</button>":''}</div></div>`).join(''):'<div class="empty-state"><i class="fas fa-shopping-bag"></i><p>Belum ada pesanan</p></div>';
-}
-window.updOrderStatus=async(id,status)=>{ try{await updateDoc(doc(db,'orders',id),{status});toast('Status diperbarui','success');renderAdminOrders();}catch(e){toast('Gagal','error');} };
+        function renderCart() {
+            const emptyDiv = document.getElementById('cartEmpty');
+            const itemsDiv = document.getElementById('cartItems');
+            const summaryDiv = document.getElementById('cartSummary');
+            
+            if (cart.length === 0) {
+                emptyDiv?.classList.remove('hidden');
+                itemsDiv?.classList.add('hidden');
+                summaryDiv?.classList.add('hidden');
+                return;
+            }
+            
+            emptyDiv?.classList.add('hidden');
+            itemsDiv?.classList.remove('hidden');
+            summaryDiv?.classList.remove('hidden');
+            
+            itemsDiv.innerHTML = cart.map((item, idx) => `
+                <div class="glass-card p-4 rounded-2xl flex gap-4">
+                    <img src="${item.image || item.img || 'https://via.placeholder.com/100'}" 
+                         class="w-20 h-20 object-cover rounded-xl bg-slate-200">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm mb-1">${item.name}</h4>
+                        <p class="text-emerald-600 font-black">Rp ${(item.price * item.qty).toLocaleString()}</p>
+                        <div class="flex items-center gap-3 mt-2">
+                            <button onclick="updateQty(${idx}, -1)" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                <i class="fas fa-minus text-xs"></i>
+                            </button>
+                            <span class="font-bold">${item.qty}</span>
+                            <button onclick="updateQty(${idx}, 1)" class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
+                            <button onclick="removeFromCart(${idx})" class="ml-auto text-red-500 text-xs">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            document.getElementById('cartSubtotal').textContent = `Rp ${subtotal.toLocaleString()}`;
+            document.getElementById('cartTotal').textContent = `Rp ${subtotal.toLocaleString()}`;
+        }
 
-// Product CRUD
-window.openProdSheet=()=>{ editProdId=null; document.getElementById('prodSheetTitle').innerHTML='<i class="fas fa-plus" style="color:var(--green)"></i>Tambah Produk'; ['pName','pPrice','pStock','pImg','pDesc'].forEach(id=>document.getElementById(id).value=''); document.getElementById('pCat').value=''; document.getElementById('prodOverlay').classList.add('open'); };
-window.closeProdSheet=()=>document.getElementById('prodOverlay').classList.remove('open');
-window.editProd=id=>{ const p=products.find(x=>x.id===id);if(!p)return; editProdId=id; document.getElementById('prodSheetTitle').innerHTML='<i class="fas fa-pen" style="color:var(--green)"></i>Edit Produk'; document.getElementById('pName').value=p.name||''; document.getElementById('pPrice').value=p.price||''; document.getElementById('pStock').value=p.stock||''; document.getElementById('pCat').value=p.category||''; document.getElementById('pImg').value=p.image||p.img||''; document.getElementById('pDesc').value=p.desc||''; document.getElementById('prodOverlay').classList.add('open'); };
-window.saveProd=async()=>{
-  const name=document.getElementById('pName').value.trim(),price=parseFloat(document.getElementById('pPrice').value),stock=parseInt(document.getElementById('pStock').value)||0,category=document.getElementById('pCat').value,image=document.getElementById('pImg').value.trim(),desc=document.getElementById('pDesc').value.trim();
-  if(!name||!price||!category){toast('Lengkapi nama, harga, kategori','error');return;}
-  const btn=document.getElementById('prodSaveBtn'),txt=document.getElementById('prodSaveTxt');
-  btn.disabled=true;txt.textContent='Menyimpan...';
-  const data={name,price,stock,category,image,desc,updatedAt:serverTimestamp()};
-  try{ if(editProdId){await updateDoc(doc(db,'products',editProdId),data);toast('Produk diperbarui','success');}else{data.createdAt=serverTimestamp();await addDoc(collection(db,'products'),data);toast('Produk ditambahkan 🎉','success');} closeProdSheet();renderAdminProds(); }
-  catch(e){toast('Gagal: '+e.message,'error');}
-  finally{btn.disabled=false;txt.textContent='Simpan';}
-};
-window.delProd=async id=>{ if(!confirm('Hapus produk ini?'))return; try{await deleteDoc(doc(db,'products',id));toast('Produk dihapus','info');renderAdminProds();}catch(e){toast('Gagal','error');} };
+        window.selectPayment = (el, method) => {
+            document.querySelectorAll('.payment-method').forEach(p => p.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedPayment = method;
+        };
 
-// Theme
-function applyTheme(){ const d=localStorage.getItem('ha_theme')==='dark'; document.documentElement.classList.toggle('dark',d); document.getElementById('darkBtn').innerHTML=d?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>'; }
-window.toggleDark=()=>{ const d=!document.documentElement.classList.contains('dark'); document.documentElement.classList.toggle('dark',d); localStorage.setItem('ha_theme',d?'dark':'light'); document.getElementById('darkBtn').innerHTML=d?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>'; };
+        window.checkout = async () => {
+            if (cart.length === 0) {
+                showToast('Keranjang masih kosong', 'error');
+                return;
+            }
+            
+            if (!currentUser) {
+                openLogin();
+                return;
+            }
+            
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            // Save order to Firebase
+            try {
+                await addDoc(collection(db, "orders"), {
+                    items: cart,
+                    total: subtotal,
+                    paymentMethod: selectedPayment,
+                    buyerName: currentUser.name,
+                    buyerEmail: currentUser.email,
+                    buyerId: currentUser.uid || 'guest',
+                    status: 'pending',
+                    createdAt: serverTimestamp()
+                });
+                
+                // Generate WhatsApp message
+                let msg = `🛒 *ORDER SAGATAMA MART*%0A%0A`;
+                msg += `👤 *Pelanggan:* ${currentUser.name}%0A`;
+                msg += `📧 *Email:* ${currentUser.email}%0A%0A`;
+                msg += `*Detail Pesanan:*%0A`;
+                
+                cart.forEach((item, i) => {
+                    msg += `${i + 1}. ${item.name}%0A`;
+                    msg += `   ${item.qty}x @ Rp ${item.price.toLocaleString()}%0A`;
+                    msg += `   Subtotal: Rp ${(item.price * item.qty).toLocaleString()}%0A%0A`;
+                });
+                
+                msg += `*Total: Rp ${subtotal.toLocaleString()}*%0A`;
+                msg += `*Pembayaran:* ${selectedPayment.toUpperCase()}%0A%0A`;
+                msg += `Mohon konfirmasi ketersediaan stok. Terima kasih! 🙏`;
+                
+                // Clear cart
+                cart = [];
+                saveCart();
+                updateCartUI();
+                renderCart();
+                
+                // Open WhatsApp
+                window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${msg}`, '_blank');
+                
+                showToast('Pesanan berhasil dibuat!');
+                switchView('orders');
+                
+            } catch (error) {
+                showToast('Gagal membuat pesanan: ' + error.message, 'error');
+            }
+        };
 
-// Toast
-function toast(msg,type='success'){
-  const stack=document.getElementById('toastStack'),t=document.createElement('div'),icons={success:'fa-check-circle',error:'fa-exclamation-circle',info:'fa-info-circle'};
-  t.className=`toast ${type}`; t.innerHTML=`<i class="fas ${icons[type]||icons.success}"></i><span>${msg}</span>`;
-  stack.appendChild(t); requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
-  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3500);
-}
-</script>
+        // ==========================================
+        // ORDERS
+        // ==========================================
+        function loadOrders() {
+            onSnapshot(query(collection(db, "orders"), orderBy("createdAt", "desc")), (snapshot) => {
+                orders = [];
+                snapshot.forEach(doc => {
+                    orders.push({ id: doc.id, ...doc.data() });
+                });
+                renderOrders();
+                updateAdminStats();
+            });
+        }
+
+        function renderOrders(filter = 'all') {
+            const container = document.getElementById('ordersList');
+            if (!container) return;
+            
+            let filtered = orders;
+            if (currentUser?.role !== 'admin') {
+                filtered = orders.filter(o => o.buyerEmail === currentUser?.email);
+            }
+            
+            if (filter !== 'all') {
+                filtered = filtered.filter(o => o.status === filter);
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state glass-card rounded-3xl">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p class="text-slate-500">Belum ada pesanan</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(o => `
+                <div class="glass-card p-4 rounded-2xl">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="text-xs text-slate-500">Order ID</p>
+                            <p class="font-bold text-sm">#${o.id.slice(-6).toUpperCase()}</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(o.status)}">
+                            ${getStatusLabel(o.status)}
+                        </span>
+                    </div>
+                    <div class="space-y-2 mb-3">
+                        ${o.items.map(item => `
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-600">${item.name} x${item.qty}</span>
+                                <span class="font-semibold">Rp ${(item.price * item.qty).toLocaleString()}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="h-px bg-slate-200 dark:bg-slate-700 my-3"></div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-500">${o.createdAt?.toDate().toLocaleDateString('id-ID') || '-'}</span>
+                        <span class="font-black text-emerald-600">Rp ${o.total.toLocaleString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.filterOrders = (status) => {
+            document.querySelectorAll('.order-tab').forEach(btn => {
+                btn.classList.remove('active', 'bg-emerald-600', 'text-white');
+                btn.classList.add('bg-slate-200', 'text-slate-600');
+            });
+            event.target.classList.add('active', 'bg-emerald-600', 'text-white');
+            event.target.classList.remove('bg-slate-200', 'text-slate-600');
+            renderOrders(status);
+        };
+
+        function getStatusColor(status) {
+            const colors = {
+                'pending': 'bg-amber-100 text-amber-700',
+                'processing': 'bg-blue-100 text-blue-700',
+                'completed': 'bg-emerald-100 text-emerald-700',
+                'cancelled': 'bg-red-100 text-red-700'
+            };
+            return colors[status] || 'bg-slate-100 text-slate-700';
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'pending': 'Menunggu',
+                'processing': 'Diproses',
+                'completed': 'Selesai',
+                'cancelled': 'Dibatalkan'
+            };
+            return labels[status] || status;
+        }
+
+        // ==========================================
+        // ADMIN FUNCTIONS
+        // ==========================================
+        function updateAdminStats() {
+            const today = new Date().toDateString();
+            const todayOrders = orders.filter(o => {
+                const orderDate = o.createdAt?.toDate().toDateString();
+                return orderDate === today;
+            });
+            
+            const revenue = orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + o.total, 0);
+            
+            document.getElementById('adminTotalProducts').textContent = products.length;
+            document.getElementById('adminTodayOrders').textContent = todayOrders.length;
+            document.getElementById('adminRevenue').textContent = `Rp ${revenue.toLocaleString()}`;
+            document.getElementById('adminVisitors').textContent = Math.floor(Math.random() * 100) + 50;
+            
+            updateChart();
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('salesChart');
+            if (!ctx) return;
+            
+            const last7Days = Array.from({length: 7}, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (6 - i));
+                return d.toLocaleDateString('id-ID', {weekday: 'short'});
+            });
+            
+            const dailySales = last7Days.map(day => {
+                return orders
+                    .filter(o => {
+                        const orderDate = o.createdAt?.toDate();
+                        return orderDate && orderDate.toLocaleDateString('id-ID', {weekday: 'short'}) === day;
+                    })
+                    .reduce((sum, o) => sum + o.total, 0);
+            });
+            
+            if (salesChart) salesChart.destroy();
+            
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Penjualan',
+                        data: dailySales,
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#059669'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (val) => 'Rp ' + (val / 1000) + 'k',
+                                font: { size: 10 }
+                            }
+                        },
+                        x: { ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function renderAdminProducts() {
+            const container = document.getElementById('adminProductList');
+            if (!container) return;
+            
+            container.innerHTML = products.map(p => `
+                <div class="glass-card p-4 rounded-2xl flex gap-4">
+                    <img src="${p.image || p.img || 'https://via.placeholder.com/100'}" 
+                         class="w-20 h-20 object-cover rounded-xl bg-slate-200">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm mb-1">${p.name}</h4>
+                        <p class="text-emerald-600 font-black">Rp ${(p.price || 0).toLocaleString()}</p>
+                        <span class="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded">${p.category || p.cat}</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="editProduct('${p.id}')" class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteProduct('${p.id}')" class="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAdminOrders() {
+            const container = document.getElementById('adminOrdersList');
+            if (!container) return;
+            
+            container.innerHTML = orders.map(o => `
+                <div class="glass-card p-4 rounded-2xl">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <p class="font-bold">#${o.id.slice(-6).toUpperCase()}</p>
+                            <p class="text-xs text-slate-500">${o.buyerName}</p>
+                        </div>
+                        <select onchange="updateOrderStatus('${o.id}', this.value)" 
+                                class="text-xs font-bold rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-1 border-0">
+                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Menunggu</option>
+                            <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Diproses</option>
+                            <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Selesai</option>
+                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Batal</option>
+                        </select>
+                    </div>
+                    <div class="text-sm text-slate-600 mb-2">${o.items.length} item • Rp ${o.total.toLocaleString()}</div>
+                    <div class="text-xs text-slate-400">${o.createdAt?.toDate().toLocaleString('id-ID') || '-'}</div>
+                </div>
+            `).join('');
+        }
+
+        window.updateOrderStatus = async (orderId, status) => {
+            try {
+                await updateDoc(doc(db, "orders", orderId), { status });
+                showToast('Status pesanan diperbarui');
+            } catch (error) {
+                showToast('Gagal memperbarui status', 'error');
+            }
+        };
+
+        // ==========================================
+        // PRODUCT CRUD
+        // ==========================================
+        window.openProductModal = () => {
+            editingProductId = null;
+            tempImageData = null;
+            document.getElementById('productModalTitle').textContent = 'Tambah Produk';
+            document.getElementById('productName').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productDesc').value = '';
+            document.getElementById('imagePreview').classList.add('hidden');
+            document.getElementById('imagePlaceholder').classList.remove('hidden');
+            document.getElementById('productModal').classList.add('active');
+        };
+
+        window.editProduct = (id) => {
+            const p = products.find(x => x.id === id);
+            if (!p) return;
+            
+            editingProductId = id;
+            tempImageData = p.image || p.img;
+            document.getElementById('productModalTitle').textContent = 'Edit Produk';
+            document.getElementById('productName').value = p.name;
+            document.getElementById('productPrice').value = p.price;
+            document.getElementById('productCategory').value = p.category || p.cat || 'Herbal';
+            document.getElementById('productDesc').value = p.description || '';
+            
+            if (tempImageData) {
+                document.getElementById('imagePreview').src = tempImageData;
+                document.getElementById('imagePreview').classList.remove('hidden');
+                document.getElementById('imagePlaceholder').classList.add('hidden');
+            }
+            
+            document.getElementById('productModal').classList.add('active');
+        };
+
+        window.deleteProduct = async (id) => {
+            if (!confirm('Yakin ingin menghapus produk ini?')) return;
+            
+            try {
+                await deleteDoc(doc(db, "products", id));
+                showToast('Produk dihapus');
+            } catch (error) {
+                showToast('Gagal menghapus produk', 'error');
+            }
+        };
+
+        window.previewImage = (input) => {
+            if (input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    tempImageData = e.target.result;
+                    document.getElementById('imagePreview').src = tempImageData;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                    document.getElementById('imagePlaceholder').classList.add('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+
+        window.saveProduct = async () => {
+            const name = document.getElementById('productName').value;
+            const price = parseInt(document.getElementById('productPrice').value);
+            const category = document.getElementById('productCategory').value;
+            const description = document.getElementById('productDesc').value;
+            
+            if (!name || !price || !tempImageData) {
+                showToast('Lengkapi semua field', 'error');
+                return;
+            }
+            
+            const data = {
+                name,
+                price,
+                category,
+                cat: category,
+                description,
+                image: tempImageData,
+                img: tempImageData,
+                updatedAt: serverTimestamp()
+            };
+            
+            try {
+                if (editingProductId) {
+                    await updateDoc(doc(db, "products", editingProductId), data);
+                    showToast('Produk diperbarui');
+                } else {
+                    data.createdAt = serverTimestamp();
+                    await addDoc(collection(db, "products"), data);
+                    showToast('Produk ditambahkan');
+                }
+                closeModal('productModal');
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        };
+
+        // ==========================================
+        // AUTH & USER
+        // ==========================================
+        window.setLoginType = (type) => {
+            loginType = type;
+            document.getElementById('btnAdmin').className = type === 'admin' 
+                ? 'flex-1 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold transition-all'
+                : 'flex-1 py-2 rounded-lg text-slate-600 dark:text-slate-300 text-xs font-bold transition-all';
+            document.getElementById('btnBuyer').className = type === 'buyer'
+                ? 'flex-1 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold transition-all'
+                : 'flex-1 py-2 rounded-lg text-slate-600 dark:text-slate-300 text-xs font-bold transition-all';
+        };
+
+        window.doLogin = () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Demo login
+            if (loginType === 'admin' && email === 'admin@sagatama.pi' && password === '513') {
+                currentUser = { email, name: 'Admin Sagatama', role: 'admin' };
+            } else if (loginType === 'buyer' && password === '123') {
+                currentUser = { email, name: email.split('@')[0], role: 'buyer' };
+            } else {
+                showToast('Email atau password salah', 'error');
+                return;
+            }
+            
+            localStorage.setItem('sagatama_user', JSON.stringify(currentUser));
+            updateUIForUser();
+            closeModal('loginModal');
+            showToast(`Selamat datang, ${currentUser.name}!`);
+            switchView('home');
+        };
+
+        window.logout = () => {
+            currentUser = null;
+            localStorage.removeItem('sagatama_user');
+            cart = [];
+            saveCart();
+            updateCartUI();
+            updateUIForUser();
+            showToast('Logout berhasil');
+            switchView('home');
+        };
+
+        function updateUIForUser() {
+            const loginBtn = document.getElementById('loginBtn');
+            const roleDisplay = document.getElementById('userRoleDisplay');
+            const accountGuest = document.getElementById('accountGuest');
+            const accountLogged = document.getElementById('accountLogged');
+            const adminMenu = document.getElementById('adminMenu');
+            
+            if (currentUser) {
+                loginBtn.textContent = 'Logout';
+                loginBtn.onclick = logout;
+                loginBtn.className = 'bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-full transition-all';
+                
+                const roleText = currentUser.role === 'admin' ? 'Administrator' : 'Pembeli';
+                roleDisplay.innerHTML = `<span class="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 rounded text-[10px]">${roleText}</span>`;
+                
+                // Update account view
+                if (accountGuest) accountGuest.classList.add('hidden');
+                if (accountLogged) {
+                    accountLogged.classList.remove('hidden');
+                    document.getElementById('userName').textContent = currentUser.name;
+                    document.getElementById('userEmail').textContent = currentUser.email;
+                    document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+                    document.getElementById('userRoleBadge').textContent = roleText;
+                }
+                
+                // Show admin menu if admin
+                if (adminMenu) {
+                    adminMenu.classList.toggle('hidden', currentUser.role !== 'admin');
+                }
+            } else {
+                loginBtn.textContent = 'Masuk';
+                loginBtn.onclick = openLogin;
+                loginBtn.className = 'bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-full transition-all shadow-lg shadow-emerald-600/30';
+                roleDisplay.textContent = 'Guest';
+                
+                if (accountGuest) accountGuest.classList.remove('hidden');
+                if (accountLogged) accountLogged.classList.add('hidden');
+                if (adminMenu) adminMenu.classList.add('hidden');
+            }
+            
+            renderProducts();
+        }
+
+        window.openLogin = () => {
+            document.getElementById('loginModal').classList.add('active');
+        };
+
+        window.closeModal = (modalId) => {
+            document.getElementById(modalId).classList.remove('active');
+        };
+
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+        window.toggleDarkMode = () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('sagatama_dark', document.documentElement.classList.contains('dark'));
+        };
+
+        function setupEventListeners() {
+            // Search
+            document.getElementById('productSearch')?.addEventListener('input', () => {
+                renderProducts();
+            });
+            
+            // Dark mode
+            if (localStorage.getItem('sagatama_dark') === 'true') {
+                document.documentElement.classList.add('dark');
+            }
+            
+            // Close modal on outside click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.classList.remove('active');
+                });
+            });
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        function updateStats() {
+            document.getElementById('statTotalProducts').textContent = products.length;
+        }
+
+        // Expose functions to window
+        window.renderCart = renderCart;
+        window.updateAdminStats = updateAdminStats;
+        window.renderAdminProducts = renderAdminProducts;
+        window.renderAdminOrders = renderAdminOrders;
+    </script>
 </body>
 </html>
