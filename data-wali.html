@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Wali | Hidayatullah Amin</title>
+    <title>Data Wali Santri | Hidayatullah Amin</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -14,123 +15,333 @@
                 extend: {
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
                     colors: {
-                        primary: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
-                        secondary: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
+                        primary: { 
+                            50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 
+                            300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 
+                            600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' 
+                        },
+                        secondary: { 
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 
+                            300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 
+                            600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' 
+                        },
+                        islamic: {
+                            50: '#fefce8', 100: '#fef9c3', 200: '#fef08a',
+                            300: '#fde047', 400: '#facc15', 500: '#eab308',
+                            600: '#ca8a04', 700: '#a16207', 800: '#854d0e', 900: '#713f12'
+                        }
                     }
                 }
             }
         }
     </script>
     <style>
-        .sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Modern Islamic Aesthetics */
+        .sidebar { 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
         .sidebar-collapsed { width: 80px; }
         .sidebar-expanded { width: 280px; }
-        .nav-item { transition: all 0.2s; }
-        .nav-item:hover { background: rgba(5, 150, 105, 0.1); }
-        .nav-item.active { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3); }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .modal { opacity: 0; visibility: hidden; transition: all 0.3s; }
-        .modal.active { opacity: 1; visibility: visible; }
-        .modal-content { transform: scale(0.9) translateY(20px); transition: all 0.3s; }
-        .modal.active .modal-content { transform: scale(1) translateY(0); }
-        .card-hover { transition: all 0.3s; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); }
+        
+        .nav-item { 
+            transition: all 0.3s ease; 
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: linear-gradient(to bottom, #059669, #047857);
+            transform: scaleY(0);
+            transition: transform 0.3s;
+        }
+        .nav-item:hover::before { transform: scaleY(1); }
+        .nav-item:hover { 
+            background: rgba(5, 150, 105, 0.08);
+            transform: translateX(4px);
+        }
+        .nav-item.active { 
+            background: linear-gradient(135deg, #059669 0%, #047857 100%); 
+            color: white; 
+            box-shadow: 0 4px 20px rgba(5, 150, 105, 0.4);
+        }
+        .nav-item.active::before { display: none; }
+
+        /* Glassmorphism Header */
+        .glass { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+        .dark .glass {
+            background: rgba(30, 41, 59, 0.85);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Animations */
+        .animate-fade-in { 
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .animate-slide-up {
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes fadeIn { 
+            from { opacity: 0; } 
+            to { opacity: 1; } 
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card Effects */
+        .card-hover { 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .card-hover:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); 
+        }
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Table Styling */
+        .table-row {
+            transition: all 0.2s ease;
+        }
+        .table-row:hover {
+            background: rgba(5, 150, 105, 0.03);
+            transform: scale(1.002);
+        }
+
+        /* Modal Animations */
+        .modal { 
+            opacity: 0; 
+            visibility: hidden; 
+            transition: all 0.3s ease; 
+        }
+        .modal.active { 
+            opacity: 1; 
+            visibility: visible; 
+        }
+        .modal-content { 
+            transform: scale(0.95) translateY(20px); 
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        }
+        .modal.active .modal-content { 
+            transform: scale(1) translateY(0); 
+        }
+
+        /* Loading Shimmer */
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Toast Notifications */
+        .toast {
+            animation: toastSlide 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes toastSlide {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Button Actions */
+        .btn-action {
+            transition: all 0.2s;
+        }
+        .btn-action:hover {
+            transform: scale(1.1);
+        }
+        .btn-action:active {
+            transform: scale(0.95);
+        }
+
+        /* Search Focus */
+        .search-focus:focus {
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+        }
+
+        /* Islamic Pattern Background (subtle) */
+        .islamic-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23059669' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
     </style>
 </head>
-<body class="font-sans antialiased bg-secondary-50 dark:bg-secondary-900 text-secondary-800 dark:text-secondary-200">
+<body class="font-sans antialiased bg-secondary-50 dark:bg-secondary-900 text-secondary-800 dark:text-secondary-200 transition-colors duration-300 islamic-pattern">
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar sidebar-expanded fixed left-0 top-0 h-full bg-white dark:bg-secondary-800 border-r border-secondary-200 dark:border-secondary-700 z-40 flex flex-col">
-        <div class="h-20 flex items-center px-6 border-b border-secondary-200 dark:border-secondary-700">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white shadow-lg shadow-primary-500/30">
-                <i class="fas fa-mosque text-lg"></i>
+    <aside id="sidebar" class="sidebar sidebar-expanded fixed left-0 top-0 h-full bg-white dark:bg-secondary-800 border-r border-secondary-200 dark:border-secondary-700 z-50 flex flex-col shadow-xl">
+        <!-- Logo Section -->
+        <div class="h-20 flex items-center px-6 border-b border-secondary-200 dark:border-secondary-700 bg-gradient-to-r from-white to-secondary-50 dark:from-secondary-800 dark:to-secondary-900">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white shadow-lg shadow-primary-500/30 transform hover:rotate-6 transition-transform duration-300">
+                <i class="fas fa-mosque text-xl"></i>
             </div>
-            <div class="ml-3 sidebar-text">
-                <h1 class="font-bold text-secondary-900 dark:text-white">Hidayatullah</h1>
-                <p class="text-xs text-primary-600">Admin Panel</p>
+            <div class="ml-3 sidebar-text overflow-hidden">
+                <h1 class="font-bold text-secondary-900 dark:text-white text-lg tracking-tight">Hidayatullah</h1>
+                <p class="text-xs text-primary-600 font-medium">Admin Panel</p>
             </div>
-            <button onclick="toggleSidebar()" class="ml-auto text-secondary-400 hover:text-secondary-600">
-                <i class="fas fa-chevron-left"></i>
+            <button onclick="toggleSidebar()" class="ml-auto w-8 h-8 rounded-full hover:bg-secondary-100 dark:hover:bg-secondary-700 flex items-center justify-center text-secondary-400 hover:text-secondary-600 transition-all duration-300">
+                <i class="fas fa-chevron-left transition-transform duration-300" id="sidebarToggleIcon"></i>
             </button>
         </div>
 
-        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-            <a href="dashboard-admin.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                <i class="fas fa-home w-5"></i>
-                <span class="sidebar-text">Dashboard</span>
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-2 custom-scrollbar">
+            <div class="sidebar-text px-4 text-xs font-bold text-secondary-400 uppercase tracking-wider mb-3">Menu Utama</div>
+            
+            <a href="dashboard-admin.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400 group">
+                <div class="w-8 h-8 rounded-lg bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                    <i class="fas fa-home w-5 text-center group-hover:text-primary-600"></i>
+                </div>
+                <span class="sidebar-text whitespace-nowrap">Dashboard</span>
             </a>
-            <a href="absensi.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                <i class="fas fa-qrcode w-5"></i>
-                <span class="sidebar-text">Absensi QR</span>
+            
+            <a href="absensi.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400 group">
+                <div class="w-8 h-8 rounded-lg bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                    <i class="fas fa-qrcode w-5 text-center group-hover:text-primary-600"></i>
+                </div>
+                <span class="sidebar-text whitespace-nowrap">Absensi QR</span>
             </a>
-            <a href="hafalan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                <i class="fas fa-book-open w-5"></i>
-                <span class="sidebar-text">Input Hafalan</span>
+            
+            <a href="hafalan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400 group">
+                <div class="w-8 h-8 rounded-lg bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                    <i class="fas fa-book-open w-5 text-center group-hover:text-primary-600"></i>
+                </div>
+                <span class="sidebar-text whitespace-nowrap">Input Hafalan</span>
             </a>
-            <a href="keuangan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                <i class="fas fa-wallet w-5"></i>
-                <span class="sidebar-text">Keuangan</span>
+            
+            <a href="keuangan.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400 group">
+                <div class="w-8 h-8 rounded-lg bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                    <i class="fas fa-wallet w-5 text-center group-hover:text-primary-600"></i>
+                </div>
+                <span class="sidebar-text whitespace-nowrap">Keuangan</span>
             </a>
-            <a href="sagatama-mart.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                <i class="fas fa-store w-5"></i>
-                <span class="sidebar-text">Sagatama Mart</span>
+            
+            <a href="sagatama-mart.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400 group">
+                <div class="w-8 h-8 rounded-lg bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                    <i class="fas fa-store w-5 text-center group-hover:text-primary-600"></i>
+                </div>
+                <span class="sidebar-text whitespace-nowrap">Sagatama Mart</span>
             </a>
 
-            <div class="pt-4 mt-4 border-t border-secondary-200 dark:border-secondary-700">
-                <p class="sidebar-text px-4 text-xs font-semibold text-secondary-400 uppercase tracking-wider mb-2">Manajemen</p>
-                <a href="dashboard-admin.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <i class="fas fa-user-plus w-5"></i>
-                    <span class="sidebar-text">Buat User Baru</span>
+            <!-- Management Section -->
+            <div class="pt-6 mt-6 border-t border-secondary-200 dark:border-secondary-700">
+                <div class="sidebar-text px-4 text-xs font-bold text-secondary-400 uppercase tracking-wider mb-3">Manajemen Data</div>
+                
+                <a href="dashboard-admin.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400 group">
+                    <div class="w-8 h-8 rounded-lg bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                        <i class="fas fa-user-plus w-5 text-center group-hover:text-primary-600"></i>
+                    </div>
+                    <span class="sidebar-text whitespace-nowrap">Buat User Baru</span>
                 </a>
-                <a href="dashboard-admin.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <i class="fas fa-users-cog w-5"></i>
-                    <span class="sidebar-text">Kelola Users</span>
+                
+                <a href="data-ustadz.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400 group">
+                    <div class="w-8 h-8 rounded-lg bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                        <i class="fas fa-chalkboard-teacher w-5 text-center group-hover:text-primary-600"></i>
+                    </div>
+                    <span class="sidebar-text whitespace-nowrap">Data Ustadz</span>
                 </a>
-                <a href="data-ustadz.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <i class="fas fa-chalkboard-teacher w-5"></i>
-                    <span class="sidebar-text">Data Ustadz</span>
+                
+                <a href="data-santri.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400 group">
+                    <div class="w-8 h-8 rounded-lg bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-colors">
+                        <i class="fas fa-user-graduate w-5 text-center group-hover:text-primary-600"></i>
+                    </div>
+                    <span class="sidebar-text whitespace-nowrap">Data Santri</span>
                 </a>
+                
                 <a href="data-wali.html" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium">
-                    <i class="fas fa-user-friends w-5"></i>
-                    <span class="sidebar-text">Data Wali</span>
-                </a>
-                <a href="data-santri.html" class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-secondary-600 dark:text-secondary-400">
-                    <i class="fas fa-user-graduate w-5"></i>
-                    <span class="sidebar-text">Data Santri</span>
+                    <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-user-friends w-5 text-center"></i>
+                    </div>
+                    <span class="sidebar-text whitespace-nowrap">Data Wali</span>
                 </a>
             </div>
         </nav>
 
-        <div class="p-4 border-t border-secondary-200 dark:border-secondary-700">
+        <!-- User Profile -->
+        <div class="p-4 border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50/50 dark:bg-secondary-800/50">
             <div class="flex items-center gap-3">
-                <img id="userAvatar" src="https://ui-avatars.com/api/?name=Admin&background=059669&color=fff" class="w-10 h-10 rounded-full">
+                <div class="relative">
+                    <img id="userAvatar" src="https://ui-avatars.com/api/?name=Admin&background=059669&color=fff" class="w-11 h-11 rounded-full border-2 border-white dark:border-secondary-600 shadow-md">
+                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-secondary-800 rounded-full"></div>
+                </div>
                 <div class="sidebar-text flex-1 min-w-0">
-                    <p id="userName" class="text-sm font-semibold text-secondary-900 dark:text-white truncate">Administrator</p>
+                    <p id="userName" class="text-sm font-bold text-secondary-900 dark:text-white truncate">Administrator</p>
                     <p id="userEmail" class="text-xs text-secondary-500 truncate">admin@ponpes.id</p>
                 </div>
-                <button onclick="handleLogout()" class="text-secondary-400 hover:text-red-500 transition">
+                <button onclick="handleLogout()" class="w-9 h-9 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-secondary-400 hover:text-red-500 transition-all duration-300 flex items-center justify-center" title="Logout">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
         </div>
     </aside>
 
+    <!-- Overlay for mobile -->
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden backdrop-blur-sm transition-opacity"></div>
+
     <!-- Main Content -->
     <main id="mainContent" class="ml-[280px] transition-all duration-300 min-h-screen">
-        <header class="sticky top-0 z-30 glass dark:bg-secondary-800/70 border-b border-secondary-200 dark:border-secondary-700 px-8 py-4">
+        <!-- Header -->
+        <header class="sticky top-0 z-30 glass px-8 py-5">
             <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-2xl font-bold text-secondary-900 dark:text-white">Data Wali</h2>
-                    <p class="text-sm text-secondary-500">Kelola data wali / orang tua santri</p>
+                <div class="animate-fade-in">
+                    <div class="flex items-center gap-3 mb-1">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
+                            <i class="fas fa-user-friends text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-secondary-900 dark:text-white">Data Wali Santri</h2>
+                            <p class="text-sm text-secondary-500">Manajemen orang tua & wali santri</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-yellow-400 flex items-center justify-center hover:bg-secondary-200 transition">
-                        <i class="fas fa-moon dark:hidden"></i>
-                        <i class="fas fa-sun hidden dark:block"></i>
+                <div class="flex items-center gap-3 animate-fade-in">
+                    <button onclick="toggleDarkMode()" class="w-11 h-11 rounded-xl bg-white dark:bg-secondary-800 text-secondary-600 dark:text-yellow-400 flex items-center justify-center hover:shadow-lg transition-all duration-300 border border-secondary-200 dark:border-secondary-700" title="Toggle Dark Mode">
+                        <i class="fas fa-moon dark:hidden text-lg"></i>
+                        <i class="fas fa-sun hidden dark:block text-lg"></i>
                     </button>
-                    <button onclick="openAddModal()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm font-semibold shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 transition flex items-center gap-2">
+                    <button onclick="refreshData()" class="w-11 h-11 rounded-xl bg-white dark:bg-secondary-800 text-secondary-600 flex items-center justify-center hover:shadow-lg transition-all duration-300 border border-secondary-200 dark:border-secondary-700" title="Refresh Data">
+                        <i class="fas fa-sync-alt text-lg hover:rotate-180 transition-transform duration-500"></i>
+                    </button>
+                    <button onclick="openAddModal()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white text-sm font-bold shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2">
                         <i class="fas fa-plus"></i>
                         <span>Tambah Wali</span>
                     </button>
@@ -138,182 +349,402 @@
             </div>
         </header>
 
-        <div class="p-8">
-            <!-- Stats -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 card-hover">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center text-xl">
-                            <i class="fas fa-user-friends"></i>
-                        </div>
+        <div class="p-8 space-y-6">
+            <!-- Stats Cards - Modern Islamic Design -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up">
+                <!-- Total Wali -->
+                <div class="stat-card bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 card-hover relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-transparent rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="flex items-center justify-between relative z-10">
                         <div>
-                            <p class="text-sm text-secondary-500">Total Wali</p>
-                            <p class="text-2xl font-bold text-secondary-900 dark:text-white" id="totalWali">-</p>
+                            <p class="text-sm font-medium text-secondary-500 mb-1">Total Wali</p>
+                            <p class="text-3xl font-bold text-secondary-900 dark:text-white" id="totalWali">
+                                <span class="loading-shimmer inline-block w-12 h-8 rounded"></span>
+                            </p>
+                            <p class="text-xs text-purple-600 mt-2 flex items-center gap-1">
+                                <i class="fas fa-users"></i> Seluruh wali santri
+                            </p>
+                        </div>
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/30 transform group-hover:scale-110 transition-transform">
+                            <i class="fas fa-user-friends text-2xl"></i>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 card-hover">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center text-xl">
-                            <i class="fas fa-male"></i>
-                        </div>
+
+                <!-- Ayah -->
+                <div class="stat-card bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 card-hover relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="flex items-center justify-between relative z-10">
                         <div>
-                            <p class="text-sm text-secondary-500">Ayah</p>
-                            <p class="text-2xl font-bold text-secondary-900 dark:text-white" id="totalAyah">-</p>
+                            <p class="text-sm font-medium text-secondary-500 mb-1">Ayah</p>
+                            <p class="text-3xl font-bold text-secondary-900 dark:text-white" id="totalAyah">
+                                <span class="loading-shimmer inline-block w-12 h-8 rounded"></span>
+                            </p>
+                            <p class="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                                <i class="fas fa-male"></i> Wali utama
+                            </p>
+                        </div>
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 transform group-hover:scale-110 transition-transform">
+                            <i class="fas fa-male text-2xl"></i>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 card-hover">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-900/30 text-pink-600 flex items-center justify-center text-xl">
-                            <i class="fas fa-female"></i>
-                        </div>
+
+                <!-- Ibu -->
+                <div class="stat-card bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 card-hover relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-500/10 to-transparent rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="flex items-center justify-between relative z-10">
                         <div>
-                            <p class="text-sm text-secondary-500">Ibu / Wali</p>
-                            <p class="text-2xl font-bold text-secondary-900 dark:text-white" id="totalIbu">-</p>
+                            <p class="text-sm font-medium text-secondary-500 mb-1">Ibu</p>
+                            <p class="text-3xl font-bold text-secondary-900 dark:text-white" id="totalIbu">
+                                <span class="loading-shimmer inline-block w-12 h-8 rounded"></span>
+                            </p>
+                            <p class="text-xs text-pink-600 mt-2 flex items-center gap-1">
+                                <i class="fas fa-female"></i> Wali kedua
+                            </p>
+                        </div>
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-pink-500/30 transform group-hover:scale-110 transition-transform">
+                            <i class="fas fa-female text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wali Lain -->
+                <div class="stat-card bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-secondary-200 dark:border-secondary-700 card-hover relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-islamic-500/10 to-transparent rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="flex items-center justify-between relative z-10">
+                        <div>
+                            <p class="text-sm font-medium text-secondary-500 mb-1">Wali Lain</p>
+                            <p class="text-3xl font-bold text-secondary-900 dark:text-white" id="totalWaliLain">
+                                <span class="loading-shimmer inline-block w-12 h-8 rounded"></span>
+                            </p>
+                            <p class="text-xs text-islamic-600 mt-2 flex items-center gap-1">
+                                <i class="fas fa-handshake"></i> Kerabat/keluarga
+                            </p>
+                        </div>
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-islamic-500 to-islamic-600 flex items-center justify-center text-white shadow-lg shadow-islamic-500/30 transform group-hover:scale-110 transition-transform">
+                            <i class="fas fa-handshake text-2xl"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Filter & Search -->
-            <div class="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 mb-6">
-                <div class="p-5 flex flex-col sm:flex-row gap-4">
-                    <div class="flex-1 relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"></i>
-                        <input type="text" id="searchInput" placeholder="Cari nama atau email wali..." oninput="filterData()"
-                            class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition text-sm">
+            <!-- Quick Actions & Filter -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up" style="animation-delay: 0.1s">
+                <!-- Search -->
+                <div class="lg:col-span-2 bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 p-6">
+                    <div class="flex flex-col lg:flex-row gap-4">
+                        <div class="flex-1 relative group">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-secondary-400 group-focus-within:text-primary-500 transition-colors"></i>
+                            <input type="text" id="searchInput" placeholder="Cari nama wali, email, no. HP, atau nama santri..." oninput="filterData()"
+                                class="w-full pl-12 pr-4 py-3.5 rounded-xl bg-secondary-50 dark:bg-secondary-700 border-2 border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-secondary-800 focus:outline-none transition-all duration-300 text-sm search-focus">
+                        </div>
+                        <div class="flex gap-3 flex-wrap">
+                            <select id="filterHubungan" onchange="filterData()"
+                                class="px-4 py-3.5 rounded-xl bg-secondary-50 dark:bg-secondary-700 border-2 border-transparent focus:border-primary-500 focus:outline-none transition-all duration-300 text-sm min-w-[140px] cursor-pointer hover:bg-secondary-100 dark:hover:bg-secondary-600">
+                                <option value="">Semua Hubungan</option>
+                                <option value="ayah">👨 Ayah</option>
+                                <option value="ibu">👩 Ibu</option>
+                                <option value="kakek">👴 Kakek</option>
+                                <option value="nenek">👵 Nenek</option>
+                                <option value="paman">👨‍💼 Paman</option>
+                                <option value="bibi">👩‍💼 Bibi</option>
+                                <option value="kakak">🧑 Kakak</option>
+                                <option value="wali">🤝 Wali Lain</option>
+                            </select>
+                            <select id="filterStatus" onchange="filterData()"
+                                class="px-4 py-3.5 rounded-xl bg-secondary-50 dark:bg-secondary-700 border-2 border-transparent focus:border-primary-500 focus:outline-none transition-all duration-300 text-sm min-w-[140px] cursor-pointer hover:bg-secondary-100 dark:hover:bg-secondary-600">
+                                <option value="">Semua Status</option>
+                                <option value="aktif">🟢 Aktif</option>
+                                <option value="nonaktif">🔴 Non-aktif</option>
+                            </select>
+                        </div>
                     </div>
-                    <select id="filterHubungan" onchange="filterData()"
-                        class="px-4 py-2.5 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition text-sm">
-                        <option value="">Semua Hubungan</option>
-                        <option value="ayah">Ayah</option>
-                        <option value="ibu">Ibu</option>
-                        <option value="wali">Wali</option>
-                    </select>
-                    <button onclick="exportData()" class="px-4 py-2.5 rounded-xl bg-secondary-100 dark:bg-secondary-700 text-secondary-600 dark:text-secondary-300 text-sm font-medium hover:bg-secondary-200 transition flex items-center gap-2">
-                        <i class="fas fa-download"></i>
-                        <span>Export</span>
+                </div>
+
+                <!-- Export Actions -->
+                <div class="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 p-6 flex items-center justify-center gap-3">
+                    <button onclick="exportData('csv')" class="flex-1 py-3 px-4 rounded-xl bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 text-sm font-semibold hover:bg-secondary-200 dark:hover:bg-secondary-600 transition-all duration-300 flex items-center justify-center gap-2 border-2 border-transparent hover:border-secondary-300">
+                        <i class="fas fa-file-csv text-green-600"></i>
+                        <span>Export CSV</span>
+                    </button>
+                    <button onclick="exportData('print')" class="flex-1 py-3 px-4 rounded-xl bg-secondary-100 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 text-sm font-semibold hover:bg-secondary-200 dark:hover:bg-secondary-600 transition-all duration-300 flex items-center justify-center gap-2 border-2 border-transparent hover:border-secondary-300">
+                        <i class="fas fa-print text-blue-600"></i>
+                        <span>Print</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Table -->
-            <div class="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 overflow-hidden">
+            <!-- Data Table -->
+            <div class="bg-white dark:bg-secondary-800 rounded-2xl border border-secondary-200 dark:border-secondary-700 overflow-hidden animate-slide-up shadow-sm" style="animation-delay: 0.2s">
                 <div class="overflow-x-auto">
                     <table class="w-full">
-                        <thead class="bg-secondary-50 dark:bg-secondary-700/50">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Wali</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Email</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">No. HP</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Hubungan</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Status</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Bergabung</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-secondary-500 uppercase">Aksi</th>
+                        <thead>
+                            <tr class="bg-gradient-to-r from-secondary-50 to-secondary-100 dark:from-secondary-700/50 dark:to-secondary-800/50 border-b border-secondary-200 dark:border-secondary-700">
+                                <th class="px-6 py-4 text-left text-xs font-bold text-secondary-500 uppercase tracking-wider">Wali & Santri</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-secondary-500 uppercase tracking-wider">Kontak</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-secondary-500 uppercase tracking-wider">Hubungan</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-secondary-500 uppercase tracking-wider">Pekerjaan</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-secondary-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-4 text-center text-xs font-bold text-secondary-500 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-secondary-200 dark:divide-secondary-700" id="waliTable">
+                            <!-- Loading State -->
                             <tr>
-                                <td colspan="7" class="px-6 py-12 text-center text-secondary-400">
-                                    <i class="fas fa-spinner fa-spin text-2xl mb-3 block"></i>
-                                    Memuat data wali...
+                                <td colspan="6" class="px-6 py-16 text-center">
+                                    <div class="flex flex-col items-center justify-center space-y-4">
+                                        <div class="w-16 h-16 rounded-full border-4 border-primary-200 border-t-primary-600 animate-spin"></div>
+                                        <p class="text-secondary-500 font-medium">Memuat data wali santri...</p>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="px-6 py-4 border-t border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
-                    <p class="text-sm text-secondary-500" id="paginationInfo">Menampilkan 0 data</p>
-                    <div class="flex gap-2" id="paginationButtons"></div>
+                
+                <!-- Pagination -->
+                <div class="px-6 py-4 border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50/50 dark:bg-secondary-800/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p class="text-sm text-secondary-500 font-medium" id="paginationInfo">Menampilkan 0 data</p>
+                    <div class="flex items-center gap-2" id="paginationButtons"></div>
                 </div>
             </div>
         </div>
     </main>
 
     <!-- Add/Edit Modal -->
-    <div id="addModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-lg shadow-2xl">
-            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
-                <h3 class="text-xl font-bold text-secondary-900 dark:text-white" id="modalTitle">Tambah Wali</h3>
-                <button onclick="closeAddModal()" class="w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center hover:bg-secondary-200 transition">
-                    <i class="fas fa-times"></i>
+    <div id="addModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-hidden">
+            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 bg-gradient-to-r from-purple-50 to-white dark:from-secondary-800 dark:to-secondary-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white">
+                        <i class="fas fa-user-plus" id="modalIcon"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-secondary-900 dark:text-white" id="modalTitle">Tambah Wali Santri</h3>
+                        <p class="text-xs text-secondary-500" id="modalSubtitle">Isi data lengkap wali/orang tua santri</p>
+                    </div>
+                </div>
+                <button onclick="closeAddModal()" class="w-10 h-10 rounded-full hover:bg-secondary-100 dark:hover:bg-secondary-700 flex items-center justify-center text-secondary-400 hover:text-secondary-600 transition-all duration-300">
+                    <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
-            <div class="p-6 overflow-y-auto max-h-[70vh] space-y-4">
+            
+            <div class="p-6 overflow-y-auto max-h-[60vh] space-y-5 custom-scrollbar">
                 <input type="hidden" id="editUid">
-                <div>
-                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
-                    <input type="text" id="inputNama" placeholder="Nama wali" required
-                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+                
+                <!-- Data Wali -->
+                <div class="p-4 rounded-xl bg-purple-50/50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800">
+                    <h4 class="text-sm font-bold text-purple-700 dark:text-purple-400 mb-4 flex items-center gap-2">
+                        <i class="fas fa-user-shield"></i> Data Wali
+                    </h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-secondary-700 dark:text-secondary-300">
+                                Nama Lengkap Wali <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"></i>
+                                <input type="text" id="inputNama" placeholder="Nama lengkap wali" required
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-secondary-700 border-2 border-secondary-200 dark:border-secondary-600 focus:border-purple-500 focus:outline-none transition-all duration-300">
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-secondary-700 dark:text-secondary-300">
+                                Hubungan dengan Santri <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <i class="fas fa-people-arrows absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"></i>
+                                <select id="inputHubungan" required
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-secondary-700 border-2 border-secondary-200 dark:border-secondary-600 focus:border-purple-500 focus:outline-none transition-all duration-300 cursor-pointer">
+                                    <option value="">Pilih Hubungan</option>
+                                    <option value="ayah">👨 Ayah Kandung</option>
+                                    <option value="ibu">👩 Ibu Kandung</option>
+                                    <option value="kakek">👴 Kakek</option>
+                                    <option value="nenek">👵 Nenek</option>
+                                    <option value="paman">👨‍💼 Paman</option>
+                                    <option value="bibi">👩‍💼 Bibi</option>
+                                    <option value="kakak">🧑 Kakak</option>
+                                    <option value="wali">🤝 Wali Lain</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-secondary-700 dark:text-secondary-300">No. HP / WhatsApp <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <i class="fab fa-whatsapp absolute left-3 top-1/2 -translate-y-1/2 text-green-500"></i>
+                                <input type="tel" id="inputHP" placeholder="08123456789" required
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-secondary-700 border-2 border-secondary-200 dark:border-secondary-600 focus:border-purple-500 focus:outline-none transition-all duration-300">
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-secondary-700 dark:text-secondary-300">Email</label>
+                            <div class="relative">
+                                <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"></i>
+                                <input type="email" id="inputEmail" placeholder="wali@email.com"
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-secondary-700 border-2 border-secondary-200 dark:border-secondary-600 focus:border-purple-500 focus:outline-none transition-all duration-300">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-secondary-700 dark:text-secondary-300">NIK (Nomor Induk Kependudukan)</label>
+                            <div class="relative">
+                                <i class="fas fa-id-card absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"></i>
+                                <input type="text" id="inputNIK" placeholder="3175xxxxxxxxxxxx" maxlength="16"
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-secondary-700 border-2 border-secondary-200 dark:border-secondary-600 focus:border-purple-500 focus:outline-none transition-all duration-300">
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-secondary-700 dark:text-secondary-300">Pekerjaan</label>
+                            <div class="relative">
+                                <i class="fas fa-briefcase absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400"></i>
+                                <select id="inputPekerjaan"
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-secondary-700 border-2 border-secondary-200 dark:border-secondary-600 focus:border-purple-500 focus:outline-none transition-all duration-300 cursor-pointer">
+                                    <option value="">Pilih Pekerjaan</option>
+                                    <option value="PNS">Pegawai Negeri (PNS)</option>
+                                    <option value="TNI/Polri">TNI / Polri</option>
+                                    <option value="Swasta">Karyawan Swasta</option>
+                                    <option value="Wiraswasta">Wiraswasta / Pengusaha</option>
+                                    <option value="Petani">Petani / Nelayan</option>
+                                    <option value="Buruh">Buruh</option>
+                                    <option value="Ibu Rumah Tangga">Ibu Rumah Tangga</option>
+                                    <option value="Pensiunan">Pensiunan</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 mt-4">
+                        <label class="block text-sm font-semibold text-secondary-700 dark:text-secondary-300">Alamat Lengkap</label>
+                        <div class="relative">
+                            <i class="fas fa-map-marker-alt absolute left-3 top-3 text-secondary-400"></i>
+                            <textarea id="inputAlamat" rows="2" placeholder="Alamat lengkap sesuai KTP"
+                                class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-secondary-700 border-2 border-secondary-200 dark:border-secondary-600 focus:border-purple-500 focus:outline-none transition-all duration-300 resize-none"></textarea>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Email</label>
-                    <input type="email" id="inputEmail" placeholder="wali@email.com"
-                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
+
+                <!-- Data Santri yang Diasuh -->
+                <div class="p-4 rounded-xl bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-800">
+                    <h4 class="text-sm font-bold text-primary-700 dark:text-primary-400 mb-4 flex items-center gap-2">
+                        <i class="fas fa-child"></i> Santri yang Diasuh
+                    </h4>
+                    
+                    <div class="space-y-4" id="santriContainer">
+                        <div class="santri-row grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-white dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600">
+                            <div class="space-y-2">
+                                <label class="block text-xs font-semibold text-secondary-600 dark:text-secondary-400">Nama Santri</label>
+                                <div class="relative">
+                                    <i class="fas fa-user-graduate absolute left-3 top-1/2 -translate-y-1/2 text-primary-500"></i>
+                                    <input type="text" class="santri-nama w-full pl-10 pr-4 py-2.5 rounded-lg bg-secondary-50 dark:bg-secondary-600 border border-secondary-200 dark:border-secondary-500 focus:border-primary-500 focus:outline-none text-sm" placeholder="Nama santri">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-xs font-semibold text-secondary-600 dark:text-secondary-400">NIS / Nomor Induk</label>
+                                <div class="relative">
+                                    <i class="fas fa-id-badge absolute left-3 top-1/2 -translate-y-1/2 text-primary-500"></i>
+                                    <input type="text" class="santri-nis w-full pl-10 pr-4 py-2.5 rounded-lg bg-secondary-50 dark:bg-secondary-600 border border-secondary-200 dark:border-secondary-500 focus:border-primary-500 focus:outline-none text-sm" placeholder="2024001">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="addSantriRow()" class="mt-3 text-sm text-primary-600 hover:text-primary-700 font-semibold flex items-center gap-2 transition">
+                        <i class="fas fa-plus-circle"></i> Tambah Santri Lain
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">No. HP</label>
-                    <input type="tel" id="inputHP" placeholder="08123456789"
-                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Hubungan dengan Santri</label>
-                    <select id="inputHubungan"
-                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                        <option value="ayah">Ayah</option>
-                        <option value="ibu">Ibu</option>
-                        <option value="wali">Wali</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Pekerjaan</label>
-                    <input type="text" id="inputPekerjaan" placeholder="Pekerjaan wali"
-                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Alamat</label>
-                    <textarea id="inputAlamat" rows="2" placeholder="Alamat lengkap"
-                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition resize-none"></textarea>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Status</label>
+
+                <!-- Status -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-secondary-700 dark:text-secondary-300">Status Keaktifan</label>
                     <select id="inputStatus"
-                        class="w-full px-4 py-3 rounded-xl bg-secondary-50 dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 focus:border-primary-500 focus:outline-none transition">
-                        <option value="true">Aktif</option>
-                        <option value="false">Non-aktif</option>
+                        class="w-full px-4 py-3 rounded-xl bg-white dark:bg-secondary-700 border-2 border-secondary-200 dark:border-secondary-600 focus:border-purple-500 focus:outline-none transition-all duration-300 cursor-pointer">
+                        <option value="true">✅ Aktif (Dapat dihubungi)</option>
+                        <option value="false">❌ Non-aktif</option>
                     </select>
                 </div>
             </div>
-            <div class="p-6 border-t border-secondary-200 dark:border-secondary-700 flex gap-3">
-                <button onclick="closeAddModal()" class="flex-1 py-3 rounded-xl border border-secondary-200 dark:border-secondary-600 text-secondary-600 dark:text-secondary-400 font-medium hover:bg-secondary-50 transition">Batal</button>
-                <button onclick="saveWali()" id="saveBtn" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+            
+            <div class="p-6 border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50/50 dark:bg-secondary-800/50 flex gap-3">
+                <button onclick="closeAddModal()" class="flex-1 py-3.5 rounded-xl border-2 border-secondary-300 dark:border-secondary-600 text-secondary-600 dark:text-secondary-400 font-bold hover:bg-secondary-100 dark:hover:bg-secondary-700 transition-all duration-300">
+                    Batal
+                </button>
+                <button onclick="saveWali()" id="saveBtn" class="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2">
                     <i class="fas fa-save"></i>
-                    <span>Simpan</span>
+                    <span>Simpan Data</span>
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Detail Modal -->
-    <div id="detailModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-md shadow-2xl">
-            <div class="p-6 border-b border-secondary-200 dark:border-secondary-700 flex items-center justify-between">
-                <h3 class="text-xl font-bold text-secondary-900 dark:text-white">Detail Wali</h3>
-                <button onclick="closeDetailModal()" class="w-8 h-8 rounded-full bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center hover:bg-secondary-200 transition">
+    <div id="detailModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div class="relative h-32 bg-gradient-to-br from-purple-500 to-pink-600">
+                <button onclick="closeDetailModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition">
                     <i class="fas fa-times"></i>
                 </button>
+                <div class="absolute -bottom-12 left-1/2 -translate-x-1/2">
+                    <img id="detailAvatar" src="" class="w-24 h-24 rounded-full border-4 border-white dark:border-secondary-800 shadow-xl">
+                </div>
             </div>
-            <div class="p-6" id="detailContent"></div>
+            <div class="pt-16 pb-6 px-6 text-center">
+                <h3 class="text-xl font-bold text-secondary-900 dark:text-white mb-1" id="detailName">-</h3>
+                <p class="text-sm text-secondary-500 mb-2" id="detailHubungan">-</p>
+                
+                <div class="flex justify-center mb-4">
+                    <span id="detailStatus" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold">
+                        <span class="w-2 h-2 rounded-full"></span>
+                        <span>-</span>
+                    </span>
+                </div>
+
+                <div class="space-y-3 text-left" id="detailContent"></div>
+                
+                <div class="mt-6 pt-6 border-t border-secondary-200 dark:border-secondary-700 flex gap-3">
+                    <a id="waLink" href="#" target="_blank" class="flex-1 py-2.5 rounded-xl bg-green-500 text-white font-semibold shadow-lg hover:bg-green-600 transition flex items-center justify-center gap-2">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                    <button onclick="editFromDetail()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold shadow-lg hover:shadow-xl transition">
+                        Edit Data
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="modal-content bg-white dark:bg-secondary-800 rounded-2xl w-full max-w-md shadow-2xl p-6 text-center">
+            <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-secondary-900 dark:text-white mb-2">Konfirmasi Hapus</h3>
+            <p class="text-secondary-500 mb-6">Apakah Anda yakin ingin menghapus data wali <span id="deleteName" class="font-semibold text-secondary-700"></span>? Tindakan ini tidak dapat dibatalkan.</p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 py-3 rounded-xl border-2 border-secondary-300 text-secondary-600 font-bold hover:bg-secondary-50 transition">Batal</button>
+                <button onclick="confirmDelete()" class="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold shadow-lg hover:bg-red-700 transition">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, getDocs, query, where, doc, getDoc, updateDoc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, where, doc, getDoc, updateDoc, serverTimestamp, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
@@ -328,23 +759,50 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let allData = [], filteredData = [];
+        let allData = [];
+        let filteredData = [];
         let currentPage = 1;
         const perPage = 10;
+        let currentDetailUid = null;
+        let deleteTargetUid = null;
 
+        // Hubungan configs
+        const hubConfig = {
+            ayah: { label: '👨 Ayah', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', icon: 'fa-male' },
+            ibu: { label: '👩 Ibu', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400', icon: 'fa-female' },
+            kakek: { label: '👴 Kakek', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', icon: 'fa-male' },
+            nenek: { label: '👵 Nenek', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', icon: 'fa-female' },
+            paman: { label: '👨‍💼 Paman', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400', icon: 'fa-user-tie' },
+            bibi: { label: '👩‍💼 Bibi', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', icon: 'fa-user-tie' },
+            kakak: { label: '🧑 Kakak', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400', icon: 'fa-user' },
+            wali: { label: '🤝 Wali', color: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300', icon: 'fa-handshake' }
+        };
+
+        // Initialize
         onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = 'login.html'; return; }
-            const userDoc = await getDoc(doc(db, "users", user.uid)).catch(() => null);
-            if (userDoc?.exists()) {
-                document.getElementById('userName').textContent = userDoc.data()?.displayName || 'Admin';
-                document.getElementById('userEmail').textContent = user.email;
-                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userDoc.data()?.displayName || 'A')}&background=059669&color=fff`;
+            if (!user) { 
+                window.location.href = 'login.html'; 
+                return; 
             }
-            await loadData();
+            
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    document.getElementById('userName').textContent = data.displayName || user.displayName || 'Administrator';
+                    document.getElementById('userEmail').textContent = user.email;
+                    document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.displayName || 'A')}&background=059669&color=fff&size=128`;
+                }
+                await loadData();
+            } catch (error) {
+                showToast('Error', 'Gagal memuat data user: ' + error.message, 'error');
+            }
         });
 
+        // Load Data
         async function loadData() {
             try {
+                showLoading();
                 const q = query(collection(db, "users"), where("role", "==", "wali"));
                 const snap = await getDocs(q);
                 allData = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
@@ -352,256 +810,675 @@
                 filterData();
             } catch (e) {
                 showToast('Error', 'Gagal memuat data: ' + e.message, 'error');
-                document.getElementById('waliTable').innerHTML = `<tr><td colspan="7" class="px-6 py-12 text-center text-red-400"><i class="fas fa-exclamation-circle mr-2"></i>Gagal memuat data</td></tr>`;
+                document.getElementById('waliTable').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center text-red-500">
+                                <i class="fas fa-exclamation-circle text-4xl mb-3"></i>
+                                <p class="font-medium">Gagal memuat data wali</p>
+                                <button onclick="loadData()" class="mt-3 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition">
+                                    <i class="fas fa-redo mr-2"></i>Coba Lagi
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
             }
+        }
+
+        window.refreshData = loadData;
+
+        function showLoading() {
+            ['totalWali', 'totalAyah', 'totalIbu', 'totalWaliLain'].forEach(id => {
+                document.getElementById(id).innerHTML = '<span class="loading-shimmer inline-block w-12 h-8 rounded"></span>';
+            });
         }
 
         function updateStats() {
             const ayah = allData.filter(u => u.hubungan === 'ayah');
-            const ibu = allData.filter(u => u.hubungan === 'ibu' || u.hubungan === 'wali' || !u.hubungan);
-            document.getElementById('totalWali').textContent = allData.length;
-            document.getElementById('totalAyah').textContent = ayah.length;
-            document.getElementById('totalIbu').textContent = ibu.length;
+            const ibu = allData.filter(u => u.hubungan === 'ibu');
+            const waliLain = allData.filter(u => !['ayah', 'ibu'].includes(u.hubungan));
+            
+            animateNumber('totalWali', allData.length);
+            animateNumber('totalAyah', ayah.length);
+            animateNumber('totalIbu', ibu.length);
+            animateNumber('totalWaliLain', waliLain.length);
         }
 
+        function animateNumber(id, value) {
+            const el = document.getElementById(id);
+            el.textContent = value;
+            el.classList.add('animate-fade-in');
+            setTimeout(() => el.classList.remove('animate-fade-in'), 600);
+        }
+
+        // Filter
         window.filterData = () => {
-            const search = document.getElementById('searchInput').value.toLowerCase();
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
             const hubungan = document.getElementById('filterHubungan').value;
+            const status = document.getElementById('filterStatus').value;
+
             filteredData = allData.filter(u => {
-                const matchSearch = !search || (u.displayName || '').toLowerCase().includes(search) || (u.email || '').toLowerCase().includes(search);
-                const matchHub = !hubungan || (u.hubungan || '') === hubungan;
-                return matchSearch && matchHub;
+                const santriNames = (u.santri || []).map(s => s.nama || '').join(' ');
+                const matchSearch = !search || 
+                    (u.displayName || '').toLowerCase().includes(search) || 
+                    (u.email || '').toLowerCase().includes(search) ||
+                    (u.phone || u.hp || '').toLowerCase().includes(search) ||
+                    santriNames.toLowerCase().includes(search);
+                
+                const matchHubungan = !hubungan || u.hubungan === hubungan;
+                const matchStatus = !status || (status === 'aktif' ? u.isActive !== false : u.isActive === false);
+                
+                return matchSearch && matchHubungan && matchStatus;
             });
+            
             currentPage = 1;
             renderTable();
         };
 
-        const hubLabel = { ayah: '👨 Ayah', ibu: '👩 Ibu', wali: '🤝 Wali' };
-        const hubColor = { ayah: 'bg-blue-100 text-blue-700', ibu: 'bg-pink-100 text-pink-700', wali: 'bg-purple-100 text-purple-700' };
-
+        // Render Table
         function renderTable() {
             const start = (currentPage - 1) * perPage;
             const pageData = filteredData.slice(start, start + perPage);
             const tbody = document.getElementById('waliTable');
 
             if (filteredData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-12 text-center text-secondary-400"><i class="fas fa-search text-3xl mb-3 block opacity-30"></i>Tidak ada data ditemukan</td></tr>`;
-                document.getElementById('paginationInfo').textContent = 'Menampilkan 0 data';
-                document.getElementById('paginationButtons').innerHTML = '';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-16 text-center">
+                            <div class="flex flex-col items-center text-secondary-400">
+                                <div class="w-20 h-20 rounded-full bg-secondary-100 dark:bg-secondary-700 flex items-center justify-center mb-4">
+                                    <i class="fas fa-search text-3xl"></i>
+                                </div>
+                                <p class="text-lg font-medium text-secondary-600 dark:text-secondary-300">Tidak ada data ditemukan</p>
+                                <p class="text-sm">Coba ubah filter atau kata kunci pencarian</p>
+                            </div>
+                        </td>
+                    </tr>`;
+                updatePagination(0, 0);
                 return;
             }
 
-            tbody.innerHTML = pageData.map(u => {
+            tbody.innerHTML = pageData.map((u, index) => {
                 const isAktif = u.isActive !== false;
-                const hub = u.hubungan || 'wali';
-                const joinDate = u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+                const hub = hubConfig[u.hubungan] || hubConfig.wali;
+                const santriList = u.santri || [];
+                const santriText = santriList.length > 0 
+                    ? santriList.slice(0, 2).map(s => s.nama).join(', ') + (santriList.length > 2 ? ` +${santriList.length - 2}` : '')
+                    : 'Belum ditautkan';
+                
                 return `
-                <tr class="hover:bg-secondary-50 dark:hover:bg-secondary-700/30 transition animate-fade-in">
+                <tr class="table-row animate-fade-in" style="animation-delay: ${index * 0.05}s">
                     <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName || 'W')}&background=8b5cf6&color=fff" class="w-9 h-9 rounded-full">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                                ${(u.displayName || 'W').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                            </div>
                             <div>
-                                <p class="font-semibold text-secondary-900 dark:text-white text-sm">${u.displayName || '-'}</p>
-                                <p class="text-xs text-secondary-400">${u.pekerjaan || '-'}</p>
+                                <p class="font-bold text-secondary-900 dark:text-white text-sm">${u.displayName || '-'}</p>
+                                <p class="text-xs text-secondary-500 flex items-center gap-1 mt-0.5">
+                                    <i class="fas fa-child text-primary-500"></i>
+                                    ${santriText}
+                                </p>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-sm text-secondary-600 dark:text-secondary-400">${u.email || '-'}</td>
-                    <td class="px-6 py-4 text-sm text-secondary-600 dark:text-secondary-400">${u.phone || u.hp || '-'}</td>
                     <td class="px-6 py-4">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${hubColor[hub] || 'bg-gray-100 text-gray-700'}">
-                            ${hubLabel[hub] || hub}
-                        </span>
+                        <div class="space-y-1">
+                            <p class="text-sm text-secondary-700 dark:text-secondary-300 flex items-center gap-2">
+                                <i class="fab fa-whatsapp text-green-500 text-xs"></i>
+                                ${u.phone || u.hp || '-'}
+                            </p>
+                            <p class="text-sm text-secondary-600 dark:text-secondary-400 flex items-center gap-2">
+                                <i class="fas fa-envelope text-secondary-400 text-xs"></i>
+                                ${u.email || '-'}
+                            </p>
+                        </div>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${isAktif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-                            <span class="w-1.5 h-1.5 rounded-full ${isAktif ? 'bg-green-500' : 'bg-red-500'}"></span>
-                            ${isAktif ? 'Aktif' : 'Non-aktif'}
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${hub.color} border border-current border-opacity-20">
+                            <i class="fas ${hub.icon}"></i>
+                            ${hub.label}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-sm text-secondary-500">${joinDate}</td>
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-2">
-                            <button onclick="viewDetail('${u.uid}')" title="Detail" class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition">
-                                <i class="fas fa-eye text-xs"></i>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-secondary-100 text-secondary-700 dark:bg-secondary-700 dark:text-secondary-300">
+                                <i class="fas fa-briefcase mr-1.5 text-xs"></i>
+                                ${u.pekerjaan || 'Belum diisi'}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <button onclick="toggleStatus('${u.uid}', ${!isAktif})" 
+                            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${isAktif ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'}">
+                            <span class="w-2 h-2 rounded-full ${isAktif ? 'bg-green-500 animate-pulse' : 'bg-red-500'}"></span>
+                            ${isAktif ? 'Aktif' : 'Non-aktif'}
+                        </button>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="viewDetail('${u.uid}')" title="Lihat Detail" 
+                                class="btn-action w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center hover:bg-blue-100">
+                                <i class="fas fa-eye text-sm"></i>
                             </button>
-                            <button onclick="editWali('${u.uid}')" title="Edit" class="w-8 h-8 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 flex items-center justify-center hover:bg-yellow-100 transition">
-                                <i class="fas fa-edit text-xs"></i>
+                            <a href="https://wa.me/${formatWA(u.phone || u.hp)}" target="_blank" title="Chat WhatsApp" 
+                                class="btn-action w-9 h-9 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center hover:bg-green-100">
+                                <i class="fab fa-whatsapp text-sm"></i>
+                            </a>
+                            <button onclick="editWali('${u.uid}')" title="Edit Data" 
+                                class="btn-action w-9 h-9 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 flex items-center justify-center hover:bg-yellow-100">
+                                <i class="fas fa-edit text-sm"></i>
                             </button>
-                            <button onclick="toggleStatus('${u.uid}', ${!isAktif})" title="${isAktif ? 'Non-aktifkan' : 'Aktifkan'}" class="w-8 h-8 rounded-lg ${isAktif ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'} flex items-center justify-center transition">
-                                <i class="fas ${isAktif ? 'fa-user-slash' : 'fa-user-check'} text-xs"></i>
+                            <button onclick="openDeleteModal('${u.uid}')" title="Hapus Data" 
+                                class="btn-action w-9 h-9 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 flex items-center justify-center hover:bg-red-100">
+                                <i class="fas fa-trash text-sm"></i>
                             </button>
                         </div>
                     </td>
                 </tr>`;
             }).join('');
 
-            const totalPages = Math.ceil(filteredData.length / perPage);
-            document.getElementById('paginationInfo').textContent = `Menampilkan ${start + 1}–${Math.min(start + perPage, filteredData.length)} dari ${filteredData.length} data`;
+            updatePagination(filteredData.length, start);
+        }
+
+        function formatWA(phone) {
+            if (!phone) return '';
+            return phone.replace(/^0/, '62').replace(/[^0-9]/g, '');
+        }
+
+        function updatePagination(total, start) {
+            const totalPages = Math.ceil(total / perPage);
+            document.getElementById('paginationInfo').textContent = 
+                `Menampilkan ${Math.min(start + 1, total)}–${Math.min(start + perPage, total)} dari ${total} data`;
+            
             let btns = '';
-            for (let i = 1; i <= totalPages; i++) {
-                btns += `<button onclick="goPage(${i})" class="w-8 h-8 rounded-lg text-sm font-medium transition ${i === currentPage ? 'bg-primary-600 text-white' : 'bg-secondary-100 dark:bg-secondary-700 text-secondary-600 hover:bg-secondary-200'}">${i}</button>`;
+            if (totalPages > 1) {
+                btns += `<button onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} 
+                    class="w-9 h-9 rounded-lg flex items-center justify-center transition ${currentPage === 1 ? 'text-secondary-300 cursor-not-allowed' : 'text-secondary-600 hover:bg-secondary-100'}">
+                    <i class="fas fa-chevron-left"></i>
+                </button>`;
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                        btns += `<button onclick="goPage(${i})" 
+                            class="w-9 h-9 rounded-lg text-sm font-bold transition-all ${i === currentPage ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'text-secondary-600 hover:bg-secondary-100'}">
+                            ${i}
+                        </button>`;
+                    } else if (i === currentPage - 2 || i === currentPage + 2) {
+                        btns += `<span class="px-2 text-secondary-400">...</span>`;
+                    }
+                }
+                
+                btns += `<button onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} 
+                    class="w-9 h-9 rounded-lg flex items-center justify-center transition ${currentPage === totalPages ? 'text-secondary-300 cursor-not-allowed' : 'text-secondary-600 hover:bg-secondary-100'}">
+                    <i class="fas fa-chevron-right"></i>
+                </button>`;
             }
             document.getElementById('paginationButtons').innerHTML = btns;
         }
 
-        window.goPage = (p) => { currentPage = p; renderTable(); };
+        window.goPage = (p) => {
+            if (p < 1 || p > Math.ceil(filteredData.length / perPage)) return;
+            currentPage = p;
+            renderTable();
+            document.querySelector('table').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
 
+        // View Detail
         window.viewDetail = (uid) => {
             const u = allData.find(x => x.uid === uid);
             if (!u) return;
+            
+            currentDetailUid = uid;
             const isAktif = u.isActive !== false;
-            const hub = u.hubungan || 'wali';
-            const joinDate = u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+            const hub = hubConfig[u.hubungan] || hubConfig.wali;
+            
+            document.getElementById('detailAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName || 'W')}&background=8b5cf6&color=fff&size=200`;
+            document.getElementById('detailName').textContent = u.displayName || '-';
+            document.getElementById('detailHubungan').innerHTML = `<span class="${hub.color} px-2 py-0.5 rounded text-xs">${hub.label}</span>`;
+            
+            const statusEl = document.getElementById('detailStatus');
+            statusEl.className = `inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold ${isAktif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+            statusEl.innerHTML = `<span class="w-2 h-2 rounded-full ${isAktif ? 'bg-green-500' : 'bg-red-500'}"></span><span>${isAktif ? 'Aktif' : 'Non-aktif'}</span>`;
+            
+            // Santri list
+            const santriList = u.santri || [];
+            let santriHtml = '';
+            if (santriList.length > 0) {
+                santriHtml = `
+                    <div class="p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800">
+                        <p class="text-xs font-bold text-primary-600 dark:text-primary-400 mb-2 flex items-center gap-2">
+                            <i class="fas fa-child"></i> Santri yang Diasuh (${santriList.length})
+                        </p>
+                        ${santriList.map(s => `
+                            <div class="flex items-center justify-between py-1 text-sm">
+                                <span class="text-secondary-700 dark:text-secondary-300">${s.nama || '-'}</span>
+                                <span class="text-xs text-secondary-500 font-mono">${s.nis || '-'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
             document.getElementById('detailContent').innerHTML = `
-                <div class="text-center mb-6">
-                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName || 'W')}&background=8b5cf6&color=fff&size=80" class="w-20 h-20 rounded-full mx-auto mb-3">
-                    <h4 class="text-lg font-bold text-secondary-900 dark:text-white">${u.displayName || '-'}</h4>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mt-1 ${hubColor[hub] || 'bg-gray-100 text-gray-700'}">${hubLabel[hub] || hub}</span>
-                </div>
-                <div class="space-y-3">
-                    ${row('fa-envelope', 'Email', u.email)}
-                    ${row('fa-phone', 'No. HP', u.phone || u.hp)}
-                    ${row('fa-briefcase', 'Pekerjaan', u.pekerjaan)}
-                    ${row('fa-map-marker-alt', 'Alamat', u.alamat)}
-                    ${row('fa-calendar', 'Bergabung', joinDate)}
-                    ${row('fa-circle', 'Status', isAktif ? 'Aktif' : 'Non-aktif')}
-                </div>
+                ${detailRow('fa-id-card', 'NIK', u.nik)}
+                ${detailRow('fa-phone', 'No. HP / WhatsApp', u.phone || u.hp)}
+                ${detailRow('fa-envelope', 'Email', u.email)}
+                ${detailRow('fa-briefcase', 'Pekerjaan', u.pekerjaan)}
+                ${detailRow('fa-map-marker-alt', 'Alamat', u.alamat)}
+                ${santriHtml}
             `;
+            
+            // Update WhatsApp link
+            document.getElementById('waLink').href = `https://wa.me/${formatWA(u.phone || u.hp)}`;
+            
             document.getElementById('detailModal').classList.add('active');
         };
 
-        function row(icon, label, val) {
-            return `<div class="flex items-start gap-3 p-3 rounded-xl bg-secondary-50 dark:bg-secondary-700/30">
-                <i class="fas ${icon} text-primary-600 mt-0.5 w-4"></i>
-                <div><p class="text-xs text-secondary-400">${label}</p><p class="text-sm font-medium text-secondary-800 dark:text-secondary-200">${val || '-'}</p></div>
-            </div>`;
+        function detailRow(icon, label, val) {
+            if (!val) return '';
+            return `
+                <div class="flex items-start gap-4 p-3 rounded-xl bg-secondary-50 dark:bg-secondary-700/30 hover:bg-secondary-100 dark:hover:bg-secondary-700/50 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-white dark:bg-secondary-600 flex items-center justify-center text-purple-600 shadow-sm">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs font-semibold text-secondary-400 uppercase tracking-wider mb-1">${label}</p>
+                        <p class="text-sm font-medium text-secondary-800 dark:text-secondary-200">${val}</p>
+                    </div>
+                </div>`;
         }
 
+        window.editFromDetail = () => {
+            closeDetailModal();
+            if (currentDetailUid) {
+                setTimeout(() => editWali(currentDetailUid), 300);
+            }
+        };
+
+        // Edit
         window.editWali = (uid) => {
             const u = allData.find(x => x.uid === uid);
             if (!u) return;
-            document.getElementById('modalTitle').textContent = 'Edit Wali';
+            
+            document.getElementById('modalTitle').textContent = 'Edit Data Wali';
+            document.getElementById('modalSubtitle').textContent = 'Perbarui informasi wali santri';
+            document.getElementById('modalIcon').className = 'fas fa-user-edit';
             document.getElementById('editUid').value = uid;
             document.getElementById('inputNama').value = u.displayName || '';
-            document.getElementById('inputEmail').value = u.email || '';
+            document.getElementById('inputHubungan').value = u.hubungan || 'wali';
             document.getElementById('inputHP').value = u.phone || u.hp || '';
-            document.getElementById('inputHubungan').value = u.hubungan || 'ayah';
+            document.getElementById('inputEmail').value = u.email || '';
+            document.getElementById('inputNIK').value = u.nik || '';
             document.getElementById('inputPekerjaan').value = u.pekerjaan || '';
             document.getElementById('inputAlamat').value = u.alamat || '';
             document.getElementById('inputStatus').value = u.isActive !== false ? 'true' : 'false';
+            
+            // Render santri rows
+            const container = document.getElementById('santriContainer');
+            const santriList = u.santri || [];
+            
+            if (santriList.length === 0) {
+                container.innerHTML = createSantriRowHTML(0);
+            } else {
+                container.innerHTML = santriList.map((s, i) => createSantriRowHTML(i, s.nama, s.nis)).join('');
+            }
+            
             document.getElementById('addModal').classList.add('active');
         };
 
+        function createSantriRowHTML(index, nama = '', nis = '') {
+            return `
+                <div class="santri-row grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-white dark:bg-secondary-700 border border-secondary-200 dark:border-secondary-600 relative">
+                    ${index > 0 ? `<button onclick="removeSantriRow(this)" class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition"><i class="fas fa-times text-xs"></i></button>` : ''}
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-secondary-600 dark:text-secondary-400">Nama Santri</label>
+                        <div class="relative">
+                            <i class="fas fa-user-graduate absolute left-3 top-1/2 -translate-y-1/2 text-primary-500"></i>
+                            <input type="text" class="santri-nama w-full pl-10 pr-4 py-2.5 rounded-lg bg-secondary-50 dark:bg-secondary-600 border border-secondary-200 dark:border-secondary-500 focus:border-primary-500 focus:outline-none text-sm" placeholder="Nama santri" value="${nama}">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-secondary-600 dark:text-secondary-400">NIS / Nomor Induk</label>
+                        <div class="relative">
+                            <i class="fas fa-id-badge absolute left-3 top-1/2 -translate-y-1/2 text-primary-500"></i>
+                            <input type="text" class="santri-nis w-full pl-10 pr-4 py-2.5 rounded-lg bg-secondary-50 dark:bg-secondary-600 border border-secondary-200 dark:border-secondary-500 focus:border-primary-500 focus:outline-none text-sm" placeholder="2024001" value="${nis}">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.addSantriRow = () => {
+            const container = document.getElementById('santriContainer');
+            const index = container.querySelectorAll('.santri-row').length;
+            const div = document.createElement('div');
+            div.innerHTML = createSantriRowHTML(index);
+            container.appendChild(div.firstElementChild);
+        };
+
+        window.removeSantriRow = (btn) => {
+            btn.closest('.santri-row').remove();
+        };
+
+        // Add
         window.openAddModal = () => {
-            document.getElementById('modalTitle').textContent = 'Tambah Wali';
+            document.getElementById('modalTitle').textContent = 'Tambah Wali Santri';
+            document.getElementById('modalSubtitle').textContent = 'Isi data lengkap wali/orang tua santri';
+            document.getElementById('modalIcon').className = 'fas fa-user-plus';
             document.getElementById('editUid').value = '';
-            ['inputNama','inputEmail','inputHP','inputPekerjaan','inputAlamat'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('inputHubungan').value = 'ayah';
+            
+            // Reset all inputs
+            ['inputNama', 'inputHP', 'inputEmail', 'inputNIK', 'inputAlamat'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('inputHubungan').value = '';
+            document.getElementById('inputPekerjaan').value = '';
             document.getElementById('inputStatus').value = 'true';
+            
+            // Reset santri container
+            document.getElementById('santriContainer').innerHTML = createSantriRowHTML(0);
+            
             document.getElementById('addModal').classList.add('active');
         };
 
-        window.closeAddModal = () => document.getElementById('addModal').classList.remove('active');
-        window.closeDetailModal = () => document.getElementById('detailModal').classList.remove('active');
+        window.closeAddModal = () => {
+            document.getElementById('addModal').classList.remove('active');
+            document.getElementById('saveBtn').disabled = false;
+            document.getElementById('saveBtn').innerHTML = '<i class="fas fa-save"></i><span>Simpan Data</span>';
+        };
+        
+        window.closeDetailModal = () => {
+            document.getElementById('detailModal').classList.remove('active');
+            currentDetailUid = null;
+        };
 
+        // Save
         window.saveWali = async () => {
             const uid = document.getElementById('editUid').value;
             const nama = document.getElementById('inputNama').value.trim();
-            if (!nama) { showToast('Error', 'Nama tidak boleh kosong', 'error'); return; }
+            const hp = document.getElementById('inputHP').value.trim();
+            const hubungan = document.getElementById('inputHubungan').value;
+            
+            // Validation
+            if (!nama) { 
+                showToast('Error', 'Nama lengkap wali wajib diisi', 'error'); 
+                document.getElementById('inputNama').focus();
+                return; 
+            }
+            if (!hubungan) {
+                showToast('Error', 'Hubungan dengan santri wajib dipilih', 'error');
+                document.getElementById('inputHubungan').focus();
+                return;
+            }
+            if (!hp) {
+                showToast('Error', 'No. HP / WhatsApp wajib diisi', 'error');
+                document.getElementById('inputHP').focus();
+                return;
+            }
+
+            // Collect santri data
+            const santriRows = document.querySelectorAll('.santri-row');
+            const santri = Array.from(santriRows).map(row => ({
+                nama: row.querySelector('.santri-nama').value.trim(),
+                nis: row.querySelector('.santri-nis').value.trim()
+            })).filter(s => s.nama);
 
             const data = {
                 displayName: nama,
+                hubungan: hubungan,
+                phone: hp,
                 email: document.getElementById('inputEmail').value.trim(),
-                phone: document.getElementById('inputHP').value.trim(),
-                hubungan: document.getElementById('inputHubungan').value,
-                pekerjaan: document.getElementById('inputPekerjaan').value.trim(),
+                nik: document.getElementById('inputNIK').value.trim(),
+                pekerjaan: document.getElementById('inputPekerjaan').value,
                 alamat: document.getElementById('inputAlamat').value.trim(),
+                santri: santri,
                 isActive: document.getElementById('inputStatus').value === 'true',
                 updatedAt: serverTimestamp()
             };
 
             try {
-                document.getElementById('saveBtn').disabled = true;
+                const btn = document.getElementById('saveBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Menyimpan...</span>';
+                
                 if (uid) {
                     await updateDoc(doc(db, "users", uid), data);
-                    showToast('Sukses', 'Data wali berhasil diperbarui');
+                    showToast('Sukses', 'Data wali berhasil diperbarui', 'success');
                 } else {
                     data.role = 'wali';
                     data.createdAt = serverTimestamp();
                     await addDoc(collection(db, "users"), data);
-                    showToast('Sukses', 'Wali baru berhasil ditambahkan');
+                    showToast('Sukses', 'Wali baru berhasil ditambahkan', 'success');
                 }
+                
                 closeAddModal();
                 await loadData();
             } catch (e) {
                 showToast('Error', 'Gagal menyimpan: ' + e.message, 'error');
             } finally {
-                document.getElementById('saveBtn').disabled = false;
+                const btn = document.getElementById('saveBtn');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i><span>Simpan Data</span>';
             }
         };
 
+        // Toggle Status
         window.toggleStatus = async (uid, newStatus) => {
             try {
-                await updateDoc(doc(db, "users", uid), { isActive: newStatus, updatedAt: serverTimestamp() });
-                showToast('Sukses', `Wali berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`);
+                await updateDoc(doc(db, "users", uid), { 
+                    isActive: newStatus, 
+                    updatedAt: serverTimestamp() 
+                });
+                showToast('Sukses', `Wali berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`, 'success');
                 await loadData();
             } catch (e) {
-                showToast('Error', 'Gagal: ' + e.message, 'error');
+                showToast('Error', 'Gagal mengubah status: ' + e.message, 'error');
             }
         };
 
-        window.exportData = () => {
-            const headers = ['Nama', 'Email', 'No. HP', 'Hubungan', 'Pekerjaan', 'Alamat', 'Status'];
-            const rows = filteredData.map(u => [
-                u.displayName || '', u.email || '', u.phone || u.hp || '',
-                u.hubungan || '', u.pekerjaan || '', u.alamat || '',
-                u.isActive !== false ? 'Aktif' : 'Non-aktif'
-            ]);
-            const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'data-wali.csv'; a.click();
-            showToast('Sukses', 'Data berhasil diexport');
+        // Delete
+        window.openDeleteModal = (uid) => {
+            const u = allData.find(x => x.uid === uid);
+            if (!u) return;
+            deleteTargetUid = uid;
+            document.getElementById('deleteName').textContent = u.displayName;
+            document.getElementById('deleteModal').classList.add('active');
         };
 
+        window.closeDeleteModal = () => {
+            document.getElementById('deleteModal').classList.remove('active');
+            deleteTargetUid = null;
+        };
+
+        window.confirmDelete = async () => {
+            if (!deleteTargetUid) return;
+            try {
+                await deleteDoc(doc(db, "users", deleteTargetUid));
+                showToast('Sukses', 'Data wali berhasil dihapus', 'success');
+                closeDeleteModal();
+                await loadData();
+            } catch (e) {
+                showToast('Error', 'Gagal menghapus: ' + e.message, 'error');
+            }
+        };
+
+        // Export
+        window.exportData = (type) => {
+            if (type === 'print') {
+                window.print();
+                return;
+            }
+
+            const headers = ['Nama Wali', 'Hubungan', 'No. HP', 'Email', 'NIK', 'Pekerjaan', 'Alamat', 'Santri yang Diasuh', 'Status'];
+            const rows = filteredData.map(u => {
+                const santriText = (u.santri || []).map(s => `${s.nama} (${s.nis || '-'})`).join('; ');
+                return [
+                    u.displayName || '',
+                    u.hubungan || '',
+                    u.phone || u.hp || '',
+                    u.email || '',
+                    u.nik || '',
+                    u.pekerjaan || '',
+                    u.alamat || '',
+                    santriText,
+                    u.isActive !== false ? 'Aktif' : 'Non-aktif'
+                ];
+            });
+            
+            const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `data-wali-santri-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Sukses', `${filteredData.length} data berhasil diexport`, 'success');
+        };
+
+        // UI Functions
         window.toggleSidebar = () => {
             const sidebar = document.getElementById('sidebar');
             const main = document.getElementById('mainContent');
             const texts = document.querySelectorAll('.sidebar-text');
+            const icon = document.getElementById('sidebarToggleIcon');
+            const overlay = document.getElementById('sidebarOverlay');
+            
             if (sidebar.classList.contains('sidebar-expanded')) {
                 sidebar.classList.replace('sidebar-expanded', 'sidebar-collapsed');
                 main.style.marginLeft = '80px';
-                texts.forEach(t => t.style.display = 'none');
+                texts.forEach(t => {
+                    t.style.opacity = '0';
+                    setTimeout(() => t.style.display = 'none', 200);
+                });
+                icon.style.transform = 'rotate(180deg)';
+                if (window.innerWidth < 1024) overlay.classList.add('hidden');
             } else {
                 sidebar.classList.replace('sidebar-collapsed', 'sidebar-expanded');
                 main.style.marginLeft = '280px';
-                texts.forEach(t => t.style.display = 'block');
+                texts.forEach(t => {
+                    t.style.display = 'block';
+                    setTimeout(() => t.style.opacity = '1', 50);
+                });
+                icon.style.transform = 'rotate(0deg)';
+                if (window.innerWidth < 1024) overlay.classList.remove('hidden');
             }
         };
 
         window.toggleDarkMode = () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
         };
 
         window.handleLogout = async () => {
-            if (confirm('Yakin ingin logout?')) {
-                await signOut(auth);
-                window.location.href = 'login.html';
+            const confirmLogout = await Swal.fire({
+                title: 'Konfirmasi Logout',
+                text: 'Apakah Anda yakin ingin keluar dari sistem?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Logout',
+                cancelButtonText: 'Batal'
+            });
+            
+            if (confirmLogout.isConfirmed) {
+                try {
+                    await signOut(auth);
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    showToast('Error', 'Gagal logout: ' + error.message, 'error');
+                }
             }
         };
 
+        // Toast Notification
         function showToast(title, message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            toast.className = `bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-4 flex items-center gap-3 border-l-4 ${type === 'error' ? 'border-red-500' : 'border-primary-500'} animate-fade-in mb-2`;
-            toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle text-red-500' : 'fa-check-circle text-primary-500'}"></i><div><p class="font-semibold text-sm">${title}</p><p class="text-xs text-secondary-500">${message}</p></div>`;
+            
+            const colors = {
+                success: 'border-primary-500 bg-primary-50',
+                error: 'border-red-500 bg-red-50',
+                warning: 'border-yellow-500 bg-yellow-50',
+                info: 'border-blue-500 bg-blue-50'
+            };
+            
+            const icons = {
+                success: 'fa-check-circle text-primary-500',
+                error: 'fa-exclamation-circle text-red-500',
+                warning: 'fa-exclamation-triangle text-yellow-500',
+                info: 'fa-info-circle text-blue-500'
+            };
+            
+            toast.className = `toast pointer-events-auto max-w-sm w-full bg-white dark:bg-secondary-800 rounded-xl shadow-2xl p-4 flex items-start gap-3 border-l-4 ${colors[type]}`;
+            toast.innerHTML = `
+                <i class="fas ${icons[type]} text-lg mt-0.5"></i>
+                <div class="flex-1">
+                    <p class="font-bold text-secondary-900 dark:text-white text-sm">${title}</p>
+                    <p class="text-sm text-secondary-600 dark:text-secondary-400 mt-0.5">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-secondary-400 hover:text-secondary-600 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
             container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
         }
 
-        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+        // Initialize theme
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        // Responsive sidebar
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 1024) {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar.classList.contains('sidebar-expanded')) {
+                    toggleSidebar();
+                }
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            if (e.key === 'Escape') {
+                closeAddModal();
+                closeDetailModal();
+                closeDeleteModal();
+            }
+        });
+
+        // Click outside modal to close
+        document.getElementById('addModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeAddModal();
+        });
+        document.getElementById('detailModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeDetailModal();
+        });
+        document.getElementById('deleteModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeDeleteModal();
+        });
     </script>
 </body>
 </html>
+						
+						
