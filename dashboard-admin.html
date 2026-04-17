@@ -1,790 +1,568 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - User Management | Yayasan Hidayatullah Amin</title>
-    
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-                    colors: {
-                        emerald: { 50: '#ecfdf5', 100: '#d1fae5', 500: '#10b981', 600: '#059669', 700: '#047857' },
-                        amber: { 50: '#fffbeb', 100: '#fef3c7', 500: '#f59e0b', 600: '#d97706' }
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-        }
-        
-        .role-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        
-        .role-wali { background: #dbeafe; color: #1e40af; }
-        .role-santri { background: #fef3c7; color: #92400e; }
-        .role-ustadz { background: #d1fae5; color: #065f46; }
-        .role-admin { background: #fce7f3; color: #be185d; }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 50;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-        
-        .modal.active { display: flex; }
-        
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-            z-index: 9999;
-        }
-        
-        .toast.show { transform: translateX(0); }
-        .toast.success { border-left: 4px solid #10b981; }
-        .toast.error { border-left: 4px solid #ef4444; }
-        
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-            border-radius: 8px;
-        }
-        
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Admin | Hidayatullah Amin</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f4f6fb;--sidebar:#0f1f2e;--card:#fff;--text:#1a2332;--text2:#5a6a7e;--text3:#8fa3b8;
+  --green:#0db87a;--green2:#09926a;--green-bg:#e6f9f2;--green-text:#0a6b4e;
+  --blue:#2d7ef5;--blue-bg:#eaf1fe;--blue-text:#1a4fa0;
+  --amber:#f5a623;--amber-bg:#fef4e0;--amber-text:#935f0b;
+  --red:#ef4444;--red-bg:#feeaea;--red-text:#991b1b;
+  --purple:#7c3aed;--purple-bg:#f0ebff;--purple-text:#4c1d95;
+  --border:#e8edf3;--shadow:0 2px 12px rgba(0,0,0,0.06);--shadow2:0 8px 32px rgba(0,0,0,0.1);
+  --r:12px;--r2:16px;
+}
+.dark{
+  --bg:#0d1117;--card:#161d27;--text:#e2e8f0;--text2:#8fa3b8;--text3:#4a6070;
+  --green-bg:#0a2e20;--green-text:#4ade80;--blue-bg:#0f1e3a;--blue-text:#60a5fa;
+  --amber-bg:#2a1e0a;--amber-text:#fbbf24;--red-bg:#2a0f0f;--red-text:#f87171;
+  --purple-bg:#1e0f3a;--purple-text:#a78bfa;--border:#1e2d3d;
+  --shadow:0 2px 12px rgba(0,0,0,0.3);--shadow2:0 8px 32px rgba(0,0,0,0.4);
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px}
+
+/* SIDEBAR */
+.sidebar{width:260px;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;transition:width .3s ease}
+.sidebar.collapsed{width:72px}
+.sidebar-logo{padding:20px 20px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.logo-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#0db87a,#09926a);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0}
+.logo-text h1{font-family:'Amiri',serif;color:#fff;font-size:17px;font-weight:700}
+.logo-text p{color:#0db87a;font-size:10px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-top:1px}
+.sidebar.collapsed .logo-text,.sidebar.collapsed .nav-label,.sidebar.collapsed .sec-label{opacity:0;pointer-events:none;width:0;overflow:hidden}
+.sec-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.25);padding:12px 20px 4px;display:block}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all .2s;font-size:13px;font-weight:500;text-decoration:none;margin:1px 8px}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.85)}
+.nav-item.active{background:rgba(13,184,122,0.18);color:#0db87a;border:1px solid rgba(13,184,122,0.25)}
+.nav-item i{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+.sidebar-footer{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.06)}
+.user-row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:10px;background:rgba(255,255,255,0.04)}
+.u-av{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#0db87a,#09926a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0}
+.u-info p{font-size:13px;font-weight:600;color:#fff;line-height:1.3}
+.u-info span{font-size:11px;color:rgba(255,255,255,0.38)}
+
+/* MAIN */
+.main{flex:1;margin-left:260px;transition:margin-left .3s ease;display:flex;flex-direction:column;min-height:100vh}
+.main.expanded{margin-left:72px}
+
+/* TOPBAR */
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:90}
+.page-title h2{font-size:20px;font-weight:700;color:var(--text)}
+.page-title p{font-size:12px;color:var(--text2);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.icon-btn{width:38px;height:38px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .2s;position:relative}
+.icon-btn:hover{background:var(--green-bg);color:var(--green);border-color:var(--green)}
+.badge-dot{position:absolute;top:8px;right:8px;width:7px;height:7px;background:#ef4444;border-radius:50%;border:2px solid var(--card)}
+.btn-logout{padding:8px 16px;border-radius:10px;background:var(--red-bg);color:var(--red-text);font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;display:flex;align-items:center;gap:6px;transition:all .2s;text-decoration:none}
+.btn-logout:hover{border-color:var(--red)}
+
+/* CONTENT */
+.content{padding:24px 28px;flex:1}
+
+/* GREETING */
+.greeting{background:linear-gradient(135deg,#0f2744 0%,#0a3d2e 100%);border-radius:var(--r2);padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between}
+.greeting::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:rgba(13,184,122,0.1);border-radius:50%}
+.greeting::after{content:'';position:absolute;bottom:-40px;right:120px;width:140px;height:140px;background:rgba(255,255,255,0.03);border-radius:50%}
+.greeting-text h3{font-family:'Amiri',serif;font-size:22px;color:#fff;margin-bottom:5px}
+.greeting-text p{color:rgba(255,255,255,0.5);font-size:13px}
+.greeting-date .dn{font-size:36px;font-weight:800;color:#0db87a;line-height:1}
+.greeting-date .dl{font-size:12px;color:rgba(255,255,255,0.4);margin-top:3px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border-radius:var(--r2);padding:20px;border:1px solid var(--border);transition:all .2s;cursor:default}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow2)}
+.stat-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.stat-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;display:flex;align-items:center;gap:3px}
+.stat-val{font-size:32px;font-weight:800;color:var(--text);line-height:1;margin-bottom:4px}
+.stat-lbl{font-size:12px;color:var(--text2);font-weight:500}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:5px}
+.ig{background:var(--green-bg);color:var(--green)}
+.ib{background:var(--blue-bg);color:var(--blue)}
+.ia{background:var(--amber-bg);color:var(--amber)}
+.ip{background:var(--purple-bg);color:var(--purple)}
+.bu{background:var(--green-bg);color:var(--green-text)}
+.bd{background:var(--red-bg);color:var(--red-text)}
+.bn{background:var(--amber-bg);color:var(--amber-text)}
+
+/* QA */
+.qa-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px}
+.qa-card{background:var(--card);border-radius:var(--r2);padding:18px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;text-decoration:none}
+.qa-card:hover{transform:translateY(-2px);box-shadow:var(--shadow2);border-color:var(--green)}
+.qa-card.primary{background:linear-gradient(135deg,#0db87a,#09926a);border:none}
+.qa-card.primary .qa-icon{background:rgba(255,255,255,0.18)}
+.qa-card.primary .qa-title{color:#fff}
+.qa-card.primary .qa-sub{color:rgba(255,255,255,0.6)}
+.qa-icon{width:46px;height:46px;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.qa-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.qa-sub{font-size:12px;color:var(--text2)}
+
+/* CHARTS */
+.charts-row{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:24px}
+.chart-card{background:var(--card);border-radius:var(--r2);padding:20px;border:1px solid var(--border)}
+.card-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.card-hd h4{font-size:15px;font-weight:700;color:var(--text)}
+.card-hd p{font-size:12px;color:var(--text2);margin-top:2px}
+.sel-sm{font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;outline:none;font-family:'Outfit',sans-serif}
+.hafalan-list{display:flex;flex-direction:column;gap:14px}
+.hi-header{display:flex;justify-content:space-between;margin-bottom:6px}
+.hi-name{font-size:13px;font-weight:600;color:var(--text)}
+.hi-val{font-size:12px;font-weight:700;color:var(--green)}
+.bar-track{height:8px;background:var(--border);border-radius:20px;overflow:hidden}
+.bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#0db87a,#09926a);transition:width .6s ease}
+
+/* TABLE */
+.table-card{background:var(--card);border-radius:var(--r2);border:1px solid var(--border);overflow:hidden}
+.tbl-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tbl-hd h4{font-size:15px;font-weight:700;color:var(--text)}
+.tbl-hd p{font-size:12px;color:var(--text2);margin-top:2px}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--bg)}
+th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)}
+td{padding:13px 16px;border-top:1px solid var(--border);font-size:13px;color:var(--text2)}
+tr:hover td{background:var(--bg)}
+.uc{display:flex;align-items:center;gap:10px}
+.ua{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.un{font-size:13px;font-weight:600;color:var(--text)}
+.ue{font-size:11px;color:var(--text3)}
+.rb{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+.r-admin{background:var(--purple-bg);color:var(--purple-text)}
+.r-ustadz{background:var(--blue-bg);color:var(--blue-text)}
+.r-wali{background:var(--amber-bg);color:var(--amber-text)}
+.r-santri{background:var(--green-bg);color:var(--green-text)}
+.s-aktif{background:var(--green-bg);color:var(--green-text);font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+.action-btns{display:flex;gap:6px}
+.act-btn{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:none;transition:all .2s}
+.act-view{background:var(--blue-bg);color:var(--blue)}
+.act-del{background:var(--red-bg);color:var(--red)}
+.act-btn:hover{opacity:.8}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal-box{background:var(--card);border-radius:var(--r2);width:520px;max-width:96vw;max-height:90vh;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow2)}
+.mhd{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mhd h3{font-size:17px;font-weight:700;color:var(--text)}
+.m-close{width:32px;height:32px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .2s}
+.m-close:hover{background:var(--red-bg);color:var(--red)}
+.mbody{padding:24px;overflow-y:auto;max-height:62vh}
+.fg{margin-bottom:16px}
+.flabel{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px}
+.finput{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:'Outfit',sans-serif;outline:none;transition:border .2s}
+.finput:focus{border-color:var(--green)}
+.fselect{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;font-family:'Outfit',sans-serif;outline:none;cursor:pointer}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mfoot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .2s}
+.btn-cancel{background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.btn-primary{background:linear-gradient(135deg,#0db87a,#09926a);color:#fff;box-shadow:0 4px 14px rgba(13,184,122,0.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(13,184,122,0.4)}
+.extra{display:none}
+.extra.show{display:block}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--card);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow2);min-width:240px;transform:translateX(110%);transition:transform .35s cubic-bezier(0.4,0,0.2,1);font-size:13px;border:1px solid var(--border);border-left:4px solid var(--green)}
+.toast.err{border-left-color:var(--red)}
+.toast.info{border-left-color:var(--blue)}
+.toast.show{transform:translateX(0)}
+.toast-icon{font-size:15px;color:var(--green)}
+.toast.err .toast-icon{color:var(--red)}
+.toast.info .toast-icon{color:var(--blue)}
+.toast-msg p:first-child{font-weight:600;color:var(--text);font-size:13px}
+.toast-msg p:last-child{color:var(--text2);font-size:11px;margin-top:1px}
+
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-row{grid-template-columns:1fr}}
+@media(max-width:768px){.sidebar{width:72px}.main{margin-left:72px}.sidebar .nav-label,.sidebar .logo-text,.sidebar .sec-label{opacity:0;width:0;overflow:hidden}.content{padding:16px}.stats-grid{grid-template-columns:1fr 1fr}.greeting-date{display:none}}
+</style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<body>
 
-    <!-- Toast Container -->
-    <div id="toastContainer"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-mosque"></i></div>
+    <div class="logo-text">
+      <h1>Hidayatullah</h1>
+      <p>Admin Panel</p>
+    </div>
+  </div>
 
-    <!-- Header -->
-    <header class="glass-panel sticky top-0 z-40 px-6 py-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <button onclick="window.location.href='portal-hidayatullah.html'" 
-                        class="bg-gray-100 hover:bg-gray-200 p-3 rounded-xl transition flex items-center gap-2 text-gray-700">
-                    <i class="fas fa-arrow-left"></i>
-                    <span class="hidden sm:inline font-semibold text-sm">Kembali ke Portal</span>
-                </button>
-                
-                <div class="h-8 w-px bg-gray-300 mx-2"></div>
-                
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center text-white">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-lg font-bold text-gray-800">Admin Panel</h1>
-                        <p class="text-xs text-gray-500">User Management System</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <span class="role-badge role-admin">
-                    <i class="fas fa-crown"></i>Administrator
-                </span>
-                <button onclick="logout()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-xl font-semibold text-sm transition flex items-center gap-2">
-                    <i class="fas fa-sign-out-alt"></i>Logout
-                </button>
-            </div>
-        </div>
-    </header>
+  <span class="sec-label">Utama</span>
+  <a class="nav-item active" href="dashboard-admin.html"><i class="fas fa-th-large"></i><span class="nav-label">Dashboard</span></a>
+  <a class="nav-item" href="absensi.html"><i class="fas fa-qrcode"></i><span class="nav-label">Absensi QR</span></a>
+  <a class="nav-item" href="hafalan.html"><i class="fas fa-book-open"></i><span class="nav-label">Input Hafalan</span></a>
+  <a class="nav-item" href="keuangan.html"><i class="fas fa-wallet"></i><span class="nav-label">Keuangan</span></a>
+  
+  <span class="sec-label">Manajemen</span>
+  <a class="nav-item" href="#" onclick="openModal();return false"><i class="fas fa-user-plus"></i><span class="nav-label">Buat User Baru</span></a>
+  <a class="nav-item" href="data-ustadz.html"><i class="fas fa-chalkboard-teacher"></i><span class="nav-label">Data Ustadz</span></a>
+  <a class="nav-item" href="data-wali.html"><i class="fas fa-user-friends"></i><span class="nav-label">Data Wali</span></a>
+  <a class="nav-item" href="data-santri.html"><i class="fas fa-user-graduate"></i><span class="nav-label">Data Santri</span></a>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-6 py-8">
-        
-        <!-- Stats Overview -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <span class="text-xs font-bold text-green-500">Total</span>
-                </div>
-                <p class="text-2xl font-bold text-gray-800" id="statTotalUsers">0</p>
-                <p class="text-xs text-gray-500">Semua User</p>
-            </div>
-            
-            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                </div>
-                <p class="text-2xl font-bold text-gray-800" id="statWali">0</p>
-                <p class="text-xs text-gray-500">Wali Santri</p>
-            </div>
-            
-            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
-                        <i class="fas fa-child"></i>
-                    </div>
-                </div>
-                <p class="text-2xl font-bold text-gray-800" id="statSantri">0</p>
-                <p class="text-xs text-gray-500">Santri</p>
-            </div>
-            
-            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                    </div>
-                </div>
-                <p class="text-2xl font-bold text-gray-800" id="statUstadz">0</p>
-                <p class="text-xs text-gray-500">Ustadz/Ustadzah</p>
-            </div>
-        </div>
+  <span class="sec-label">Sistem</span>
+  <a class="nav-item" href="dashboard-ustadz.html"><i class="fas fa-chalkboard"></i><span class="nav-label">Portal Ustadz</span></a>
+  <a class="nav-item" href="dashboard-santri.html"><i class="fas fa-graduation-cap"></i><span class="nav-label">Portal Santri</span></a>
+  <a class="nav-item" href="dashboard-wali.html"><i class="fas fa-users"></i><span class="nav-label">Portal Wali</span></a>
 
-        <!-- Action Bar -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div>
-                <h2 class="text-xl font-bold text-gray-800">Manajemen User</h2>
-                <p class="text-sm text-gray-500">Kelola data wali, santri, ustadz, dan admin</p>
-            </div>
-            
-            <button onclick="openUserModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition flex items-center gap-2">
-                <i class="fas fa-plus"></i>
-                Tambah User Baru
-            </button>
-        </div>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="u-av" id="sideAvatar">A</div>
+      <div class="u-info" style="flex:1;min-width:0">
+        <p id="sideUserName" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Administrator</p>
+        <span id="sideUserEmail">admin@ponpes.id</span>
+      </div>
+      <i class="fas fa-sign-out-alt" style="color:rgba(255,255,255,0.3);cursor:pointer;font-size:14px;flex-shrink:0" id="sideLogoutBtn"></i>
+    </div>
+  </div>
+</aside>
 
-        <!-- Filter & Search -->
-        <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-6 flex flex-col sm:flex-row gap-4">
-            <div class="relative flex-1">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="searchUser" placeholder="Cari nama, email, atau username..." 
-                       class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition"
-                       oninput="filterUsers()">
-            </div>
-            
-            <select id="filterRole" onchange="filterUsers()" class="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 bg-white min-w-[150px]">
-                <option value="all">Semua Role</option>
-                <option value="wali">Wali</option>
-                <option value="santri">Santri</option>
-                <option value="ustadz">Ustadz</option>
-                <option value="admin">Admin</option>
-            </select>
-            
-            <select id="filterStatus" onchange="filterUsers()" class="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 bg-white min-w-[150px]">
-                <option value="all">Semua Status</option>
-                <option value="active">Aktif</option>
-                <option value="inactive">Non-aktif</option>
-            </select>
-        </div>
+<div class="main" id="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="icon-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+      <div class="page-title">
+        <h2>Dashboard Admin</h2>
+        <p id="topbarDate">Memuat...</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="icon-btn" onclick="toggleDark()" id="darkBtn" title="Ganti Tema"><i class="fas fa-moon"></i></div>
+      <div class="icon-btn" title="Notifikasi"><i class="fas fa-bell"></i><span class="badge-dot"></span></div>
+      <a class="btn-logout" id="logoutBtn" href="login.html"><i class="fas fa-sign-out-alt"></i>Logout</a>
+    </div>
+  </header>
 
-        <!-- Users Table -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50 border-b border-gray-100">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">User</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kontak</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Terdaftar</th>
-                            <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTableBody" class="divide-y divide-gray-100">
-                        <!-- Loading State -->
-                        <tr>
-                            <td colspan="6" class="px-6 py-8">
-                                <div class="flex flex-col items-center justify-center gap-4">
-                                    <div class="skeleton w-12 h-12 rounded-full"></div>
-                                    <div class="skeleton w-48 h-4"></div>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Empty State -->
-            <div id="emptyState" class="hidden text-center py-12">
-                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-users text-gray-400 text-2xl"></i>
-                </div>
-                <p class="text-gray-500 font-medium">Tidak ada user ditemukan</p>
-                <button onclick="openUserModal()" class="mt-4 text-emerald-600 font-semibold hover:underline">
-                    Tambah user baru
-                </button>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Modal: Add/Edit User -->
-    <div id="userModal" class="modal">
-        <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div class="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-gray-800" id="modalTitle">Tambah User Baru</h3>
-                <button onclick="closeUserModal()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
-                    <i class="fas fa-times text-gray-600"></i>
-                </button>
-            </div>
-            
-            <form id="userForm" class="p-6 space-y-4">
-                <input type="hidden" id="userId">
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
-                    <input type="text" id="userFullName" required
-                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition"
-                           placeholder="Masukkan nama lengkap">
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Username <span class="text-red-500">*</span></label>
-                        <input type="text" id="userUsername" required
-                               class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition"
-                               placeholder="username">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Role <span class="text-red-500">*</span></label>
-                        <select id="userRole" required
-                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 bg-white">
-                            <option value="wali">Wali</option>
-                            <option value="santri">Santri</option>
-                            <option value="ustadz">Ustadz</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
-                    <input type="email" id="userEmail" required
-                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition"
-                           placeholder="email@example.com">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password <span class="text-red-500" id="passwordRequired">*</span></label>
-                    <div class="relative">
-                        <input type="password" id="userPassword"
-                               class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition"
-                               placeholder="Minimal 6 karakter">
-                        <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-eye" id="passwordToggleIcon"></i>
-                        </button>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1" id="passwordHint">Kosongkan jika tidak ingin mengubah password (mode edit)</p>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor WhatsApp</label>
-                    <input type="tel" id="userPhone"
-                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition"
-                           placeholder="08123456789">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Alamat</label>
-                    <textarea id="userAddress" rows="3"
-                              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition"
-                              placeholder="Alamat lengkap..."></textarea>
-                </div>
-                
-                <div class="flex items-center gap-3 pt-2">
-                    <input type="checkbox" id="userActive" checked
-                           class="w-5 h-5 text-emerald-500 border-gray-300 rounded focus:ring-emerald-500">
-                    <label for="userActive" class="text-sm font-medium text-gray-700">User Aktif</label>
-                </div>
-                
-                <div class="flex gap-3 pt-4 border-t border-gray-100">
-                    <button type="button" onclick="closeUserModal()" 
-                            class="flex-1 px-4 py-3 border border-gray-200 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition">
-                        Batal
-                    </button>
-                    <button type="submit" 
-                            class="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg transition">
-                        <i class="fas fa-save mr-2"></i>Simpan
-                    </button>
-                </div>
-            </form>
-        </div>
+  <div class="content">
+    <div class="greeting">
+      <div class="greeting-text">
+        <h3>Assalamu'alaikum, <span id="greetName">Admin</span>! 👋</h3>
+        <p>Semua sistem berjalan normal. Pantau aktivitas pondok hari ini.</p>
+      </div>
+      <div class="greeting-date">
+        <div class="dn" id="dateNum">—</div>
+        <div class="dl" id="dateStr">—</div>
+      </div>
     </div>
 
-    <!-- Modal: Delete Confirmation -->
-    <div id="deleteModal" class="modal">
-        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl text-center">
-            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
-            </div>
-            <h3 class="text-lg font-bold text-gray-800 mb-2">Hapus User?</h3>
-            <p class="text-gray-500 mb-6">Apakah Anda yakin ingin menghapus user <strong id="deleteUserName" class="text-gray-800"></strong>? Tindakan ini tidak dapat dibatalkan.</p>
-            
-            <div class="flex gap-3">
-                <button onclick="closeDeleteModal()" 
-                        class="flex-1 px-4 py-3 border border-gray-200 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition">
-                    Batal
-                </button>
-                <button onclick="confirmDelete()" 
-                        class="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition">
-                    <i class="fas fa-trash mr-2"></i>Hapus
-                </button>
-            </div>
-        </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-hd"><div class="stat-icon ig"><i class="fas fa-user-graduate"></i></div><span class="stat-badge bu"><i class="fas fa-arrow-up" style="font-size:9px"></i> 12%</span></div>
+        <div class="stat-val" id="statSantri"><i class="fas fa-spinner fa-spin" style="font-size:20px;color:var(--text3)"></i></div>
+        <div class="stat-lbl">Total Santri</div><div class="stat-sub">Aktif terdaftar</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-hd"><div class="stat-icon ib"><i class="fas fa-chalkboard-teacher"></i></div><span class="stat-badge bu"><i class="fas fa-arrow-up" style="font-size:9px"></i> 5%</span></div>
+        <div class="stat-val" id="statUstadz"><i class="fas fa-spinner fa-spin" style="font-size:20px;color:var(--text3)"></i></div>
+        <div class="stat-lbl">Total Ustadz</div><div class="stat-sub">Semua aktif mengajar</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-hd"><div class="stat-icon ia"><i class="fas fa-calendar-check"></i></div><span class="stat-badge bu"><i class="fas fa-arrow-up" style="font-size:9px"></i> 2%</span></div>
+        <div class="stat-val">94%</div>
+        <div class="stat-lbl">Tingkat Kehadiran</div><div class="stat-sub">Rata-rata minggu ini</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-hd"><div class="stat-icon ip"><i class="fas fa-book-quran"></i></div><span class="stat-badge bn"><i class="fas fa-minus" style="font-size:9px"></i> Stabil</span></div>
+        <div class="stat-val">4.5</div>
+        <div class="stat-lbl">Rata-rata Hafalan (Juz)</div><div class="stat-sub">Semua kelas</div>
+      </div>
     </div>
 
-    <script>
-        // ============================================
-        // FIREBASE CONFIG
-        // ============================================
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyDNWOochfAyHjBYUNyq2IAYhA9p7Ie834M",
-            authDomain: "portal-sagatama.firebaseapp.com",
-            projectId: "portal-sagatama",
-            storageBucket: "portal-sagatama.firebasestorage.app",
-            messagingSenderId: "372845954028",
-            appId: "1:372845954028:web:189f2a3127ea8189b9f6c9"
-        };
-        
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        
-        // ============================================
-        // STATE MANAGEMENT
-        // ============================================
-        
-        let users = [];
-        let editingUserId = null;
-        let deletingUserId = null;
-        let currentAdmin = null;
-        
-        // ============================================
-        // AUTHENTICATION CHECK
-        // ============================================
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-        });
-        
-        function checkAuth() {
-            const user = JSON.parse(localStorage.getItem('hidayatullah_user') || '{}');
-            
-            if (!user.uid || user.role !== 'admin') {
-                showToast('Akses ditolak! Hanya admin yang dapat mengakses halaman ini.', 'error');
-                setTimeout(() => {
-                    window.location.href = 'portal-hidayatullah.html';
-                }, 2000);
-                return;
-            }
-            
-            currentAdmin = user;
-            loadUsers();
-        }
-        
-        // ============================================
-        // CRUD OPERATIONS
-        // ============================================
-        
-        async function loadUsers() {
-            try {
-                const snapshot = await db.collection('users').orderBy('createdAt', 'desc').get();
-                users = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                
-                updateStats();
-                renderUsers();
-            } catch (error) {
-                console.error('Error loading users:', error);
-                showToast('Gagal memuat data user', 'error');
-            }
-        }
-        
-        function updateStats() {
-            const stats = {
-                total: users.length,
-                wali: users.filter(u => u.role === 'wali').length,
-                santri: users.filter(u => u.role === 'santri').length,
-                ustadz: users.filter(u => u.role === 'ustadz').length
-            };
-            
-            document.getElementById('statTotalUsers').textContent = stats.total;
-            document.getElementById('statWali').textContent = stats.wali;
-            document.getElementById('statSantri').textContent = stats.santri;
-            document.getElementById('statUstadz').textContent = stats.ustadz;
-        }
-        
-        function renderUsers(filteredUsers = users) {
-            const tbody = document.getElementById('usersTableBody');
-            const emptyState = document.getElementById('emptyState');
-            
-            if (filteredUsers.length === 0) {
-                tbody.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                return;
-            }
-            
-            emptyState.classList.add('hidden');
-            
-            tbody.innerHTML = filteredUsers.map(user => {
-                const roleClasses = {
-                    'wali': 'role-wali',
-                    'santri': 'role-santri',
-                    'ustadz': 'role-ustadz',
-                    'admin': 'role-admin'
-                };
-                
-                const roleIcons = {
-                    'wali': 'fa-user-tie',
-                    'santri': 'fa-child',
-                    'ustadz': 'fa-chalkboard-teacher',
-                    'admin': 'fa-crown'
-                };
-                
-                const createdDate = user.createdAt ? 
-                    new Date(user.createdAt.toDate()).toLocaleDateString('id-ID', {
-                        day: 'numeric', month: 'short', year: 'numeric'
-                    }) : '-';
-                
-                return `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
-                                    ${(user.fullName || user.username || 'U').charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-gray-800">${user.fullName || user.username}</p>
-                                    <p class="text-xs text-gray-500">@${user.username}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="role-badge ${roleClasses[user.role] || 'role-wali'}">
-                                <i class="fas ${roleIcons[user.role] || 'fa-user'}"></i>
-                                ${user.role || 'wali'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <p class="text-sm text-gray-700">${user.email || '-'}</p>
-                            <p class="text-xs text-gray-500">${user.phone || '-'}</p>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex px-3 py-1 rounded-full text-xs font-bold ${user.active !== false ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">
-                                ${user.active !== false ? 'Aktif' : 'Non-aktif'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500">
-                            ${createdDate}
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex justify-end gap-2">
-                                <button onclick="editUser('${user.id}')" 
-                                        class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition flex items-center justify-center"
-                                        title="Edit">
-                                    <i class="fas fa-edit text-sm"></i>
-                                </button>
-                                <button onclick="deleteUser('${user.id}')" 
-                                        class="w-8 h-8 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition flex items-center justify-center"
-                                        title="Hapus">
-                                    <i class="fas fa-trash text-sm"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-        
-        function filterUsers() {
-            const search = document.getElementById('searchUser').value.toLowerCase();
-            const roleFilter = document.getElementById('filterRole').value;
-            const statusFilter = document.getElementById('filterStatus').value;
-            
-            let filtered = users.filter(user => {
-                const matchSearch = (user.fullName || '').toLowerCase().includes(search) ||
-                                  (user.username || '').toLowerCase().includes(search) ||
-                                  (user.email || '').toLowerCase().includes(search);
-                
-                const matchRole = roleFilter === 'all' || user.role === roleFilter;
-                
-                const matchStatus = statusFilter === 'all' || 
-                                   (statusFilter === 'active' && user.active !== false) ||
-                                   (statusFilter === 'inactive' && user.active === false);
-                
-                return matchSearch && matchRole && matchStatus;
-            });
-            
-            renderUsers(filtered);
-        }
-        
-        // ============================================
-        // MODAL FUNCTIONS
-        // ============================================
-        
-        function openUserModal(userId = null) {
-            const modal = document.getElementById('userModal');
-            const title = document.getElementById('modalTitle');
-            const form = document.getElementById('userForm');
-            const passwordRequired = document.getElementById('passwordRequired');
-            const passwordHint = document.getElementById('passwordHint');
-            
-            editingUserId = userId;
-            
-            if (userId) {
-                // Edit mode
-                const user = users.find(u => u.id === userId);
-                if (!user) return;
-                
-                title.textContent = 'Edit User';
-                document.getElementById('userId').value = user.id;
-                document.getElementById('userFullName').value = user.fullName || '';
-                document.getElementById('userUsername').value = user.username || '';
-                document.getElementById('userRole').value = user.role || 'wali';
-                document.getElementById('userEmail').value = user.email || '';
-                document.getElementById('userPhone').value = user.phone || '';
-                document.getElementById('userAddress').value = user.address || '';
-                document.getElementById('userActive').checked = user.active !== false;
-                
-                passwordRequired.classList.add('hidden');
-                passwordHint.classList.remove('hidden');
-                document.getElementById('userPassword').placeholder = 'Biarkan kosong jika tidak diubah';
-            } else {
-                // Add mode
-                title.textContent = 'Tambah User Baru';
-                form.reset();
-                document.getElementById('userId').value = '';
-                document.getElementById('userActive').checked = true;
-                
-                passwordRequired.classList.remove('hidden');
-                passwordHint.classList.add('hidden');
-                document.getElementById('userPassword').placeholder = 'Minimal 6 karakter';
-            }
-            
-            modal.classList.add('active');
-        }
-        
-        function closeUserModal() {
-            document.getElementById('userModal').classList.remove('active');
-            editingUserId = null;
-        }
-        
-        function togglePassword() {
-            const input = document.getElementById('userPassword');
-            const icon = document.getElementById('passwordToggleIcon');
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-        
-        // ============================================
-        // FORM SUBMISSION
-        // ============================================
-        
-        document.getElementById('userForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const userData = {
-                fullName: document.getElementById('userFullName').value.trim(),
-                username: document.getElementById('userUsername').value.trim(),
-                role: document.getElementById('userRole').value,
-                email: document.getElementById('userEmail').value.trim(),
-                phone: document.getElementById('userPhone').value.trim(),
-                address: document.getElementById('userAddress').value.trim(),
-                active: document.getElementById('userActive').checked,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            const password = document.getElementById('userPassword').value;
-            
-            try {
-                if (editingUserId) {
-                    // Update existing user
-                    await db.collection('users').doc(editingUserId).update(userData);
-                    
-                    // Update password if provided
-                    if (password) {
-                        // Note: In real implementation, use Firebase Auth to update password
-                        // This requires admin SDK or cloud function
-                    }
-                    
-                    showToast('User berhasil diperbarui!', 'success');
-                } else {
-                    // Create new user
-                    if (!password || password.length < 6) {
-                        showToast('Password minimal 6 karakter!', 'error');
-                        return;
-                    }
-                    
-                    userData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                    
-                    // Create auth user
-                    const userCredential = await auth.createUserWithEmailAndPassword(userData.email, password);
-                    userData.uid = userCredential.user.uid;
-                    
-                    // Save to Firestore
-                    await db.collection('users').doc(userCredential.user.uid).set(userData);
-                    
-                    showToast('User berhasil ditambahkan!', 'success');
-                }
-                
-                closeUserModal();
-                loadUsers();
-                
-            } catch (error) {
-                console.error('Error saving user:', error);
-                showToast('Gagal menyimpan user: ' + error.message, 'error');
-            }
-        });
-        
-        // ============================================
-        // DELETE FUNCTIONS
-        // ============================================
-        
-        function deleteUser(userId) {
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
-            
-            deletingUserId = userId;
-            document.getElementById('deleteUserName').textContent = user.fullName || user.username;
-            document.getElementById('deleteModal').classList.add('active');
-        }
-        
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('active');
-            deletingUserId = null;
-        }
-        
-        async function confirmDelete() {
-            if (!deletingUserId) return;
-            
-            try {
-                await db.collection('users').doc(deletingUserId).delete();
-                showToast('User berhasil dihapus!', 'success');
-                closeDeleteModal();
-                loadUsers();
-            } catch (error) {
-                console.error('Error deleting user:', error);
-                showToast('Gagal menghapus user: ' + error.message, 'error');
-            }
-        }
-        
-        function editUser(userId) {
-            openUserModal(userId);
-        }
-        
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
-        
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            const icons = {
-                success: 'fa-check-circle text-green-500',
-                error: 'fa-exclamation-circle text-red-500',
-                warning: 'fa-exclamation-triangle text-amber-500',
-                info: 'fa-info-circle text-blue-500'
-            };
-            
-            toast.innerHTML = `
-                <i class="fas ${icons[type] || icons.info} text-xl"></i>
-                <div>
-                    <p class="font-semibold text-gray-800 text-sm">${message}</p>
-                </div>
-            `;
-            
-            container.appendChild(toast);
-            
-            requestAnimationFrame(() => {
-                toast.classList.add('show');
-            });
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-        
-        function logout() {
-            if (!confirm('Apakah Anda yakin ingin logout?')) return;
-            
-            localStorage.removeItem('hidayatullah_user');
-            localStorage.removeItem('sagatama_user');
-            
-            showToast('Anda telah logout', 'success');
-            
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 1500);
-        }
-        
-        // Close modal on outside click
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('active');
-                }
-            });
-        });
-    </script>
+    <div class="qa-grid">
+      <a class="qa-card primary" href="#" onclick="openModal();return false">
+        <div class="qa-icon"><i class="fas fa-user-plus" style="color:#fff"></i></div>
+        <div><div class="qa-title">Buat User Baru</div><div class="qa-sub">Tambah admin, ustadz, santri, wali</div></div>
+      </a>
+      <a class="qa-card" href="data-santri.html">
+        <div class="qa-icon" style="background:var(--blue-bg)"><i class="fas fa-users-cog" style="color:var(--blue)"></i></div>
+        <div><div class="qa-title">Kelola Data Santri</div><div class="qa-sub">Lihat dan edit semua data santri</div></div>
+      </a>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="card-hd">
+          <div><h4>Grafik Kehadiran Santri</h4><p>Data perhari</p></div>
+          <select class="sel-sm" onchange="updateChart(this.value)">
+            <option value="week">Minggu Ini</option>
+            <option value="month">Bulan Ini</option>
+          </select>
+        </div>
+        <canvas id="attChart" style="height:220px;max-height:220px"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-hd"><div><h4>Hafalan per Kelas</h4><p>Rata-rata juz tercapai</p></div></div>
+        <div class="hafalan-list">
+          <div><div class="hi-header"><span class="hi-name">Kelas A</span><span class="hi-val">5.1 juz</span></div><div class="bar-track"><div class="bar-fill" style="width:51%"></div></div></div>
+          <div><div class="hi-header"><span class="hi-name">Kelas B</span><span class="hi-val">4.5 juz</span></div><div class="bar-track"><div class="bar-fill" style="width:45%"></div></div></div>
+          <div><div class="hi-header"><span class="hi-name">Kelas C</span><span class="hi-val">3.8 juz</span></div><div class="bar-track"><div class="bar-fill" style="width:38%"></div></div></div>
+          <div><div class="hi-header"><span class="hi-name">Kelas D</span><span class="hi-val">4.2 juz</span></div><div class="bar-track"><div class="bar-fill" style="width:42%"></div></div></div>
+          <div><div class="hi-header"><span class="hi-name">Kelas E</span><span class="hi-val">6.0 juz</span></div><div class="bar-track"><div class="bar-fill" style="width:60%"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="tbl-hd">
+        <div><h4>User Terbaru</h4><p>5 user terakhir dibuat</p></div>
+        <button class="btn btn-primary" style="padding:8px 16px;font-size:12px" onclick="openModal()"><i class="fas fa-plus" style="margin-right:5px"></i>Tambah User</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Dibuat</th><th>Aksi</th></tr></thead>
+          <tbody id="usersTable"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)"><i class="fas fa-spinner fa-spin"></i> Menghubungkan Firebase...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tambahkan di header dashboard-admin.html -->
+<div class="flex items-center gap-4">
+    <button onclick="window.location.href='portal-hidayatullah.html'" 
+            class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+        <i class="fas fa-arrow-left"></i> Kembali ke Portal
+    </button>
+    <h1 class="text-2xl font-bold">Admin Panel - User Management</h1>
+</div>
+
+<!-- Modal Buat User -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="mhd">
+      <h3><i class="fas fa-user-plus" style="color:var(--green);margin-right:8px"></i>Buat User Baru</h3>
+      <div class="m-close" onclick="closeModal()"><i class="fas fa-times"></i></div>
+    </div>
+    <div class="mbody">
+      <div class="frow">
+        <div class="fg"><label class="flabel">Nama Lengkap *</label><input class="finput" type="text" id="fName" placeholder="Nama lengkap"></div>
+        <div class="fg"><label class="flabel">Role *</label>
+          <select class="fselect" id="fRole" onchange="handleRoleChange()">
+            <option value="">Pilih Role</option>
+            <option value="santri">Santri</option>
+            <option value="ustadz">Ustadz</option>
+            <option value="wali">Wali Santri</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="flabel">Email *</label><input class="finput" type="email" id="fEmail" placeholder="email@contoh.com"></div>
+      <div class="fg"><label class="flabel">Password *</label><input class="finput" type="password" id="fPass" placeholder="Min. 6 karakter"></div>
+      <div class="extra" id="xSantri">
+        <div class="frow">
+          <div class="fg"><label class="flabel">NIS</label><input class="finput" type="text" id="fNIS" placeholder="Nomor Induk Santri"></div>
+          <div class="fg"><label class="flabel">Kelas</label>
+            <select class="fselect" id="fKelas"><option value="">Pilih Kelas</option><option>Kelas A</option><option>Kelas B</option><option>Kelas C</option><option>Kelas D</option><option>Kelas E</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="extra" id="xWali">
+        <div class="fg"><label class="flabel">No. HP</label><input class="finput" type="tel" id="fPhone" placeholder="08xx-xxxx-xxxx"></div>
+        <div class="fg"><label class="flabel">Hubungan dengan Santri</label>
+          <select class="fselect" id="fHubungan"><option value="ayah">Ayah</option><option value="ibu">Ibu</option><option value="wali">Wali</option></select>
+        </div>
+      </div>
+      <div class="fg" style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <input type="checkbox" id="fVerif" style="width:16px;height:16px;accent-color:var(--green)">
+        <label for="fVerif" style="font-size:13px;color:var(--text2);cursor:pointer">Kirim email verifikasi</label>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" id="createBtn" onclick="handleCreate()"><i class="fas fa-user-plus" style="margin-right:6px"></i><span id="createBtnText">Buat User</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+  authDomain:"hidayatulamin-e6f22.firebaseapp.com",
+  projectId:"hidayatulamin-e6f22",
+  storageBucket:"hidayatulamin-e6f22.firebasestorage.app",
+  messagingSenderId:"80743607267",
+  appId:"1:80743607267:web:f5f94165de021759958ed6"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+let allUsers = [];
+
+// ─── AUTH ───────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  try {
+    const uDoc = await getDoc(doc(db,"users",user.uid));
+    if (!uDoc.exists() || uDoc.data().role !== 'admin') {
+      await signOut(auth); window.location.href = 'login.html'; return;
+    }
+    const d = uDoc.data();
+    const name = d.displayName || 'Administrator';
+    document.getElementById('greetName').textContent = name;
+    document.getElementById('sideUserName').textContent = name;
+    document.getElementById('sideUserEmail').textContent = user.email;
+    document.getElementById('sideAvatar').textContent = name[0].toUpperCase();
+    loadData();
+  } catch(e){ showToast('Error','Gagal verifikasi akses','err'); }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+  e.preventDefault();
+  if(confirm('Yakin ingin logout?')){ await signOut(auth); window.location.href='login.html'; }
+});
+document.getElementById('sideLogoutBtn').addEventListener('click', async () => {
+  if(confirm('Yakin ingin logout?')){ await signOut(auth); window.location.href='login.html'; }
+});
+
+// ─── DATA ───────────────────────────────────────────
+async function loadData() {
+  try {
+    const [santriSnap, ustadzSnap] = await Promise.all([
+      getDocs(query(collection(db,"users"),where("role","==","santri"))),
+      getDocs(query(collection(db,"users"),where("role","==","ustadz")))
+    ]);
+    document.getElementById('statSantri').textContent = santriSnap.size;
+    document.getElementById('statUstadz').textContent = ustadzSnap.size;
+    const usersSnap = await getDocs(query(collection(db,"users"),where("isActive","==",true)));
+    allUsers = [];
+    usersSnap.forEach(d => allUsers.push({id:d.id,...d.data()}));
+    allUsers.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+    renderTable(allUsers.slice(0,5));
+  } catch(e){ console.error(e); }
+}
+
+function renderTable(users) {
+  const tbody = document.getElementById('usersTable');
+  if(!users.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">Belum ada user</td></tr>'; return; }
+  const colors = {admin:['#ddd6fe','#4c1d95'],ustadz:['#bfdbfe','#1e40af'],wali:['#fde68a','#92400e'],santri:['#a7f3d0','#065f46']};
+  tbody.innerHTML = users.map(u => {
+    const c = colors[u.role]||['#e2e8f0','#334155'];
+    const date = u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '-';
+    return `<tr>
+      <td><div class="uc"><div class="ua" style="background:${c[0]};color:${c[1]}">${(u.displayName||'U')[0]}</div><div><div class="un">${u.displayName||'Unknown'}</div><div class="ue">${u.email||''}</div></div></div></td>
+      <td><span class="rb r-${u.role}">${u.role}</span></td>
+      <td><span class="s-aktif">${u.isActive?'Aktif':'Nonaktif'}</span></td>
+      <td style="font-size:12px">${date}</td>
+      <td><div class="action-btns">
+        <button class="act-btn act-view" onclick="goToPortal('${u.role}')" title="Lihat Portal"><i class="fas fa-external-link-alt"></i></button>
+        <button class="act-btn act-del" onclick="softDelete('${u.id}')" title="Hapus"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+window.goToPortal = (role) => {
+  const routes = {admin:'dashboard-admin.html',ustadz:'dashboard-ustadz.html',santri:'dashboard-santri.html',wali:'dashboard-wali.html'};
+  if(routes[role]) window.location.href = routes[role];
+};
+
+window.softDelete = async (uid) => {
+  if(!confirm('Nonaktifkan user ini?')) return;
+  try {
+    await updateDoc(doc(db,"users",uid),{isActive:false});
+    showToast('Berhasil','User dinonaktifkan');
+    loadData();
+  } catch(e){ showToast('Error',e.message,'err'); }
+};
+
+// ─── CREATE USER ────────────────────────────────────
+window.handleCreate = async () => {
+  const name = document.getElementById('fName').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const pass = document.getElementById('fPass').value;
+  const role = document.getElementById('fRole').value;
+  if(!name||!email||!pass||!role){ showToast('Peringatan','Lengkapi semua field wajib','err'); return; }
+  if(pass.length<6){ showToast('Peringatan','Password min. 6 karakter','err'); return; }
+  const btn = document.getElementById('createBtn');
+  const btnTxt = document.getElementById('createBtnText');
+  btn.disabled=true; btnTxt.textContent='Membuat...';
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, {displayName:name});
+    if(document.getElementById('fVerif').checked) await sendEmailVerification(cred.user);
+    const userData = {uid:cred.user.uid,email,displayName:name,role,isActive:true,emailVerified:false,createdAt:serverTimestamp(),createdBy:auth.currentUser?.uid||''};
+    if(role==='santri'){ userData.nis=document.getElementById('fNIS').value; userData.kelas=document.getElementById('fKelas').value; }
+    if(role==='wali'){ userData.phone=document.getElementById('fPhone').value; userData.hubungan=document.getElementById('fHubungan').value; }
+    await setDoc(doc(db,"users",cred.user.uid), userData);
+    confetti({particleCount:100,spread:70,origin:{y:0.6},colors:['#0db87a','#10b981','#34d399']});
+    showToast('Berhasil',`User ${name} berhasil dibuat!`);
+    closeModal(); loadData();
+  } catch(e){
+    const msgs = {'auth/email-already-in-use':'Email sudah terdaftar','auth/invalid-email':'Format email tidak valid','auth/weak-password':'Password terlalu lemah'};
+    showToast('Error', msgs[e.code]||e.message, 'err');
+  } finally { btn.disabled=false; btnTxt.textContent='Buat User'; }
+};
+
+// ─── CHARTS ─────────────────────────────────────────
+const attData = {
+  week:{labels:['Sen','Sel','Rab','Kam','Jum','Sab','Min'],hadir:[95,92,98,96,94,90,88],absen:[5,8,2,4,6,10,12]},
+  month:{labels:['Minggu 1','Minggu 2','Minggu 3','Minggu 4'],hadir:[93,95,91,94],absen:[7,5,9,6]}
+};
+let attChart;
+function buildChart(type='week'){
+  const d = attData[type];
+  const ctx = document.getElementById('attChart').getContext('2d');
+  if(attChart) attChart.destroy();
+  attChart = new Chart(ctx,{type:'line',data:{labels:d.labels,datasets:[
+    {label:'Hadir',data:d.hadir,borderColor:'#0db87a',backgroundColor:'rgba(13,184,122,0.08)',fill:true,tension:0.4,borderWidth:2,pointBackgroundColor:'#0db87a',pointRadius:4},
+    {label:'Absen',data:d.absen,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.05)',fill:true,tension:0.4,borderWidth:2,pointBackgroundColor:'#ef4444',pointRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{family:'Outfit',size:12},padding:16,boxWidth:10,boxHeight:10}}},scales:{y:{beginAtZero:true,max:110,grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{family:'Outfit',size:11}}},x:{grid:{display:false},ticks:{font:{family:'Outfit',size:11}}}}}});
+}
+buildChart();
+window.updateChart = (v) => buildChart(v);
+
+// ─── UI UTILS ───────────────────────────────────────
+window.toggleSidebar = () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.getElementById('main').classList.toggle('expanded');
+};
+let isDark = localStorage.getItem('ha_theme')==='dark';
+function applyTheme(){
+  document.documentElement.classList.toggle('dark',isDark);
+  document.getElementById('darkBtn').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+window.toggleDark = () => { isDark=!isDark; localStorage.setItem('ha_theme',isDark?'dark':'light'); applyTheme(); };
+applyTheme();
+
+window.openModal = () => { document.getElementById('modalOverlay').classList.add('open'); };
+window.closeModal = () => { document.getElementById('modalOverlay').classList.remove('open'); };
+document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target===document.getElementById('modalOverlay')) closeModal(); });
+window.handleRoleChange = () => {
+  const r = document.getElementById('fRole').value;
+  document.getElementById('xSantri').classList.toggle('show', r==='santri');
+  document.getElementById('xWali').classList.toggle('show', r==='wali');
+};
+
+function showToast(title, msg, type='ok'){
+  const w = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast'+(type==='err'?' err':type==='info'?' info':'');
+  t.innerHTML = `<i class="fas ${type==='err'?'fa-exclamation-circle':type==='info'?'fa-info-circle':'fa-check-circle'} toast-icon"></i><div class="toast-msg"><p>${title}</p><p>${msg}</p></div>`;
+  w.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),50);
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); },4500);
+}
+
+const now = new Date();
+const days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+document.getElementById('topbarDate').textContent = days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+document.getElementById('dateNum').textContent = now.getDate();
+document.getElementById('dateStr').textContent = months[now.getMonth()]+' '+now.getFullYear();
+</script>
 </body>
 </html>
