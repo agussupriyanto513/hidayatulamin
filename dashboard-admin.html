@@ -324,15 +324,6 @@ tr:hover td{background:var(--bg)}
   </div>
 </div>
 
-<!-- Tambahkan di header dashboard-admin.html -->
-<div class="flex items-center gap-4">
-    <button onclick="window.location.href='portal-hidayatullah.html'" 
-            class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
-        <i class="fas fa-arrow-left"></i> Kembali ke Portal
-    </button>
-    <h1 class="text-2xl font-bold">Admin Panel - User Management</h1>
-</div>
-
 <!-- Modal Buat User -->
 <div class="overlay" id="modalOverlay">
   <div class="modal-box" onclick="event.stopPropagation()">
@@ -340,6 +331,14 @@ tr:hover td{background:var(--bg)}
       <h3><i class="fas fa-user-plus" style="color:var(--green);margin-right:8px"></i>Buat User Baru</h3>
       <div class="m-close" onclick="closeModal()"><i class="fas fa-times"></i></div>
     </div>
+	<!-- Tambahkan di header dashboard-admin.html -->
+<div class="flex items-center gap-4">
+    <button onclick="window.location.href='portal-hidayatullah.html'" 
+            class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+        <i class="fas fa-arrow-left"></i> Kembali ke Portal
+    </button>
+    <h1 class="text-2xl font-bold">Admin Panel - User Management</h1>
+</div>
     <div class="mbody">
       <div class="frow">
         <div class="fg"><label class="flabel">Nama Lengkap *</label><input class="finput" type="text" id="fName" placeholder="Nama lengkap"></div>
