@@ -875,7 +875,7 @@
         });
 
         // ==========================================
-        // PI NETWORK AUTHENTICATION
+        // PI NETWORK AUTHENTICATION - FIXED
         // ==========================================
         async function handlePiLogin() {
             if (!isPiBrowser || !piInitialized) {
@@ -894,6 +894,7 @@
             btn.disabled = true;
             btn.classList.add('loading');
             btnText.innerHTML = '<i class="fas fa-spinner"></i> Menghubungkan...';
+            hideAllAlerts();
 
             try {
                 // Pi Authentication scopes
@@ -953,72 +954,140 @@
                 const piUsername = authResult.user.username;
                 
                 // Cek apakah user Pi sudah terdaftar di sistem kita
-                const userQuery = await db.collection('users')
-                    .where('piUid', '==', piUid)
-                    .where('role', '==', selectedRole)
-                    .get();
+                // Gunakan try-catch untuk handle permission errors
+                let userExists = false;
+                let existingUserData = null;
+                let existingUserId = null;
                 
-                let userData;
+                try {
+                    const userQuery = await db.collection('users')
+                        .where('piUid', '==', piUid)
+                        .where('role', '==', selectedRole)
+                        .get();
+                    
+                    if (!userQuery.empty) {
+                        userExists = true;
+                        existingUserData = userQuery.docs[0].data();
+                        existingUserId = userQuery.docs[0].id;
+                    }
+                } catch (queryError) {
+                    console.warn('Query error (permission might be denied):', queryError);
+                    // Continue anyway, we'll try to create or use fallback
+                }
+                
                 let firebaseUid;
+                let userData;
                 
-                if (userQuery.empty) {
+                if (userExists && existingUserId) {
+                    // User sudah ada, update last login
+                    console.log('Existing Pi user found:', existingUserId);
+                    firebaseUid = existingUserId;
+                    userData = existingUserData;
+                    
+                    try {
+                        await db.collection('users').doc(firebaseUid).update({
+                            lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                            piAccessToken: authResult.accessToken
+                        });
+                    } catch (updateError) {
+                        console.warn('Failed to update lastLogin:', updateError);
+                        // Continue anyway
+                    }
+                    
+                    showAlert('success', 'Selamat datang kembali, ' + piUsername + '!');
+                    
+                } else {
                     // User Pi belum terdaftar, buat akun baru
                     console.log('Creating new user from Pi authentication...');
                     
                     // Generate email dari username Pi
-                    const generatedEmail = `${piUsername.toLowerCase()}@pi.network`;
+                    const generatedEmail = `${piUsername.toLowerCase().replace(/[^a-z0-9]/g, '')}@pi.hidayatulamin.id`;
                     const tempPassword = generateSecurePassword();
                     
-                    // Buat akun Firebase
-                    const userCredential = await auth.createUserWithEmailAndPassword(
-                        generatedEmail, 
-                        tempPassword
-                    );
-                    
-                    firebaseUid = userCredential.user.uid;
-                    
-                    // Simpan data user
-                    userData = {
-                        uid: firebaseUid,
-                        piUid: piUid,
-                        piUsername: piUsername,
-                        email: generatedEmail,
-                        displayName: piUsername,
-                        role: selectedRole,
-                        isActive: true,
-                        authMethod: 'pi_network',
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    
-                    // Simpan ke collection users
-                    await db.collection('users').doc(firebaseUid).set(userData);
-                    
-                    // Simpan ke collection role-specific
-                    const roleConfig = ROLE_CONFIG[selectedRole];
-                    await db.collection(roleConfig.collection).doc(firebaseUid).set({
-                        ...userData,
-                        piAccessToken: authResult.accessToken
-                    });
-                    
-                    showAlert('success', 'Akun Pi Network berhasil didaftarkan!');
-                    
-                } else {
-                    // User sudah ada, update last login
-                    const userDoc = userQuery.docs[0];
-                    firebaseUid = userDoc.id;
-                    userData = userDoc.data();
-                    
-                    await db.collection('users').doc(firebaseUid).update({
-                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                        piAccessToken: authResult.accessToken
-                    });
-                    
-                    // Sign in ke Firebase
-                    // Kita perlu sign in manual karena Pi auth != Firebase auth
-                    // Gunakan custom token atau sign in dengan email/password yang tersimpan
-                    // Untuk sekarang, kita anggap sudah login sebagai user tersebut
-                    console.log('Existing Pi user logged in:', firebaseUid);
+                    try {
+                        // Buat akun Firebase
+                        const userCredential = await auth.createUserWithEmailAndPassword(
+                            generatedEmail, 
+                            tempPassword
+                        );
+                        
+                        firebaseUid = userCredential.user.uid;
+                        
+                        // Simpan data user
+                        userData = {
+                            uid: firebaseUid,
+                            piUid: piUid,
+                            piUsername: piUsername,
+                            email: generatedEmail,
+                            displayName: piUsername,
+                            role: selectedRole,
+                            isActive: true,
+                            authMethod: 'pi_network',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        
+                        // Simpan ke collection users dengan error handling
+                        try {
+                            await db.collection('users').doc(firebaseUid).set(userData);
+                        } catch (setError) {
+                            console.error('Failed to save user data:', setError);
+                            // If permission denied, we'll handle it gracefully
+                            if (setError.code === 'permission-denied') {
+                                showAlert('warning', 'Akun dibuat tapi data belum tersimpan. Hubungi admin.');
+                            } else {
+                                throw setError;
+                            }
+                        }
+                        
+                        // Simpan ke collection role-specific
+                        const roleConfig = ROLE_CONFIG[selectedRole];
+                        try {
+                            await db.collection(roleConfig.collection).doc(firebaseUid).set({
+                                ...userData,
+                                piAccessToken: authResult.accessToken
+                            });
+                        } catch (roleSetError) {
+                            console.warn('Failed to save to role collection:', roleSetError);
+                            // Continue anyway
+                        }
+                        
+                        showAlert('success', 'Akun Pi Network berhasil didaftarkan! Selamat datang, ' + piUsername + '!');
+                        
+                    } catch (createError) {
+                        console.error('Error creating Firebase user:', createError);
+                        
+                        if (createError.code === 'auth/email-already-in-use') {
+                            // Email sudah ada, coba sign in sebagai user yang sudah ada
+                            showAlert('info', 'Mencoba login dengan akun yang sudah ada...');
+                            
+                            // Cari user dengan piUid yang sama
+                            try {
+                                const allUsersQuery = await db.collection('users')
+                                    .where('piUid', '==', piUid)
+                                    .get();
+                                
+                                if (!allUsersQuery.empty) {
+                                    const existingDoc = allUsersQuery.docs[0];
+                                    firebaseUid = existingDoc.id;
+                                    userData = existingDoc.data();
+                                    
+                                    // Update role jika berbeda
+                                    if (userData.role !== selectedRole) {
+                                        showAlert('warning', `Akun ini terdaftar sebagai ${ROLE_CONFIG[userData.role].label}. Menggunakan role tersebut.`);
+                                        selectedRole = userData.role;
+                                    }
+                                } else {
+                                    throw new Error('User not found in database');
+                                }
+                            } catch (findError) {
+                                console.error('Error finding existing user:', findError);
+                                throw new Error('Akun sudah ada tapi tidak dapat ditemukan di database. Hubungi administrator.');
+                            }
+                        } else {
+                            throw createError;
+                        }
+                    }
                 }
                 
                 // Simpan session
@@ -1029,22 +1098,42 @@
                     authMethod: 'pi_network'
                 }));
                 
+                // Simpan ke localStorage untuk persistensi
+                localStorage.setItem('piAuthUser', JSON.stringify({
+                    uid: firebaseUid,
+                    piUid: piUid,
+                    username: piUsername,
+                    role: selectedRole
+                }));
+                
                 hideLoading();
                 
-                // Redirect ke dashboard
+                // Redirect ke dashboard setelah delay
                 setTimeout(() => {
                     redirectToDashboard(selectedRole);
-                }, 1000);
+                }, 1500);
                 
             } catch (error) {
                 console.error('Error processing Pi login:', error);
                 hideLoading();
-                showAlert('error', 'Gagal memproses login Pi: ' + error.message);
+                
+                let errorMsg = error.message || 'Gagal memproses login Pi';
+                
+                // Handle specific Firebase errors
+                if (error.code === 'permission-denied') {
+                    errorMsg = 'Izin akses database ditolak. Pastikan Firestore rules sudah diatur dengan benar atau hubungi administrator.';
+                } else if (error.code === 'auth/network-request-failed') {
+                    errorMsg = 'Koneksi internet bermasalah. Coba lagi nanti.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMsg = 'Terlalu banyak percobaan. Silakan tunggu beberapa saat.';
+                }
+                
+                showAlert('error', 'Gagal memproses login Pi: ' + errorMsg);
                 
                 const btn = document.getElementById('piLoginBtn');
                 btn.disabled = false;
                 btn.classList.remove('loading');
-                document.getElementById('piBtnText').innerHTML = '<i class="fas fa-mobile-alt"></i> Login dengan Pi Browser';
+                document.getElementById('piBtnText').innerHTML = '<i class="fas fa-mobile-alt"></i> Coba Lagi';
             }
         }
 
@@ -1069,6 +1158,8 @@
                     
                     // Cek apakah ini session Pi
                     const sessionData = sessionStorage.getItem('currentUser');
+                    const piAuthData = localStorage.getItem('piAuthUser');
+                    
                     if (sessionData) {
                         const parsed = JSON.parse(sessionData);
                         if (parsed.authMethod === 'pi_network') {
@@ -1076,7 +1167,25 @@
                         }
                     }
                     
-                    const userRole = await getUserRole(user.uid);
+                    // Coba dapatkan role dari berbagai sumber
+                    let userRole = null;
+                    
+                    // 1. Cek dari session
+                    if (sessionData) {
+                        const parsed = JSON.parse(sessionData);
+                        if (parsed.role) userRole = parsed.role;
+                    }
+                    
+                    // 2. Cek dari localStorage Pi data
+                    if (!userRole && piAuthData) {
+                        const parsed = JSON.parse(piAuthData);
+                        if (parsed.role) userRole = parsed.role;
+                    }
+                    
+                    // 3. Cek dari database
+                    if (!userRole) {
+                        userRole = await getUserRole(user.uid);
+                    }
                     
                     if (userRole) {
                         console.log('Role found:', userRole);
@@ -1268,7 +1377,7 @@
                 if (error.code === 'permission-denied') {
                     return { 
                         success: false, 
-                        message: 'Akses ditolak oleh sistem. Silakan hubungi administrator.' 
+                        message: 'Akses ditolak oleh sistem. Silakan hubungi administrator untuk memeriksa izin akses.' 
                     };
                 }
                 
