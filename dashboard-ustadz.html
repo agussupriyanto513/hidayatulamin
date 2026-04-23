@@ -321,7 +321,15 @@ tr:hover td{background:var(--bg)}
 
   <span class="sec-label">Navigasi</span>
   <a class="nav-item" href="dashboard-admin.html"><i class="fas fa-shield-alt"></i><span class="nav-label">Panel Admin</span></a>
-  <a class="nav-item" href="sagatama-mart.html"><i class="fas fa-store"></i><span class="nav-label">Sagatama Mart</span></a>
+  <a class="nav-item" href="https://hidayatulamin.vercel.app" target="_blank" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);">
+    <i class="fas fa-shopping-bag" style="color:#8B5CF6;"></i>
+    <span class="nav-label" style="color:#a78bfa;font-weight:700;">Sagatama Mart</span>
+    <i class="fas fa-external-link-alt" style="font-size:9px;color:#8B5CF6;margin-left:auto;"></i>
+  </a>
+  <a class="nav-item" href="#" onclick="toggleSGTPanel();return false;" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);">
+    <span style="font-size:14px;font-weight:900;color:#F59E0B;line-height:1;">₴</span>
+    <span class="nav-label" style="color:#F59E0B;font-weight:700;">Saldo SGT</span>
+  </a>
 
   <div class="sidebar-footer">
     <div class="user-row">
@@ -430,6 +438,33 @@ tr:hover td{background:var(--bg)}
           <div><h4>Progres Hafalan Santri</h4><p>Top 6 santri berdasarkan juz</p></div>
         </div>
         <canvas id="chartJuz" style="height:220px;max-height:220px"></canvas>
+      </div>
+
+      <!-- SGT Panel Ustadz -->
+      <div id="sgtPanelUstadz" style="display:none; margin-top:20px;">
+        <div style="background:linear-gradient(135deg,#1A0533 0%,#3D1078 45%,#7C3AED 75%,#F59E0B 100%);border-radius:18px;padding:20px;color:white;margin-bottom:12px;position:relative;overflow:hidden;">
+          <div style="position:absolute;right:-15px;top:-15px;font-size:100px;font-weight:900;color:rgba(255,255,255,0.04);pointer-events:none;line-height:1;">SGT</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;position:relative;">
+            <div style="width:44px;height:44px;background:linear-gradient(135deg,#FCD34D,#F59E0B,#D97706);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1A0533;box-shadow:0 4px 12px rgba(245,158,11,0.4);">₴</div>
+            <div>
+              <p style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Saldo SGT Anda</p>
+              <p style="font-size:26px;font-weight:900;background:linear-gradient(135deg,#FCD34D,#F59E0B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;" id="sgtBalUstadz">0 SGT</p>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:10px;font-size:11px;color:rgba(255,255,255,0.7);">
+            <i class="fas fa-info-circle" style="margin-right:6px;color:#FCD34D;"></i>
+            SGT diberikan sebagai reward kontribusi mengajar. 1 Miliar total supply.
+          </div>
+        </div>
+        <!-- Link ke Sagatama Mart -->
+        <a href="https://hidayatulamin.vercel.app" target="_blank" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border:2px solid #8B5CF6;border-radius:14px;padding:14px;text-decoration:none;transition:all .2s;">
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,#8B5CF6,#7C3AED);border-radius:11px;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;flex-shrink:0;"><i class="fas fa-shopping-bag"></i></div>
+          <div style="flex:1;">
+            <p style="font-weight:800;color:#1F2937;font-size:13px;">Belanja di Sagatama Mart</p>
+            <p style="font-size:11px;color:#64748B;">Gunakan SGT untuk reward di Mart</p>
+          </div>
+          <i class="fas fa-chevron-right" style="color:#8B5CF6;"></i>
+        </a>
       </div>
     </div>
 
@@ -827,6 +862,21 @@ function showToast(title,msg,type='ok'){
   w.appendChild(t); setTimeout(()=>t.classList.add('show'),50);
   setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); },4500);
 }
+
+window.toggleSGTPanel = () => {
+  const panel = document.getElementById('sgtPanelUstadz');
+  if (!panel) return;
+  const visible = panel.style.display !== 'none';
+  panel.style.display = visible ? 'none' : 'block';
+  if (!visible) {
+    // Load SGT balance for current user
+    const uid = auth.currentUser?.uid || 'ustadz';
+    const bal = parseInt(localStorage.getItem('sgt_balance_' + uid) || '0');
+    const el = document.getElementById('sgtBalUstadz');
+    if (el) el.textContent = bal.toLocaleString('id-ID') + ' SGT';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+};
 
 const now = new Date();
 const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];

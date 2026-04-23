@@ -43,9 +43,47 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --sgt-gold: #F59E0B;
+  --sgt-dark: #D97706;
+  --sgt-light: #FCD34D;
+  --sgt-bg: #FEF3C7;
+  --sgt-deep: #1A0533;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* ══ SGT TOKEN STYLES ══ */
+.sgt-supply-banner {
+  background: linear-gradient(135deg, #1A0533 0%, #3D1078 40%, #7C3AED 70%, #F59E0B 100%);
+  border-radius: 20px; padding: 24px; margin-bottom: 20px;
+  color: white; position: relative; overflow: hidden;
+}
+.sgt-supply-banner::before {
+  content: 'SGT'; position: absolute; right: -20px; top: -20px;
+  font-size: 120px; font-weight: 900; color: rgba(255,255,255,0.04);
+  pointer-events: none; line-height: 1;
+}
+.sgt-coin-sm {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, #FCD34D, #F59E0B, #D97706);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 900; color: #1A0533; flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(245,158,11,0.4);
+}
+.alloc-card {
+  background: var(--white); border-radius: 14px; padding: 16px;
+  border: 1.5px solid var(--gray-200); transition: var(--transition);
+}
+.alloc-card:hover { border-color: var(--sgt-gold); transform: translateY(-1px); }
+.alloc-bar { height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; margin: 8px 0; }
+.alloc-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+.sgt-stat { background: rgba(255,255,255,0.12); border-radius: 12px; padding: 12px; text-align: center; }
+.mart-link-card {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #F5F3FF, #EDE9FE);
+  border: 2px solid #8B5CF6; border-radius: 16px; padding: 16px;
+  cursor: pointer; transition: var(--transition); text-decoration: none;
+  margin-bottom: 12px;
+}
+.mart-link-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139,92,246,0.2); }
 html { scroll-behavior: smooth; }
 
 body {
@@ -586,6 +624,17 @@ tr:hover td { background: var(--gray-50); }
         <a href="dashboard-santri.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-graduation-cap"></i><span>Portal Santri</span></a>
         <a href="dashboard-wali.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-users"></i><span>Portal Wali</span></a>
       </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Ekosistem SGT</div>
+        <a href="https://hidayatulamin.vercel.app" target="_blank" class="nav-item" style="background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(124,58,237,0.08)); border:1px solid rgba(139,92,246,0.2);">
+          <i class="fas fa-shopping-bag" style="color:#8B5CF6;"></i><span style="color:#7C3AED; font-weight:700;">Sagatama Mart</span>
+          <i class="fas fa-external-link-alt" style="font-size:9px; color:#8B5CF6; margin-left:auto;"></i>
+        </a>
+        <a href="#" class="nav-item" onclick="document.querySelector('.sgt-supply-banner').scrollIntoView({behavior:'smooth'}); setActive(this); return false;" style="background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(217,119,6,0.08)); border:1px solid rgba(245,158,11,0.2);">
+          <span style="font-size:15px; font-weight:900; color:#D97706; line-height:1;">₴</span><span style="color:#D97706; font-weight:700;">Kelola SGT Token</span>
+        </a>
+      </div>
     </nav>
     
     <div class="sidebar-footer">
@@ -704,6 +753,141 @@ tr:hover td { background: var(--gray-50); }
             <div class="progress-item"><div class="progress-header"><span class="progress-name">Kelas C</span><span class="progress-value">3.8 juz</span></div><div class="progress-bar"><div class="progress-fill" style="width: 63%"></div></div></div>
             <div class="progress-item"><div class="progress-header"><span class="progress-name">Kelas D</span><span class="progress-value">4.2 juz</span></div><div class="progress-bar"><div class="progress-fill" style="width: 70%"></div></div></div>
             <div class="progress-item"><div class="progress-header"><span class="progress-name">Kelas E</span><span class="progress-value">6.0 juz</span></div><div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════
+           SGT TOKEN MANAGEMENT
+      ══════════════════════════════════════ -->
+      <div style="margin-bottom: 24px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <h3 style="font-size:16px; font-weight:800; color:var(--gray-800);">
+            <span style="background:linear-gradient(135deg,#FCD34D,#F59E0B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">₴</span>
+            Manajemen SGT Token
+          </h3>
+          <span style="font-size:11px; background:var(--sgt-bg); color:var(--sgt-dark); padding:4px 10px; border-radius:20px; font-weight:700; border:1px solid var(--sgt-gold);">SAGATAMA TOKEN</span>
+        </div>
+
+        <!-- Supply Banner -->
+        <div class="sgt-supply-banner">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
+            <div class="sgt-coin-sm">₴</div>
+            <div>
+              <p style="font-size:11px; color:rgba(255,255,255,0.65); font-weight:700; letter-spacing:1px; text-transform:uppercase;">Total Supply (Tetap)</p>
+              <p style="font-size:28px; font-weight:900; color:white; line-height:1.1;">1.000.000.000 SGT</p>
+              <p style="font-size:11px; color:rgba(255,255,255,0.55);">1 Miliar token · Tidak dapat ditambah</p>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+            <div class="sgt-stat">
+              <p style="font-size:15px; font-weight:900; color:#FCD34D;" id="sgtCirculating">—</p>
+              <p style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600;">Beredar</p>
+            </div>
+            <div class="sgt-stat">
+              <p style="font-size:15px; font-weight:900; color:#FCD34D;" id="sgtIssued">—</p>
+              <p style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600;">Diterbitkan</p>
+            </div>
+            <div class="sgt-stat">
+              <p style="font-size:15px; font-weight:900; color:#FCD34D;" id="sgtReserve">—</p>
+              <p style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600;">Cadangan</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Allocation Cards -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;" id="allocGrid">
+          <!-- Filled by JS -->
+        </div>
+
+        <!-- Edit Allocation -->
+        <div class="alloc-card" style="margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+            <i class="fas fa-sliders-h" style="color:var(--sgt-gold);"></i>
+            <h4 style="font-size:13px; font-weight:800;">Atur Porsi Distribusi</h4>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Member / Santri (%)</label>
+              <input type="number" id="allocMember" value="30" min="0" max="100" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-weight:700; font-family:inherit;">
+            </div>
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Ustadz / Pengajar (%)</label>
+              <input type="number" id="allocUstadz" value="20" min="0" max="100" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-weight:700; font-family:inherit;">
+            </div>
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Sagatama Mart (%)</label>
+              <input type="number" id="allocMart" value="25" min="0" max="100" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-weight:700; font-family:inherit;">
+            </div>
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Cadangan Yayasan (%)</label>
+              <input type="number" id="allocReserve" value="25" min="0" max="100" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-weight:700; font-family:inherit;">
+            </div>
+          </div>
+          <div style="background:var(--gray-50); border-radius:10px; padding:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; color:var(--gray-500);">Total:</span>
+            <span id="allocTotal" style="font-weight:800; color:var(--primary);">100%</span>
+          </div>
+          <button onclick="saveAllocations()" style="width:100%; padding:12px; border-radius:12px; background:linear-gradient(135deg,#F59E0B,#D97706); color:white; font-weight:800; border:none; cursor:pointer; font-size:13px; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <i class="fas fa-save"></i> Simpan Alokasi
+          </button>
+        </div>
+
+        <!-- Distribution Manual -->
+        <div class="alloc-card" style="margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <i class="fas fa-paper-plane" style="color:var(--primary);"></i>
+            <h4 style="font-size:13px; font-weight:800;">Distribusi SGT ke Member</h4>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Username Penerima</label>
+              <input type="text" id="distTarget" placeholder="Username Pi" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-family:inherit;">
+            </div>
+            <div>
+              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Jumlah SGT</label>
+              <input type="number" id="distAmount" placeholder="0" min="1" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-weight:700; font-family:inherit;">
+            </div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Keterangan</label>
+            <input type="text" id="distNote" placeholder="Alasan distribusi..." style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-family:inherit;">
+          </div>
+          <button onclick="distributeSGT()" style="width:100%; padding:12px; border-radius:12px; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; font-weight:800; border:none; cursor:pointer; font-size:13px; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <i class="fas fa-coins"></i> Distribusikan SGT
+          </button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════
+           SAGATAMA MART INTEGRATION
+      ══════════════════════════════════════ -->
+      <div style="margin-bottom: 24px;">
+        <h3 style="font-size:16px; font-weight:800; color:var(--gray-800); margin-bottom:14px;">
+          <i class="fas fa-store" style="color:#8B5CF6; margin-right:8px;"></i>Integrasi Ekosistem
+        </h3>
+        <a href="https://hidayatulamin.vercel.app" target="_blank" class="mart-link-card">
+          <div style="width:48px; height:48px; background:linear-gradient(135deg,#8B5CF6,#7C3AED); border-radius:14px; display:flex; align-items:center; justify-content:center; color:white; font-size:22px; flex-shrink:0;">
+            <i class="fas fa-shopping-bag"></i>
+          </div>
+          <div style="flex:1;">
+            <p style="font-weight:800; color:#1F2937; font-size:14px;">Sagatama Mart</p>
+            <p style="font-size:12px; color:#64748B;">hidayatulamin.vercel.app · Pi E-Commerce</p>
+          </div>
+          <i class="fas fa-external-link-alt" style="color:#8B5CF6;"></i>
+        </a>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+          <div style="background:var(--gray-50); border-radius:12px; padding:12px; text-align:center; border:1px solid var(--gray-200);">
+            <p style="font-size:18px; font-weight:900; color:#8B5CF6;" id="martTotalTx">—</p>
+            <p style="font-size:11px; color:var(--gray-500); font-weight:600;">Transaksi</p>
+          </div>
+          <div style="background:var(--gray-50); border-radius:12px; padding:12px; text-align:center; border:1px solid var(--gray-200);">
+            <p style="font-size:18px; font-weight:900; color:var(--sgt-dark);" id="martSgtEarned">—</p>
+            <p style="font-size:11px; color:var(--gray-500); font-weight:600;">SGT Diberikan</p>
+          </div>
+          <div style="background:var(--gray-50); border-radius:12px; padding:12px; text-align:center; border:1px solid var(--gray-200);">
+            <p style="font-size:18px; font-weight:900; color:var(--primary);" id="martMembers">—</p>
+            <p style="font-size:11px; color:var(--gray-500); font-weight:600;">Member</p>
           </div>
         </div>
       </div>
@@ -973,9 +1157,149 @@ function showToast(title, msg, type='success'){
   setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 4500);
 }
 
-const now = new Date();
-const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+// ══════════════════════════════════════
+// SGT TOKEN MANAGEMENT
+// ══════════════════════════════════════
+const SGT_TOTAL_SUPPLY = 1_000_000_000; // 1 Miliar — KONSTANTA, tidak dapat diubah
+
+const SGT_ALLOC_DEFAULT = {
+  member:  { pct: 30, label: 'Member / Santri',    color: '#059669', colorBg: '#D1FAE5' },
+  ustadz:  { pct: 20, label: 'Ustadz / Pengajar',  color: '#2563EB', colorBg: '#DBEAFE' },
+  mart:    { pct: 25, label: 'Sagatama Mart',       color: '#7C3AED', colorBg: '#EDE9FE' },
+  reserve: { pct: 25, label: 'Cadangan Yayasan',    color: '#D97706', colorBg: '#FEF3C7' },
+};
+
+function loadSGTAllocations() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('sgt_allocations') || 'null');
+    return saved || SGT_ALLOC_DEFAULT;
+  } catch(e) { return SGT_ALLOC_DEFAULT; }
+}
+
+function formatSGT(n) {
+  if (n >= 1_000_000) return (n/1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000) return (n/1_000).toFixed(1) + 'K';
+  return n.toLocaleString('id-ID');
+}
+
+function renderAllocGrid() {
+  const alloc = loadSGTAllocations();
+  const grid = document.getElementById('allocGrid');
+  if (!grid) return;
+
+  // Sync inputs
+  ['member','ustadz','mart','reserve'].forEach(k => {
+    const el = document.getElementById('alloc' + k.charAt(0).toUpperCase() + k.slice(1));
+    if (el) el.value = alloc[k].pct;
+  });
+
+  grid.innerHTML = Object.entries(alloc).map(([key, a]) => {
+    const tokens = Math.floor(SGT_TOTAL_SUPPLY * a.pct / 100);
+    return `
+    <div class="alloc-card">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <div style="width:8px; height:8px; border-radius:50%; background:${a.color};"></div>
+        <p style="font-size:11px; font-weight:700; color:var(--gray-600);">${a.label}</p>
+      </div>
+      <p style="font-size:11px; font-weight:900; color:var(--gray-800); margin-bottom:2px;">${formatSGT(tokens)} SGT</p>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:${a.pct}%; background:${a.color};"></div></div>
+      <p style="font-size:10px; color:var(--gray-500); font-weight:700;">${a.pct}% dari total supply</p>
+    </div>`;
+  }).join('');
+
+  // Summary stats
+  const issued = parseInt(localStorage.getItem('sgt_total_issued') || '0');
+  const circulating = issued;
+  const reserve = SGT_TOTAL_SUPPLY - issued;
+  const el = (id) => document.getElementById(id);
+  if (el('sgtCirculating')) el('sgtCirculating').textContent = formatSGT(circulating) + ' SGT';
+  if (el('sgtIssued'))      el('sgtIssued').textContent      = formatSGT(issued) + ' SGT';
+  if (el('sgtReserve'))     el('sgtReserve').textContent     = formatSGT(reserve) + ' SGT';
+}
+
+window.saveAllocations = () => {
+  const keys = ['member','ustadz','mart','reserve'];
+  const alloc = loadSGTAllocations();
+  let total = 0;
+  keys.forEach(k => {
+    const inp = document.getElementById('alloc' + k.charAt(0).toUpperCase() + k.slice(1));
+    const val = Math.max(0, Math.min(100, parseInt(inp?.value || '0')));
+    alloc[k].pct = val;
+    total += val;
+  });
+  if (total !== 100) {
+    showToast('Peringatan', `Total alokasi harus 100% (sekarang ${total}%)`, 'warning');
+    return;
+  }
+  localStorage.setItem('sgt_allocations', JSON.stringify(alloc));
+  renderAllocGrid();
+  showToast('Berhasil', 'Alokasi SGT berhasil disimpan!', 'success');
+};
+
+// Live total watcher
+['allocMember','allocUstadz','allocMart','allocReserve'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', () => {
+    const t = ['allocMember','allocUstadz','allocMart','allocReserve']
+      .reduce((s,i) => s + (parseInt(document.getElementById(i)?.value)||0), 0);
+    const el = document.getElementById('allocTotal');
+    if (el) { el.textContent = t + '%'; el.style.color = t === 100 ? 'var(--primary)' : 'var(--danger)'; }
+  });
+});
+
+window.distributeSGT = () => {
+  const target = document.getElementById('distTarget')?.value.trim();
+  const amount = parseInt(document.getElementById('distAmount')?.value);
+  const note   = document.getElementById('distNote')?.value.trim();
+  if (!target) { showToast('Peringatan', 'Masukkan username penerima', 'warning'); return; }
+  if (!amount || amount <= 0) { showToast('Peringatan', 'Jumlah SGT tidak valid', 'warning'); return; }
+
+  const issued = parseInt(localStorage.getItem('sgt_total_issued') || '0');
+  const newIssued = issued + amount;
+  if (newIssued > SGT_TOTAL_SUPPLY) {
+    showToast('Error', 'Melebihi total supply 1 Miliar SGT!', 'error'); return;
+  }
+
+  // Save to localStorage (in production: save to Firestore)
+  localStorage.setItem('sgt_total_issued', newIssued.toString());
+  const log = JSON.parse(localStorage.getItem('sgt_dist_log') || '[]');
+  log.unshift({ target, amount, note, date: new Date().toISOString(), by: 'admin' });
+  localStorage.setItem('sgt_dist_log', JSON.stringify(log.slice(0, 100)));
+
+  // Also credit to target user's balance
+  const bal = parseInt(localStorage.getItem('sgt_balance_' + target) || '0');
+  localStorage.setItem('sgt_balance_' + target, (bal + amount).toString());
+
+  renderAllocGrid();
+  document.getElementById('distTarget').value = '';
+  document.getElementById('distAmount').value = '';
+  document.getElementById('distNote').value = '';
+  showToast('Berhasil', `${amount.toLocaleString()} SGT dikirim ke @${target}!`, 'success');
+};
+
+// Load Sagatama Mart stats from shared localStorage keys
+function loadMartStats() {
+  let totalTx = 0, totalSgt = 0;
+  const members = new Set();
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('sgt_transactions_')) {
+        const txs = JSON.parse(localStorage.getItem(key) || '[]');
+        totalTx += txs.length;
+        txs.forEach(t => { if(t.type==='earn') totalSgt += t.amount||0; if(t.userId) members.add(t.userId); });
+      }
+    }
+  } catch(e){}
+  const el = (id) => document.getElementById(id);
+  if (el('martTotalTx'))    el('martTotalTx').textContent    = totalTx.toLocaleString();
+  if (el('martSgtEarned'))  el('martSgtEarned').textContent  = formatSGT(totalSgt) + ' SGT';
+  if (el('martMembers'))    el('martMembers').textContent    = members.size.toLocaleString();
+}
+
+// Init SGT
+renderAllocGrid();
+loadMartStats();
+
 document.getElementById('currentDate').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
 document.getElementById('dateNum').textContent = now.getDate();
 document.getElementById('dateStr').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
