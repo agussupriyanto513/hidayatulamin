@@ -843,27 +843,36 @@
         // INITIALIZATION
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
-            // Check Pi environment
-            checkPiEnvironment();
-
-            // Check URL parameters
+            // Bersihkan sesi lama dari role yang berbeda saat halaman login dibuka
+            // Ini mencegah auto-redirect ke role yang salah
             const urlParams = new URLSearchParams(window.location.search);
             const role = urlParams.get('role');
             const message = urlParams.get('message');
-            
-            // Pre-select role from URL
+            const forceLogout = urlParams.get('logout');
+
+            // Jika ada parameter logout=true, hapus semua session data
+            if (forceLogout === 'true') {
+                sessionStorage.removeItem('currentUser');
+                localStorage.removeItem('piAuthUser');
+                auth.signOut().catch(() => {});
+            }
+
+            // Check Pi environment
+            checkPiEnvironment();
+
+            // Pre-select role dari URL, atau default ke wali
             if (role && ROLE_CONFIG[role]) {
                 selectRole(role);
             } else {
-                selectRole('wali'); // Default
+                selectRole('wali');
             }
 
-            // Show message from URL
+            // Show message dari URL
             if (message) {
                 showAlert('info', decodeURIComponent(message));
             }
 
-            // Check for existing session
+            // Cek existing session — HANYA redirect jika session cocok dengan role yang dipilih
             checkExistingSession();
 
             // Check Remember Me
@@ -1058,10 +1067,9 @@
                         console.error('Error creating Firebase user:', createError);
                         
                         if (createError.code === 'auth/email-already-in-use') {
-                            // Email sudah ada, coba sign in sebagai user yang sudah ada
-                            showAlert('info', 'Mencoba login dengan akun yang sudah ada...');
+                            // Email sudah ada — cari user dengan piUid yang sama
+                            showAlert('info', 'Mencari akun yang sudah terdaftar...');
                             
-                            // Cari user dengan piUid yang sama
                             try {
                                 const allUsersQuery = await db.collection('users')
                                     .where('piUid', '==', piUid)
@@ -1072,17 +1080,27 @@
                                     firebaseUid = existingDoc.id;
                                     userData = existingDoc.data();
                                     
-                                    // Update role jika berbeda
-                                    if (userData.role !== selectedRole) {
-                                        showAlert('warning', `Akun ini terdaftar sebagai ${ROLE_CONFIG[userData.role].label}. Menggunakan role tersebut.`);
-                                        selectedRole = userData.role;
+                                    // PERBAIKAN: Jika role di DB berbeda dengan yang dipilih,
+                                    // tolak login — jangan diam-diam override role!
+                                    if (userData.role && userData.role !== selectedRole) {
+                                        hideLoading();
+                                        showAlert('error', 
+                                            `Akun Pi ini terdaftar sebagai ${ROLE_CONFIG[userData.role]?.label || userData.role}, ` +
+                                            `bukan sebagai ${ROLE_CONFIG[selectedRole].label}. ` +
+                                            `Silakan pilih role yang benar.`
+                                        );
+                                        const btn = document.getElementById('piLoginBtn');
+                                        btn.disabled = false;
+                                        btn.classList.remove('loading');
+                                        document.getElementById('piBtnText').innerHTML = '<i class="fas fa-mobile-alt"></i> Coba Lagi';
+                                        return;
                                     }
                                 } else {
-                                    throw new Error('User not found in database');
+                                    throw new Error('User tidak ditemukan di database. Hubungi administrator.');
                                 }
                             } catch (findError) {
                                 console.error('Error finding existing user:', findError);
-                                throw new Error('Akun sudah ada tapi tidak dapat ditemukan di database. Hubungi administrator.');
+                                throw new Error(findError.message || 'Akun sudah ada tapi tidak dapat ditemukan di database.');
                             }
                         } else {
                             throw createError;
@@ -1156,44 +1174,44 @@
                 if (user) {
                     console.log('User already logged in:', user.uid);
                     
-                    // Cek apakah ini session Pi
+                    // Cek session yang tersimpan
                     const sessionData = sessionStorage.getItem('currentUser');
-                    const piAuthData = localStorage.getItem('piAuthUser');
                     
                     if (sessionData) {
-                        const parsed = JSON.parse(sessionData);
-                        if (parsed.authMethod === 'pi_network') {
-                            console.log('Restoring Pi Network session...');
+                        try {
+                            const parsed = JSON.parse(sessionData);
+                            const savedRole = parsed.role;
+                            
+                            // Hanya auto-redirect jika role di session cocok dengan
+                            // role yang dipilih user (atau belum ada pilihan)
+                            if (savedRole && ROLE_CONFIG[savedRole]) {
+                                // Verifikasi ke Firestore bahwa role masih valid
+                                const roleValid = await verifyRoleDetailed(user.uid, savedRole);
+                                if (roleValid.success) {
+                                    console.log('Valid session found, role:', savedRole);
+                                    // Hanya auto-redirect jika selectedRole belum dipilih
+                                    // atau cocok dengan session
+                                    if (!selectedRole || selectedRole === savedRole) {
+                                        hideLoading();
+                                        redirectToDashboard(savedRole);
+                                        return;
+                                    }
+                                } else {
+                                    // Session tidak valid, hapus
+                                    sessionStorage.removeItem('currentUser');
+                                    localStorage.removeItem('piAuthUser');
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Error parsing session:', e);
+                            sessionStorage.removeItem('currentUser');
                         }
                     }
                     
-                    // Coba dapatkan role dari berbagai sumber
-                    let userRole = null;
-                    
-                    // 1. Cek dari session
-                    if (sessionData) {
-                        const parsed = JSON.parse(sessionData);
-                        if (parsed.role) userRole = parsed.role;
-                    }
-                    
-                    // 2. Cek dari localStorage Pi data
-                    if (!userRole && piAuthData) {
-                        const parsed = JSON.parse(piAuthData);
-                        if (parsed.role) userRole = parsed.role;
-                    }
-                    
-                    // 3. Cek dari database
-                    if (!userRole) {
-                        userRole = await getUserRole(user.uid);
-                    }
-                    
-                    if (userRole) {
-                        console.log('Role found:', userRole);
-                        redirectToDashboard(userRole);
-                    } else {
-                        hideLoading();
-                        showAlert('warning', 'Akun Anda belum terdaftar di sistem. Silakan hubungi administrator.');
-                    }
+                    // Jika ada session tapi tidak valid atau role berbeda,
+                    // sign out dan biarkan user pilih role lagi
+                    await auth.signOut();
+                    hideLoading();
                 } else {
                     hideLoading();
                 }
@@ -1203,21 +1221,35 @@
         async function getUserRole(uid) {
             console.log('Checking role for UID:', uid);
             
-            for (const [role, config] of Object.entries(ROLE_CONFIG)) {
+            // Prioritas 1: cek collection 'users' (single source of truth)
+            try {
+                const userDoc = await db.collection('users').doc(uid).get();
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    if (data.role && ROLE_CONFIG[data.role]) {
+                        console.log(`✅ Role found in users collection: ${data.role}`);
+                        return data.role;
+                    }
+                }
+            } catch (error) {
+                console.warn('Error checking users collection:', error);
+            }
+            
+            // Prioritas 2: cek collection spesifik HANYA untuk role yang sedang dipilih
+            // (jangan iterasi semua role — ini penyebab salah masuk!)
+            if (selectedRole && ROLE_CONFIG[selectedRole]) {
                 try {
-                    console.log(`Checking ${config.collection}...`);
-                    const doc = await db.collection(config.collection).doc(uid).get();
-                    
+                    const doc = await db.collection(ROLE_CONFIG[selectedRole].collection).doc(uid).get();
                     if (doc.exists) {
-                        console.log(`✅ Found in ${config.collection}`);
-                        return role;
+                        console.log(`✅ Role found in ${ROLE_CONFIG[selectedRole].collection}`);
+                        return selectedRole;
                     }
                 } catch (error) {
-                    console.error(`Error checking ${role}:`, error);
+                    console.warn(`Error checking ${selectedRole} collection:`, error);
                 }
             }
             
-            console.log('❌ Role not found in any collection');
+            console.log('❌ Role not found');
             return null;
         }
 
@@ -1341,6 +1373,28 @@
             const config = ROLE_CONFIG[role];
             
             try {
+                // Prioritas 1: cek collection 'users' dengan field role
+                try {
+                    const userDoc = await db.collection('users').doc(uid).get();
+                    if (userDoc.exists) {
+                        const data = userDoc.data();
+                        if (data.role === role) {
+                            console.log(`✅ Role verified from users collection: ${role}`);
+                            return { success: true, data };
+                        } else if (data.role && data.role !== role) {
+                            // User ada tapi role salah — berikan pesan yang jelas
+                            const correctLabel = ROLE_CONFIG[data.role]?.label || data.role;
+                            return {
+                                success: false,
+                                message: `Akun ini terdaftar sebagai ${correctLabel}, bukan ${config.label}. Silakan pilih role yang benar.`
+                            };
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Cannot check users collection:', e.message);
+                }
+
+                // Prioritas 2: cek collection role-spesifik
                 console.log(`Checking collection: ${config.collection}`);
                 const doc = await db.collection(config.collection).doc(uid).get();
                 
@@ -1351,25 +1405,12 @@
                 
                 console.log(`❌ User NOT found in ${config.collection}`);
                 
-                // Check other collections
-                const otherRoles = [];
-                for (const [r, c] of Object.entries(ROLE_CONFIG)) {
-                    if (r !== role) {
-                        try {
-                            const d = await db.collection(c.collection).doc(uid).get();
-                            if (d.exists) otherRoles.push(c.label);
-                        } catch (e) {}
-                    }
-                }
-                
-                let message = `Akun ini tidak terdaftar sebagai ${config.label}`;
-                if (otherRoles.length > 0) {
-                    message += `. Akun terdaftar sebagai: ${otherRoles.join(', ')}`;
-                } else {
-                    message += `. Akun belum terdaftar di sistem sama sekali.`;
-                }
-                
-                return { success: false, message: message };
+                // Jangan cek semua role collection — hanya beri tahu user bahwa
+                // akunnya tidak ditemukan di role yang dipilih
+                return {
+                    success: false,
+                    message: `Akun ini tidak terdaftar sebagai ${config.label}. Pastikan Anda memilih role yang benar atau hubungi administrator.`
+                };
                 
             } catch (error) {
                 console.error(`Error verifying role:`, error);
@@ -1383,7 +1424,7 @@
                 
                 return { 
                     success: false, 
-                    message: `Error saat memverifikasi role: ${error.message}` 
+                    message: `Error saat memverifikasi: ${error.message}` 
                 };
             }
         }
@@ -1391,6 +1432,14 @@
         function redirectToDashboard(role) {
             const config = ROLE_CONFIG[role];
             console.log('Redirecting to:', config.dashboard);
+            // Pastikan session tersimpan dengan role yang benar sebelum redirect
+            const existing = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            if (existing.role !== role) {
+                sessionStorage.setItem('currentUser', JSON.stringify({
+                    ...existing,
+                    role: role
+                }));
+            }
             window.location.href = config.dashboard;
         }
 
