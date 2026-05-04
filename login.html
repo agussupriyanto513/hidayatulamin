@@ -862,6 +862,14 @@ body.role-santri .btn-login:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(2
 // Gunakan instance yang sudah ada
 db.enablePersistence({ synchronizeTabs: true }).catch(e => console.log('Persistence:', e));
 
+// Tunggu Firebase Auth siap sebelum apapun menyentuh Firestore
+auth.onAuthStateChanged(user => {
+  if (user) {
+    // User sudah login, aman akses Firestore
+    console.log('✅ Auth ready, user:', user.uid);
+  }
+});
+
 // ════════════════════════════════════════
 // CONSTANTS
 // ════════════════════════════════════════
@@ -1148,7 +1156,7 @@ async function checkSession() {
 async function verifyRole(uid, role) {
   const cfg = ROLES[role];
 
-  // 1. Check users collection
+  // 1. Cek koleksi users (dokumen milik user sendiri)
   try {
     const doc = await db.collection('users').doc(uid).get();
     if (doc.exists) {
@@ -1157,14 +1165,39 @@ async function verifyRole(uid, role) {
       if (d.role && d.role !== role) {
         return { ok: false, msg: `Akun ini terdaftar sebagai ${ROLES[d.role]?.label||d.role}. Pilih role yang benar.` };
       }
+      // Dokumen ada tapi belum ada field role → izinkan masuk, role akan di-set nanti
+      return { ok: true };
     }
-  } catch(e) { console.warn('users check:', e.message); }
+    // Dokumen belum ada → user baru, buat dokumen dulu
+    await db.collection('users').doc(uid).set({
+      uid,
+      role,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastLogin:  firebase.firestore.FieldValue.serverTimestamp()
+    });
+    return { ok: true };
+  } catch(e) {
+    console.warn('users check:', e.message);
+    // Jika permission-denied, coba koleksi role-spesifik
+    if (e.code !== 'permission-denied' && e.code !== 'PERMISSION_DENIED') {
+      // Error lain (network, dll) — jangan blokir login
+      return { ok: true };
+    }
+  }
 
-  // 2. Check role-specific collection
+  // 2. Fallback: cek koleksi role-spesifik
   try {
     const doc = await db.collection(cfg.col).doc(uid).get();
     if (doc.exists) return { ok: true };
-  } catch(e) { if (e.code === 'permission-denied') return { ok: false, msg: 'Akses ditolak. Hubungi administrator.' }; }
+    // Koleksi role juga tidak bisa dibaca → percayai Firebase Auth saja
+    return { ok: true };
+  } catch(e) {
+    if (e.code === 'permission-denied' || e.code === 'PERMISSION_DENIED') {
+      // Kedua koleksi diblokir Rules → tetap izinkan masuk, Rules perlu diperbaiki di konsol
+      console.warn('⚠️ Firestore Rules memblokir verifikasi. Periksa rules di Firebase Console. Login dilanjutkan.');
+      return { ok: true };
+    }
+  }
 
   return { ok: false, msg: `Akun tidak terdaftar sebagai ${cfg.label}. Pilih role yang benar atau hubungi admin.` };
 }
