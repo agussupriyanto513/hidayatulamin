@@ -858,21 +858,8 @@ body.role-santri .btn-login:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(2
 
 <script>
 // ════════════════════════════════════════
-// FIREBASE CONFIG
-// ════════════════════════════════════════
-const firebaseConfig = {
-  apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-  authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-  projectId: "hidayatulamin-e6f22",
-  storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-  messagingSenderId: "80743607267",
-  appId: "1:80743607267:web:f5f94165de021759958ed6"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();
-
+// Firebase sudah diinisialisasi via auth.js
+// Gunakan instance yang sudah ada
 db.enablePersistence({ synchronizeTabs: true }).catch(e => console.log('Persistence:', e));
 
 // ════════════════════════════════════════

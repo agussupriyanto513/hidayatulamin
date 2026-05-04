@@ -423,18 +423,7 @@ tr:hover td{background:var(--g50)}
 
 <script>
 // ═══ FIREBASE ═══
-const firebaseConfig = {
-  apiKey:"AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-  authDomain:"hidayatulamin-e6f22.firebaseapp.com",
-  projectId:"hidayatulamin-e6f22",
-  storageBucket:"hidayatulamin-e6f22.firebasestorage.app",
-  messagingSenderId:"80743607267",
-  appId:"1:80743607267:web:f5f94165de021759958ed6"
-};
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
+// Firebase auth & db sudah tersedia via auth.js
 // ═══ STATE ═══
 let qrInterval, timerInterval, timerCount = 60;
 let allAbsensi = [], allSantri = [];
