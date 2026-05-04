@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Data Pengguna | Hidayatullah Amin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="auth.js"></script>
+<style>
+:root{
+  --p:#0db87a;--pd:#059669;--pl:#e6f9f2;
+  --b:#2d7ef5;--bl:#eaf1fe;
+  --acc:#8b5cf6;--acl:#f0ebff;
+  --w:#f59e0b;--wl:#fef3c7;
+  --r:#ef4444;--rl:#fee2e2;
+  --ink:#0f172a;--ink2:#1e293b;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g600:#475569;--g700:#334155;
+  --white:#fff;
+  --sgt:#f59e0b;--sgtd:#d97706;--sgtl:#fef3c7;
+  --sh-sm:0 1px 3px rgba(0,0,0,.06);--sh-md:0 4px 16px rgba(0,0,0,.08);
+  --rd:14px;--rdm:10px;--rds:6px;--tr:all .2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(--ink2);font-size:14px;min-height:100vh;display:flex;overflow-x:hidden}
+
+/* SIDEBAR */
+.sidebar{width:256px;background:var(--ink);display:flex;flex-direction:column;position:fixed;left:0;top:0;height:100vh;z-index:200;overflow-y:auto;transition:transform .3s;scrollbar-width:none}
+.sidebar::-webkit-scrollbar{display:none}
+.sidebar.off{transform:translateX(-100%)}
+.sb-head{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px}
+.sb-logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0}
+.sb-brand h1{font-family:'Amiri',serif;color:#fff;font-size:16px;line-height:1.3}
+.sb-brand p{color:var(--p);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.sb-nav{flex:1;padding:12px 8px}
+.sb-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.25);padding:10px 12px 4px;display:block}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rdm);color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:var(--tr);cursor:pointer;margin-bottom:1px;border:1px solid transparent}
+.ni:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+.ni.active{background:rgba(13,184,122,.15);color:var(--p);border-color:rgba(13,184,122,.25)}
+.ni i{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-foot{padding:12px;border-top:1px solid rgba(255,255,255,.07)}
+.u-tile{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:var(--rdm);cursor:pointer;transition:var(--tr)}
+.u-tile:hover{background:rgba(255,255,255,.1)}
+.u-av{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+.u-inf{flex:1;min-width:0}
+.u-name{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-role{font-size:10px;color:rgba(255,255,255,.35)}
+.sb-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;display:none}
+.sb-ov.show{display:block}
+
+/* MAIN */
+.main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tb-l{display:flex;align-items:center;gap:10px}
+.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
+.menu-btn:hover{background:var(--pl);color:var(--p)}
+.pg-ttl h2{font-size:17px;font-weight:700;color:var(--ink2)}
+.pg-ttl p{font-size:11px;color:var(--g500)}
+.tb-r{display:flex;align-items:center;gap:8px}
+.content{flex:1;padding:20px}
+
+/* TABS */
+.tab-bar{display:flex;gap:4px;background:var(--white);border:1px solid var(--g200);border-radius:var(--rd);padding:6px;margin-bottom:20px;box-shadow:var(--sh-sm);flex-wrap:wrap}
+.tab-btn{flex:1;min-width:120px;padding:10px 16px;border:none;border-radius:var(--rdm);font-family:inherit;font-size:13px;font-weight:600;color:var(--g500);background:transparent;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.tab-btn:hover{background:var(--g50);color:var(--ink2)}
+.tab-btn.active{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;box-shadow:0 2px 8px rgba(13,184,122,.3)}
+.tab-btn.active.blue{background:linear-gradient(135deg,var(--b),#1a5fbb);box-shadow:0 2px 8px rgba(45,126,245,.3)}
+.tab-btn.active.amber{background:linear-gradient(135deg,var(--w),#d97706);box-shadow:0 2px 8px rgba(245,158,11,.3)}
+.tab-count{background:rgba(255,255,255,.25);padding:1px 7px;border-radius:20px;font-size:11px;font-weight:700}
+.tab-pane{display:none;animation:fadeUp .3s ease}
+.tab-pane.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* TABLE SECTION */
+.tbl-section{background:var(--white);border-radius:var(--rd);box-shadow:var(--sh-sm);border:1px solid var(--g100);overflow:hidden;margin-bottom:20px}
+.tbl-head{padding:16px 18px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tbl-title h4{font-size:14px;font-weight:700;color:var(--ink2)}
+.tbl-title p{font-size:11px;color:var(--g500)}
+.tbl-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.search-box{position:relative}
+.search-box input{padding:8px 12px 8px 32px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit;transition:var(--tr);width:200px;background:var(--white)}
+.search-box input:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(13,184,122,.1)}
+.search-box i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
+thead tr{background:var(--g50);border-bottom:1px solid var(--g200)}
+th{padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--g100);color:var(--ink2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--g50)}
+
+/* BUTTONS */
+.btn-p{padding:8px 14px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;border-radius:var(--rdm);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:var(--tr);white-space:nowrap}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(13,184,122,.35)}
+.btn-p.blue{background:linear-gradient(135deg,var(--b),#1a5fbb)}
+.btn-p.blue:hover{box-shadow:0 4px 14px rgba(45,126,245,.35)}
+.btn-p.amber{background:linear-gradient(135deg,var(--w),#d97706)}
+.btn-p.amber:hover{box-shadow:0 4px 14px rgba(245,158,11,.35)}
+.btn-sec{padding:8px 14px;background:var(--g100);color:var(--g700);border:none;border-radius:var(--rdm);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--tr)}
+.btn-sec:hover{background:var(--g200)}
+.act-btn{width:28px;height:28px;border:none;border-radius:var(--rds);cursor:pointer;transition:var(--tr);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.act-btn.v{background:var(--bl);color:var(--b)}
+.act-btn.e{background:var(--pl);color:var(--p)}
+.act-btn.d{background:var(--rl);color:var(--r)}
+.act-btn:hover{transform:scale(1.1)}
+
+/* CHIPS */
+.chip{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.chip-aktif{background:#dcfce7;color:#15803d}
+.chip-nonaktif{background:var(--rl);color:var(--r)}
+.chip-a{background:var(--gl,#e6f9f2);color:var(--gd,#059669)}
+.chip-b{background:var(--bl);color:var(--b)}
+.chip-c{background:var(--acl);color:var(--acc)}
+
+/* USER CELL */
+.u-cell{display:flex;align-items:center;gap:10px}
+.u-av-sm{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.u-det .u-nm{font-size:13px;font-weight:600;color:var(--ink2)}
+.u-det .u-em{font-size:11px;color:var(--g500)}
+
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:var(--white);border-radius:var(--rd);padding:18px;box-shadow:var(--sh-sm);border:1px solid var(--g100);display:flex;align-items:center;gap:14px}
+.sc-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sc-ico.g{background:var(--pl);color:var(--p)}
+.sc-ico.b{background:var(--bl);color:var(--b)}
+.sc-ico.a{background:var(--wl);color:var(--w)}
+.sc-val{font-size:26px;font-weight:900;color:var(--ink2);line-height:1}
+.sc-lbl{font-size:12px;color:var(--g500);margin-top:2px}
+
+/* FILTER ROW */
+.filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+select.filter-sel{padding:8px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit;background:var(--white);color:var(--ink2);cursor:pointer;transition:var(--tr)}
+select.filter-sel:focus{outline:none;border-color:var(--p)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--white);border-radius:var(--rd);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-hd{padding:18px 20px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:1}
+.modal-hd h3{font-size:15px;font-weight:700;color:var(--ink2)}
+.modal-close{width:30px;height:30px;border:none;background:var(--g100);border-radius:var(--rdm);cursor:pointer;color:var(--g600);font-size:14px;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.modal-close:hover{background:var(--rl);color:var(--r)}
+.modal-body{padding:20px}
+.modal-ft{padding:16px 20px;border-top:1px solid var(--g100);display:flex;gap:8px;justify-content:flex-end}
+.field-grp{margin-bottom:14px}
+.field-grp label{display:block;font-size:12px;font-weight:600;color:var(--g700);margin-bottom:6px}
+.field-grp input,.field-grp select,.field-grp textarea{width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit;transition:var(--tr);color:var(--ink2);background:var(--white)}
+.field-grp input:focus,.field-grp select:focus,.field-grp textarea:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(13,184,122,.1)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 16px;border-radius:var(--rdm);font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;gap:8px;box-shadow:var(--sh-md);animation:slideIn .3s ease;min-width:280px}
+.toast.s{background:#059669}
+.toast.e{background:#dc2626}
+.toast.w{background:#d97706}
+.toast.i{background:var(--b)}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+
+/* PROFILE CARD */
+.profile-header{background:linear-gradient(135deg,var(--ink) 0%,var(--ink2) 60%,#064e3b 100%);border-radius:var(--rd);padding:24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;position:relative;overflow:hidden}
+.profile-header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(13,184,122,.08);border-radius:50%}
+.ph-av{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;flex-shrink:0;position:relative;z-index:1}
+.ph-info{position:relative;z-index:1}
+.ph-info h3{font-size:20px;font-weight:800;color:#fff;margin-bottom:4px}
+.ph-info p{font-size:12px;color:rgba(255,255,255,.5)}
+.ph-info .ph-badges{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.ph-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15)}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:48px 20px;color:var(--g400)}
+.empty-state i{font-size:48px;display:block;margin-bottom:12px;opacity:.3}
+.empty-state p{font-size:13px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.on{transform:translateX(0)}
+  .main{margin-left:0}
+  .menu-btn{display:flex!important}
+  .stats-row{grid-template-columns:1fr}
+  .field-row{grid-template-columns:1fr}
+  .search-box input{width:150px}
+  .tab-btn{font-size:12px;padding:8px 10px}
+}
+@media(max-width:480px){
+  .content{padding:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="sb-ov" id="sbOv" onclick="closeSb()"></div>
+<aside class="sidebar off" id="sidebar">
+  <div class="sb-head">
+    <div class="sb-logo"><i class="fas fa-mosque"></i></div>
+    <div class="sb-brand"><h1>Hidayatullah</h1><p>Admin Panel</p></div>
+  </div>
+  <nav class="sb-nav">
+    <span class="sb-lbl">Menu Utama</span>
+    <a href="dashboard-admin.html" class="ni"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+    <a href="absensi.html" class="ni"><i class="fas fa-qrcode"></i><span>Absensi QR</span></a>
+    <a href="keuangan.html" class="ni"><i class="fas fa-wallet"></i><span>Keuangan</span></a>
+    <span class="sb-lbl">Manajemen</span>
+    <a href="data-pengguna.html" class="ni active"><i class="fas fa-users-cog"></i><span>Data Pengguna</span></a>
+    <a href="akademik.html" class="ni"><i class="fas fa-book-open"></i><span>Akademik & Hafalan</span></a>
+    <a href="info-santri.html" class="ni"><i class="fas fa-calendar-alt"></i><span>Jadwal & Pengumuman</span></a>
+    <a href="perizinan-santri.html" class="ni"><i class="fas fa-file-signature"></i><span>Perizinan</span></a>
+    <span class="sb-lbl">Portal</span>
+    <a href="dashboard-ustadz.html" class="ni"><i class="fas fa-chalkboard"></i><span>Portal Ustadz</span></a>
+    <a href="dashboard-santri.html" class="ni"><i class="fas fa-graduation-cap"></i><span>Portal Santri</span></a>
+    <a href="dashboard-wali.html" class="ni"><i class="fas fa-heart"></i><span>Portal Wali</span></a>
+    <span class="sb-lbl">Ekosistem</span>
+    <a href="donasi.html" class="ni"><i class="fas fa-hand-holding-heart"></i><span>Donasi & Transparansi</span></a>
+    <a href="https://sagatama-mart.vercel.app" target="_blank" class="ni" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)"><i class="fas fa-shopping-bag" style="color:#8b5cf6"></i><span style="color:#8b5cf6;font-weight:700">Sagatama Mart</span><i class="fas fa-external-link-alt" style="font-size:9px;color:#8b5cf6;margin-left:auto"></i></a>
+  </nav>
+  <div class="sb-foot">
+    <div class="u-tile" onclick="handleLogout()">
+      <div class="u-av" id="uAv">A</div>
+      <div class="u-inf"><div class="u-name" id="uName">Administrator</div><div class="u-role">Klik untuk logout</div></div>
+      <i class="fas fa-sign-out-alt" style="color:rgba(255,255,255,.3);font-size:13px"></i>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div class="tb-l">
+      <button class="menu-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <div class="pg-ttl"><h2>Data Pengguna</h2><p id="pgDate">Memuat...</p></div>
+    </div>
+    <div class="tb-r">
+      <button class="btn-p" onclick="openModal()"><i class="fas fa-user-plus"></i> Tambah</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- STAT CARDS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="sc-ico g"><i class="fas fa-user-graduate"></i></div>
+        <div><div class="sc-val" id="cntSantri">—</div><div class="sc-lbl">Total Santri</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-ico b"><i class="fas fa-chalkboard-teacher"></i></div>
+        <div><div class="sc-val" id="cntUstadz">—</div><div class="sc-lbl">Total Ustadz</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-ico a"><i class="fas fa-user-friends"></i></div>
+        <div><div class="sc-val" id="cntWali">—</div><div class="sc-lbl">Total Wali</div></div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('santri',this)" id="tab-santri">
+        <i class="fas fa-user-graduate"></i> Santri <span class="tab-count" id="tc-santri">0</span>
+      </button>
+      <button class="tab-btn blue" onclick="switchTab('ustadz',this)" id="tab-ustadz">
+        <i class="fas fa-chalkboard-teacher"></i> Ustadz <span class="tab-count" id="tc-ustadz">0</span>
+      </button>
+      <button class="tab-btn amber" onclick="switchTab('wali',this)" id="tab-wali">
+        <i class="fas fa-user-friends"></i> Wali <span class="tab-count" id="tc-wali">0</span>
+      </button>
+    </div>
+
+    <!-- TAB: SANTRI -->
+    <div class="tab-pane active" id="pane-santri">
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Daftar Santri</h4><p>Semua santri terdaftar</p></div>
+          <div class="tbl-acts">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Cari nama / NIS..." oninput="filterData('santri',this.value)"></div>
+            <select class="filter-sel" onchange="filterKelas(this.value)">
+              <option value="">Semua Kelas</option>
+              <option>Kelas A</option><option>Kelas B</option><option>Kelas C</option><option>Kelas D</option><option>Kelas E</option>
+            </select>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Santri</th><th>NIS</th><th>Kelas</th><th>SGT</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+            <tbody id="tblSantri"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: USTADZ -->
+    <div class="tab-pane" id="pane-ustadz">
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Daftar Ustadz</h4><p>Tenaga pengajar pesantren</p></div>
+          <div class="tbl-acts">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Cari nama / bidang..." oninput="filterData('ustadz',this.value)"></div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Ustadz</th><th>Bidang Studi</th><th>Kelas Diampu</th><th>SGT</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+            <tbody id="tblUstadz"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: WALI -->
+    <div class="tab-pane" id="pane-wali">
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Daftar Wali Santri</h4><p>Orang tua / wali terdaftar</p></div>
+          <div class="tbl-acts">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Cari nama / no. HP..." oninput="filterData('wali',this.value)"></div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Wali</th><th>Hubungan</th><th>No. HP</th><th>Anak (Santri)</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+            <tbody id="tblWali"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT -->
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3 id="modalTitle"><i class="fas fa-user-plus" style="color:var(--p);margin-right:8px"></i>Tambah Pengguna</h3>
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field-grp"><label>Nama Lengkap *</label><input type="text" id="fName" placeholder="Nama lengkap"></div>
+        <div class="field-grp"><label>Role *</label>
+          <select id="fRole" onchange="onRoleChange()">
+            <option value="">Pilih Role</option>
+            <option value="santri">Santri</option>
+            <option value="ustadz">Ustadz</option>
+            <option value="wali">Wali Santri</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-grp"><label>Email *</label><input type="email" id="fEmail" placeholder="email@contoh.com"></div>
+      <div class="field-grp"><label>Password *</label><input type="password" id="fPass" placeholder="Minimal 6 karakter"></div>
+      <div id="xSantri" style="display:none">
+        <div class="field-row">
+          <div class="field-grp"><label>NIS</label><input type="text" id="fNIS" placeholder="Nomor Induk Santri"></div>
+          <div class="field-grp"><label>Kelas</label>
+            <select id="fKelas"><option value="">Pilih Kelas</option><option>Kelas A</option><option>Kelas B</option><option>Kelas C</option><option>Kelas D</option><option>Kelas E</option></select>
+          </div>
+        </div>
+      </div>
+      <div id="xUstadz" style="display:none">
+        <div class="field-row">
+          <div class="field-grp"><label>Bidang Studi</label><input type="text" id="fBidang" placeholder="Fiqh, Tahfidz, dll."></div>
+          <div class="field-grp"><label>Kelas Diampu</label><input type="text" id="fKelasAmpu" placeholder="A, B, C..."></div>
+        </div>
+      </div>
+      <div id="xWali" style="display:none">
+        <div class="field-row">
+          <div class="field-grp"><label>No. HP</label><input type="tel" id="fPhone" placeholder="08xx-xxxx-xxxx"></div>
+          <div class="field-grp"><label>Hubungan</label>
+            <select id="fHubungan"><option value="ayah">Ayah</option><option value="ibu">Ibu</option><option value="wali">Wali</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-sec" onclick="closeModal()">Batal</button>
+      <button class="btn-p" id="saveBtn" onclick="saveUser()"><i class="fas fa-save"></i><span id="saveTxt">Simpan</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey:"AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+  authDomain:"hidayatulamin-e6f22.firebaseapp.com",
+  projectId:"hidayatulamin-e6f22",
+  storageBucket:"hidayatulamin-e6f22.firebasestorage.app",
+  messagingSenderId:"80743607267",
+  appId:"1:80743607267:web:f5f94165de021759958ed6"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+
+let dataSantri=[], dataUstadz=[], dataWali=[];
+let editingId = null;
+
+// ════ AUTH GUARD ════
+document.addEventListener('DOMContentLoaded', () => {
+  updateDate();
+  if (typeof HA !== 'undefined') {
+    HA.requireAuth('admin', (user, data) => {
+      const name = data?.namaLengkap || data?.displayName || user.email;
+      document.getElementById('uName').textContent = name;
+      document.getElementById('uAv').textContent = name[0]?.toUpperCase() || 'A';
+      loadAll();
+    });
+  } else {
+    auth.onAuthStateChanged(async user => {
+      if (!user) { location.href='login.html'; return; }
+      const doc = await db.collection('users').doc(user.uid).get().catch(()=>null);
+      if (!doc?.exists || doc.data().role !== 'admin') { auth.signOut(); location.href='login.html'; return; }
+      const d = doc.data();
+      const name = d.displayName || d.namaLengkap || user.email;
+      document.getElementById('uName').textContent = name;
+      document.getElementById('uAv').textContent = name[0]?.toUpperCase() || 'A';
+      loadAll();
+    });
+  }
+});
+
+function updateDate() {
+  const now = new Date();
+  document.getElementById('pgDate').textContent = now.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+// ════ LOAD DATA ════
+async function loadAll() {
+  const [snap1, snap2, snap3] = await Promise.all([
+    db.collection('users').where('role','==','santri').orderBy('createdAt','desc').get().catch(()=>null),
+    db.collection('users').where('role','==','ustadz').orderBy('createdAt','desc').get().catch(()=>null),
+    db.collection('users').where('role','==','wali').orderBy('createdAt','desc').get().catch(()=>null),
+  ]);
+  dataSantri = snap1 ? snap1.docs.map(d=>({id:d.id,...d.data()})) : [];
+  dataUstadz = snap2 ? snap2.docs.map(d=>({id:d.id,...d.data()})) : [];
+  dataWali   = snap3 ? snap3.docs.map(d=>({id:d.id,...d.data()})) : [];
+  document.getElementById('cntSantri').textContent = dataSantri.length;
+  document.getElementById('cntUstadz').textContent = dataUstadz.length;
+  document.getElementById('cntWali').textContent = dataWali.length;
+  document.getElementById('tc-santri').textContent = dataSantri.length;
+  document.getElementById('tc-ustadz').textContent = dataUstadz.length;
+  document.getElementById('tc-wali').textContent = dataWali.length;
+  renderSantri(dataSantri);
+  renderUstadz(dataUstadz);
+  renderWali(dataWali);
+}
+
+const fmtDate = d => d?.toDate?.()?.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) || '—';
+
+function renderSantri(list) {
+  const tb = document.getElementById('tblSantri');
+  if (!list.length) { tb.innerHTML=`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada santri terdaftar</p></div></td></tr>`; return; }
+  tb.innerHTML = list.map(u=>`
+    <tr>
+      <td><div class="u-cell"><div class="u-av-sm" style="background:#e6f9f2;color:#059669">${(u.displayName||'S')[0]}</div><div class="u-det"><div class="u-nm">${u.displayName||'—'}</div><div class="u-em">${u.email||''}</div></div></div></td>
+      <td style="font-size:12px;color:var(--g600)">${u.nis||'—'}</td>
+      <td><span class="chip chip-a">${u.kelas||'—'}</span></td>
+      <td style="font-weight:700;color:#d97706">${(u.sgtBalance||0).toLocaleString('id')} ₴</td>
+      <td><span class="chip ${u.isActive!==false?'chip-aktif':'chip-nonaktif'}">${u.isActive!==false?'Aktif':'Nonaktif'}</span></td>
+      <td style="font-size:11px;color:var(--g500)">${fmtDate(u.createdAt)}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="act-btn e" title="Edit" onclick="editUser('${u.id}','santri')"><i class="fas fa-pen"></i></button>
+        <button class="act-btn d" title="Toggle Aktif" onclick="toggleStatus('${u.id}','${u.isActive!==false}')"><i class="fas ${u.isActive!==false?'fa-ban':'fa-check'}"></i></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function renderUstadz(list) {
+  const tb = document.getElementById('tblUstadz');
+  if (!list.length) { tb.innerHTML=`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada ustadz terdaftar</p></div></td></tr>`; return; }
+  tb.innerHTML = list.map(u=>`
+    <tr>
+      <td><div class="u-cell"><div class="u-av-sm" style="background:#eaf1fe;color:#2d7ef5">${(u.displayName||'U')[0]}</div><div class="u-det"><div class="u-nm">${u.displayName||'—'}</div><div class="u-em">${u.email||''}</div></div></div></td>
+      <td style="font-size:12px">${u.bidang||'—'}</td>
+      <td><span class="chip chip-b">${u.kelasAmpu||'—'}</span></td>
+      <td style="font-weight:700;color:#d97706">${(u.sgtBalance||0).toLocaleString('id')} ₴</td>
+      <td><span class="chip ${u.isActive!==false?'chip-aktif':'chip-nonaktif'}">${u.isActive!==false?'Aktif':'Nonaktif'}</span></td>
+      <td style="font-size:11px;color:var(--g500)">${fmtDate(u.createdAt)}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="act-btn e" title="Edit" onclick="editUser('${u.id}','ustadz')"><i class="fas fa-pen"></i></button>
+        <button class="act-btn d" title="Toggle Aktif" onclick="toggleStatus('${u.id}','${u.isActive!==false}')"><i class="fas ${u.isActive!==false?'fa-ban':'fa-check'}"></i></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function renderWali(list) {
+  const tb = document.getElementById('tblWali');
+  if (!list.length) { tb.innerHTML=`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada wali terdaftar</p></div></td></tr>`; return; }
+  tb.innerHTML = list.map(u=>`
+    <tr>
+      <td><div class="u-cell"><div class="u-av-sm" style="background:#fef3c7;color:#d97706">${(u.displayName||'W')[0]}</div><div class="u-det"><div class="u-nm">${u.displayName||'—'}</div><div class="u-em">${u.email||''}</div></div></div></td>
+      <td style="font-size:12px;text-transform:capitalize">${u.hubungan||'—'}</td>
+      <td style="font-size:12px">${u.phone||'—'}</td>
+      <td style="font-size:12px">${u.anakNama||'—'}</td>
+      <td><span class="chip ${u.isActive!==false?'chip-aktif':'chip-nonaktif'}">${u.isActive!==false?'Aktif':'Nonaktif'}</span></td>
+      <td style="font-size:11px;color:var(--g500)">${fmtDate(u.createdAt)}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="act-btn e" title="Edit" onclick="editUser('${u.id}','wali')"><i class="fas fa-pen"></i></button>
+        <button class="act-btn d" title="Toggle Aktif" onclick="toggleStatus('${u.id}','${u.isActive!==false}')"><i class="fas ${u.isActive!==false?'fa-ban':'fa-check'}"></i></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// ════ FILTER ════
+function filterData(role, q) {
+  q = q.toLowerCase();
+  if (role==='santri') renderSantri(dataSantri.filter(u=>(u.displayName||'').toLowerCase().includes(q)||(u.nis||'').toLowerCase().includes(q)));
+  if (role==='ustadz') renderUstadz(dataUstadz.filter(u=>(u.displayName||'').toLowerCase().includes(q)||(u.bidang||'').toLowerCase().includes(q)));
+  if (role==='wali') renderWali(dataWali.filter(u=>(u.displayName||'').toLowerCase().includes(q)||(u.phone||'').includes(q)));
+}
+function filterKelas(v) { renderSantri(v ? dataSantri.filter(u=>u.kelas===v) : dataSantri); }
+
+// ════ TABS ════
+let activeTab = 'santri';
+function switchTab(t, el) {
+  activeTab = t;
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pane-'+t).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+// ════ MODAL ════
+function openModal() {
+  editingId = null;
+  document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus" style="color:var(--p);margin-right:8px"></i>Tambah Pengguna';
+  document.getElementById('fName').value='';
+  document.getElementById('fEmail').value='';
+  document.getElementById('fPass').value='';
+  document.getElementById('fRole').value='';
+  onRoleChange();
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal() { document.getElementById('modalBg').classList.remove('show'); }
+
+function onRoleChange() {
+  const r = document.getElementById('fRole').value;
+  document.getElementById('xSantri').style.display = r==='santri'?'block':'none';
+  document.getElementById('xUstadz').style.display = r==='ustadz'?'block':'none';
+  document.getElementById('xWali').style.display   = r==='wali'  ?'block':'none';
+}
+
+async function saveUser() {
+  const name = document.getElementById('fName').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const pass  = document.getElementById('fPass').value;
+  const role  = document.getElementById('fRole').value;
+  if (!name||!email||(!editingId&&!pass)||!role) { toast('w','Lengkapi semua field yang wajib diisi'); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled=true; document.getElementById('saveTxt').textContent='Menyimpan...';
+
+  try {
+    let uid;
+    if (!editingId) {
+      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      uid = cred.user.uid;
+    } else { uid = editingId; }
+
+    const payload = { displayName:name, email, role, isActive:true,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    if (!editingId) { payload.createdAt = firebase.firestore.FieldValue.serverTimestamp(); payload.sgtBalance=0; }
+    if (role==='santri') { payload.nis=document.getElementById('fNIS').value; payload.kelas=document.getElementById('fKelas').value; }
+    if (role==='ustadz') { payload.bidang=document.getElementById('fBidang').value; payload.kelasAmpu=document.getElementById('fKelasAmpu').value; }
+    if (role==='wali')   { payload.phone=document.getElementById('fPhone').value; payload.hubungan=document.getElementById('fHubungan').value; }
+
+    await db.collection('users').doc(uid).set(payload, {merge:true});
+    toast('s', editingId ? 'Data berhasil diperbarui' : 'Pengguna berhasil dibuat');
+    closeModal();
+    loadAll();
+  } catch(e) {
+    toast('e', e.message||'Gagal menyimpan data');
+  } finally {
+    btn.disabled=false; document.getElementById('saveTxt').textContent='Simpan';
+  }
+}
+
+function editUser(id, role) {
+  editingId = id;
+  const list = role==='santri'?dataSantri:role==='ustadz'?dataUstadz:dataWali;
+  const u = list.find(x=>x.id===id);
+  if (!u) return;
+  document.getElementById('modalTitle').innerHTML = '<i class="fas fa-pen" style="color:var(--b);margin-right:8px"></i>Edit Pengguna';
+  document.getElementById('fName').value=u.displayName||'';
+  document.getElementById('fEmail').value=u.email||'';
+  document.getElementById('fPass').placeholder='Kosongkan jika tidak diubah';
+  document.getElementById('fRole').value=role;
+  onRoleChange();
+  if (role==='santri') { document.getElementById('fNIS').value=u.nis||''; document.getElementById('fKelas').value=u.kelas||''; }
+  if (role==='ustadz') { document.getElementById('fBidang').value=u.bidang||''; document.getElementById('fKelasAmpu').value=u.kelasAmpu||''; }
+  if (role==='wali')   { document.getElementById('fPhone').value=u.phone||''; document.getElementById('fHubungan').value=u.hubungan||'ayah'; }
+  document.getElementById('modalBg').classList.add('show');
+}
+
+async function toggleStatus(id, currentActive) {
+  const newStatus = currentActive==='true' ? false : true;
+  await db.collection('users').doc(id).update({isActive:newStatus}).catch(()=>{});
+  toast('s', newStatus ? 'Akun diaktifkan' : 'Akun dinonaktifkan');
+  loadAll();
+}
+
+// ════ TOAST ════
+function toast(type, msg) {
+  const icons = {s:'check-circle',e:'times-circle',w:'exclamation-triangle',i:'info-circle'};
+  const el = document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<i class="fas fa-${icons[type]||'info-circle'}"></i>${msg}`;
+  document.getElementById('toastWrap').appendChild(el);
+  setTimeout(()=>el.remove(), 4000);
+}
+
+// ════ SIDEBAR ════
+function toggleSb() { document.getElementById('sidebar').classList.toggle('off'); document.getElementById('sbOv').classList.toggle('show'); }
+function closeSb() { document.getElementById('sidebar').classList.add('off'); document.getElementById('sbOv').classList.remove('show'); }
+
+async function handleLogout() {
+  await auth.signOut().catch(()=>{});
+  sessionStorage.removeItem('currentUser');
+  location.href='login.html';
+}
+</script>
+</body>
+</html>

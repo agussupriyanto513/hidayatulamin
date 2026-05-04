@@ -1,1533 +1,1245 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Yayasan Hidayatullah Amin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Pi Network SDK -->
-    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-
-    <style>
-        :root {
-            --primary: #10b981;
-            --primary-dark: #059669;
-            --secondary: #3b82f6;
-            --accent: #8b5cf6;
-            --gold: #fbbf24;
-            --dark: #0f172a;
-            --light: #f8fafc;
-            --error: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            --pi-purple: #8b5cf6;
-            --pi-purple-dark: #7c3aed;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 50%, var(--primary-dark) 100%);
-            overflow-x: hidden;
-        }
-
-        .login-visual {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 60px;
-            position: relative;
-            color: white;
-        }
-
-        .login-visual::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%);
-            animation: pulse 4s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .brand-logo {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .brand-icon {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--gold) 100%);
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            margin: 0 auto 25px;
-            box-shadow: 0 20px 60px rgba(16,185,129,0.3);
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .brand-logo h1 { font-size: 2rem; margin-bottom: 10px; }
-        .brand-logo p { opacity: 0.8; font-size: 1.1rem; }
-
-        .features-list {
-            position: relative;
-            z-index: 1;
-            list-style: none;
-            max-width: 400px;
-        }
-
-        .features-list li {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
-            padding: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s;
-        }
-
-        .features-list li:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateX(10px);
-        }
-
-        .features-list i {
-            width: 50px;
-            height: 50px;
-            background: rgba(16,185,129,0.2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            color: var(--primary);
-        }
-
-        .login-form-container {
-            width: 100%;
-            max-width: 500px;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 60px;
-            position: relative;
-            overflow-y: auto;
-        }
-
-        .back-link {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            color: #64748b;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .back-link:hover { color: var(--primary); }
-
-        .form-header { margin-bottom: 35px; }
-        .form-header h2 { font-size: 2rem; color: var(--dark); margin-bottom: 10px; }
-        .form-header p { color: #64748b; }
-
-        .role-selector {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-
-        .role-option {
-            padding: 18px 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 14px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: white;
-        }
-
-        .role-option:hover {
-            border-color: var(--primary);
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .role-option.active {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        .role-option.active.wali { border-color: var(--primary); background: #f0fdf4; }
-        .role-option.active.admin { border-color: var(--secondary); background: #eff6ff; }
-        .role-option.active.ustadz { border-color: var(--accent); background: #f5f3ff; }
-        .role-option.active.santri { border-color: var(--gold); background: #fffbeb; }
-
-        .role-option i {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            margin: 0 auto 10px;
-            color: white;
-        }
-
-        .role-option.wali i { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); }
-        .role-option.admin i { background: linear-gradient(135deg, var(--secondary) 0%, #2563eb 100%); }
-        .role-option.ustadz i { background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%); }
-        .role-option.santri i { background: linear-gradient(135deg, var(--gold) 0%, #f59e0b 100%); }
-
-        .role-option h4 { font-size: 0.9rem; color: var(--dark); margin-bottom: 4px; font-weight: 600; }
-        .role-option p { font-size: 0.75rem; color: #64748b; }
-
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #475569; font-size: 0.9rem; }
-
-        .input-wrap { position: relative; }
-        .input-wrap i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 1rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 14px 18px 14px 45px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(16,185,129,0.1);
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1rem;
-        }
-
-        .toggle-password:hover { color: var(--primary); }
-
-        .remember-forgot {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-
-        .remember-me {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            color: #64748b;
-        }
-
-        .remember-me input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary);
-            cursor: pointer;
-        }
-
-        .forgot-password {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .forgot-password:hover { color: var(--primary-dark); text-decoration: underline; }
-
-        .btn-submit {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.3s;
-        }
-
-        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16,185,129,0.3); }
-        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .btn-submit.loading { pointer-events: none; }
-        .btn-submit.loading i { animation: spin 1s linear infinite; }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 25px 0;
-            color: #94a3b8;
-            font-size: 0.85rem;
-        }
-
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #e2e8f0;
-        }
-
-        .divider span { padding: 0 15px; }
-
-        /* Pi Network Login Section */
-        .pi-login-section {
-            margin: 20px 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-            border-radius: 16px;
-            border: 2px solid #ddd6fe;
-            text-align: center;
-        }
-
-        .pi-login-header {
-            margin-bottom: 15px;
-        }
-
-        .pi-login-header h4 {
-            color: var(--pi-purple);
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 5px;
-        }
-
-        .pi-login-header p {
-            font-size: 0.85rem;
-            color: #6b7280;
-        }
-
-        .pi-logo {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--pi-purple) 0%, var(--pi-purple-dark) 100%);
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-
-        .btn-pi {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--pi-purple) 0%, var(--pi-purple-dark) 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-pi:hover:not(:disabled) { 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 25px rgba(139,92,246,0.3); 
-        }
-        .btn-pi:disabled { opacity: 0.6; cursor: not-allowed; }
-        .btn-pi.loading i { animation: spin 1s linear infinite; }
-
-        .btn-pi::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn-pi:hover::before {
-            left: 100%;
-        }
-
-        .pi-browser-notice {
-            background: #fef3c7;
-            border: 1px solid #fde68a;
-            border-radius: 10px;
-            padding: 12px;
-            margin-top: 12px;
-            font-size: 0.8rem;
-            color: #92400e;
-            display: none;
-        }
-
-        .pi-browser-notice.show {
-            display: block;
-        }
-
-        .pi-user-info {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 15px;
-            display: none;
-            text-align: left;
-            border: 1px solid #e5e7eb;
-        }
-
-        .pi-user-info.show {
-            display: block;
-        }
-
-        .pi-user-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .pi-user-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--pi-purple), var(--pi-purple-dark));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-        }
-
-        .pi-user-details h5 {
-            font-size: 1rem;
-            color: var(--dark);
-            margin-bottom: 2px;
-        }
-
-        .pi-user-details span {
-            font-size: 0.8rem;
-            color: #6b7280;
-        }
-
-        .pi-wallet-info {
-            background: #f3f4f6;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 0.85rem;
-            color: #374151;
-        }
-
-        .alert {
-            padding: 14px 18px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: none;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .alert.show { display: flex; }
-        .alert-error { background: #fee2e2; color: var(--error); border: 1px solid #fecaca; }
-        .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            flex-direction: column;
-        }
-
-        .loading-overlay.show { display: flex; }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .loading-text {
-            margin-top: 20px;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        /* Pi Badge */
-        .pi-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, var(--pi-purple), var(--pi-purple-dark));
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        @media (max-width: 1024px) {
-            body { flex-direction: column; }
-            .login-visual { display: none; }
-            .login-form-container { max-width: 100%; min-height: 100vh; }
-        }
-
-        @media (max-width: 640px) {
-            .login-form-container { padding: 40px 20px; }
-            .role-selector { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .role-option { padding: 15px 8px; }
-            .form-header h2 { font-size: 1.5rem; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masuk | Yayasan Hidayatullah Amin</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="auth.js"></script>
+<!-- Pi Network SDK -->
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+<style>
+:root {
+  --ink:       #0d1117;
+  --ink2:      #1c2333;
+  --ink3:      #2d3748;
+  --gold:      #c9a84c;
+  --gold2:     #e8c97e;
+  --gold3:     #f5e6c0;
+  --gold-glow: rgba(201,168,76,0.18);
+  --emerald:   #0e7c5b;
+  --emerald2:  #12a67a;
+  --emerald3:  #d4f0e7;
+  --pi:        #7c3aed;
+  --pi2:       #9d5ff5;
+  --pi3:       #ede9fe;
+  --red:       #e53e3e;
+  --red-bg:    #fff5f5;
+  --amber:     #d97706;
+  --amber-bg:  #fffbeb;
+  --blue:      #2563eb;
+  --blue-bg:   #eff6ff;
+  --white:     #ffffff;
+  --gray-50:   #f9fafb;
+  --gray-100:  #f3f4f6;
+  --gray-200:  #e5e7eb;
+  --gray-300:  #d1d5db;
+  --gray-400:  #9ca3af;
+  --gray-500:  #6b7280;
+  --gray-600:  #4b5563;
+  --shadow-card: 0 1px 3px rgba(0,0,0,.06), 0 8px 32px rgba(0,0,0,.07);
+  --shadow-glow: 0 0 40px rgba(201,168,76,.12);
+  --r: 16px;
+  --rm: 12px;
+  --rs: 8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  background: var(--ink);
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════
+   LEFT PANEL — Decorative
+═══════════════════════════════ */
+.left-panel {
+  flex: 1.1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 64px;
+  overflow: hidden;
+}
+
+/* Geometric pattern background */
+.left-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 40%, rgba(201,168,76,.13) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 80%, rgba(14,124,91,.12) 0%, transparent 60%),
+    linear-gradient(160deg, #0d1117 0%, #111827 50%, #0d1117 100%);
+}
+
+/* Geometric ornament */
+.geo-pattern {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.geo-pattern svg {
+  position: absolute;
+  width: 100%; height: 100%;
+  opacity: 0.035;
+}
+
+/* Floating orb */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: orbFloat 8s ease-in-out infinite;
+}
+.orb-1 { width: 320px; height: 320px; background: radial-gradient(circle, rgba(201,168,76,.3), transparent); top: -80px; right: -80px; animation-delay: 0s; }
+.orb-2 { width: 240px; height: 240px; background: radial-gradient(circle, rgba(14,124,91,.25), transparent); bottom: 60px; left: 30px; animation-delay: -4s; }
+
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-24px) scale(1.05); }
+}
+
+/* Arabic quote */
+.arabic-verse {
+  position: relative;
+  z-index: 2;
+  font-family: 'Noto Naskh Arabic', serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  color: var(--gold2);
+  text-align: right;
+  line-height: 1.8;
+  direction: rtl;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 24px rgba(201,168,76,.25);
+  animation: fadeUp 1s ease both;
+}
+.arabic-translation {
+  position: relative;
+  z-index: 2;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,.45);
+  text-align: right;
+  margin-bottom: 60px;
+  animation: fadeUp 1s .1s ease both;
+}
+
+/* Brand block */
+.brand-block {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 48px;
+  animation: fadeUp 1s .2s ease both;
+}
+.brand-emblem {
+  width: 72px; height: 72px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 8px 32px rgba(201,168,76,.35), inset 0 1px 0 rgba(255,255,255,.2);
+  flex-shrink: 0;
+}
+.brand-text h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+  color: var(--white);
+  line-height: 1.25;
+  letter-spacing: -.01em;
+}
+.brand-text p {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,.45);
+  margin-top: 4px;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+/* Feature cards */
+.features {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 420px;
+  animation: fadeUp 1s .3s ease both;
+}
+.feat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: var(--rm);
+  backdrop-filter: blur(8px);
+  transition: all .25s;
+  cursor: default;
+}
+.feat-card:hover {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(201,168,76,.25);
+  transform: translateX(6px);
+}
+.feat-icon {
+  width: 44px; height: 44px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.feat-icon.green  { background: rgba(14,124,91,.2);  color: var(--emerald2); }
+.feat-icon.gold   { background: rgba(201,168,76,.2); color: var(--gold2); }
+.feat-icon.purple { background: rgba(124,58,237,.2); color: #a78bfa; }
+.feat-card-text h4 { font-size: .9rem; font-weight: 600; color: rgba(255,255,255,.9); margin-bottom: 2px; }
+.feat-card-text p  { font-size: .78rem; color: rgba(255,255,255,.4); }
+
+/* Bottom watermark */
+.panel-footer {
+  position: absolute;
+  bottom: 32px; left: 64px;
+  z-index: 2;
+  font-size: .75rem;
+  color: rgba(255,255,255,.2);
+  letter-spacing: .04em;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════
+   RIGHT PANEL — Form
+═══════════════════════════════ */
+.right-panel {
+  width: 480px;
+  min-width: 480px;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 56px 48px;
+  position: relative;
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+.back-btn {
+  position: absolute;
+  top: 28px; left: 28px;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--gray-400);
+  font-size: .82rem;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 7px 12px;
+  border-radius: 8px;
+  transition: all .2s;
+  border: 1px solid transparent;
+}
+.back-btn:hover {
+  color: var(--emerald);
+  background: var(--emerald3);
+  border-color: rgba(14,124,91,.15);
+}
+
+/* Form header */
+.form-head {
+  margin-bottom: 32px;
+  animation: fadeUp .7s .1s ease both;
+}
+.form-head .eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .72rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--emerald);
+  background: var(--emerald3);
+  padding: 5px 10px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+}
+.form-head h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  color: var(--ink);
+  letter-spacing: -.02em;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.form-head p { font-size: .9rem; color: var(--gray-500); }
+
+/* Role Selector */
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 28px;
+  animation: fadeUp .7s .2s ease both;
+}
+.role-card {
+  padding: 16px 14px;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--rm);
+  cursor: pointer;
+  text-align: center;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+  background: var(--white);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+.role-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 60%, rgba(255,255,255,.3));
+  opacity: 0;
+  transition: opacity .2s;
+}
+.role-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+.role-card:hover::after { opacity: 1; }
+
+.role-card .ri {
+  width: 42px; height: 42px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem;
+  margin: 0 auto 10px;
+  color: white;
+  transition: transform .2s;
+}
+.role-card:hover .ri { transform: scale(1.08); }
+.role-card h4 { font-size: .82rem; font-weight: 700; color: var(--ink3); margin-bottom: 2px; }
+.role-card span { font-size: .72rem; color: var(--gray-400); }
+
+/* Role colors */
+.role-card[data-role="wali"]   .ri { background: linear-gradient(135deg, #0e7c5b, #059669); }
+.role-card[data-role="admin"]  .ri { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.role-card[data-role="ustadz"] .ri { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+.role-card[data-role="santri"] .ri { background: linear-gradient(135deg, #d97706, #b45309); }
+
+/* Active states */
+.role-card.active { transform: translateY(-3px); }
+.role-card[data-role="wali"].active   { border-color: #0e7c5b; background: #f0fdf4; box-shadow: 0 6px 20px rgba(14,124,91,.15); }
+.role-card[data-role="admin"].active  { border-color: #2563eb; background: #eff6ff; box-shadow: 0 6px 20px rgba(37,99,235,.15); }
+.role-card[data-role="ustadz"].active { border-color: #7c3aed; background: #f5f3ff; box-shadow: 0 6px 20px rgba(124,58,237,.15); }
+.role-card[data-role="santri"].active { border-color: #d97706; background: #fffbeb; box-shadow: 0 6px 20px rgba(217,119,6,.15); }
+
+.role-card.active h4 { color: var(--ink); }
+
+/* check badge */
+.role-check {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .65rem;
+  color: white;
+  opacity: 0;
+  transform: scale(.5);
+  transition: all .25s cubic-bezier(.34,1.56,.64,1);
+}
+.role-card[data-role="wali"].active   .role-check { background: #0e7c5b; opacity: 1; transform: scale(1); }
+.role-card[data-role="admin"].active  .role-check { background: #2563eb; opacity: 1; transform: scale(1); }
+.role-card[data-role="ustadz"].active .role-check { background: #7c3aed; opacity: 1; transform: scale(1); }
+.role-card[data-role="santri"].active .role-check { background: #d97706; opacity: 1; transform: scale(1); }
+
+/* Form fields */
+.fields { animation: fadeUp .7s .3s ease both; }
+.field { margin-bottom: 18px; }
+.field label {
+  display: block;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  margin-bottom: 7px;
+  letter-spacing: .01em;
+}
+.input-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-shell i.icon-left {
+  position: absolute;
+  left: 14px;
+  color: var(--gray-400);
+  font-size: .95rem;
+  pointer-events: none;
+  transition: color .2s;
+}
+.input-shell input {
+  width: 100%;
+  padding: 13px 44px 13px 42px;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--rm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: .95rem;
+  color: var(--ink);
+  background: var(--gray-50);
+  transition: all .2s;
+  -webkit-appearance: none;
+}
+.input-shell input::placeholder { color: var(--gray-400); }
+.input-shell input:focus {
+  outline: none;
+  background: var(--white);
+  border-color: var(--emerald);
+  box-shadow: 0 0 0 4px rgba(14,124,91,.1);
+}
+.input-shell input:focus + .icon-focus,
+.input-shell input:focus ~ .icon-left { color: var(--emerald); }
+
+/* Dynamic focus border per role */
+body.role-admin  .input-shell input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.1); }
+body.role-ustadz .input-shell input:focus { border-color: #7c3aed; box-shadow: 0 0 0 4px rgba(124,58,237,.1); }
+body.role-santri .input-shell input:focus { border-color: #d97706; box-shadow: 0 0 0 4px rgba(217,119,6,.1); }
+
+.toggle-pass {
+  position: absolute;
+  right: 14px;
+  color: var(--gray-400);
+  cursor: pointer;
+  font-size: .9rem;
+  transition: color .2s;
+  padding: 4px;
+}
+.toggle-pass:hover { color: var(--gray-600); }
+
+/* Remember & Forgot */
+.row-rf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+.check-label {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer;
+  font-size: .82rem;
+  color: var(--gray-500);
+  user-select: none;
+}
+.check-label input[type="checkbox"] {
+  width: 17px; height: 17px;
+  accent-color: var(--emerald);
+  cursor: pointer;
+  border-radius: 4px;
+}
+.forgot-link {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--emerald);
+  text-decoration: none;
+  transition: opacity .15s;
+}
+.forgot-link:hover { opacity: .7; }
+
+/* Submit button */
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--rm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: .95rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: .01em;
+  background: linear-gradient(135deg, var(--emerald) 0%, var(--emerald2) 100%);
+  box-shadow: 0 4px 16px rgba(14,124,91,.3);
+}
+.btn-login::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.12) 0%, transparent 100%);
+}
+.btn-login:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(14,124,91,.35); }
+.btn-login:active:not(:disabled) { transform: translateY(0); }
+.btn-login:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+.btn-login.loading { pointer-events: none; }
+.btn-login.loading .spin { animation: spin 1s linear infinite; }
+
+/* Dynamic button colors per role */
+body.role-admin  .btn-login { background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 4px 16px rgba(37,99,235,.3); }
+body.role-admin  .btn-login:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(37,99,235,.35); }
+body.role-ustadz .btn-login { background: linear-gradient(135deg, #7c3aed, #6d28d9); box-shadow: 0 4px 16px rgba(124,58,237,.3); }
+body.role-ustadz .btn-login:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(124,58,237,.35); }
+body.role-santri .btn-login { background: linear-gradient(135deg, #d97706, #b45309); box-shadow: 0 4px 16px rgba(217,119,6,.3); }
+body.role-santri .btn-login:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(217,119,6,.35); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Divider */
+.divider {
+  display: flex; align-items: center; gap: 14px;
+  margin: 22px 0;
+  color: var(--gray-400);
+  font-size: .78rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--gray-200);
+}
+
+/* Pi Network section */
+.pi-box {
+  background: linear-gradient(135deg, #1e1433 0%, #2d1b69 100%);
+  border-radius: var(--r);
+  padding: 20px;
+  border: 1px solid rgba(124,58,237,.3);
+  position: relative;
+  overflow: hidden;
+}
+.pi-box::before {
+  content: 'π';
+  position: absolute;
+  right: -10px; top: -15px;
+  font-size: 100px;
+  font-weight: 900;
+  color: rgba(255,255,255,.04);
+  line-height: 1;
+  pointer-events: none;
+}
+.pi-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 14px;
+}
+.pi-logo-badge {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--pi), var(--pi2));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; font-weight: 900; color: white;
+  box-shadow: 0 4px 12px rgba(124,58,237,.4);
+  flex-shrink: 0;
+}
+.pi-header-text h4 { font-size: .88rem; font-weight: 700; color: white; margin-bottom: 1px; }
+.pi-header-text p  { font-size: .75rem; color: rgba(255,255,255,.45); }
+
+.btn-pi {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--pi) 0%, var(--pi2) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--rm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: .9rem; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .2s;
+  box-shadow: 0 4px 16px rgba(124,58,237,.35);
+  position: relative; overflow: hidden;
+}
+.btn-pi::before {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+  transition: left .5s;
+}
+.btn-pi:hover:not(:disabled)::before { left: 100%; }
+.btn-pi:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,.4); }
+.btn-pi:disabled { opacity: .5; cursor: not-allowed; }
+.btn-pi.loading .spin { animation: spin 1s linear infinite; }
+
+.pi-notice {
+  margin-top: 12px;
+  padding: 10px 13px;
+  background: rgba(255,255,255,.06);
+  border-radius: var(--rs);
+  font-size: .77rem;
+  color: rgba(255,255,255,.5);
+  display: flex; align-items: flex-start; gap: 7px;
+  display: none;
+}
+.pi-notice.show { display: flex; }
+.pi-notice i { margin-top: 1px; color: rgba(255,255,255,.4); flex-shrink: 0; }
+
+.pi-connected-card {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,.08);
+  border-radius: var(--rm);
+  border: 1px solid rgba(255,255,255,.1);
+  display: none;
+}
+.pi-connected-card.show { display: block; }
+.pi-user-row { display: flex; align-items: center; gap: 10px; }
+.pi-avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pi), var(--pi2));
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1rem;
+}
+.pi-uname { font-size: .88rem; font-weight: 600; color: white; }
+.pi-badge-sm {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(124,58,237,.4);
+  color: #c4b5fd;
+  font-size: .68rem; font-weight: 600;
+  padding: 2px 8px; border-radius: 20px;
+}
+
+/* Alerts */
+.alert-wrap { margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px; }
+.alert {
+  display: none;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 15px;
+  border-radius: var(--rm);
+  font-size: .85rem;
+  line-height: 1.5;
+  animation: slideIn .3s ease;
+}
+.alert.show { display: flex; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.alert i { flex-shrink: 0; margin-top: 1px; }
+.alert-error   { background: var(--red-bg);   color: var(--red);   border: 1px solid #fecaca; }
+.alert-warning { background: var(--amber-bg); color: var(--amber); border: 1px solid #fde68a; }
+.alert-info    { background: var(--blue-bg);  color: var(--blue);  border: 1px solid #bfdbfe; }
+.alert-success { background: var(--emerald3); color: var(--emerald); border: 1px solid #a7f3d0; }
+
+/* Loading overlay */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(255,255,255,.96);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+.overlay.show { display: flex; }
+.loader-ring {
+  width: 52px; height: 52px;
+  border: 3px solid var(--gray-200);
+  border-top-color: var(--emerald);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.loader-text {
+  margin-top: 16px;
+  font-size: .9rem;
+  font-weight: 500;
+  color: var(--gray-500);
+}
+.loader-dots { display: inline-block; animation: dots 1.5s steps(4, end) infinite; }
+@keyframes dots {
+  0%   { content: '.'; }
+  33%  { content: '..'; }
+  66%  { content: '...'; }
+  100% { content: ''; }
+}
+
+/* ═══════════════════════════════
+   RESPONSIVE
+═══════════════════════════════ */
+@media (max-width: 1100px) {
+  .left-panel { display: none; }
+  .right-panel { width: 100%; min-width: 0; min-height: 100vh; }
+}
+@media (max-width: 520px) {
+  .right-panel { padding: 56px 24px 40px; }
+  .role-grid { gap: 8px; }
+  .role-card { padding: 14px 10px; }
+}
+</style>
 </head>
 <body>
 
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <p class="loading-text" id="loadingText">Memuat...</p>
+<!-- Loading Overlay -->
+<div class="overlay" id="overlay">
+  <div class="loader-ring"></div>
+  <p class="loader-text" id="loaderText">Memeriksa sesi<span class="loader-dots"></span></p>
+</div>
+
+<!-- LEFT PANEL -->
+<div class="left-panel">
+  <div class="geo-pattern">
+    <svg viewBox="0 0 800 800" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="islamic" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+          <!-- Islamic geometric star motif -->
+          <polygon points="60,5 72,45 110,45 80,68 92,108 60,85 28,108 40,68 10,45 48,45" fill="none" stroke="#c9a84c" stroke-width="0.8"/>
+          <polygon points="60,25 67,47 91,47 72,60 79,82 60,68 41,82 48,60 29,47 53,47" fill="none" stroke="#c9a84c" stroke-width="0.4"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#islamic)"/>
+    </svg>
+  </div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="arabic-verse">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+  <div class="arabic-translation">Dengan nama Allah Yang Maha Pengasih, Maha Penyayang</div>
+
+  <div class="brand-block">
+    <div class="brand-emblem">🕌</div>
+    <div class="brand-text">
+      <h1>Yayasan Hidayatullah Amin</h1>
+      <p>Sistem Informasi Terpadu</p>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feat-card">
+      <div class="feat-icon green"><i class="fas fa-quran"></i></div>
+      <div class="feat-card-text">
+        <h4>Monitoring Hafalan</h4>
+        <p>Pantau perkembangan hafalan santri secara real-time</p>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon gold"><i class="fas fa-coins"></i></div>
+      <div class="feat-card-text">
+        <h4>Pi Network Payments</h4>
+        <p>Pembayaran SPP & donasi dengan cryptocurrency Pi</p>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon purple"><i class="fas fa-chart-line"></i></div>
+      <div class="feat-card-text">
+        <h4>Laporan Digital</h4>
+        <p>Akses nilai, absensi, dan laporan keuangan online</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-footer">© 2025 Yayasan Hidayatullah Amin · hidayatulamin.vercel.app</div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+  <a href="index.html" class="back-btn">
+    <i class="fas fa-arrow-left"></i> Beranda
+  </a>
+
+  <div class="form-head">
+    <div class="eyebrow"><i class="fas fa-mosque"></i> Portal Santri</div>
+    <h2>Selamat Datang<br>Kembali</h2>
+    <p>Pilih peran Anda dan masuk ke sistem</p>
+  </div>
+
+  <!-- Alerts -->
+  <div class="alert-wrap">
+    <div class="alert alert-error" id="errAlert"><i class="fas fa-circle-exclamation"></i><span id="errText"></span></div>
+    <div class="alert alert-warning" id="warnAlert"><i class="fas fa-triangle-exclamation"></i><span id="warnText"></span></div>
+    <div class="alert alert-info" id="infoAlert"><i class="fas fa-circle-info"></i><span id="infoText"></span></div>
+    <div class="alert alert-success" id="okAlert"><i class="fas fa-circle-check"></i><span id="okText"></span></div>
+  </div>
+
+  <!-- Role Selector -->
+  <div class="role-grid">
+    <div class="role-card" data-role="wali" onclick="pickRole('wali')">
+      <div class="role-check"><i class="fas fa-check"></i></div>
+      <div class="ri"><i class="fas fa-users"></i></div>
+      <h4>Wali Santri</h4>
+      <span>Orang tua / wali</span>
+    </div>
+    <div class="role-card" data-role="admin" onclick="pickRole('admin')">
+      <div class="role-check"><i class="fas fa-check"></i></div>
+      <div class="ri"><i class="fas fa-user-shield"></i></div>
+      <h4>Administrator</h4>
+      <span>Admin pondok</span>
+    </div>
+    <div class="role-card" data-role="ustadz" onclick="pickRole('ustadz')">
+      <div class="role-check"><i class="fas fa-check"></i></div>
+      <div class="ri"><i class="fas fa-chalkboard-teacher"></i></div>
+      <h4>Ustadz</h4>
+      <span>Pengajar / guru</span>
+    </div>
+    <div class="role-card" data-role="santri" onclick="pickRole('santri')">
+      <div class="role-check"><i class="fas fa-check"></i></div>
+      <div class="ri"><i class="fas fa-user-graduate"></i></div>
+      <h4>Santri</h4>
+      <span>Peserta didik</span>
+    </div>
+  </div>
+
+  <!-- Login Form -->
+  <form id="loginForm" class="fields" novalidate>
+    <div class="field">
+      <label for="emailInput">Email</label>
+      <div class="input-shell">
+        <i class="fas fa-envelope icon-left"></i>
+        <input type="email" id="emailInput" placeholder="nama@email.com" autocomplete="email" required>
+      </div>
+    </div>
+    <div class="field">
+      <label for="pwInput">Password</label>
+      <div class="input-shell">
+        <i class="fas fa-lock icon-left"></i>
+        <input type="password" id="pwInput" placeholder="Masukkan password" autocomplete="current-password" required>
+        <i class="fas fa-eye toggle-pass" id="togglePw" onclick="togglePw()"></i>
+      </div>
     </div>
 
-    <!-- Left Side -->
-    <div class="login-visual">
-        <div class="brand-logo">
-            <div class="brand-icon">
-                <i class="fas fa-mosque"></i>
-            </div>
-            <h1>Yayasan Hidayatullah Amin</h1>
-            <p>Sistem Informasi Terpadu & Pi Network</p>
-        </div>
-        
-        <ul class="features-list">
-            <li>
-                <i class="fas fa-quran"></i>
-                <div>
-                    <h4>Monitoring Hafalan</h4>
-                    <p>Pantau perkembangan hafalan santri real-time</p>
-                </div>
-            </li>
-            <li>
-                <i class="fas fa-coins"></i>
-                <div>
-                    <h4>Pi Payments</h4>
-                    <p>Pembayaran SPP dengan cryptocurrency Pi</p>
-                </div>
-            </li>
-            <li>
-                <i class="fas fa-chart-line"></i>
-                <div>
-                    <h4>Laporan Digital</h4>
-                    <p>Akses nilai dan laporan keuangan online</p>
-                </div>
-            </li>
-        </ul>
+    <div class="row-rf">
+      <label class="check-label">
+        <input type="checkbox" id="rememberCheck">
+        <span>Ingat saya</span>
+      </label>
+      <a href="#" class="forgot-link" onclick="doForgot(event)">Lupa password?</a>
     </div>
 
-    <!-- Right Side -->
-    <div class="login-form-container">
-        <a href="portal-hidayatullah.html" class="back-link">
-            <i class="fas fa-arrow-left"></i> Kembali ke Beranda
-        </a>
-        
-        <div class="form-header">
-            <h2>Selamat Datang Kembali</h2>
-            <p>Pilih peran Anda dan masuk ke sistem</p>
-        </div>
-        
-        <!-- Alert Messages -->
-        <div class="alert alert-error" id="errorAlert">
-            <i class="fas fa-exclamation-circle"></i>
-            <span id="errorText">Email atau password salah</span>
-        </div>
-        <div class="alert alert-warning" id="warningAlert">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span id="warningText">Peringatan</span>
-        </div>
-        <div class="alert alert-info" id="infoAlert">
-            <i class="fas fa-info-circle"></i>
-            <span id="infoText">Informasi</span>
-        </div>
-        <div class="alert alert-success" id="successAlert">
-            <i class="fas fa-check-circle"></i>
-            <span id="successText">Berhasil</span>
-        </div>
-        
-        <!-- Role Selector - 4 Roles -->
-        <div class="role-selector">
-            <div class="role-option wali" onclick="selectRole('wali')" data-role="wali">
-                <i class="fas fa-users"></i>
-                <h4>Wali Santri</h4>
-                <p>Orang tua/wali</p>
-            </div>
-            <div class="role-option admin" onclick="selectRole('admin')" data-role="admin">
-                <i class="fas fa-user-shield"></i>
-                <h4>Administrator</h4>
-                <p>Admin pondok</p>
-            </div>
-            <div class="role-option ustadz" onclick="selectRole('ustadz')" data-role="ustadz">
-                <i class="fas fa-chalkboard-teacher"></i>
-                <h4>Ustadz</h4>
-                <p>Pengajar</p>
-            </div>
-            <div class="role-option santri" onclick="selectRole('santri')" data-role="santri">
-                <i class="fas fa-user-graduate"></i>
-                <h4>Santri</h4>
-                <p>Peserta didik</p>
-            </div>
-        </div>
-        
-        <!-- Email/Password Form -->
-        <form id="loginForm">
-            <div class="form-group">
-                <label>Email</label>
-                <div class="input-wrap">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="email" placeholder="nama@email.com" required autocomplete="email">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Password</label>
-                <div class="input-wrap">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
-                    <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
-                </div>
-            </div>
+    <button type="submit" class="btn-login" id="loginBtn">
+      <i class="fas fa-sign-in-alt" id="loginIcon"></i>
+      <span id="loginBtnText">Masuk ke Sistem</span>
+    </button>
+  </form>
 
-            <div class="remember-forgot">
-                <label class="remember-me">
-                    <input type="checkbox" id="rememberMe">
-                    <span>Ingat saya</span>
-                </label>
-                <a href="#" class="forgot-password" onclick="handleForgotPassword(event)">Lupa password?</a>
-            </div>
-            
-            <button type="submit" class="btn-submit" id="submitBtn">
-                <i class="fas fa-sign-in-alt"></i>
-                Masuk ke Sistem
-            </button>
-        </form>
-        
-        <div class="divider">
-            <span>atau</span>
-        </div>
-        
-        <!-- Pi Network Login Section -->
-        <div class="pi-login-section">
-            <div class="pi-login-header">
-                <div class="pi-logo">π</div>
-                <h4><i class="fas fa-coins"></i> Login dengan Pi Network</h4>
-                <p>Masuk menggunakan akun Pi Browser Anda</p>
-            </div>
-            
-            <button class="btn-pi" id="piLoginBtn" onclick="handlePiLogin()">
-                <i class="fas fa-mobile-alt"></i>
-                <span id="piBtnText">Login dengan Pi Browser</span>
-            </button>
-            
-            <div class="pi-browser-notice" id="piBrowserNotice">
-                <i class="fas fa-info-circle"></i>
-                Anda perlu membuka aplikasi ini di <strong>Pi Browser</strong> untuk menggunakan fitur ini.
-                <br>Download Pi Browser di aplikasi Pi Network Anda.
-            </div>
-            
-            <div class="pi-user-info" id="piUserInfo">
-                <div class="pi-user-header">
-                    <div class="pi-user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="pi-user-details">
-                        <h5 id="piUsername">Username</h5>
-                        <span class="pi-badge"><i class="fas fa-check-circle"></i> Pi Pioneer</span>
-                    </div>
-                </div>
-                <div class="pi-wallet-info">
-                    <i class="fas fa-wallet"></i> Wallet terhubung
-                </div>
-            </div>
-        </div>
+  <div class="divider"><span>atau masuk dengan</span></div>
+
+  <!-- Pi Network -->
+  <div class="pi-box">
+    <div class="pi-header">
+      <div class="pi-logo-badge">π</div>
+      <div class="pi-header-text">
+        <h4>Pi Network</h4>
+        <p>Login via Pi Browser wallet</p>
+      </div>
     </div>
+    <button class="btn-pi" id="piBtn" onclick="doPiLogin()">
+      <i class="fas fa-mobile-alt"></i>
+      <span id="piBtnText">Login dengan Pi Browser</span>
+    </button>
+    <div class="pi-notice" id="piNotice">
+      <i class="fas fa-info-circle"></i>
+      <span>Buka aplikasi ini di <strong>Pi Browser</strong> untuk menggunakan fitur ini.</span>
+    </div>
+    <div class="pi-connected-card" id="piConnected">
+      <div class="pi-user-row">
+        <div class="pi-avatar"><i class="fas fa-user"></i></div>
+        <div>
+          <div class="pi-uname" id="piUname">—</div>
+          <span class="pi-badge-sm"><i class="fas fa-check-circle"></i> Pi Pioneer</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        // ==========================================
-        // FIREBASE CONFIG
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-            projectId: "hidayatulamin-e6f22",
-            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-            messagingSenderId: "80743607267",
-            appId: "1:80743607267:web:f5f94165de021759958ed6"
-        };
+</div>
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+<script>
+// ════════════════════════════════════════
+// FIREBASE CONFIG
+// ════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+  authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+  projectId: "hidayatulamin-e6f22",
+  storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+  messagingSenderId: "80743607267",
+  appId: "1:80743607267:web:f5f94165de021759958ed6"
+};
 
-        // Enable offline persistence
-        db.enablePersistence({ synchronizeTabs: true })
-            .catch(err => console.log("Persistence error:", err));
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
 
-        // ==========================================
-        // PI NETWORK SDK INITIALIZATION
-        // ==========================================
-        let piInitialized = false;
-        let piUser = null;
-        let isPiBrowser = false;
+db.enablePersistence({ synchronizeTabs: true }).catch(e => console.log('Persistence:', e));
 
-        // Initialize Pi SDK
-        function initPiSDK() {
-            try {
-                // Check if Pi SDK is available
-                if (typeof window.Pi === 'undefined') {
-                    console.log('Pi SDK not available - not in Pi Browser');
-                    isPiBrowser = false;
-                    return false;
-                }
+// ════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════
+const ROLES = {
+  wali:   { col: 'wali_santri', page: 'dashboard-wali.html',   label: 'Wali Santri',   icon: 'fa-users' },
+  admin:  { col: 'admins',      page: 'dashboard-admin.html',  label: 'Administrator', icon: 'fa-user-shield' },
+  ustadz: { col: 'ustadz',      page: 'dashboard-ustadz.html', label: 'Ustadz',        icon: 'fa-chalkboard-teacher' },
+  santri: { col: 'santri',      page: 'dashboard-santri.html', label: 'Santri',        icon: 'fa-user-graduate' }
+};
 
-                // Initialize Pi SDK
-                window.Pi.init({ 
-                    version: "2.0",
-                    sandbox: false // Set to true for testing in sandbox mode
-                });
-                
-                piInitialized = true;
-                isPiBrowser = true;
-                console.log('✅ Pi SDK initialized successfully');
-                return true;
-            } catch (error) {
-                console.error('❌ Pi SDK initialization failed:', error);
-                isPiBrowser = false;
-                return false;
+let activeRole  = null;
+let piReady     = false;
+let inPiBrowser = false;
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const params  = new URLSearchParams(location.search);
+  const role    = params.get('role');
+  const msg     = params.get('message');
+  const logout  = params.get('logout');
+
+  if (logout === 'true') {
+    sessionStorage.removeItem('currentUser');
+    localStorage.removeItem('piAuthUser');
+    auth.signOut().catch(() => {});
+  }
+
+  detectPi();
+  pickRole(role && ROLES[role] ? role : 'wali');
+  if (msg) toast('info', decodeURIComponent(msg));
+
+  const saved = localStorage.getItem('rememberedEmail');
+  if (saved) {
+    document.getElementById('emailInput').value = saved;
+    document.getElementById('rememberCheck').checked = true;
+  }
+
+  checkSession();
+});
+
+// ════════════════════════════════════════
+// ROLE SELECTION
+// ════════════════════════════════════════
+function pickRole(role) {
+  if (!ROLES[role]) return;
+  activeRole = role;
+
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.role-card[data-role="${role}"]`).classList.add('active');
+
+  // Dynamic body class for color theming
+  document.body.className = `role-${role}`;
+
+  const cfg = ROLES[role];
+  const btn = document.getElementById('loginBtn');
+  btn.innerHTML = `<i class="fas ${cfg.icon} spin" id="loginIcon"></i><span id="loginBtnText">Masuk sebagai ${cfg.label}</span>`;
+
+  if (inPiBrowser) {
+    document.getElementById('piBtnText').textContent = `Login Pi sebagai ${cfg.label}`;
+  }
+}
+
+// ════════════════════════════════════════
+// PI NETWORK
+// ════════════════════════════════════════
+function detectPi() {
+  const ua = navigator.userAgent.toLowerCase();
+  inPiBrowser = ua.includes('pi browser') || ua.includes('pibrowser') || typeof window.Pi !== 'undefined';
+
+  if (!inPiBrowser) {
+    document.getElementById('piNotice').classList.add('show');
+    const btn = document.getElementById('piBtn');
+    btn.disabled = true;
+    document.getElementById('piBtnText').textContent = 'Pi Browser Diperlukan';
+    return;
+  }
+
+  try {
+    window.Pi.init({ version: '2.0', sandbox: false });
+    piReady = true;
+  } catch(e) {
+    console.warn('Pi SDK init failed:', e);
+  }
+}
+
+async function doPiLogin() {
+  if (!inPiBrowser || !piReady) {
+    toast('warning', 'Buka aplikasi ini di Pi Browser untuk login dengan Pi Network');
+    return;
+  }
+  if (!activeRole) { toast('error', 'Pilih peran Anda terlebih dahulu'); return; }
+
+  const btn = document.getElementById('piBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  document.getElementById('piBtnText').innerHTML = '<i class="fas fa-spinner spin"></i> Menghubungkan...';
+  clearAlerts();
+
+  try {
+    const auth2 = await window.Pi.authenticate(['username','payments'], p => Promise.resolve());
+    const { uid: piUid, username: piUser } = auth2.user;
+
+    document.getElementById('piUname').textContent = piUser;
+    document.getElementById('piConnected').classList.add('show');
+    toast('success', `Terhubung sebagai @${piUser}`);
+
+    await processPiAuth(auth2);
+  } catch(err) {
+    console.error('Pi auth failed:', err);
+    toast('error', err.message || 'Gagal login dengan Pi Network');
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    document.getElementById('piBtnText').innerHTML = '<i class="fas fa-mobile-alt"></i> Coba Lagi';
+  }
+}
+
+async function processPiAuth(auth2) {
+  const piUid     = auth2.user.uid;
+  const piUser    = auth2.user.username;
+  const genEmail  = `${piUser.toLowerCase().replace(/[^a-z0-9]/g,'')}@pi.hidayatulamin.id`;
+
+  showLoader('Memverifikasi akun...');
+
+  try {
+    // Cek apakah user sudah ada
+    let snap, fUid;
+    try {
+      snap = await db.collection('users').where('piUid','==',piUid).where('role','==',activeRole).get();
+    } catch(e) { console.warn('Query err:', e); }
+
+    if (snap && !snap.empty) {
+      fUid = snap.docs[0].id;
+      await db.collection('users').doc(fUid).update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
+      toast('success', `Selamat datang kembali, @${piUser}!`);
+    } else {
+      // Buat akun baru
+      const tempPw = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16)).join('') + '!Aa1';
+      try {
+        const cred = await auth.createUserWithEmailAndPassword(genEmail, tempPw);
+        fUid = cred.user.uid;
+      } catch(e) {
+        if (e.code === 'auth/email-already-in-use') {
+          const existing = await db.collection('users').where('piUid','==',piUid).get().catch(()=>null);
+          if (existing && !existing.empty) {
+            const d = existing.docs[0].data();
+            if (d.role && d.role !== activeRole) {
+              hideLoader();
+              toast('error', `Akun Pi ini terdaftar sebagai ${ROLES[d.role]?.label||d.role}. Pilih role yang benar.`);
+              resetPiBtn(); return;
             }
-        }
+            fUid = existing.docs[0].id;
+          } else { throw new Error('Akun tidak ditemukan. Hubungi administrator.'); }
+        } else throw e;
+      }
 
-        // Check if running in Pi Browser
-        function checkPiEnvironment() {
-            const userAgent = navigator.userAgent.toLowerCase();
-            // Pi Browser detection
-            isPiBrowser = userAgent.includes('pi browser') || 
-                         userAgent.includes('pibrowser') || 
-                         typeof window.Pi !== 'undefined';
-            
-            if (!isPiBrowser) {
-                document.getElementById('piBrowserNotice').classList.add('show');
-                document.getElementById('piLoginBtn').disabled = true;
-                document.getElementById('piBtnText').textContent = 'Pi Browser Diperlukan';
-            } else {
-                initPiSDK();
-            }
-        }
+      if (fUid) {
+        const payload = { uid: fUid, piUid, piUsername: piUser, email: genEmail, displayName: piUser,
+                          role: activeRole, isActive: true, authMethod: 'pi_network',
+                          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                          lastLogin: firebase.firestore.FieldValue.serverTimestamp() };
+        await db.collection('users').doc(fUid).set(payload).catch(()=>{});
+        await db.collection(ROLES[activeRole].col).doc(fUid).set({ ...payload, piAccessToken: auth2.accessToken }).catch(()=>{});
+        toast('success', `Akun berhasil dibuat! Selamat datang, @${piUser}!`);
+      }
+    }
 
-        // ==========================================
-        // GLOBAL VARIABLES
-        // ==========================================
-        let selectedRole = null;
+    saveSession(fUid, activeRole, 'pi_network');
+    localStorage.setItem('piAuthUser', JSON.stringify({ uid: fUid, piUid, username: piUser, role: activeRole }));
+    hideLoader();
+    setTimeout(() => goTo(activeRole), 1400);
 
-        // ==========================================
-        // ROLE CONFIGURATION
-        // ==========================================
-        const ROLE_CONFIG = {
-            wali: {
-                collection: 'wali_santri',
-                dashboard: 'dashboard-wali.html',
-                label: 'Wali Santri',
-                icon: 'fa-users'
-            },
-            admin: {
-                collection: 'admins',
-                dashboard: 'dashboard-admin.html',
-                label: 'Administrator',
-                icon: 'fa-user-shield'
-            },
-            ustadz: {
-                collection: 'ustadz',
-                dashboard: 'dashboard-ustadz.html',
-                label: 'Ustadz',
-                icon: 'fa-chalkboard-teacher'
-            },
-            santri: {
-                collection: 'santri',
-                dashboard: 'dashboard-santri.html',
-                label: 'Santri',
-                icon: 'fa-user-graduate'
-            }
-        };
+  } catch(err) {
+    hideLoader(); resetPiBtn();
+    toast('error', err.message || 'Gagal memproses login Pi');
+  }
+}
 
-        // ==========================================
-        // INITIALIZATION
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', () => {
-            // Bersihkan sesi lama dari role yang berbeda saat halaman login dibuka
-            // Ini mencegah auto-redirect ke role yang salah
-            const urlParams = new URLSearchParams(window.location.search);
-            const role = urlParams.get('role');
-            const message = urlParams.get('message');
-            const forceLogout = urlParams.get('logout');
+function resetPiBtn() {
+  const btn = document.getElementById('piBtn');
+  btn.disabled = false; btn.classList.remove('loading');
+  document.getElementById('piBtnText').innerHTML = '<i class="fas fa-mobile-alt"></i> Coba Lagi';
+}
 
-            // Jika ada parameter logout=true, hapus semua session data
-            if (forceLogout === 'true') {
-                sessionStorage.removeItem('currentUser');
-                localStorage.removeItem('piAuthUser');
-                auth.signOut().catch(() => {});
-            }
+// ════════════════════════════════════════
+// EMAIL LOGIN
+// ════════════════════════════════════════
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!activeRole) { toast('error', 'Pilih peran Anda terlebih dahulu'); return; }
 
-            // Check Pi environment
-            checkPiEnvironment();
+  const email = document.getElementById('emailInput').value.trim();
+  const pw    = document.getElementById('pwInput').value;
+  const rem   = document.getElementById('rememberCheck').checked;
 
-            // Pre-select role dari URL, atau default ke wali
-            if (role && ROLE_CONFIG[role]) {
-                selectRole(role);
-            } else {
-                selectRole('wali');
-            }
+  if (!email || !pw) { toast('error', 'Email dan password harus diisi'); return; }
 
-            // Show message dari URL
-            if (message) {
-                showAlert('info', decodeURIComponent(message));
-            }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.classList.add('loading');
+  document.getElementById('loginBtnText').textContent = 'Memproses...';
+  document.getElementById('loginIcon').className = 'fas fa-spinner spin';
+  clearAlerts();
 
-            // Cek existing session — HANYA redirect jika session cocok dengan role yang dipilih
-            checkExistingSession();
+  try {
+    const persist = rem ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
+    await auth.setPersistence(persist);
+    const cred = await auth.signInWithEmailAndPassword(email, pw);
+    const uid  = cred.user.uid;
 
-            // Check Remember Me
-            const rememberedEmail = localStorage.getItem('rememberedEmail');
-            if (rememberedEmail) {
-                document.getElementById('email').value = rememberedEmail;
-                document.getElementById('rememberMe').checked = true;
-            }
-        });
+    const check = await verifyRole(uid, activeRole);
+    if (!check.ok) {
+      await auth.signOut();
+      toast('error', check.msg);
+      resetLoginBtn(); return;
+    }
 
-        // ==========================================
-        // PI NETWORK AUTHENTICATION - FIXED
-        // ==========================================
-        async function handlePiLogin() {
-            if (!isPiBrowser || !piInitialized) {
-                showAlert('warning', 'Silakan buka aplikasi ini di Pi Browser untuk login dengan Pi Network');
-                return;
-            }
+    if (rem) localStorage.setItem('rememberedEmail', email);
+    else     localStorage.removeItem('rememberedEmail');
 
-            if (!selectedRole) {
-                showAlert('error', 'Pilih peran Anda terlebih dahulu sebelum login dengan Pi');
-                return;
-            }
+    saveSession(uid, activeRole, 'email');
+    goTo(activeRole);
 
-            const btn = document.getElementById('piLoginBtn');
-            const btnText = document.getElementById('piBtnText');
-            
-            btn.disabled = true;
-            btn.classList.add('loading');
-            btnText.innerHTML = '<i class="fas fa-spinner"></i> Menghubungkan...';
-            hideAllAlerts();
+  } catch(err) {
+    console.error('Login err:', err);
+    toast('error', errMsg(err.code));
+    resetLoginBtn();
+  }
+});
 
-            try {
-                // Pi Authentication scopes
-                const scopes = ['username', 'payments'];
-                
-                // Callback untuk incomplete payment
-                function onIncompletePaymentFound(payment) {
-                    console.log('Incomplete payment found:', payment);
-                    // Handle incomplete payment jika diperlukan
-                    return Promise.resolve();
-                }
+function resetLoginBtn() {
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = false; btn.classList.remove('loading');
+  const cfg = ROLES[activeRole];
+  btn.innerHTML = `<i class="fas ${cfg.icon}"></i><span id="loginBtnText">Masuk sebagai ${cfg.label}</span>`;
+}
 
-                // Authenticate dengan Pi Network
-                const authResult = await window.Pi.authenticate(scopes, onIncompletePaymentFound);
-                
-                console.log('✅ Pi Authentication successful:', authResult);
-                
-                // Simpan data user Pi
-                piUser = {
-                    uid: authResult.user.uid,
-                    username: authResult.user.username,
-                    accessToken: authResult.accessToken
-                };
+// ════════════════════════════════════════
+// FORGOT PASSWORD
+// ════════════════════════════════════════
+async function doForgot(e) {
+  e.preventDefault();
+  const email = document.getElementById('emailInput').value.trim();
+  if (!email) { toast('warning', 'Masukkan email Anda terlebih dahulu'); return; }
 
-                // Tampilkan info user
-                document.getElementById('piUsername').textContent = authResult.user.username;
-                document.getElementById('piUserInfo').classList.add('show');
-                
-                showAlert('success', `Berhasil terhubung sebagai ${authResult.user.username}`);
-                
-                // Proses login ke Firebase dengan data Pi
-                await processPiLogin(authResult);
-                
-            } catch (error) {
-                console.error('❌ Pi Authentication failed:', error);
-                
-                let errorMessage = 'Gagal login dengan Pi Network';
-                if (error.message) {
-                    errorMessage = error.message;
-                } else if (error === 'authentication_failed') {
-                    errorMessage = 'Autentikasi Pi dibatalkan atau gagal';
-                }
-                
-                showAlert('error', errorMessage);
-                
-                btn.disabled = false;
-                btn.classList.remove('loading');
-                btnText.innerHTML = '<i class="fas fa-mobile-alt"></i> Coba Lagi';
-            }
-        }
+  showLoader('Mengirim email reset...');
+  try {
+    await auth.sendPasswordResetEmail(email);
+    hideLoader();
+    toast('success', 'Email reset password telah dikirim. Cek inbox Anda.');
+  } catch(err) {
+    hideLoader();
+    toast('error', errMsg(err.code));
+  }
+}
 
-        async function processPiLogin(authResult) {
-            try {
-                showLoading('Memverifikasi akun...');
-                
-                const piUid = authResult.user.uid;
-                const piUsername = authResult.user.username;
-                
-                // Cek apakah user Pi sudah terdaftar di sistem kita
-                // Gunakan try-catch untuk handle permission errors
-                let userExists = false;
-                let existingUserData = null;
-                let existingUserId = null;
-                
-                try {
-                    const userQuery = await db.collection('users')
-                        .where('piUid', '==', piUid)
-                        .where('role', '==', selectedRole)
-                        .get();
-                    
-                    if (!userQuery.empty) {
-                        userExists = true;
-                        existingUserData = userQuery.docs[0].data();
-                        existingUserId = userQuery.docs[0].id;
-                    }
-                } catch (queryError) {
-                    console.warn('Query error (permission might be denied):', queryError);
-                    // Continue anyway, we'll try to create or use fallback
-                }
-                
-                let firebaseUid;
-                let userData;
-                
-                if (userExists && existingUserId) {
-                    // User sudah ada, update last login
-                    console.log('Existing Pi user found:', existingUserId);
-                    firebaseUid = existingUserId;
-                    userData = existingUserData;
-                    
-                    try {
-                        await db.collection('users').doc(firebaseUid).update({
-                            lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                            piAccessToken: authResult.accessToken
-                        });
-                    } catch (updateError) {
-                        console.warn('Failed to update lastLogin:', updateError);
-                        // Continue anyway
-                    }
-                    
-                    showAlert('success', 'Selamat datang kembali, ' + piUsername + '!');
-                    
-                } else {
-                    // User Pi belum terdaftar, buat akun baru
-                    console.log('Creating new user from Pi authentication...');
-                    
-                    // Generate email dari username Pi
-                    const generatedEmail = `${piUsername.toLowerCase().replace(/[^a-z0-9]/g, '')}@pi.hidayatulamin.id`;
-                    const tempPassword = generateSecurePassword();
-                    
-                    try {
-                        // Buat akun Firebase
-                        const userCredential = await auth.createUserWithEmailAndPassword(
-                            generatedEmail, 
-                            tempPassword
-                        );
-                        
-                        firebaseUid = userCredential.user.uid;
-                        
-                        // Simpan data user
-                        userData = {
-                            uid: firebaseUid,
-                            piUid: piUid,
-                            piUsername: piUsername,
-                            email: generatedEmail,
-                            displayName: piUsername,
-                            role: selectedRole,
-                            isActive: true,
-                            authMethod: 'pi_network',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                        };
-                        
-                        // Simpan ke collection users dengan error handling
-                        try {
-                            await db.collection('users').doc(firebaseUid).set(userData);
-                        } catch (setError) {
-                            console.error('Failed to save user data:', setError);
-                            // If permission denied, we'll handle it gracefully
-                            if (setError.code === 'permission-denied') {
-                                showAlert('warning', 'Akun dibuat tapi data belum tersimpan. Hubungi admin.');
-                            } else {
-                                throw setError;
-                            }
-                        }
-                        
-                        // Simpan ke collection role-specific
-                        const roleConfig = ROLE_CONFIG[selectedRole];
-                        try {
-                            await db.collection(roleConfig.collection).doc(firebaseUid).set({
-                                ...userData,
-                                piAccessToken: authResult.accessToken
-                            });
-                        } catch (roleSetError) {
-                            console.warn('Failed to save to role collection:', roleSetError);
-                            // Continue anyway
-                        }
-                        
-                        showAlert('success', 'Akun Pi Network berhasil didaftarkan! Selamat datang, ' + piUsername + '!');
-                        
-                    } catch (createError) {
-                        console.error('Error creating Firebase user:', createError);
-                        
-                        if (createError.code === 'auth/email-already-in-use') {
-                            // Email sudah ada — cari user dengan piUid yang sama
-                            showAlert('info', 'Mencari akun yang sudah terdaftar...');
-                            
-                            try {
-                                const allUsersQuery = await db.collection('users')
-                                    .where('piUid', '==', piUid)
-                                    .get();
-                                
-                                if (!allUsersQuery.empty) {
-                                    const existingDoc = allUsersQuery.docs[0];
-                                    firebaseUid = existingDoc.id;
-                                    userData = existingDoc.data();
-                                    
-                                    // PERBAIKAN: Jika role di DB berbeda dengan yang dipilih,
-                                    // tolak login — jangan diam-diam override role!
-                                    if (userData.role && userData.role !== selectedRole) {
-                                        hideLoading();
-                                        showAlert('error', 
-                                            `Akun Pi ini terdaftar sebagai ${ROLE_CONFIG[userData.role]?.label || userData.role}, ` +
-                                            `bukan sebagai ${ROLE_CONFIG[selectedRole].label}. ` +
-                                            `Silakan pilih role yang benar.`
-                                        );
-                                        const btn = document.getElementById('piLoginBtn');
-                                        btn.disabled = false;
-                                        btn.classList.remove('loading');
-                                        document.getElementById('piBtnText').innerHTML = '<i class="fas fa-mobile-alt"></i> Coba Lagi';
-                                        return;
-                                    }
-                                } else {
-                                    throw new Error('User tidak ditemukan di database. Hubungi administrator.');
-                                }
-                            } catch (findError) {
-                                console.error('Error finding existing user:', findError);
-                                throw new Error(findError.message || 'Akun sudah ada tapi tidak dapat ditemukan di database.');
-                            }
-                        } else {
-                            throw createError;
-                        }
-                    }
-                }
-                
-                // Simpan session
-                sessionStorage.setItem('currentUser', JSON.stringify({
-                    uid: firebaseUid,
-                    role: selectedRole,
-                    piUsername: piUsername,
-                    authMethod: 'pi_network'
-                }));
-                
-                // Simpan ke localStorage untuk persistensi
-                localStorage.setItem('piAuthUser', JSON.stringify({
-                    uid: firebaseUid,
-                    piUid: piUid,
-                    username: piUsername,
-                    role: selectedRole
-                }));
-                
-                hideLoading();
-                
-                // Redirect ke dashboard setelah delay
-                setTimeout(() => {
-                    redirectToDashboard(selectedRole);
-                }, 1500);
-                
-            } catch (error) {
-                console.error('Error processing Pi login:', error);
-                hideLoading();
-                
-                let errorMsg = error.message || 'Gagal memproses login Pi';
-                
-                // Handle specific Firebase errors
-                if (error.code === 'permission-denied') {
-                    errorMsg = 'Izin akses database ditolak. Pastikan Firestore rules sudah diatur dengan benar atau hubungi administrator.';
-                } else if (error.code === 'auth/network-request-failed') {
-                    errorMsg = 'Koneksi internet bermasalah. Coba lagi nanti.';
-                } else if (error.code === 'auth/too-many-requests') {
-                    errorMsg = 'Terlalu banyak percobaan. Silakan tunggu beberapa saat.';
-                }
-                
-                showAlert('error', 'Gagal memproses login Pi: ' + errorMsg);
-                
-                const btn = document.getElementById('piLoginBtn');
-                btn.disabled = false;
-                btn.classList.remove('loading');
-                document.getElementById('piBtnText').innerHTML = '<i class="fas fa-mobile-alt"></i> Coba Lagi';
-            }
-        }
+// ════════════════════════════════════════
+// SESSION CHECK
+// ════════════════════════════════════════
+async function checkSession() {
+  showLoader('Memeriksa sesi...');
+  auth.onAuthStateChanged(async user => {
+    if (user) {
+      const raw = sessionStorage.getItem('currentUser');
+      if (raw) {
+        try {
+          const { role } = JSON.parse(raw);
+          if (role && ROLES[role]) {
+            const v = await verifyRole(user.uid, role);
+            if (v.ok) { hideLoader(); goTo(role); return; }
+          }
+        } catch(e) { console.warn(e); }
+        sessionStorage.removeItem('currentUser');
+      }
+      await auth.signOut();
+    }
+    hideLoader();
+  });
+}
 
-        function generateSecurePassword() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-            let password = '';
-            for (let i = 0; i < 20; i++) {
-                password += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return password + Date.now();
-        }
+// ════════════════════════════════════════
+// ROLE VERIFICATION
+// ════════════════════════════════════════
+async function verifyRole(uid, role) {
+  const cfg = ROLES[role];
 
-        // ==========================================
-        // SESSION MANAGEMENT
-        // ==========================================
-        async function checkExistingSession() {
-            showLoading('Memeriksa sesi...');
-            
-            auth.onAuthStateChanged(async (user) => {
-                if (user) {
-                    console.log('User already logged in:', user.uid);
-                    
-                    // Cek session yang tersimpan
-                    const sessionData = sessionStorage.getItem('currentUser');
-                    
-                    if (sessionData) {
-                        try {
-                            const parsed = JSON.parse(sessionData);
-                            const savedRole = parsed.role;
-                            
-                            // Hanya auto-redirect jika role di session cocok dengan
-                            // role yang dipilih user (atau belum ada pilihan)
-                            if (savedRole && ROLE_CONFIG[savedRole]) {
-                                // Verifikasi ke Firestore bahwa role masih valid
-                                const roleValid = await verifyRoleDetailed(user.uid, savedRole);
-                                if (roleValid.success) {
-                                    console.log('Valid session found, role:', savedRole);
-                                    // Hanya auto-redirect jika selectedRole belum dipilih
-                                    // atau cocok dengan session
-                                    if (!selectedRole || selectedRole === savedRole) {
-                                        hideLoading();
-                                        redirectToDashboard(savedRole);
-                                        return;
-                                    }
-                                } else {
-                                    // Session tidak valid, hapus
-                                    sessionStorage.removeItem('currentUser');
-                                    localStorage.removeItem('piAuthUser');
-                                }
-                            }
-                        } catch (e) {
-                            console.warn('Error parsing session:', e);
-                            sessionStorage.removeItem('currentUser');
-                        }
-                    }
-                    
-                    // Jika ada session tapi tidak valid atau role berbeda,
-                    // sign out dan biarkan user pilih role lagi
-                    await auth.signOut();
-                    hideLoading();
-                } else {
-                    hideLoading();
-                }
-            });
-        }
+  // 1. Check users collection
+  try {
+    const doc = await db.collection('users').doc(uid).get();
+    if (doc.exists) {
+      const d = doc.data();
+      if (d.role === role) return { ok: true };
+      if (d.role && d.role !== role) {
+        return { ok: false, msg: `Akun ini terdaftar sebagai ${ROLES[d.role]?.label||d.role}. Pilih role yang benar.` };
+      }
+    }
+  } catch(e) { console.warn('users check:', e.message); }
 
-        async function getUserRole(uid) {
-            console.log('Checking role for UID:', uid);
-            
-            // Prioritas 1: cek collection 'users' (single source of truth)
-            try {
-                const userDoc = await db.collection('users').doc(uid).get();
-                if (userDoc.exists) {
-                    const data = userDoc.data();
-                    if (data.role && ROLE_CONFIG[data.role]) {
-                        console.log(`✅ Role found in users collection: ${data.role}`);
-                        return data.role;
-                    }
-                }
-            } catch (error) {
-                console.warn('Error checking users collection:', error);
-            }
-            
-            // Prioritas 2: cek collection spesifik HANYA untuk role yang sedang dipilih
-            // (jangan iterasi semua role — ini penyebab salah masuk!)
-            if (selectedRole && ROLE_CONFIG[selectedRole]) {
-                try {
-                    const doc = await db.collection(ROLE_CONFIG[selectedRole].collection).doc(uid).get();
-                    if (doc.exists) {
-                        console.log(`✅ Role found in ${ROLE_CONFIG[selectedRole].collection}`);
-                        return selectedRole;
-                    }
-                } catch (error) {
-                    console.warn(`Error checking ${selectedRole} collection:`, error);
-                }
-            }
-            
-            console.log('❌ Role not found');
-            return null;
-        }
+  // 2. Check role-specific collection
+  try {
+    const doc = await db.collection(cfg.col).doc(uid).get();
+    if (doc.exists) return { ok: true };
+  } catch(e) { if (e.code === 'permission-denied') return { ok: false, msg: 'Akses ditolak. Hubungi administrator.' }; }
 
-        // ==========================================
-        // ROLE SELECTION
-        // ==========================================
-        function selectRole(role) {
-            selectedRole = role;
-            
-            // Update UI
-            document.querySelectorAll('.role-option').forEach(el => {
-                el.classList.remove('active');
-            });
-            document.querySelector(`.role-option[data-role="${role}"]`).classList.add('active');
-            
-            // Update button text
-            const btn = document.getElementById('submitBtn');
-            const config = ROLE_CONFIG[role];
-            btn.innerHTML = `<i class="fas ${config.icon}"></i> Masuk sebagai ${config.label}`;
-            
-            // Update Pi button state
-            if (isPiBrowser) {
-                document.getElementById('piBtnText').innerHTML = 
-                    `<i class="fas fa-mobile-alt"></i> Login Pi sebagai ${config.label}`;
-            }
-        }
+  return { ok: false, msg: `Akun tidak terdaftar sebagai ${cfg.label}. Pilih role yang benar atau hubungi admin.` };
+}
 
-        // ==========================================
-        // FORM HANDLING
-        // ==========================================
-        function togglePassword() {
-            const input = document.getElementById('password');
-            const icon = event.target;
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
+// ════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════
+function goTo(role) {
+  window.location.href = ROLES[role].page;
+}
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!selectedRole) {
-                showAlert('error', 'Pilih peran Anda terlebih dahulu');
-                return;
-            }
-            
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.classList.add('loading');
-            submitBtn.innerHTML = '<i class="fas fa-spinner"></i> Memproses...';
-            
-            hideAllAlerts();
-            
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-            
-            try {
-                console.log('Attempting Firebase login...');
-                
-                // Set persistence
-                const persistence = rememberMe 
-                    ? firebase.auth.Auth.Persistence.LOCAL 
-                    : firebase.auth.Auth.Persistence.SESSION;
-                await auth.setPersistence(persistence);
-                
-                // Sign in
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-                
-                console.log('Login successful, UID:', user.uid);
-                
-                // Verify role
-                const roleValid = await verifyRoleDetailed(user.uid, selectedRole);
-                
-                if (!roleValid.success) {
-                    await auth.signOut();
-                    hideLoading();
-                    showAlert('error', roleValid.message || `Akun ini tidak terdaftar sebagai ${ROLE_CONFIG[selectedRole].label}`);
-                    resetSubmitButton();
-                    return;
-                }
-                
-                // Save email if Remember Me
-                if (rememberMe) {
-                    localStorage.setItem('rememberedEmail', email);
-                } else {
-                    localStorage.removeItem('rememberedEmail');
-                }
-                
-                // Save session
-                sessionStorage.setItem('currentUser', JSON.stringify({
-                    uid: user.uid,
-                    role: selectedRole,
-                    authMethod: 'email'
-                }));
-                
-                redirectToDashboard(selectedRole);
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                showAlert('error', getErrorMessage(error.code));
-                resetSubmitButton();
-            }
-        });
+function saveSession(uid, role, method) {
+  sessionStorage.setItem('currentUser', JSON.stringify({ uid, role, authMethod: method }));
+}
 
-        function resetSubmitButton() {
-            const btn = document.getElementById('submitBtn');
-            btn.classList.remove('loading');
-            const config = ROLE_CONFIG[selectedRole];
-            btn.innerHTML = `<i class="fas ${config.icon}"></i> Masuk sebagai ${config.label}`;
-        }
+function togglePw() {
+  const inp  = document.getElementById('pwInput');
+  const icon = document.getElementById('togglePw');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.classList.replace('fa-eye', 'fa-eye-slash');
+  } else {
+    inp.type = 'password';
+    icon.classList.replace('fa-eye-slash', 'fa-eye');
+  }
+}
 
-        async function verifyRoleDetailed(uid, role) {
-            const config = ROLE_CONFIG[role];
-            
-            try {
-                // Prioritas 1: cek collection 'users' dengan field role
-                try {
-                    const userDoc = await db.collection('users').doc(uid).get();
-                    if (userDoc.exists) {
-                        const data = userDoc.data();
-                        if (data.role === role) {
-                            console.log(`✅ Role verified from users collection: ${role}`);
-                            return { success: true, data };
-                        } else if (data.role && data.role !== role) {
-                            // User ada tapi role salah — berikan pesan yang jelas
-                            const correctLabel = ROLE_CONFIG[data.role]?.label || data.role;
-                            return {
-                                success: false,
-                                message: `Akun ini terdaftar sebagai ${correctLabel}, bukan ${config.label}. Silakan pilih role yang benar.`
-                            };
-                        }
-                    }
-                } catch (e) {
-                    console.warn('Cannot check users collection:', e.message);
-                }
+function showLoader(txt = 'Memuat...') {
+  document.getElementById('loaderText').textContent = txt;
+  document.getElementById('overlay').classList.add('show');
+}
+function hideLoader() { document.getElementById('overlay').classList.remove('show'); }
 
-                // Prioritas 2: cek collection role-spesifik
-                console.log(`Checking collection: ${config.collection}`);
-                const doc = await db.collection(config.collection).doc(uid).get();
-                
-                if (doc.exists) {
-                    console.log(`✅ User found in ${config.collection}`);
-                    return { success: true, data: doc.data() };
-                }
-                
-                console.log(`❌ User NOT found in ${config.collection}`);
-                
-                // Jangan cek semua role collection — hanya beri tahu user bahwa
-                // akunnya tidak ditemukan di role yang dipilih
-                return {
-                    success: false,
-                    message: `Akun ini tidak terdaftar sebagai ${config.label}. Pastikan Anda memilih role yang benar atau hubungi administrator.`
-                };
-                
-            } catch (error) {
-                console.error(`Error verifying role:`, error);
-                
-                if (error.code === 'permission-denied') {
-                    return { 
-                        success: false, 
-                        message: 'Akses ditolak oleh sistem. Silakan hubungi administrator untuk memeriksa izin akses.' 
-                    };
-                }
-                
-                return { 
-                    success: false, 
-                    message: `Error saat memverifikasi: ${error.message}` 
-                };
-            }
-        }
+function toast(type, msg) {
+  clearAlerts();
+  const map = { error:'err', warning:'warn', info:'info', success:'ok' };
+  const id = map[type] || 'info';
+  const el = document.getElementById(`${id}Alert`);
+  const tx = document.getElementById(`${id}Text`);
+  if (!el || !tx) return;
+  tx.textContent = msg;
+  el.classList.add('show');
+  if (type === 'success' || type === 'info') setTimeout(() => el.classList.remove('show'), 5000);
+}
 
-        function redirectToDashboard(role) {
-            const config = ROLE_CONFIG[role];
-            console.log('Redirecting to:', config.dashboard);
-            // Pastikan session tersimpan dengan role yang benar sebelum redirect
-            const existing = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
-            if (existing.role !== role) {
-                sessionStorage.setItem('currentUser', JSON.stringify({
-                    ...existing,
-                    role: role
-                }));
-            }
-            window.location.href = config.dashboard;
-        }
+function clearAlerts() {
+  document.querySelectorAll('.alert').forEach(a => a.classList.remove('show'));
+}
 
-        // ==========================================
-        // FORGOT PASSWORD
-        // ==========================================
-        async function handleForgotPassword(e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value.trim();
-            
-            if (!email) {
-                showAlert('warning', 'Masukkan email Anda terlebih dahulu');
-                document.getElementById('email').focus();
-                return;
-            }
-            
-            showLoading('Mengirim email reset...');
-            
-            try {
-                await auth.sendPasswordResetEmail(email);
-                hideLoading();
-                showAlert('success', 'Email reset password telah dikirim. Silakan cek inbox Anda.');
-            } catch (error) {
-                hideLoading();
-                showAlert('error', getErrorMessage(error.code));
-            }
-        }
-
-        // ==========================================
-        // ALERT UTILITIES
-        // ==========================================
-        function showAlert(type, message, elementId = null) {
-            hideAllAlerts();
-            
-            const alertId = elementId || `${type}Alert`;
-            const alertEl = document.getElementById(alertId);
-            const textEl = document.getElementById(alertId.replace('Alert', 'Text'));
-            
-            if (alertEl && textEl) {
-                textEl.textContent = message;
-                alertEl.classList.add('show');
-                
-                if (type === 'success') {
-                    setTimeout(() => {
-                        alertEl.classList.remove('show');
-                    }, 5000);
-                }
-            }
-        }
-
-        function hideAllAlerts() {
-            document.querySelectorAll('.alert').forEach(alert => {
-                alert.classList.remove('show');
-            });
-        }
-
-        // ==========================================
-        // LOADING UTILITIES
-        // ==========================================
-        function showLoading(text = 'Memuat...') {
-            document.getElementById('loadingText').textContent = text;
-            document.getElementById('loadingOverlay').classList.add('show');
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').classList.remove('show');
-        }
-
-        // ==========================================
-        // ERROR MESSAGES
-        // ==========================================
-        function getErrorMessage(code) {
-            const messages = {
-                'auth/user-not-found': 'Email tidak terdaftar',
-                'auth/wrong-password': 'Password salah',
-                'auth/invalid-email': 'Format email tidak valid',
-                'auth/user-disabled': 'Akun dinonaktifkan',
-                'auth/too-many-requests': 'Terlalu banyak percobaan, coba lagi nanti',
-                'auth/invalid-credential': 'Email atau password salah',
-                'auth/network-request-failed': 'Koneksi internet bermasalah',
-                'auth/weak-password': 'Password terlalu lemah',
-                'auth/email-already-in-use': 'Email sudah terdaftar',
-                'auth/requires-recent-login': 'Silakan login ulang untuk melanjutkan',
-                'permission-denied': 'Akses ditolak. Hubungi administrator.'
-            };
-            return messages[code] || `Error: ${code}`;
-        }
-    </script>
-
+function errMsg(code) {
+  const map = {
+    'auth/user-not-found':         'Email tidak terdaftar',
+    'auth/wrong-password':         'Password salah',
+    'auth/invalid-email':          'Format email tidak valid',
+    'auth/user-disabled':          'Akun dinonaktifkan. Hubungi admin.',
+    'auth/too-many-requests':      'Terlalu banyak percobaan. Coba lagi nanti.',
+    'auth/invalid-credential':     'Email atau password salah',
+    'auth/network-request-failed': 'Koneksi internet bermasalah',
+    'permission-denied':           'Akses ditolak. Hubungi administrator.'
+  };
+  return map[code] || `Terjadi kesalahan (${code})`;
+}
+</script>
 </body>
 </html>

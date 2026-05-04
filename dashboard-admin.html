@@ -2,955 +2,520 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Dashboard Admin | Hidayatullah Amin</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="auth.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 <style>
 :root {
-  --primary: #0db87a;
-  --primary-dark: #059669;
-  --primary-light: #e6f9f2;
-  --secondary: #2d7ef5;
-  --secondary-light: #eaf1fe;
-  --accent: #8b5cf6;
-  --accent-light: #f0ebff;
-  --warning: #f59e0b;
-  --warning-light: #fef3c7;
-  --danger: #ef4444;
-  --danger-light: #fee2e2;
-  --dark: #0f172a;
-  --dark-secondary: #1e293b;
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-400: #94a3b8;
-  --gray-500: #64748b;
-  --gray-600: #475569;
-  --gray-700: #334155;
-  --gray-800: #1e293b;
-  --gray-900: #0f172a;
-  --white: #ffffff;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --sgt-gold: #F59E0B;
-  --sgt-dark: #D97706;
-  --sgt-light: #FCD34D;
-  --sgt-bg: #FEF3C7;
-  --sgt-deep: #1A0533;
+  --p:       #0db87a; --pd: #059669; --pl: #e6f9f2;
+  --b:       #2d7ef5; --bl: #eaf1fe;
+  --acc:     #8b5cf6; --acl: #f0ebff;
+  --w:       #f59e0b; --wl: #fef3c7;
+  --r:       #ef4444; --rl: #fee2e2;
+  --ink:     #0f172a; --ink2: #1e293b;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;
+  --g400:#94a3b8;--g500:#64748b;--g600:#475569;--g700:#334155;
+  --white:#fff;
+  --sgt:#f59e0b;--sgtd:#d97706;--sgtl:#fef3c7;
+  --sh-sm:0 1px 3px rgba(0,0,0,.06);
+  --sh-md:0 4px 16px rgba(0,0,0,.08);
+  --sh-lg:0 10px 32px rgba(0,0,0,.1);
+  --rd:14px; --rdm:10px; --rds:6px;
+  --tr:all .2s cubic-bezier(.4,0,.2,1);
 }
 
-/* ══ SGT TOKEN STYLES ══ */
-.sgt-supply-banner {
-  background: linear-gradient(135deg, #1A0533 0%, #3D1078 40%, #7C3AED 70%, #F59E0B 100%);
-  border-radius: 20px; padding: 24px; margin-bottom: 20px;
-  color: white; position: relative; overflow: hidden;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(--ink2);font-size:14px;min-height:100vh;display:flex;overflow-x:hidden}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{width:256px;min-width:256px;background:var(--ink);display:flex;flex-direction:column;position:fixed;left:0;top:0;height:100vh;z-index:200;overflow-y:auto;transition:transform .3s ease;scrollbar-width:none}
+.sidebar::-webkit-scrollbar{display:none}
+.sidebar.hidden-mobile{transform:translateX(-100%)}
+.sb-head{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px}
+.sb-logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0}
+.sb-brand h1{font-family:'Amiri',serif;color:#fff;font-size:16px;line-height:1.3}
+.sb-brand p{color:var(--p);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.sb-nav{flex:1;padding:12px 8px}
+.sb-sect-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.25);padding:10px 12px 4px;display:block}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rdm);color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:var(--tr);cursor:pointer;margin-bottom:1px;border:1px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+.nav-item.active{background:rgba(13,184,122,.15);color:var(--p);border-color:rgba(13,184,122,.25)}
+.nav-item i{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--r);color:#fff;font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700}
+.sb-foot{padding:12px;border-top:1px solid rgba(255,255,255,.07)}
+.user-tile{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:var(--rdm);cursor:pointer;transition:var(--tr)}
+.user-tile:hover{background:rgba(255,255,255,.1)}
+.u-av{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+.u-inf{flex:1;min-width:0}
+.u-name{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-role{font-size:10px;color:rgba(255,255,255,.35)}
+
+/* ═══ OVERLAY (mobile) ═══ */
+.sb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;display:none}
+.sb-overlay.show{display:block}
+
+/* ═══ MAIN ═══ */
+.main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
+
+/* ═══ TOPBAR ═══ */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tb-left{display:flex;align-items:center;gap:10px}
+.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
+.menu-btn:hover{background:var(--pl);color:var(--p)}
+.pg-title h2{font-size:17px;font-weight:700;color:var(--ink2)}
+.pg-title p{font-size:11px;color:var(--g500)}
+.tb-right{display:flex;align-items:center;gap:6px}
+.tb-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);position:relative}
+.tb-btn:hover{background:var(--pl);color:var(--p)}
+.tb-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--r);border-radius:50%;border:2px solid var(--white)}
+
+/* ═══ CONTENT ═══ */
+.content{flex:1;padding:20px}
+
+/* ═══ SECTIONS ═══ */
+.section{display:none}
+.section.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ WELCOME BANNER ═══ */
+.welcome{background:linear-gradient(135deg,var(--ink) 0%,var(--ink2) 50%,#064e3b 100%);border-radius:var(--rd);padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative}
+.welcome::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:rgba(13,184,122,.08);border-radius:50%}
+.welcome-txt{position:relative;z-index:1}
+.welcome-txt h3{font-family:'Amiri',serif;font-size:20px;color:#fff;margin-bottom:4px}
+.welcome-txt p{font-size:12px;color:rgba(255,255,255,.5)}
+.welcome-date{position:relative;z-index:1;text-align:right}
+.wd-num{font-size:38px;font-weight:800;color:var(--p);line-height:1}
+.wd-str{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px}
+
+/* ═══ STAT CARDS ═══ */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:var(--white);border-radius:var(--rd);padding:18px;box-shadow:var(--sh-sm);border:1px solid var(--g100);transition:var(--tr);position:relative;overflow:hidden}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.stat-card::after{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:var(--p)}
+.stat-card.b::after{background:var(--b)}
+.stat-card.o::after{background:var(--w)}
+.stat-card.v::after{background:var(--acc)}
+.sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sc-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.sc-ico.g{background:var(--pl);color:var(--p)}
+.sc-ico.b{background:var(--bl);color:var(--b)}
+.sc-ico.o{background:var(--wl);color:var(--w)}
+.sc-ico.v{background:var(--acl);color:var(--acc)}
+.sc-trend{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--pl);color:var(--p)}
+.sc-trend.flat{background:var(--wl);color:var(--w)}
+.sc-val{font-size:26px;font-weight:800;color:var(--ink2);margin-bottom:2px;line-height:1}
+.sc-lbl{font-size:12px;color:var(--g500);font-weight:500}
+.sc-sub{font-size:10px;color:var(--g400);margin-top:2px}
+
+/* ═══ TWO-COL ═══ */
+.two-col{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
+.card{background:var(--white);border-radius:var(--rd);padding:18px;box-shadow:var(--sh-sm);border:1px solid var(--g100)}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-head h4{font-size:14px;font-weight:700;color:var(--ink2)}
+.card-head p{font-size:11px;color:var(--g500)}
+.card-link{font-size:12px;color:var(--p);font-weight:600;cursor:pointer;white-space:nowrap}
+
+/* ═══ CHART ═══ */
+.chart-wrap{position:relative;height:220px}
+
+/* ═══ PROGRESS LIST ═══ */
+.prog-list{display:flex;flex-direction:column;gap:10px}
+.prog-item{}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.prog-name{font-size:12px;font-weight:600;color:var(--g700)}
+.prog-val{font-size:12px;font-weight:700;color:var(--p)}
+.prog-bar{height:6px;background:var(--g100);border-radius:20px;overflow:hidden}
+.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--p),var(--pd));transition:width .8s ease}
+
+/* ═══ TABLE SECTION ═══ */
+.tbl-section{background:var(--white);border-radius:var(--rd);box-shadow:var(--sh-sm);border:1px solid var(--g100);overflow:hidden;margin-bottom:20px}
+.tbl-head{padding:16px 18px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tbl-title h4{font-size:14px;font-weight:700;color:var(--ink2)}
+.tbl-title p{font-size:11px;color:var(--g500)}
+.tbl-acts{display:flex;gap:8px;align-items:center}
+.search-box{position:relative}
+.search-box input{padding:8px 12px 8px 32px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit;transition:var(--tr);width:200px}
+.search-box input:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(13,184,122,.1)}
+.search-box i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px}
+.btn-p{padding:8px 14px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;border-radius:var(--rdm);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:var(--tr);font-family:inherit;white-space:nowrap}
+.btn-p:hover{box-shadow:0 4px 14px rgba(13,184,122,.3);transform:translateY(-1px)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:500px}
+thead{background:var(--g50)}
+th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);white-space:nowrap}
+td{padding:10px 14px;border-top:1px solid var(--g100);color:var(--g600)}
+tr:hover td{background:var(--g50)}
+.u-cell{display:flex;align-items:center;gap:8px}
+.u-av-sm{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0}
+.u-det .u-nm{font-size:12px;font-weight:600;color:var(--ink2)}
+.u-det .u-em{font-size:10px;color:var(--g400)}
+.chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.chip-admin{background:var(--acl);color:var(--acc)}
+.chip-ustadz{background:var(--bl);color:var(--b)}
+.chip-wali{background:var(--wl);color:var(--w)}
+.chip-santri{background:var(--pl);color:var(--p)}
+.chip-aktif{background:var(--pl);color:var(--p)}
+.chip-nonaktif{background:var(--rl);color:var(--r)}
+.act-btns{display:flex;gap:4px}
+.act-btn{width:26px;height:26px;border:none;border-radius:var(--rds);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--tr);font-size:11px}
+.act-btn.v{background:var(--bl);color:var(--b)}
+.act-btn.d{background:var(--rl);color:var(--r)}
+.act-btn:hover{transform:scale(1.1)}
+
+/* ═══ SGT PANEL ═══ */
+.sgt-banner{background:linear-gradient(135deg,#1a0533 0%,#3d1078 40%,#7c3aed 75%,#f59e0b 100%);border-radius:var(--rd);padding:20px;margin-bottom:14px;color:#fff;position:relative;overflow:hidden}
+.sgt-banner::before{content:'SGT';position:absolute;right:-15px;top:-15px;font-size:110px;font-weight:900;color:rgba(255,255,255,.03);pointer-events:none;line-height:1}
+.sgt-coin{width:44px;height:44px;background:linear-gradient(135deg,#fcd34d,#f59e0b,#d97706);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a0533;flex-shrink:0;box-shadow:0 4px 12px rgba(245,158,11,.4)}
+.sgt-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.sgt-stat{background:rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center}
+.sgt-stat .sv{font-size:14px;font-weight:900;color:#fcd34d}
+.sgt-stat .sl{font-size:10px;color:rgba(255,255,255,.6);font-weight:600}
+.alloc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.alloc-card{background:var(--white);border-radius:var(--rdm);padding:14px;border:1.5px solid var(--g200);transition:var(--tr)}
+.alloc-card:hover{border-color:var(--sgt)}
+.alloc-bar{height:6px;background:var(--g100);border-radius:4px;overflow:hidden;margin:6px 0}
+.alloc-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.field-grp label{font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:5px}
+.field-grp input,.field-grp select,.field-grp textarea{width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit;transition:var(--tr)}
+.field-grp input:focus,.field-grp select:focus,.field-grp textarea:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(13,184,122,.1)}
+.info-row{background:var(--g50);border-radius:var(--rdm);padding:10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:12px}
+.btn-sgt{width:100%;padding:12px;border-radius:var(--rdm);color:#fff;font-weight:800;border:none;cursor:pointer;font-size:13px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-sgt.gold{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.btn-sgt.green{background:linear-gradient(135deg,var(--p),var(--pd))}
+.mart-card{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:2px solid var(--acc);border-radius:var(--rd);padding:14px;cursor:pointer;transition:var(--tr);text-decoration:none;margin-bottom:12px}
+.mart-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(139,92,246,.2)}
+
+/* ═══ MODAL ═══ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:var(--tr)}
+.modal-bg.open{opacity:1;visibility:visible}
+.modal{background:var(--white);border-radius:var(--rd);width:100%;max-width:520px;max-height:90vh;overflow:hidden;box-shadow:var(--sh-lg);transform:scale(.95);transition:var(--tr)}
+.modal-bg.open .modal{transform:scale(1)}
+.modal-hd{padding:14px 18px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between}
+.modal-hd h3{font-size:15px;font-weight:700;color:var(--ink2)}
+.modal-close{width:30px;height:30px;border:none;background:var(--g100);border-radius:var(--rds);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g500);transition:var(--tr)}
+.modal-close:hover{background:var(--rl);color:var(--r)}
+.modal-body{padding:18px;overflow-y:auto;max-height:calc(90vh - 130px)}
+.modal-ft{padding:12px 18px;border-top:1px solid var(--g100);display:flex;justify-content:flex-end;gap:10px}
+.btn-sec{padding:8px 14px;background:var(--g100);color:var(--g700);border:none;border-radius:var(--rdm);font-size:12px;font-weight:600;cursor:pointer;transition:var(--tr);font-family:inherit}
+.btn-sec:hover{background:var(--g200)}
+
+/* ═══ TOAST ═══ */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--white);border-radius:var(--rd);padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-lg);border-left:4px solid var(--p);transform:translateX(120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);pointer-events:auto;min-width:280px;max-width:360px}
+.toast.show{transform:translateX(0)}
+.toast.error{border-color:var(--r)}
+.toast.warn{border-color:var(--w)}
+.toast.info{border-color:var(--b)}
+.t-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.toast.success .t-ico{background:var(--pl);color:var(--p)}
+.toast.error .t-ico{background:var(--rl);color:var(--r)}
+.toast.warn .t-ico{background:var(--wl);color:var(--w)}
+.toast.info .t-ico{background:var(--bl);color:var(--b)}
+.t-msg h4{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:1px}
+.t-msg p{font-size:11px;color:var(--g500)}
+
+/* ═══ QUICK ACTIONS ═══ */
+.qa-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.qa-card{background:var(--white);border-radius:var(--rd);padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:var(--tr);border:1px solid var(--g100);text-decoration:none;color:inherit}
+.qa-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md);border-color:var(--p)}
+.qa-card.prim{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none}
+.qa-card.prim .qa-ico{background:rgba(255,255,255,.2);color:#fff}
+.qa-card.prim p{color:rgba(255,255,255,.8)}
+.qa-ico{width:42px;height:42px;border-radius:var(--rdm);background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--p);flex-shrink:0}
+.qa-txt h4{font-size:13px;font-weight:700;margin-bottom:2px}
+.qa-txt p{font-size:11px;color:var(--g500)}
+
+/* ═══ NOTIF PANEL ═══ */
+.notif-panel{position:absolute;top:50px;right:0;width:320px;background:var(--white);border-radius:var(--rd);box-shadow:var(--sh-lg);border:1px solid var(--g200);z-index:500;display:none;overflow:hidden}
+.notif-panel.open{display:block}
+.notif-hd{padding:12px 14px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between}
+.notif-hd h4{font-size:13px;font-weight:700}
+.notif-item{padding:10px 14px;border-bottom:1px solid var(--g100);display:flex;gap:10px;align-items:flex-start;transition:var(--tr);cursor:pointer}
+.notif-item:hover{background:var(--g50)}
+.notif-item.unread{background:#f0fdf9}
+.n-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.n-body p{font-size:12px;color:var(--ink2);font-weight:500;margin-bottom:2px}
+.n-body span{font-size:10px;color:var(--g400)}
+
+/* ═══ SECTION HEADER ═══ */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px}
+.sec-hd h3{font-size:18px;font-weight:700;color:var(--ink2)}
+.sec-hd p{font-size:12px;color:var(--g500)}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .menu-btn{display:flex}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .qa-row{grid-template-columns:1fr 1fr}
 }
-.sgt-supply-banner::before {
-  content: 'SGT'; position: absolute; right: -20px; top: -20px;
-  font-size: 120px; font-weight: 900; color: rgba(255,255,255,0.04);
-  pointer-events: none; line-height: 1;
+@media(max-width:540px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .content{padding:12px}
+  .field-row{grid-template-columns:1fr}
+  .alloc-grid{grid-template-columns:1fr}
+  .sgt-stats{grid-template-columns:1fr 1fr}
 }
-.sgt-coin-sm {
-  width: 44px; height: 44px;
-  background: linear-gradient(135deg, #FCD34D, #F59E0B, #D97706);
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 20px; font-weight: 900; color: #1A0533; flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(245,158,11,0.4);
-}
-.alloc-card {
-  background: var(--white); border-radius: 14px; padding: 16px;
-  border: 1.5px solid var(--gray-200); transition: var(--transition);
-}
-.alloc-card:hover { border-color: var(--sgt-gold); transform: translateY(-1px); }
-.alloc-bar { height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; margin: 8px 0; }
-.alloc-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
-.sgt-stat { background: rgba(255,255,255,0.12); border-radius: 12px; padding: 12px; text-align: center; }
-.mart-link-card {
-  display: flex; align-items: center; gap: 14px;
-  background: linear-gradient(135deg, #F5F3FF, #EDE9FE);
-  border: 2px solid #8B5CF6; border-radius: 16px; padding: 16px;
-  cursor: pointer; transition: var(--transition); text-decoration: none;
-  margin-bottom: 12px;
-}
-.mart-link-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139,92,246,0.2); }
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  background: var(--gray-50);
-  color: var(--gray-800);
-  line-height: 1.6;
-  overflow-x: hidden;
-  width: 100%;
-}
-
-/* ===== LAYOUT UTAMA ===== */
-.app-container { 
-  display: flex; 
-  min-height: 100vh; 
-  position: relative; 
-  width: 100%;
-}
-
-/* ===== SIDEBAR - MOBILE FIRST ===== */
-.sidebar {
-  position: fixed;
-  top: 0; left: 0;
-  width: 260px; 
-  height: 100vh;
-  background: linear-gradient(180deg, var(--dark) 0%, var(--dark-secondary) 100%);
-  color: var(--white);
-  z-index: 1000;
-  transition: transform 0.3s ease;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow-xl);
-  transform: translateX(-100%); /* Hidden by default di mobile */
-}
-
-.sidebar.open {
-  transform: translateX(0);
-}
-
-.sidebar::-webkit-scrollbar { width: 4px; }
-.sidebar::-webkit-scrollbar-thumb { background: var(--gray-600); border-radius: 4px; }
-
-.sidebar-header {
-  padding: 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brand-icon {
-  width: 40px; height: 40px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.brand-text h1 { font-family: 'Amiri', serif; font-size: 16px; font-weight: 700; }
-.brand-text span { font-size: 10px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-
-.sidebar-nav { flex: 1; padding: 12px 8px; }
-
-.nav-section { margin-bottom: 12px; }
-.nav-section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-500); padding: 0 12px; margin-bottom: 6px; font-weight: 700; }
-
-.nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  color: var(--gray-400);
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-  transition: var(--transition);
-  cursor: pointer;
-  margin-bottom: 2px;
-}
-
-.nav-item:hover { background: rgba(255,255,255,0.05); color: var(--white); }
-.nav-item.active {
-  background: linear-gradient(135deg, rgba(13,184,122,0.2) 0%, rgba(13,184,122,0.1) 100%);
-  color: var(--primary);
-  border: 1px solid rgba(13,184,122,0.3);
-}
-
-.nav-item i { width: 18px; text-align: center; font-size: 15px; }
-.nav-badge { margin-left: auto; background: var(--danger); color: white; font-size: 10px; padding: 2px 6px; border-radius: 20px; font-weight: 700; }
-
-.sidebar-footer { padding: 12px; border-top: 1px solid rgba(255,255,255,0.1); }
-
-.user-card {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px;
-  background: rgba(255,255,255,0.05);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.user-card:hover { background: rgba(255,255,255,0.1); }
-
-.user-avatar {
-  width: 36px; height: 36px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 14px; flex-shrink: 0;
-}
-
-.user-info { flex: 1; min-width: 0; }
-.user-name { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-role { font-size: 11px; color: var(--gray-500); }
-
-/* ===== SIDEBAR OVERLAY ===== */
-.sidebar-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 999;
-  opacity: 0;
-  visibility: hidden;
-  transition: var(--transition);
-}
-
-.sidebar-overlay.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* ===== MAIN CONTENT - FULL WIDTH DI MOBILE ===== */
-.main-content { 
-  flex: 1; 
-  min-height: 100vh; 
-  transition: var(--transition); 
-  display: flex; 
-  flex-direction: column;
-  width: 100%;
-  margin-left: 0; /* Tidak ada margin di mobile */
-}
-
-/* ===== TOP NAV ===== */
-.top-nav {
-  position: sticky; top: 0;
-  background: rgba(248, 250, 252, 0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--gray-200);
-  padding: 10px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 100;
-  width: 100%;
-}
-
-.top-nav-left { display: flex; align-items: center; gap: 10px; }
-
-.menu-toggle {
-  width: 36px; height: 36px;
-  border: none; background: var(--white);
-  border-radius: var(--radius-md);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--gray-600);
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-}
-
-.menu-toggle:hover { background: var(--primary-light); color: var(--primary); }
-
-.page-title h2 { font-size: 18px; font-weight: 700; color: var(--gray-800); }
-.page-title p { font-size: 11px; color: var(--gray-500); }
-
-.top-nav-right { display: flex; align-items: center; gap: 6px; }
-
-.nav-btn {
-  width: 36px; height: 36px;
-  border: none; background: var(--white);
-  border-radius: var(--radius-md);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--gray-500);
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-  position: relative;
-}
-
-.nav-btn:hover { background: var(--primary-light); color: var(--primary); }
-
-.nav-btn .badge {
-  position: absolute; top: -2px; right: -2px;
-  width: 16px; height: 16px;
-  background: var(--danger); color: white;
-  font-size: 9px; font-weight: 700;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--white);
-}
-
-/* ===== CONTENT - FULL WIDTH ===== */
-.content-wrapper { 
-  flex: 1; 
-  padding: 12px; 
-  width: 100%;
-}
-
-/* ===== WELCOME BANNER ===== */
-.welcome-banner {
-  background: linear-gradient(135deg, var(--dark) 0%, var(--dark-secondary) 50%, #064e3b 100%);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  margin-bottom: 12px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: var(--shadow-lg);
-  width: 100%;
-}
-
-.welcome-content { position: relative; z-index: 1; flex: 1; }
-.welcome-content h3 { font-family: 'Amiri', serif; font-size: 18px; color: var(--white); margin-bottom: 4px; font-weight: 700; }
-.welcome-content p { color: var(--gray-400); font-size: 12px; }
-
-.welcome-date { text-align: right; position: relative; z-index: 1; }
-.date-day { font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1; }
-.date-month { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 1px; }
-
-/* ===== STATS GRID - 2 KOLOM DI MOBILE ===== */
-.stats-grid { 
-  display: grid; 
-  grid-template-columns: repeat(2, 1fr); 
-  gap: 10px; 
-  margin-bottom: 12px; 
-  width: 100%;
-}
-
-.stat-card {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  box-shadow: var(--shadow-md);
-  transition: var(--transition);
-  border: 1px solid var(--gray-100);
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-.stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--primary); }
-.stat-card.blue::before { background: var(--secondary); }
-.stat-card.orange::before { background: var(--warning); }
-.stat-card.purple::before { background: var(--accent); }
-
-.stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.stat-icon { width: 36px; height: 36px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 16px; background: var(--primary-light); color: var(--primary); }
-.stat-card.blue .stat-icon { background: var(--secondary-light); color: var(--secondary); }
-.stat-card.orange .stat-icon { background: var(--warning-light); color: var(--warning); }
-.stat-card.purple .stat-icon { background: var(--accent-light); color: var(--accent); }
-
-.stat-trend { display: flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 20px; background: var(--primary-light); color: var(--primary); }
-.stat-trend.down { background: var(--danger-light); color: var(--danger); }
-
-.stat-value { font-size: 22px; font-weight: 800; color: var(--gray-800); margin-bottom: 2px; }
-.stat-label { font-size: 12px; color: var(--gray-500); font-weight: 500; }
-.stat-sublabel { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
-
-/* ===== QUICK ACTIONS ===== */
-.quick-actions { 
-  display: grid; 
-  grid-template-columns: repeat(2, 1fr); 
-  gap: 10px; 
-  margin-bottom: 12px; 
-  width: 100%;
-}
-
-.action-card {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  padding: 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: var(--transition);
-  border: 1px solid var(--gray-100);
-  text-decoration: none;
-  color: inherit;
-}
-
-.action-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
-.action-card.primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border: none; }
-.action-card.primary .action-icon { background: rgba(255,255,255,0.2); color: white; }
-.action-card.primary .action-content p { color: rgba(255,255,255,0.8); }
-
-.action-icon { width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--primary); flex-shrink: 0; }
-.action-content h4 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
-.action-content p { font-size: 11px; color: var(--gray-500); }
-
-/* ===== CHARTS ===== */
-.charts-section { 
-  display: grid; 
-  grid-template-columns: 1fr; 
-  gap: 12px; 
-  margin-bottom: 12px; 
-  width: 100%;
-}
-
-.chart-card { 
-  background: var(--white); 
-  border-radius: var(--radius-lg); 
-  padding: 16px; 
-  box-shadow: var(--shadow-md); 
-  border: 1px solid var(--gray-100); 
-  width: 100%;
-}
-
-.chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.chart-title h4 { font-size: 14px; font-weight: 700; color: var(--gray-800); margin-bottom: 2px; }
-.chart-title p { font-size: 11px; color: var(--gray-500); }
-.chart-filter { padding: 6px 10px; border: 1px solid var(--gray-200); border-radius: var(--radius-md); background: var(--white); font-size: 11px; font-weight: 500; color: var(--gray-600); cursor: pointer; font-family: inherit; }
-.chart-container { position: relative; height: 200px; width: 100%; }
-
-/* Progress List */
-.progress-list { display: flex; flex-direction: column; gap: 12px; }
-.progress-item { display: flex; flex-direction: column; gap: 6px; }
-.progress-header { display: flex; justify-content: space-between; align-items: center; }
-.progress-name { font-size: 12px; font-weight: 600; color: var(--gray-700); }
-.progress-value { font-size: 12px; font-weight: 700; color: var(--primary); }
-.progress-bar { height: 6px; background: var(--gray-100); border-radius: 20px; overflow: hidden; }
-.progress-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%); transition: width 0.6s ease; }
-
-/* ===== TABLE ===== */
-.table-section { 
-  background: var(--white); 
-  border-radius: var(--radius-lg); 
-  box-shadow: var(--shadow-md); 
-  border: 1px solid var(--gray-100); 
-  overflow: hidden; 
-  width: 100%;
-}
-
-.table-header { padding: 14px; border-bottom: 1px solid var(--gray-100); display: flex; flex-direction: column; gap: 10px; }
-.table-title h4 { font-size: 15px; font-weight: 700; color: var(--gray-800); margin-bottom: 2px; }
-.table-title p { font-size: 11px; color: var(--gray-500); }
-.table-actions { display: flex; gap: 8px; width: 100%; }
-
-.search-box { position: relative; flex: 1; }
-.search-box input { 
-  padding: 8px 10px 8px 32px; 
-  border: 1px solid var(--gray-200); 
-  border-radius: var(--radius-md); 
-  font-size: 12px; 
-  width: 100%; 
-  font-family: inherit; 
-  transition: var(--transition); 
-}
-.search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13,184,122,0.1); }
-.search-box i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 11px; }
-
-.btn-primary { 
-  padding: 8px 12px; 
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 
-  color: white; border: none; border-radius: var(--radius-md); 
-  font-size: 12px; font-weight: 600; cursor: pointer; 
-  display: flex; align-items: center; gap: 6px; 
-  transition: var(--transition); font-family: inherit;
-  white-space: nowrap;
-}
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(13,184,122,0.3); }
-
-.table-container { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 500px; }
-thead { background: var(--gray-50); }
-th { padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); white-space: nowrap; }
-td { padding: 10px 12px; border-top: 1px solid var(--gray-100); color: var(--gray-600); }
-tr:hover td { background: var(--gray-50); }
-
-.user-cell { display: flex; align-items: center; gap: 8px; }
-.user-avatar-sm { width: 28px; height: 28px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0; }
-.user-details { display: flex; flex-direction: column; }
-.user-name-sm { font-weight: 600; color: var(--gray-800); font-size: 12px; }
-.user-email { font-size: 10px; color: var(--gray-400); }
-
-.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; text-transform: capitalize; }
-.badge-admin { background: var(--accent-light); color: var(--accent); }
-.badge-ustadz { background: var(--secondary-light); color: var(--secondary); }
-.badge-wali { background: var(--warning-light); color: var(--warning); }
-.badge-santri { background: var(--primary-light); color: var(--primary); }
-.badge-active { background: var(--primary-light); color: var(--primary); }
-
-.action-btns { display: flex; gap: 4px; }
-.action-btn { width: 26px; height: 26px; border: none; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); font-size: 11px; }
-.action-btn.view { background: var(--secondary-light); color: var(--secondary); }
-.action-btn.delete { background: var(--danger-light); color: var(--danger); }
-.action-btn:hover { transform: scale(1.1); }
-
-/* ===== MODAL ===== */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 12px; opacity: 0; visibility: hidden; transition: var(--transition); }
-.modal-overlay.show { opacity: 1; visibility: visible; }
-.modal-content { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 100%; max-height: 90vh; overflow: hidden; box-shadow: var(--shadow-xl); transform: scale(0.95); transition: var(--transition); }
-.modal-overlay.show .modal-content { transform: scale(1); }
-.modal-header { padding: 14px 16px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
-.modal-header h3 { font-size: 15px; font-weight: 700; color: var(--gray-800); }
-.modal-close { width: 32px; height: 32px; border: none; background: var(--gray-100); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--gray-500); transition: var(--transition); }
-.modal-close:hover { background: var(--danger-light); color: var(--danger); }
-.modal-body { padding: 16px; overflow-y: auto; max-height: 60vh; }
-.form-group { margin-bottom: 14px; }
-.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; }
-.form-input, .form-select { width: 100%; padding: 10px 12px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-md); font-size: 14px; font-family: inherit; transition: var(--transition); background: var(--white); }
-.form-input:focus, .form-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13,184,122,0.1); }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.form-check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.form-check input { width: 16px; height: 16px; accent-color: var(--primary); }
-.modal-footer { padding: 12px 16px; border-top: 1px solid var(--gray-100); display: flex; justify-content: flex-end; gap: 10px; }
-.btn-secondary { padding: 8px 14px; background: var(--gray-100); color: var(--gray-700); border: none; border-radius: var(--radius-md); font-size: 12px; font-weight: 600; cursor: pointer; transition: var(--transition); font-family: inherit; }
-.btn-secondary:hover { background: var(--gray-200); }
-
-/* ===== TOAST ===== */
-.toast-container { position: fixed; bottom: 12px; left: 12px; right: 12px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; }
-.toast { background: var(--white); border-radius: var(--radius-lg); padding: 12px 14px; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-xl); border-left: 4px solid var(--primary); transform: translateY(100px); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-.toast.show { transform: translateY(0); }
-.toast.error { border-left-color: var(--danger); }
-.toast.warning { border-left-color: var(--warning); }
-.toast.info { border-left-color: var(--secondary); }
-.toast-icon { width: 32px; height: 32px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-.toast.success .toast-icon { background: var(--primary-light); color: var(--primary); }
-.toast.error .toast-icon { background: var(--danger-light); color: var(--danger); }
-.toast.warning .toast-icon { background: var(--warning-light); color: var(--warning); }
-.toast.info .toast-icon { background: var(--secondary-light); color: var(--secondary); }
-.toast-content h4 { font-size: 13px; font-weight: 700; color: var(--gray-800); margin-bottom: 2px; }
-.toast-content p { font-size: 11px; color: var(--gray-500); }
-
-/* ===== DESKTOP STYLES ===== */
-@media (min-width: 769px) {
-  .sidebar {
-    transform: translateX(0);
-    width: 260px;
-  }
-  
-  .main-content {
-    margin-left: 260px;
-    width: calc(100% - 260px);
-  }
-  
-  .menu-toggle {
-    display: none; /* Sembunyikan tombol menu di desktop */
-  }
-  
-  .content-wrapper { padding: 24px; }
-  
-  .welcome-banner { padding: 28px; margin-bottom: 20px; }
-  .welcome-content h3 { font-size: 26px; }
-  .date-day { font-size: 44px; }
-  
-  .stats-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
-  .stat-card { padding: 20px; }
-  .stat-value { font-size: 28px; }
-  
-  .quick-actions { grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
-  .action-card { padding: 18px; }
-  .action-icon { width: 48px; height: 48px; font-size: 20px; }
-  
-  .charts-section { grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
-  .chart-card { padding: 20px; }
-  .chart-container { height: 240px; }
-  
-  .table-header { padding: 18px 20px; flex-direction: row; align-items: center; }
-  .table-actions { width: auto; }
-  .search-box input { width: 220px; }
-  
-  th, td { padding: 12px 16px; }
-  
-  .modal-content { max-width: 500px; }
-  
-  .toast-container { left: auto; right: 24px; bottom: 24px; }
-  .toast { min-width: 320px; max-width: 400px; }
-}
-
-@media (min-width: 1200px) {
-  .content-wrapper { max-width: 1400px; margin: 0 auto; }
-}
-
-/* ===== ANIMATIONS ===== */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.stat-card, .action-card, .chart-card { animation: fadeIn 0.5s ease forwards; }
-.stat-card:nth-child(1) { animation-delay: 0.1s; }
-.stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
-.stat-card:nth-child(4) { animation-delay: 0.4s; }
-
-.hidden { display: none !important; }
 </style>
 </head>
 <body>
 
-<div class="app-container">
-  <!-- Sidebar Overlay -->
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-  
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="brand-icon"><i class="fas fa-mosque"></i></div>
-      <div class="brand-text">
-        <h1>Hidayatullah</h1>
-        <span>Admin Panel</span>
+<!-- SIDEBAR OVERLAY -->
+<div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar hidden-mobile" id="sidebar">
+  <div class="sb-head">
+    <div class="sb-logo"><i class="fas fa-mosque"></i></div>
+    <div class="sb-brand"><h1>Hidayatullah</h1><p>Admin Panel</p></div>
+  </div>
+  <nav class="sb-nav">
+    <span class="sb-sect-lbl">Menu Utama</span>
+    <a class="nav-item active" onclick="switchSection('dashboard',this)"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+    <a href="absensi.html" class="nav-item"><i class="fas fa-qrcode"></i><span>Absensi QR</span></a>
+    <a href="keuangan.html" class="nav-item"><i class="fas fa-wallet"></i><span>Keuangan</span><span class="nav-badge">3</span></a>
+    <span class="sb-sect-lbl">Manajemen</span>
+    <a class="nav-item" onclick="switchSection('users',this)"><i class="fas fa-users-cog"></i><span>Kelola User</span></a>
+    <a href="data-pengguna.html" class="nav-item"><i class="fas fa-user-graduate"></i><span>Data Santri</span></a>
+    <a href="data-pengguna.html" class="nav-item"><i class="fas fa-chalkboard-teacher"></i><span>Data Ustadz</span></a>
+    <a href="data-pengguna.html" class="nav-item"><i class="fas fa-user-friends"></i><span>Data Wali</span></a>
+    <span class="sb-sect-lbl">Portal</span>
+    <a href="dashboard-ustadz.html" class="nav-item"><i class="fas fa-chalkboard"></i><span>Portal Ustadz</span></a>
+    <a href="dashboard-santri.html" class="nav-item"><i class="fas fa-graduation-cap"></i><span>Portal Santri</span></a>
+    <a href="dashboard-wali.html" class="nav-item"><i class="fas fa-heart"></i><span>Portal Wali</span></a>
+    <span class="sb-sect-lbl">Ekosistem</span>
+    <a class="nav-item" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)" onclick="switchSection('sgt',this)"><span style="font-size:14px;font-weight:900;color:#d97706;width:16px;text-align:center">₴</span><span style="color:#d97706;font-weight:700">Kelola SGT</span></a>
+    <a href="https://sagatama-mart.vercel.app" target="_blank" class="nav-item" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)"><i class="fas fa-shopping-bag" style="color:var(--acc)"></i><span style="color:var(--acc);font-weight:700">Sagatama Mart</span><i class="fas fa-external-link-alt" style="font-size:9px;color:var(--acc);margin-left:auto"></i></a>
+  </nav>
+  <div class="sb-foot">
+    <div class="user-tile" onclick="handleLogout()">
+      <div class="u-av" id="uAvatar">A</div>
+      <div class="u-inf"><div class="u-name" id="uName">Administrator</div><div class="u-role">Klik untuk logout</div></div>
+      <i class="fas fa-sign-out-alt" style="color:rgba(255,255,255,.3);font-size:13px"></i>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <header class="topbar">
+    <div class="tb-left">
+      <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="pg-title"><h2 id="pgTitle">Dashboard Admin</h2><p id="pgDate">Memuat...</p></div>
+    </div>
+    <div class="tb-right" style="position:relative">
+      <button class="tb-btn" onclick="toggleNotif()" title="Notifikasi"><i class="fas fa-bell"></i><div class="tb-dot" id="notifDot"></div></button>
+      <!-- Notif Panel -->
+      <div class="notif-panel" id="notifPanel">
+        <div class="notif-hd"><h4>Notifikasi</h4><span style="font-size:11px;color:var(--p);cursor:pointer" onclick="markAllRead()">Tandai Dibaca</span></div>
+        <div id="notifList"></div>
       </div>
     </div>
-    
-    <nav class="sidebar-nav">
-      <div class="nav-section">
-        <div class="nav-section-title">Menu Utama</div>
-        <a href="#" class="nav-item active" onclick="setActive(this)"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
-        <a href="absensi.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-qrcode"></i><span>Absensi QR</span></a>
-        <a href="hafalan.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-book-open"></i><span>Input Hafalan</span></a>
-        <a href="keuangan.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-wallet"></i><span>Keuangan</span><span class="nav-badge">3</span></a>
-      </div>
-      
-      <div class="nav-section">
-        <div class="nav-section-title">Manajemen</div>
-        <a href="#" class="nav-item" onclick="openModal(); setActive(this); return false;"><i class="fas fa-user-plus"></i><span>Buat User Baru</span></a>
-        <a href="data-ustadz.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-chalkboard-teacher"></i><span>Data Ustadz</span></a>
-        <a href="data-wali.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-user-friends"></i><span>Data Wali</span></a>
-        <a href="data-santri.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-user-graduate"></i><span>Data Santri</span></a>
-      </div>
-      
-      <div class="nav-section">
-        <div class="nav-section-title">Portal</div>
-        <a href="dashboard-ustadz.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-chalkboard"></i><span>Portal Ustadz</span></a>
-        <a href="dashboard-santri.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-graduation-cap"></i><span>Portal Santri</span></a>
-        <a href="dashboard-wali.html" class="nav-item" onclick="setActive(this)"><i class="fas fa-users"></i><span>Portal Wali</span></a>
-      </div>
+  </header>
 
-      <div class="nav-section">
-        <div class="nav-section-title">Ekosistem SGT</div>
-        <a href="https://sagatama-mart.vercel.app" target="_blank" class="nav-item" style="background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(124,58,237,0.08)); border:1px solid rgba(139,92,246,0.2);">
-          <i class="fas fa-shopping-bag" style="color:#8B5CF6;"></i><span style="color:#7C3AED; font-weight:700;">Sagatama Mart</span>
-          <i class="fas fa-external-link-alt" style="font-size:9px; color:#8B5CF6; margin-left:auto;"></i>
-        </a>
-        <a href="#" class="nav-item" onclick="document.querySelector('.sgt-supply-banner').scrollIntoView({behavior:'smooth'}); setActive(this); return false;" style="background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(217,119,6,0.08)); border:1px solid rgba(245,158,11,0.2);">
-          <span style="font-size:15px; font-weight:900; color:#D97706; line-height:1;">₴</span><span style="color:#D97706; font-weight:700;">Kelola SGT Token</span>
-        </a>
-      </div>
-    </nav>
-    
-    <div class="sidebar-footer">
-      <div class="user-card" onclick="handleLogout()">
-        <div class="user-avatar" id="userAvatar">A</div>
-        <div class="user-info">
-          <div class="user-name" id="userName">Administrator</div>
-          <div class="user-role">Klik untuk logout</div>
-        </div>
-        <i class="fas fa-sign-out-alt" style="color: var(--gray-500);"></i>
-      </div>
-    </div>
-  </aside>
+  <div class="content">
 
-  <!-- Main Content -->
-  <main class="main-content">
-    <!-- Top Nav -->
-    <header class="top-nav">
-      <div class="top-nav-left">
-        <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
-        <div class="page-title">
-          <h2>Dashboard Admin</h2>
-          <p id="currentDate">Memuat tanggal...</p>
-        </div>
-      </div>
-      <div class="top-nav-right">
-        <button class="nav-btn" onclick="toggleTheme()" title="Ganti tema"><i class="fas fa-moon" id="themeIcon"></i></button>
-        <button class="nav-btn" onclick="showNotifications()" title="Notifikasi"><i class="fas fa-bell"></i><span class="badge">5</span></button>
-      </div>
-    </header>
-
-    <!-- Content -->
-    <div class="content-wrapper">
-      <!-- Welcome Banner -->
-      <div class="welcome-banner">
-        <div class="welcome-content">
+    <!-- ════ DASHBOARD SECTION ════ -->
+    <div class="section active" id="sec-dashboard">
+      <div class="welcome">
+        <div class="welcome-txt">
           <h3>Assalamu'alaikum, <span id="greetName">Admin</span>! 👋</h3>
-          <p>Semua sistem berjalan normal. Pantau aktivitas pondok hari ini.</p>
+          <p id="greetSub">Semua sistem berjalan normal. Pantau aktivitas pondok hari ini.</p>
         </div>
-        <div class="welcome-date">
-          <div class="date-day" id="dateNum">—</div>
-          <div class="date-month" id="dateStr">—</div>
-        </div>
+        <div class="welcome-date"><div class="wd-num" id="wdNum">—</div><div class="wd-str" id="wdStr">—</div></div>
       </div>
 
-      <!-- Stats -->
-      <div class="stats-grid">
+      <div class="stats-row">
         <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
-            <div class="stat-trend"><i class="fas fa-arrow-up" style="font-size: 9px;"></i><span>12%</span></div>
-          </div>
-          <div class="stat-value" id="statSantri"><i class="fas fa-spinner fa-spin" style="font-size: 18px; color: var(--gray-400);"></i></div>
-          <div class="stat-label">Total Santri</div>
-          <div class="stat-sublabel">Aktif terdaftar</div>
+          <div class="sc-top"><div class="sc-ico g"><i class="fas fa-user-graduate"></i></div><div class="sc-trend"><i class="fas fa-arrow-up" style="font-size:9px"></i> 12%</div></div>
+          <div class="sc-val" id="statSantri"><i class="fas fa-spinner fa-spin" style="font-size:18px;color:var(--g300)"></i></div>
+          <div class="sc-lbl">Total Santri</div><div class="sc-sub">Aktif terdaftar</div>
         </div>
-        
-        <div class="stat-card blue">
-          <div class="stat-header">
-            <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-            <div class="stat-trend"><i class="fas fa-arrow-up" style="font-size: 9px;"></i><span>5%</span></div>
-          </div>
-          <div class="stat-value" id="statUstadz"><i class="fas fa-spinner fa-spin" style="font-size: 18px; color: var(--gray-400);"></i></div>
-          <div class="stat-label">Total Ustadz</div>
-          <div class="stat-sublabel">Semua aktif mengajar</div>
+        <div class="stat-card b">
+          <div class="sc-top"><div class="sc-ico b"><i class="fas fa-chalkboard-teacher"></i></div><div class="sc-trend"><i class="fas fa-arrow-up" style="font-size:9px"></i> 5%</div></div>
+          <div class="sc-val" id="statUstadz"><i class="fas fa-spinner fa-spin" style="font-size:18px;color:var(--g300)"></i></div>
+          <div class="sc-lbl">Total Ustadz</div><div class="sc-sub">Aktif mengajar</div>
         </div>
-        
-        <div class="stat-card orange">
-          <div class="stat-header">
-            <div class="stat-icon" style="background: var(--warning-light); color: var(--warning);"><i class="fas fa-calendar-check"></i></div>
-            <div class="stat-trend"><i class="fas fa-arrow-up" style="font-size: 9px;"></i><span>2%</span></div>
-          </div>
-          <div class="stat-value">94%</div>
-          <div class="stat-label">Kehadiran</div>
-          <div class="stat-sublabel">Rata-rata minggu ini</div>
+        <div class="stat-card o">
+          <div class="sc-top"><div class="sc-ico o"><i class="fas fa-calendar-check"></i></div><div class="sc-trend flat"><i class="fas fa-minus" style="font-size:9px"></i> Stabil</div></div>
+          <div class="sc-val" id="statKehadiran">94%</div>
+          <div class="sc-lbl">Kehadiran</div><div class="sc-sub">Rata-rata minggu ini</div>
         </div>
-        
-        <div class="stat-card purple">
-          <div class="stat-header">
-            <div class="stat-icon" style="background: var(--accent-light); color: var(--accent);"><i class="fas fa-book-quran"></i></div>
-            <div class="stat-trend" style="background: var(--warning-light); color: var(--warning);"><i class="fas fa-minus" style="font-size: 9px;"></i><span>Stabil</span></div>
-          </div>
-          <div class="stat-value">4.5</div>
-          <div class="stat-label">Rata-rata Hafalan</div>
-          <div class="stat-sublabel">Semua kelas (Juz)</div>
+        <div class="stat-card v">
+          <div class="sc-top"><div class="sc-ico v"><i class="fas fa-book-quran"></i></div><div class="sc-trend flat"><i class="fas fa-minus" style="font-size:9px"></i> Stabil</div></div>
+          <div class="sc-val" id="statHafalan">4.5</div>
+          <div class="sc-lbl">Rata-rata Hafalan</div><div class="sc-sub">Semua kelas (Juz)</div>
         </div>
       </div>
 
-      <!-- Quick Actions -->
-      <div class="quick-actions">
-        <a href="#" class="action-card primary" onclick="openModal(); return false;">
-          <div class="action-icon"><i class="fas fa-user-plus"></i></div>
-          <div class="action-content"><h4>Buat User Baru</h4><p>Tambah admin, ustadz, santri, atau wali</p></div>
+      <div class="qa-row">
+        <a class="qa-card prim" onclick="openModal(); return false;">
+          <div class="qa-ico"><i class="fas fa-user-plus"></i></div>
+          <div class="qa-txt"><h4>Buat User Baru</h4><p>Tambah admin, ustadz, santri, wali</p></div>
         </a>
-        <a href="data-santri.html" class="action-card">
-          <div class="action-icon" style="background: var(--secondary-light); color: var(--secondary);"><i class="fas fa-users-cog"></i></div>
-          <div class="action-content"><h4>Kelola Data Santri</h4><p>Lihat dan edit semua data santri</p></div>
+        <a href="data-pengguna.html" class="qa-card">
+          <div class="qa-ico" style="background:var(--bl);color:var(--b)"><i class="fas fa-users-cog"></i></div>
+          <div class="qa-txt"><h4>Kelola Data Santri</h4><p>Lihat dan edit semua data santri</p></div>
         </a>
       </div>
 
-      <!-- Charts -->
-      <div class="charts-section">
-        <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-title"><h4>Grafik Kehadiran Santri</h4><p>Data kehadiran harian</p></div>
-            <select class="chart-filter" onchange="updateChart(this.value)"><option value="week">Minggu Ini</option><option value="month">Bulan Ini</option></select>
-          </div>
-          <div class="chart-container"><canvas id="attendanceChart"></canvas></div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><div><h4>Grafik Kehadiran Santri</h4><p>Data 7 hari terakhir</p></div><select style="font-size:11px;border:1px solid var(--g200);border-radius:8px;padding:4px 8px;font-family:inherit" onchange="updateChart(this.value)"><option value="week">7 Hari</option><option value="month">30 Hari</option></select></div>
+          <div class="chart-wrap"><canvas id="chartKehadiran"></canvas></div>
         </div>
-        
-        <div class="chart-card">
-          <div class="chart-header"><div class="chart-title"><h4>Hafalan per Kelas</h4><p>Rata-rata juz tercapai</p></div></div>
-          <div class="progress-list">
-            <div class="progress-item"><div class="progress-header"><span class="progress-name">Kelas A</span><span class="progress-value">5.1 juz</span></div><div class="progress-bar"><div class="progress-fill" style="width: 85%"></div></div></div>
-            <div class="progress-item"><div class="progress-header"><span class="progress-name">Kelas B</span><span class="progress-value">4.5 juz</span></div><div class="progress-bar"><div class="progress-fill" style="width: 75%"></div></div></div>
-            <div class="progress-item"><div class="progress-header"><span class="progress-name">Kelas C</span><span class="progress-value">3.8 juz</span></div><div class="progress-bar"><div class="progress-fill" style="width: 63%"></div></div></div>
-            <div class="progress-item"><div class="progress-header"><span class="progress-name">Kelas D</span><span class="progress-value">4.2 juz</span></div><div class="progress-bar"><div class="progress-fill" style="width: 70%"></div></div></div>
-            <div class="progress-item"><div class="progress-header"><span class="progress-name">Kelas E</span><span class="progress-value">6.0 juz</span></div><div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div></div>
+        <div class="card">
+          <div class="card-head"><h4>Hafalan per Kelas</h4></div>
+          <div class="prog-list" id="hafalanList">
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas A</span><span class="prog-val">5.1 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:85%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas B</span><span class="prog-val">4.5 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:75%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas C</span><span class="prog-val">3.8 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:63%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas D</span><span class="prog-val">4.2 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:70%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas E</span><span class="prog-val">6.0 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div></div>
           </div>
         </div>
       </div>
+    </div><!-- /dashboard -->
 
-      <!-- ══════════════════════════════════════
-           SGT TOKEN MANAGEMENT
-      ══════════════════════════════════════ -->
-      <div style="margin-bottom: 24px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-          <h3 style="font-size:16px; font-weight:800; color:var(--gray-800);">
-            <span style="background:linear-gradient(135deg,#FCD34D,#F59E0B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">₴</span>
-            Manajemen SGT Token
-          </h3>
-          <span style="font-size:11px; background:var(--sgt-bg); color:var(--sgt-dark); padding:4px 10px; border-radius:20px; font-weight:700; border:1px solid var(--sgt-gold);">SAGATAMA TOKEN</span>
-        </div>
-
-        <!-- Supply Banner -->
-        <div class="sgt-supply-banner">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
-            <div class="sgt-coin-sm">₴</div>
-            <div>
-              <p style="font-size:11px; color:rgba(255,255,255,0.65); font-weight:700; letter-spacing:1px; text-transform:uppercase;">Total Supply (Tetap)</p>
-              <p style="font-size:28px; font-weight:900; color:white; line-height:1.1;">1.000.000.000 SGT</p>
-              <p style="font-size:11px; color:rgba(255,255,255,0.55);">1 Miliar token · Tidak dapat ditambah</p>
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
-            <div class="sgt-stat">
-              <p style="font-size:15px; font-weight:900; color:#FCD34D;" id="sgtCirculating">—</p>
-              <p style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600;">Beredar</p>
-            </div>
-            <div class="sgt-stat">
-              <p style="font-size:15px; font-weight:900; color:#FCD34D;" id="sgtIssued">—</p>
-              <p style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600;">Diterbitkan</p>
-            </div>
-            <div class="sgt-stat">
-              <p style="font-size:15px; font-weight:900; color:#FCD34D;" id="sgtReserve">—</p>
-              <p style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600;">Cadangan</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Allocation Cards -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;" id="allocGrid">
-          <!-- Filled by JS -->
-        </div>
-
-        <!-- Edit Allocation -->
-        <div class="alloc-card" style="margin-bottom:12px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-            <i class="fas fa-sliders-h" style="color:var(--sgt-gold);"></i>
-            <h4 style="font-size:13px; font-weight:800;">Atur Porsi Distribusi</h4>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
-            <div>
-              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Member / Santri (%)</label>
-              <input type="number" id="allocMember" value="30" min="0" max="100" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-weight:700; font-family:inherit;">
-            </div>
-            <div>
-              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Ustadz / Pengajar (%)</label>
-              <input type="number" id="allocUstadz" value="20" min="0" max="100" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-weight:700; font-family:inherit;">
-            </div>
-            <div>
-              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Sagatama Mart (%)</label>
-              <input type="number" id="allocMart" value="25" min="0" max="100" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-weight:700; font-family:inherit;">
-            </div>
-            <div>
-              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Cadangan Yayasan (%)</label>
-              <input type="number" id="allocReserve" value="25" min="0" max="100" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-weight:700; font-family:inherit;">
-            </div>
-          </div>
-          <div style="background:var(--gray-50); border-radius:10px; padding:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:12px; color:var(--gray-500);">Total:</span>
-            <span id="allocTotal" style="font-weight:800; color:var(--primary);">100%</span>
-          </div>
-          <button onclick="saveAllocations()" style="width:100%; padding:12px; border-radius:12px; background:linear-gradient(135deg,#F59E0B,#D97706); color:white; font-weight:800; border:none; cursor:pointer; font-size:13px; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <i class="fas fa-save"></i> Simpan Alokasi
-          </button>
-        </div>
-
-        <!-- Distribution Manual -->
-        <div class="alloc-card" style="margin-bottom:12px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-            <i class="fas fa-paper-plane" style="color:var(--primary);"></i>
-            <h4 style="font-size:13px; font-weight:800;">Distribusi SGT ke Member</h4>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-            <div>
-              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Username Penerima</label>
-              <input type="text" id="distTarget" placeholder="Username Pi" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-family:inherit;">
-            </div>
-            <div>
-              <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Jumlah SGT</label>
-              <input type="number" id="distAmount" placeholder="0" min="1" style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-weight:700; font-family:inherit;">
-            </div>
-          </div>
-          <div style="margin-bottom:10px;">
-            <label style="font-size:11px; font-weight:700; color:var(--gray-500); display:block; margin-bottom:5px;">Keterangan</label>
-            <input type="text" id="distNote" placeholder="Alasan distribusi..." style="width:100%; padding:9px 12px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:13px; font-family:inherit;">
-          </div>
-          <button onclick="distributeSGT()" style="width:100%; padding:12px; border-radius:12px; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; font-weight:800; border:none; cursor:pointer; font-size:13px; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <i class="fas fa-coins"></i> Distribusikan SGT
-          </button>
-        </div>
+    <!-- ════ USER MANAGEMENT SECTION ════ -->
+    <div class="section" id="sec-users">
+      <div class="sec-hd">
+        <div><h3>Kelola User</h3><p>Semua pengguna sistem yang terdaftar</p></div>
+        <button class="btn-p" onclick="openModal()"><i class="fas fa-user-plus"></i> Buat User</button>
       </div>
-
-      <!-- ══════════════════════════════════════
-           SAGATAMA MART INTEGRATION
-      ══════════════════════════════════════ -->
-      <div style="margin-bottom: 24px;">
-        <h3 style="font-size:16px; font-weight:800; color:var(--gray-800); margin-bottom:14px;">
-          <i class="fas fa-store" style="color:#8B5CF6; margin-right:8px;"></i>Integrasi Ekosistem
-        </h3>
-        <a href="https://hidayatulamin.vercel.app" target="_blank" class="mart-link-card">
-          <div style="width:48px; height:48px; background:linear-gradient(135deg,#8B5CF6,#7C3AED); border-radius:14px; display:flex; align-items:center; justify-content:center; color:white; font-size:22px; flex-shrink:0;">
-            <i class="fas fa-shopping-bag"></i>
-          </div>
-          <div style="flex:1;">
-            <p style="font-weight:800; color:#1F2937; font-size:14px;">Sagatama Mart</p>
-            <p style="font-size:12px; color:#64748B;">sagatama-mart.vercel.app · Pi E-Commerce</p>
-          </div>
-          <i class="fas fa-external-link-alt" style="color:#8B5CF6;"></i>
-        </a>
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
-          <div style="background:var(--gray-50); border-radius:12px; padding:12px; text-align:center; border:1px solid var(--gray-200);">
-            <p style="font-size:18px; font-weight:900; color:#8B5CF6;" id="martTotalTx">—</p>
-            <p style="font-size:11px; color:var(--gray-500); font-weight:600;">Transaksi</p>
-          </div>
-          <div style="background:var(--gray-50); border-radius:12px; padding:12px; text-align:center; border:1px solid var(--gray-200);">
-            <p style="font-size:18px; font-weight:900; color:var(--sgt-dark);" id="martSgtEarned">—</p>
-            <p style="font-size:11px; color:var(--gray-500); font-weight:600;">SGT Diberikan</p>
-          </div>
-          <div style="background:var(--gray-50); border-radius:12px; padding:12px; text-align:center; border:1px solid var(--gray-200);">
-            <p style="font-size:18px; font-weight:900; color:var(--primary);" id="martMembers">—</p>
-            <p style="font-size:11px; color:var(--gray-500); font-weight:600;">Member</p>
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Daftar User</h4><p>Klik icon untuk aksi</p></div>
+          <div class="tbl-acts">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchUser" placeholder="Cari nama / email..." oninput="filterUsers()"></div>
+            <select id="filterRole" onchange="filterUsers()" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit"><option value="">Semua Role</option><option value="admin">Admin</option><option value="ustadz">Ustadz</option><option value="wali">Wali</option><option value="santri">Santri</option></select>
           </div>
         </div>
-      </div>
-
-      <!-- Table -->
-      <div class="table-section">
-        <div class="table-header">
-          <div class="table-title"><h4>User Terbaru</h4><p>5 user terakhir yang terdaftar di sistem</p></div>
-          <div class="table-actions">
-            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Cari user..." id="searchUser"></div>
-            <button class="btn-primary" onclick="openModal()"><i class="fas fa-plus"></i><span>Tambah</span></button>
-          </div>
-        </div>
-        <div class="table-container">
+        <div class="tbl-wrap">
           <table>
-            <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Tanggal</th><th>Aksi</th></tr></thead>
-            <tbody id="usersTable"><tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--gray-400);"><i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px; display: block;"></i>Memuat data user...</td></tr></tbody>
+            <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+            <tbody id="usersTable"><tr><td colspan="5" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
           </table>
         </div>
       </div>
-    </div>
-  </main>
-</div>
+    </div><!-- /users -->
 
-<!-- Modal -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOverlay(event)">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h3><i class="fas fa-user-plus" style="color: var(--primary); margin-right: 8px;"></i>Buat User Baru</h3>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-    </div>
+    <!-- ════ SGT TOKEN SECTION ════ -->
+    <div class="section" id="sec-sgt">
+      <div class="sec-hd"><div><h3>Manajemen SGT Token</h3><p>Kelola Sagatama Token (SGT) — 1 Miliar total supply</p></div><span style="background:var(--sgtl);color:var(--sgtd);font-size:11px;padding:4px 12px;border-radius:20px;font-weight:700;border:1px solid var(--sgt)">SAGATAMA TOKEN</span></div>
+
+      <div class="sgt-banner">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;z-index:1">
+          <div class="sgt-coin">₴</div>
+          <div>
+            <p style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px">Total Supply (Tetap)</p>
+            <p style="font-size:24px;font-weight:900;color:#fff;line-height:1.2">1.000.000.000 SGT</p>
+            <p style="font-size:11px;color:rgba(255,255,255,.5)">1 Miliar token · Tidak dapat ditambah</p>
+          </div>
+        </div>
+        <div class="sgt-stats">
+          <div class="sgt-stat"><div class="sv" id="sgtCirculating">—</div><div class="sl">Beredar</div></div>
+          <div class="sgt-stat"><div class="sv" id="sgtIssued">—</div><div class="sl">Diterbitkan</div></div>
+          <div class="sgt-stat"><div class="sv" id="sgtReserve">—</div><div class="sl">Cadangan</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h4>Alokasi Token per Segmen</h4></div>
+        <div class="alloc-grid" id="allocGrid"></div>
+        <div class="field-row">
+          <div class="field-grp"><label>Member / Santri (%)</label><input type="number" id="allocMember" value="30" min="0" max="100" oninput="calcTotal()"></div>
+          <div class="field-grp"><label>Ustadz / Pengajar (%)</label><input type="number" id="allocUstadz" value="20" min="0" max="100" oninput="calcTotal()"></div>
+          <div class="field-grp"><label>Sagatama Mart (%)</label><input type="number" id="allocMart" value="25" min="0" max="100" oninput="calcTotal()"></div>
+          <div class="field-grp"><label>Cadangan Yayasan (%)</label><input type="number" id="allocReserve" value="25" min="0" max="100" oninput="calcTotal()"></div>
+        </div>
+        <div class="info-row"><span style="color:var(--g500)">Total alokasi:</span><span id="allocTotal" style="font-weight:800;color:var(--p)">100%</span></div>
+        <button class="btn-sgt gold" onclick="saveAlloc()"><i class="fas fa-save"></i> Simpan Alokasi</button>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h4>Distribusi SGT ke Member</h4></div>
+        <div class="field-row">
+          <div class="field-grp"><label>Username Penerima</label><input type="text" id="distTarget" placeholder="Username Pi"></div>
+          <div class="field-grp"><label>Jumlah SGT</label><input type="number" id="distAmount" placeholder="0" min="1"></div>
+        </div>
+        <div class="field-grp" style="margin-bottom:12px"><label>Keterangan</label><input type="text" id="distNote" placeholder="Alasan distribusi..."></div>
+        <button class="btn-sgt green" onclick="doDistribute()"><i class="fas fa-coins"></i> Distribusikan SGT</button>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:12px"><i class="fas fa-store" style="color:var(--acc);margin-right:8px"></i>Integrasi Ekosistem</h4>
+        <a href="https://hidayatulamin.vercel.app" target="_blank" class="mart-card">
+          <div style="width:46px;height:46px;background:linear-gradient(135deg,var(--acc),#7c3aed);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0"><i class="fas fa-shopping-bag"></i></div>
+          <div style="flex:1"><p style="font-weight:800;color:var(--ink2);font-size:14px">Sagatama Mart</p><p style="font-size:12px;color:var(--g500)">Pi E-Commerce · hidayatulamin.vercel.app</p></div>
+          <i class="fas fa-external-link-alt" style="color:var(--acc)"></i>
+        </a>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          <div style="background:var(--g50);border-radius:var(--rdm);padding:12px;text-align:center;border:1px solid var(--g200)"><p style="font-size:18px;font-weight:900;color:var(--acc)" id="martTx">—</p><p style="font-size:11px;color:var(--g500);font-weight:600">Transaksi</p></div>
+          <div style="background:var(--g50);border-radius:var(--rdm);padding:12px;text-align:center;border:1px solid var(--g200)"><p style="font-size:18px;font-weight:900;color:var(--sgtd)" id="martSgt">—</p><p style="font-size:11px;color:var(--g500);font-weight:600">SGT Diberikan</p></div>
+          <div style="background:var(--g50);border-radius:var(--rdm);padding:12px;text-align:center;border:1px solid var(--g200)"><p style="font-size:18px;font-weight:900;color:var(--p)" id="martMember">—</p><p style="font-size:11px;color:var(--g500);font-weight:600">Member</p></div>
+        </div>
+      </div>
+
+      <!-- Log Distribusi -->
+      <div class="tbl-section">
+        <div class="tbl-head"><div class="tbl-title"><h4>Log Distribusi SGT</h4><p>10 distribusi terakhir</p></div></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Penerima</th><th>Jumlah</th><th>Keterangan</th><th>Tanggal</th></tr></thead>
+            <tbody id="distLog"></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /sgt -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODAL BUAT USER -->
+<div class="modal-bg" id="modalBg" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-hd"><h3><i class="fas fa-user-plus" style="color:var(--p);margin-right:8px"></i>Buat User Baru</h3><button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button></div>
     <div class="modal-body">
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Nama Lengkap *</label><input type="text" class="form-input" id="fName" placeholder="Masukkan nama lengkap"></div>
-        <div class="form-group"><label class="form-label">Role *</label><select class="form-select" id="fRole" onchange="handleRoleChange()"><option value="">Pilih Role</option><option value="santri">Santri</option><option value="ustadz">Ustadz</option><option value="wali">Wali Santri</option><option value="admin">Admin</option></select></div>
+      <div class="field-row">
+        <div class="field-grp"><label>Nama Lengkap *</label><input type="text" id="fName" placeholder="Nama lengkap"></div>
+        <div class="field-grp"><label>Role *</label><select id="fRole" onchange="onRoleChange()"><option value="">Pilih Role</option><option value="santri">Santri</option><option value="ustadz">Ustadz</option><option value="wali">Wali Santri</option><option value="admin">Admin</option></select></div>
       </div>
-      <div class="form-group"><label class="form-label">Email *</label><input type="email" class="form-input" id="fEmail" placeholder="email@contoh.com"></div>
-      <div class="form-group"><label class="form-label">Password *</label><input type="password" class="form-input" id="fPass" placeholder="Minimal 6 karakter"></div>
-      <div class="form-row hidden" id="xSantri">
-        <div class="form-group"><label class="form-label">NIS</label><input type="text" class="form-input" id="fNIS" placeholder="Nomor Induk Santri"></div>
-        <div class="form-group"><label class="form-label">Kelas</label><select class="form-select" id="fKelas"><option value="">Pilih Kelas</option><option>Kelas A</option><option>Kelas B</option><option>Kelas C</option><option>Kelas D</option><option>Kelas E</option></select></div>
+      <div class="field-grp" style="margin-bottom:14px"><label>Email *</label><input type="email" id="fEmail" placeholder="email@contoh.com"></div>
+      <div class="field-grp" style="margin-bottom:14px"><label>Password *</label><input type="password" id="fPass" placeholder="Minimal 6 karakter"></div>
+      <div id="xSantri" style="display:none">
+        <div class="field-row">
+          <div class="field-grp"><label>NIS</label><input type="text" id="fNIS" placeholder="Nomor Induk Santri"></div>
+          <div class="field-grp"><label>Kelas</label><select id="fKelas"><option value="">Pilih Kelas</option><option>Kelas A</option><option>Kelas B</option><option>Kelas C</option><option>Kelas D</option><option>Kelas E</option></select></div>
+        </div>
       </div>
-      <div class="hidden" id="xWali">
-        <div class="form-group"><label class="form-label">No. HP</label><input type="tel" class="form-input" id="fPhone" placeholder="08xx-xxxx-xxxx"></div>
-        <div class="form-group"><label class="form-label">Hubungan dengan Santri</label><select class="form-select" id="fHubungan"><option value="ayah">Ayah</option><option value="ibu">Ibu</option><option value="wali">Wali</option></select></div>
+      <div id="xWali" style="display:none">
+        <div class="field-row">
+          <div class="field-grp"><label>No. HP</label><input type="tel" id="fPhone" placeholder="08xx-xxxx-xxxx"></div>
+          <div class="field-grp"><label>Hubungan</label><select id="fHubungan"><option value="ayah">Ayah</option><option value="ibu">Ibu</option><option value="wali">Wali</option></select></div>
+        </div>
       </div>
-      <label class="form-check"><input type="checkbox" id="fVerif"><span style="font-size: 13px; color: var(--gray-600);">Kirim email verifikasi ke user</span></label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--g600)"><input type="checkbox" id="fVerif" style="width:16px;height:16px;accent-color:var(--p)"> Kirim email verifikasi ke user</label>
     </div>
-    <div class="modal-footer">
-      <button class="btn-secondary" onclick="closeModal()">Batal</button>
-      <button class="btn-primary" id="createBtn" onclick="handleCreate()"><i class="fas fa-user-plus"></i><span id="createBtnText">Buat User</span></button>
-    </div>
+    <div class="modal-ft"><button class="btn-sec" onclick="closeModal()">Batal</button><button class="btn-p" id="createBtn" onclick="createUser()"><i class="fas fa-user-plus"></i><span id="createTxt">Buat User</span></button></div>
   </div>
 </div>
 
-<!-- Toast -->
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast-wrap" id="toastWrap"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+<script>
+// ════ FIREBASE ════
 const firebaseConfig = {
   apiKey:"AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
   authDomain:"hidayatulamin-e6f22.firebaseapp.com",
@@ -959,357 +524,388 @@ const firebaseConfig = {
   messagingSenderId:"80743607267",
   appId:"1:80743607267:web:f5f94165de021759958ed6"
 };
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// ════ STATE ════
 let allUsers = [];
+const SGT_SUPPLY = 1_000_000_000;
+const SGT_ALLOC_DEFAULT = {
+  member:  {pct:30,label:'Member / Santri',    color:'#0db87a',cbg:'#e6f9f2'},
+  ustadz:  {pct:20,label:'Ustadz / Pengajar',  color:'#2d7ef5',cbg:'#eaf1fe'},
+  mart:    {pct:25,label:'Sagatama Mart',       color:'#8b5cf6',cbg:'#f0ebff'},
+  reserve: {pct:25,label:'Cadangan Yayasan',    color:'#f59e0b',cbg:'#fef3c7'},
+};
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) { window.location.href = 'login.html'; return; }
-  try {
-    const uDoc = await getDoc(doc(db,"users",user.uid));
-    if (!uDoc.exists() || uDoc.data().role !== 'admin') {
-      await signOut(auth); window.location.href = 'login.html'; return;
-    }
-    const d = uDoc.data();
-    const name = d.displayName || 'Administrator';
-    document.getElementById('greetName').textContent = name;
-    document.getElementById('userName').textContent = name;
-    document.getElementById('userAvatar').textContent = name[0].toUpperCase();
-    loadData();
-  } catch(e){ showToast('Error','Gagal verifikasi akses','error'); }
+// ════ AUTH GUARD ════
+document.addEventListener('DOMContentLoaded', () => {
+  updateDate();
+  initNotif();
+
+  if (typeof HA !== 'undefined') {
+    HA.requireAuth('admin', (user, data) => {
+      const name = data?.namaLengkap || data?.name || data?.displayName || user.email;
+      setEl('greetName', name);
+      setEl('uName', name);
+      setEl('uAvatar', name[0]?.toUpperCase() || 'A');
+      loadDashboardData();
+    });
+  } else {
+    // Fallback: check Firebase auth directly
+    auth.onAuthStateChanged(async user => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      try {
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (!doc.exists || doc.data().role !== 'admin') { await auth.signOut(); window.location.href = 'login.html'; return; }
+        const d = doc.data();
+        const name = d.displayName || d.namaLengkap || user.email;
+        setEl('greetName', name);
+        setEl('uName', name);
+        setEl('uAvatar', name[0]?.toUpperCase() || 'A');
+        loadDashboardData();
+      } catch(e) { console.error(e); }
+    });
+  }
 });
 
-async function loadData() {
+// ════ SECTION SWITCH ════
+function switchSection(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  setEl('pgTitle', {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token'}[name] || 'Dashboard');
+  if (name === 'users') loadAllUsers();
+  if (name === 'sgt') { renderAllocGrid(); loadMartStats(); renderDistLog(); }
+  closeSidebar();
+}
+
+// ════ LOAD DATA ════
+async function loadDashboardData() {
   try {
     const [santriSnap, ustadzSnap] = await Promise.all([
-      getDocs(query(collection(db,"users"),where("role","==","santri"))),
-      getDocs(query(collection(db,"users"),where("role","==","ustadz")))
+      db.collection('users').where('role','==','santri').where('isActive','==',true).get(),
+      db.collection('users').where('role','==','ustadz').where('isActive','==',true).get()
     ]);
-    animateNumber('statSantri', santriSnap.size);
-    animateNumber('statUstadz', ustadzSnap.size);
-    const usersSnap = await getDocs(query(collection(db,"users"),where("isActive","==",true)));
-    allUsers = [];
-    usersSnap.forEach(d => allUsers.push({id:d.id,...d.data()}));
-    allUsers.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
-    renderTable(allUsers.slice(0,5));
-  } catch(e){ console.error(e); }
+    animNum('statSantri', santriSnap.size);
+    animNum('statUstadz', ustadzSnap.size);
+
+    // Load recent users for welcome screen
+    const recentSnap = await db.collection('users').orderBy('createdAt','desc').limit(5).get();
+    allUsers = recentSnap.docs.map(d => ({id:d.id,...d.data()}));
+  } catch(e) { console.error('loadData:', e); }
+  initChart();
+  renderAllocGrid();
+  loadMartStats();
 }
 
-function animateNumber(id, target) {
-  const el = document.getElementById(id);
-  let current = 0;
-  const increment = target / 20;
-  const timer = setInterval(() => {
-    current += increment;
-    if (current >= target) { el.textContent = target; clearInterval(timer); }
-    else { el.textContent = Math.floor(current); }
-  }, 30);
+async function loadAllUsers() {
+  document.getElementById('usersTable').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr>';
+  try {
+    const snap = await db.collection('users').orderBy('createdAt','desc').get();
+    allUsers = snap.docs.map(d => ({id:d.id,...d.data()}));
+    renderUsersTable(allUsers);
+  } catch(e) { showToast('error','Gagal','Gagal memuat data user'); }
 }
 
-function renderTable(users) {
+// ════ USERS TABLE ════
+const ROLE_COLORS = {
+  admin:  {bg:'#f0ebff',txt:'#7c3aed',lbl:'Admin'},
+  ustadz: {bg:'#eaf1fe',txt:'#2d7ef5',lbl:'Ustadz'},
+  wali:   {bg:'#fef3c7',txt:'#f59e0b',lbl:'Wali'},
+  santri: {bg:'#e6f9f2',txt:'#0db87a',lbl:'Santri'},
+};
+
+function renderUsersTable(users) {
   const tbody = document.getElementById('usersTable');
-  if(!users.length){ 
-    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--gray-400)"><i class="fas fa-inbox" style="font-size:48px;margin-bottom:16px;display:block;opacity:.3"></i>Belum ada user terdaftar</td></tr>'; 
-    return; 
-  }
-  const colors = {
-    admin: {bg: '#f0ebff', text: '#7c3aed', label: 'Admin'},
-    ustadz: {bg: '#eaf1fe', text: '#2d7ef5', label: 'Ustadz'},
-    wali: {bg: '#fef3c7', text: '#f59e0b', label: 'Wali'},
-    santri: {bg: '#e6f9f2', text: '#0db87a', label: 'Santri'}
-  };
+  if (!users.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-inbox" style="font-size:36px;display:block;margin-bottom:8px;opacity:.3"></i>Belum ada user</td></tr>'; return; }
   tbody.innerHTML = users.map(u => {
-    const c = colors[u.role] || colors.admin;
-    const date = u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '-';
+    const c = ROLE_COLORS[u.role] || ROLE_COLORS.admin;
+    const date = u.createdAt?.toDate?.()?.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) || '—';
+    const active = u.isActive !== false;
     return `<tr>
-      <td><div class="user-cell"><div class="user-avatar-sm" style="background:${c.bg};color:${c.text}">${(u.displayName||'U')[0]}</div><div class="user-details"><div class="user-name-sm">${u.displayName||'Unknown'}</div><div class="user-email">${u.email||''}</div></div></div></td>
-      <td><span class="badge badge-${u.role}">${c.label}</span></td>
-      <td><span class="badge badge-active">${u.isActive?'Aktif':'Nonaktif'}</span></td>
-      <td style="font-size:11px;color:var(--gray-500)">${date}</td>
-      <td><div class="action-btns"><button class="action-btn view" onclick="goToPortal('${u.role}')" title="Lihat Portal"><i class="fas fa-external-link-alt"></i></button><button class="action-btn delete" onclick="softDelete('${u.id}')" title="Nonaktifkan"><i class="fas fa-trash"></i></button></div></td>
+      <td><div class="u-cell"><div class="u-av-sm" style="background:${c.bg};color:${c.txt}">${(u.displayName||'U')[0]}</div><div class="u-det"><div class="u-nm">${u.displayName||'Unknown'}</div><div class="u-em">${u.email||''}</div></div></div></td>
+      <td><span class="chip chip-${u.role}">${c.lbl}</span></td>
+      <td><span class="chip ${active?'chip-aktif':'chip-nonaktif'}">${active?'Aktif':'Nonaktif'}</span></td>
+      <td style="font-size:11px;color:var(--g500)">${date}</td>
+      <td><div class="act-btns">
+        <button class="act-btn v" onclick="viewUser('${u.id}')" title="Lihat Portal"><i class="fas fa-eye"></i></button>
+        <button class="act-btn ${active?'d':'v'}" onclick="toggleUser('${u.id}','${active}')" title="${active?'Nonaktifkan':'Aktifkan'}"><i class="fas ${active?'fa-ban':'fa-check'}"></i></button>
+      </div></td>
     </tr>`;
   }).join('');
 }
 
-window.goToPortal = (role) => {
-  const routes = {admin:'dashboard-admin.html',ustadz:'dashboard-ustadz.html',santri:'dashboard-santri.html',wali:'dashboard-wali.html'};
-  if(routes[role]) window.location.href = routes[role];
+function filterUsers() {
+  const q = document.getElementById('searchUser').value.toLowerCase();
+  const role = document.getElementById('filterRole').value;
+  const filtered = allUsers.filter(u =>
+    (!q || (u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)) &&
+    (!role || u.role === role)
+  );
+  renderUsersTable(filtered);
+}
+
+window.viewUser = role => {
+  const u = allUsers.find(x => x.id === role);
+  if (u) { const pages = {admin:'dashboard-admin.html',ustadz:'dashboard-ustadz.html',santri:'dashboard-santri.html',wali:'dashboard-wali.html'}; if(pages[u.role]) window.open(pages[u.role],'_blank'); }
 };
 
-window.softDelete = async (uid) => {
-  if(!confirm('Yakin ingin menonaktifkan user ini?')) return;
+window.toggleUser = async (uid, isActive) => {
+  const active = isActive === 'true';
+  if (!confirm(`${active?'Nonaktifkan':'Aktifkan'} user ini?`)) return;
   try {
-    await updateDoc(doc(db,"users",uid),{isActive:false});
-    showToast('Berhasil','User berhasil dinonaktifkan','success');
-    loadData();
-  } catch(e){ showToast('Error',e.message,'error'); }
+    await db.collection('users').doc(uid).update({isActive: !active});
+    showToast('success','Berhasil',`User berhasil ${active?'dinonaktifkan':'diaktifkan'}`);
+    loadAllUsers();
+  } catch(e) { showToast('error','Gagal', e.message); }
 };
 
-window.handleCreate = async () => {
-  const name = document.getElementById('fName').value.trim();
-  const email = document.getElementById('fEmail').value.trim();
-  const pass = document.getElementById('fPass').value;
+// ════ CREATE USER ════
+function onRoleChange() {
   const role = document.getElementById('fRole').value;
-  if(!name||!email||!pass||!role){ showToast('Peringatan','Lengkapi semua field wajib','warning'); return; }
-  if(pass.length<6){ showToast('Peringatan','Password minimal 6 karakter','warning'); return; }
-  const btn = document.getElementById('createBtn');
-  const btnTxt = document.getElementById('createBtnText');
-  btn.disabled=true; btnTxt.innerHTML='<i class="fas fa-spinner fa-spin"></i> Membuat...';
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    await updateProfile(cred.user, {displayName:name});
-    if(document.getElementById('fVerif').checked) await sendEmailVerification(cred.user);
-    const userData = {uid:cred.user.uid,email,displayName:name,role,isActive:true,emailVerified:false,createdAt:serverTimestamp(),createdBy:auth.currentUser?.uid||''};
-    if(role==='santri'){ userData.nis=document.getElementById('fNIS').value; userData.kelas=document.getElementById('fKelas').value; }
-    if(role==='wali'){ userData.phone=document.getElementById('fPhone').value; userData.hubungan=document.getElementById('fHubungan').value; }
-    await setDoc(doc(db,"users",cred.user.uid), userData);
-    confetti({particleCount:100,spread:70,origin:{y:0.6},colors:['#0db87a','#10b981','#34d399']});
-    showToast('Berhasil',`User ${name} berhasil dibuat!`,'success');
-    closeModal(); loadData();
-  } catch(e){
-    const msgs = {'auth/email-already-in-use':'Email sudah terdaftar','auth/invalid-email':'Format email tidak valid','auth/weak-password':'Password terlalu lemah'};
-    showToast('Error', msgs[e.code]||e.message, 'error');
-  } finally { btn.disabled=false; btnTxt.innerHTML='<i class="fas fa-user-plus"></i> Buat User'; }
-};
+  document.getElementById('xSantri').style.display = role==='santri' ? 'block' : 'none';
+  document.getElementById('xWali').style.display   = role==='wali'   ? 'block' : 'none';
+}
 
-const chartData = {
-  week: {labels:['Sen','Sel','Rab','Kam','Jum','Sab','Min'],hadir:[95,92,98,96,94,90,88],absen:[5,8,2,4,6,10,12]},
-  month: {labels:['Minggu 1','Minggu 2','Minggu 3','Minggu 4'],hadir:[93,95,91,94],absen:[7,5,9,6]}
-};
-let attendanceChart;
-function buildChart(type='week'){
-  const d = chartData[type];
-  const ctx = document.getElementById('attendanceChart').getContext('2d');
-  if(attendanceChart) attendanceChart.destroy();
-  attendanceChart = new Chart(ctx,{
+async function createUser() {
+  const name  = document.getElementById('fName').value.trim();
+  const role  = document.getElementById('fRole').value;
+  const email = document.getElementById('fEmail').value.trim();
+  const pass  = document.getElementById('fPass').value;
+  const verif = document.getElementById('fVerif').checked;
+
+  if (!name || !role || !email || !pass) { showToast('warn','Lengkapi Data','Semua field wajib diisi'); return; }
+  if (pass.length < 6) { showToast('warn','Password Lemah','Minimal 6 karakter'); return; }
+
+  setEl('createTxt','Memproses...');
+  document.getElementById('createBtn').disabled = true;
+
+  try {
+    // Ambil config current admin (untuk restore auth setelah create)
+    const currentUser = auth.currentUser;
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    const uid = cred.user.uid;
+
+    await cred.user.updateProfile({displayName: name});
+    if (verif) await cred.user.sendEmailVerification().catch(()=>{});
+
+    const payload = {
+      uid, displayName: name, email, role, isActive: true,
+      authMethod: 'email',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastLogin: null
+    };
+    if (role === 'santri') { payload.nis = document.getElementById('fNIS').value.trim(); payload.kelas = document.getElementById('fKelas').value; }
+    if (role === 'wali')   { payload.phone = document.getElementById('fPhone').value.trim(); payload.hubungan = document.getElementById('fHubungan').value; }
+
+    const batch = db.batch();
+    batch.set(db.collection('users').doc(uid), payload);
+    const colMap = {admin:'admins',ustadz:'ustadz',santri:'santri',wali:'wali_santri'};
+    batch.set(db.collection(colMap[role]).doc(uid), payload);
+    await batch.commit();
+
+    showToast('success','User Dibuat!',`${name} berhasil ditambahkan sebagai ${role}`);
+    closeModal();
+    if (document.getElementById('sec-users').classList.contains('active')) loadAllUsers();
+  } catch(e) {
+    const msgs = {'auth/email-already-in-use':'Email sudah terdaftar','auth/weak-password':'Password terlalu lemah','auth/invalid-email':'Format email tidak valid'};
+    showToast('error','Gagal Membuat User', msgs[e.code] || e.message);
+  } finally {
+    setEl('createTxt','Buat User');
+    document.getElementById('createBtn').disabled = false;
+  }
+}
+
+// ════ CHART ════
+let chartInstance = null;
+function initChart(period='week') {
+  const ctx = document.getElementById('chartKehadiran');
+  if (!ctx) return;
+  if (chartInstance) chartInstance.destroy();
+  const labels = period === 'week'
+    ? ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu']
+    : Array.from({length:30},(_,i)=> (i+1)+'');
+  const data = labels.map(()=> Math.floor(Math.random()*15)+80);
+  chartInstance = new Chart(ctx, {
     type:'line',
-    data:{
-      labels:d.labels,
-      datasets:[
-        {label:'Hadir',data:d.hadir,borderColor:'#0db87a',backgroundColor:'rgba(13,184,122,0.1)',fill:true,tension:0.4,borderWidth:3,pointBackgroundColor:'#0db87a',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:8},
-        {label:'Absen',data:d.absen,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.05)',fill:true,tension:0.4,borderWidth:3,pointBackgroundColor:'#ef4444',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:8}
-      ]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{position:'bottom',labels:{font:{family:'Plus Jakarta Sans',size:12},padding:20,usePointStyle:true,pointStyle:'circle'}},
-        tooltip:{backgroundColor:'#1e293b',titleFont:{family:'Plus Jakarta Sans',size:13},bodyFont:{family:'Plus Jakarta Sans',size:12},padding:12,cornerRadius:8,displayColors:true}
-      },
-      scales:{
-        y:{beginAtZero:true,max:110,grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{family:'Plus Jakarta Sans',size:11}}},
-        x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans',size:11}}}
-      },
-      interaction:{intersect:false,mode:'index'}
-    }
+    data:{ labels, datasets:[{label:'Kehadiran (%)',data,borderColor:'#0db87a',backgroundColor:'rgba(13,184,122,.08)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#0db87a',tension:.4,fill:true}] },
+    options:{ responsive:true,maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{min:60,max:100,ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:11}},grid:{display:false}}} }
   });
 }
-buildChart();
-window.updateChart = (v) => buildChart(v);
 
-window.toggleSidebar = () => {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  sidebar.classList.toggle('open');
-  overlay.classList.toggle('show');
-};
+function updateChart(period) { initChart(period); }
 
-window.setActive = (el) => {
-  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-  el.classList.add('active');
-  if(window.innerWidth <= 768) toggleSidebar();
-};
-
-let isDark = localStorage.getItem('ha_theme') === 'dark';
-function applyTheme(){
-  document.body.classList.toggle('dark-mode', isDark);
-  document.getElementById('themeIcon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-}
-window.toggleTheme = () => { isDark = !isDark; localStorage.setItem('ha_theme', isDark ? 'dark' : 'light'); applyTheme(); };
-applyTheme();
-
-window.openModal = () => { document.getElementById('modalOverlay').classList.add('show'); document.body.style.overflow = 'hidden'; };
-window.closeModal = () => { document.getElementById('modalOverlay').classList.remove('show'); document.body.style.overflow = ''; };
-window.closeModalOnOverlay = (e) => { if(e.target === document.getElementById('modalOverlay')) closeModal(); };
-window.handleRoleChange = () => {
-  const r = document.getElementById('fRole').value;
-  document.getElementById('xSantri').classList.toggle('hidden', r !== 'santri');
-  document.getElementById('xWali').classList.toggle('hidden', r !== 'wali');
-};
-
-window.handleLogout = async () => {
-  if(confirm('Yakin ingin logout?')){ await signOut(auth); window.location.href = 'login.html'; }
-};
-
-window.showNotifications = () => { showToast('Info', 'Fitur notifikasi akan segera hadir!', 'info'); };
-
-function showToast(title, msg, type='success'){
-  const container = document.getElementById('toastContainer');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  const icons = {success:'fa-check-circle',error:'fa-exclamation-circle',warning:'fa-exclamation-triangle',info:'fa-info-circle'};
-  toast.innerHTML = `<div class="toast-icon"><i class="fas ${icons[type]}"></i></div><div class="toast-content"><h4>${title}</h4><p>${msg}</p></div>`;
-  container.appendChild(toast);
-  requestAnimationFrame(() => { toast.classList.add('show'); });
-  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 4500);
-}
-
-// ══════════════════════════════════════
-// SGT TOKEN MANAGEMENT
-// ══════════════════════════════════════
-const SGT_TOTAL_SUPPLY = 1_000_000_000; // 1 Miliar — KONSTANTA, tidak dapat diubah
-
-const SGT_ALLOC_DEFAULT = {
-  member:  { pct: 30, label: 'Member / Santri',    color: '#059669', colorBg: '#D1FAE5' },
-  ustadz:  { pct: 20, label: 'Ustadz / Pengajar',  color: '#2563EB', colorBg: '#DBEAFE' },
-  mart:    { pct: 25, label: 'Sagatama Mart',       color: '#7C3AED', colorBg: '#EDE9FE' },
-  reserve: { pct: 25, label: 'Cadangan Yayasan',    color: '#D97706', colorBg: '#FEF3C7' },
-};
-
-function loadSGTAllocations() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('sgt_allocations') || 'null');
-    return saved || SGT_ALLOC_DEFAULT;
-  } catch(e) { return SGT_ALLOC_DEFAULT; }
-}
-
-function formatSGT(n) {
-  if (n >= 1_000_000) return (n/1_000_000).toFixed(1) + 'M';
-  if (n >= 1_000) return (n/1_000).toFixed(1) + 'K';
-  return n.toLocaleString('id-ID');
-}
+// ════ SGT TOKEN ════
+function getSGTAlloc() { try { return JSON.parse(localStorage.getItem('sgt_alloc') || 'null') || SGT_ALLOC_DEFAULT; } catch(e) { return SGT_ALLOC_DEFAULT; } }
+function fmtSGT(n) { if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(1)+'K'; return n.toLocaleString('id-ID'); }
 
 function renderAllocGrid() {
-  const alloc = loadSGTAllocations();
+  const alloc = getSGTAlloc();
+  const issued = parseInt(localStorage.getItem('sgt_issued')||'0');
   const grid = document.getElementById('allocGrid');
   if (!grid) return;
-
-  // Sync inputs
-  ['member','ustadz','mart','reserve'].forEach(k => {
-    const el = document.getElementById('alloc' + k.charAt(0).toUpperCase() + k.slice(1));
-    if (el) el.value = alloc[k].pct;
-  });
-
-  grid.innerHTML = Object.entries(alloc).map(([key, a]) => {
-    const tokens = Math.floor(SGT_TOTAL_SUPPLY * a.pct / 100);
-    return `
-    <div class="alloc-card">
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-        <div style="width:8px; height:8px; border-radius:50%; background:${a.color};"></div>
-        <p style="font-size:11px; font-weight:700; color:var(--gray-600);">${a.label}</p>
-      </div>
-      <p style="font-size:11px; font-weight:900; color:var(--gray-800); margin-bottom:2px;">${formatSGT(tokens)} SGT</p>
-      <div class="alloc-bar"><div class="alloc-fill" style="width:${a.pct}%; background:${a.color};"></div></div>
-      <p style="font-size:10px; color:var(--gray-500); font-weight:700;">${a.pct}% dari total supply</p>
+  ['member','ustadz','mart','reserve'].forEach(k => { const el = document.getElementById('alloc'+cap(k)); if(el) el.value = alloc[k].pct; });
+  grid.innerHTML = Object.entries(alloc).map(([key,a]) => {
+    const tokens = Math.floor(SGT_SUPPLY * a.pct / 100);
+    return `<div class="alloc-card">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><div style="width:8px;height:8px;border-radius:50%;background:${a.color}"></div><p style="font-size:11px;font-weight:700;color:var(--g600)">${a.label}</p></div>
+      <p style="font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:2px">${fmtSGT(tokens)} SGT</p>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:${a.pct}%;background:${a.color}"></div></div>
+      <p style="font-size:10px;color:var(--g500);font-weight:700">${a.pct}% dari total supply</p>
     </div>`;
   }).join('');
-
-  // Summary stats
-  const issued = parseInt(localStorage.getItem('sgt_total_issued') || '0');
-  const circulating = issued;
-  const reserve = SGT_TOTAL_SUPPLY - issued;
-  const el = (id) => document.getElementById(id);
-  if (el('sgtCirculating')) el('sgtCirculating').textContent = formatSGT(circulating) + ' SGT';
-  if (el('sgtIssued'))      el('sgtIssued').textContent      = formatSGT(issued) + ' SGT';
-  if (el('sgtReserve'))     el('sgtReserve').textContent     = formatSGT(reserve) + ' SGT';
+  setEl('sgtCirculating', fmtSGT(issued)+' SGT');
+  setEl('sgtIssued',      fmtSGT(issued)+' SGT');
+  setEl('sgtReserve',     fmtSGT(SGT_SUPPLY-issued)+' SGT');
 }
 
-window.saveAllocations = () => {
+function calcTotal() {
+  const keys = ['Member','Ustadz','Mart','Reserve'];
+  const total = keys.reduce((s,k) => s+(parseInt(document.getElementById('alloc'+k)?.value)||0), 0);
+  const el = document.getElementById('allocTotal');
+  if (el) { el.textContent = total+'%'; el.style.color = total===100 ? 'var(--p)' : 'var(--r)'; }
+}
+
+function saveAlloc() {
+  const alloc = getSGTAlloc();
   const keys = ['member','ustadz','mart','reserve'];
-  const alloc = loadSGTAllocations();
   let total = 0;
-  keys.forEach(k => {
-    const inp = document.getElementById('alloc' + k.charAt(0).toUpperCase() + k.slice(1));
-    const val = Math.max(0, Math.min(100, parseInt(inp?.value || '0')));
-    alloc[k].pct = val;
-    total += val;
-  });
-  if (total !== 100) {
-    showToast('Peringatan', `Total alokasi harus 100% (sekarang ${total}%)`, 'warning');
-    return;
-  }
-  localStorage.setItem('sgt_allocations', JSON.stringify(alloc));
+  keys.forEach(k => { const v = Math.max(0,Math.min(100,parseInt(document.getElementById('alloc'+cap(k))?.value||0))); alloc[k].pct=v; total+=v; });
+  if (total !== 100) { showToast('warn','Total Salah',`Total harus 100% (sekarang ${total}%)`); return; }
+  localStorage.setItem('sgt_alloc', JSON.stringify(alloc));
   renderAllocGrid();
-  showToast('Berhasil', 'Alokasi SGT berhasil disimpan!', 'success');
-};
-
-// Live total watcher
-['allocMember','allocUstadz','allocMart','allocReserve'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input', () => {
-    const t = ['allocMember','allocUstadz','allocMart','allocReserve']
-      .reduce((s,i) => s + (parseInt(document.getElementById(i)?.value)||0), 0);
-    const el = document.getElementById('allocTotal');
-    if (el) { el.textContent = t + '%'; el.style.color = t === 100 ? 'var(--primary)' : 'var(--danger)'; }
-  });
-});
-
-window.distributeSGT = () => {
-  const target = document.getElementById('distTarget')?.value.trim();
-  const amount = parseInt(document.getElementById('distAmount')?.value);
-  const note   = document.getElementById('distNote')?.value.trim();
-  if (!target) { showToast('Peringatan', 'Masukkan username penerima', 'warning'); return; }
-  if (!amount || amount <= 0) { showToast('Peringatan', 'Jumlah SGT tidak valid', 'warning'); return; }
-
-  const issued = parseInt(localStorage.getItem('sgt_total_issued') || '0');
-  const newIssued = issued + amount;
-  if (newIssued > SGT_TOTAL_SUPPLY) {
-    showToast('Error', 'Melebihi total supply 1 Miliar SGT!', 'error'); return;
-  }
-
-  // Save to localStorage (in production: save to Firestore)
-  localStorage.setItem('sgt_total_issued', newIssued.toString());
-  const log = JSON.parse(localStorage.getItem('sgt_dist_log') || '[]');
-  log.unshift({ target, amount, note, date: new Date().toISOString(), by: 'admin' });
-  localStorage.setItem('sgt_dist_log', JSON.stringify(log.slice(0, 100)));
-
-  // Also credit to target user's balance
-  const bal = parseInt(localStorage.getItem('sgt_balance_' + target) || '0');
-  localStorage.setItem('sgt_balance_' + target, (bal + amount).toString());
-
-  renderAllocGrid();
-  document.getElementById('distTarget').value = '';
-  document.getElementById('distAmount').value = '';
-  document.getElementById('distNote').value = '';
-  showToast('Berhasil', `${amount.toLocaleString()} SGT dikirim ke @${target}!`, 'success');
-};
-
-// Load Sagatama Mart stats from shared localStorage keys
-function loadMartStats() {
-  let totalTx = 0, totalSgt = 0;
-  const members = new Set();
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key?.startsWith('sgt_transactions_')) {
-        const txs = JSON.parse(localStorage.getItem(key) || '[]');
-        totalTx += txs.length;
-        txs.forEach(t => { if(t.type==='earn') totalSgt += t.amount||0; if(t.userId) members.add(t.userId); });
-      }
-    }
-  } catch(e){}
-  const el = (id) => document.getElementById(id);
-  if (el('martTotalTx'))    el('martTotalTx').textContent    = totalTx.toLocaleString();
-  if (el('martSgtEarned'))  el('martSgtEarned').textContent  = formatSGT(totalSgt) + ' SGT';
-  if (el('martMembers'))    el('martMembers').textContent    = members.size.toLocaleString();
+  showToast('success','Tersimpan','Alokasi SGT berhasil disimpan!');
 }
 
-// Init SGT
-renderAllocGrid();
-loadMartStats();
+function doDistribute() {
+  const target = document.getElementById('distTarget')?.value.trim();
+  const amount = parseInt(document.getElementById('distAmount')?.value||'0');
+  const note   = document.getElementById('distNote')?.value.trim()||'-';
+  if (!target) { showToast('warn','Input Kosong','Masukkan username penerima'); return; }
+  if (!amount || amount <= 0) { showToast('warn','Jumlah Salah','Masukkan jumlah SGT yang valid'); return; }
+  const issued = parseInt(localStorage.getItem('sgt_issued')||'0');
+  if (issued + amount > SGT_SUPPLY) { showToast('error','Melebihi Supply','Total melebihi 1 Miliar SGT!'); return; }
+  localStorage.setItem('sgt_issued', (issued+amount).toString());
+  const bal = parseInt(localStorage.getItem('sgt_bal_'+target)||'0');
+  localStorage.setItem('sgt_bal_'+target, (bal+amount).toString());
+  const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
+  log.unshift({target,amount,note,date:new Date().toISOString()});
+  localStorage.setItem('sgt_log', JSON.stringify(log.slice(0,100)));
+  document.getElementById('distTarget').value=''; document.getElementById('distAmount').value=''; document.getElementById('distNote').value='';
+  renderAllocGrid(); renderDistLog();
+  showToast('success','SGT Dikirim!',`${amount.toLocaleString()} SGT dikirim ke @${target}`);
+}
 
-document.getElementById('currentDate').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-document.getElementById('dateNum').textContent = now.getDate();
-document.getElementById('dateStr').textContent = `${months[now.getMonth()]} ${now.getFullYear()}`;
+function renderDistLog() {
+  const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
+  const tbody = document.getElementById('distLog');
+  if (!tbody) return;
+  if (!log.length) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--g400)">Belum ada distribusi</td></tr>'; return; }
+  tbody.innerHTML = log.slice(0,10).map(l => `<tr>
+    <td><strong>@${l.target}</strong></td>
+    <td><span style="font-weight:700;color:var(--sgtd)">${l.amount?.toLocaleString()||0} SGT</span></td>
+    <td style="color:var(--g500)">${l.note}</td>
+    <td style="font-size:11px;color:var(--g400)">${new Date(l.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</td>
+  </tr>`).join('');
+}
 
-document.getElementById('searchUser')?.addEventListener('input', (e) => {
-  const searchTerm = e.target.value.toLowerCase();
-  const filtered = allUsers.filter(u => (u.displayName || '').toLowerCase().includes(searchTerm) || (u.email || '').toLowerCase().includes(searchTerm));
-  renderTable(filtered.slice(0, 5));
+function loadMartStats() {
+  let tx=0,sgt=0; const members=new Set();
+  try { for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith('sgt_transactions_')){const txs=JSON.parse(localStorage.getItem(k)||'[]');tx+=txs.length;txs.forEach(t=>{if(t.type==='earn')sgt+=t.amount||0;if(t.userId)members.add(t.userId);}); }} }catch(e){}
+  setEl('martTx',    tx.toLocaleString());
+  setEl('martSgt',   fmtSGT(sgt)+' SGT');
+  setEl('martMember', members.size.toLocaleString());
+}
+
+// ════ NOTIFICATIONS ════
+const NOTIF_DATA = [
+  {ico:'fa-user-plus',bg:'#e6f9f2',clr:'#0db87a',text:'Santri baru terdaftar: Ahmad Fauzi',time:'5 menit lalu',unread:true},
+  {ico:'fa-wallet',bg:'#fef3c7',clr:'#f59e0b',text:'Pembayaran SPP baru diterima',time:'30 menit lalu',unread:true},
+  {ico:'fa-calendar-check',bg:'#eaf1fe',clr:'#2d7ef5',text:'Absensi hari ini: 94% hadir',time:'2 jam lalu',unread:false},
+  {ico:'fa-book-open',bg:'#f0ebff',clr:'#8b5cf6',text:'Laporan hafalan minggu ini siap',time:'1 hari lalu',unread:false},
+];
+
+function initNotif() {
+  const list = document.getElementById('notifList');
+  if (!list) return;
+  list.innerHTML = NOTIF_DATA.map(n => `<div class="notif-item ${n.unread?'unread':''}">
+    <div class="n-ico" style="background:${n.bg};color:${n.clr}"><i class="fas ${n.ico}"></i></div>
+    <div class="n-body"><p>${n.text}</p><span>${n.time}</span></div>
+  </div>`).join('');
+  document.getElementById('notifDot').style.display = NOTIF_DATA.some(n=>n.unread) ? 'block' : 'none';
+}
+
+function toggleNotif() {
+  document.getElementById('notifPanel').classList.toggle('open');
+  document.querySelectorAll('.tb-btn').forEach(b => b !== event.currentTarget && document.getElementById('notifPanel').classList.remove('open'));
+}
+
+function markAllRead() {
+  document.querySelectorAll('.notif-item').forEach(el => el.classList.remove('unread'));
+  document.getElementById('notifDot').style.display = 'none';
+}
+
+document.addEventListener('click', e => { const p = document.getElementById('notifPanel'); if(p && !p.contains(e.target) && !e.target.closest('.tb-btn')) p.classList.remove('open'); });
+
+// ════ MODAL ════
+function openModal() { document.getElementById('modalBg').classList.add('open'); }
+function closeModal() { document.getElementById('modalBg').classList.remove('open'); resetModal(); }
+function closeModalOutside(e) { if(e.target === document.getElementById('modalBg')) closeModal(); }
+function resetModal() { ['fName','fEmail','fPass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); document.getElementById('fRole').value=''; document.getElementById('xSantri').style.display='none'; document.getElementById('xWali').style.display='none'; }
+
+// ════ SIDEBAR ════
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden-mobile'); document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sbOverlay').classList.toggle('show'); }
+function closeSidebar() { if(window.innerWidth<=900){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar').classList.add('hidden-mobile');document.getElementById('sbOverlay').classList.remove('show');} }
+
+// ════ DATE ════
+function updateDate() {
+  const now = new Date();
+  const days=['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  setEl('pgDate', `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`);
+  setEl('wdNum', now.getDate().toString());
+  setEl('wdStr', `${months[now.getMonth()]} ${now.getFullYear()}`);
+}
+
+// ════ LOGOUT ════
+async function handleLogout() {
+  if (!confirm('Yakin ingin logout?')) return;
+  await auth.signOut().catch(()=>{});
+  sessionStorage.removeItem('currentUser'); localStorage.removeItem('piAuthUser');
+  window.location.href = 'login.html';
+}
+
+// ════ TOAST ════
+function showToast(type, title, msg) {
+  const wrap = document.getElementById('toastWrap');
+  const icons = {success:'fa-check-circle',error:'fa-circle-xmark',warn:'fa-triangle-exclamation',info:'fa-circle-info'};
+  const div = document.createElement('div');
+  div.className = `toast ${type==='warn'?'warn':type}`;
+  div.innerHTML = `<div class="t-ico"><i class="fas ${icons[type]||icons.info}"></i></div><div class="t-msg"><h4>${title}</h4><p>${msg}</p></div>`;
+  wrap.appendChild(div);
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ div.classList.add('show'); }); });
+  setTimeout(()=>{ div.classList.remove('show'); setTimeout(()=>div.remove(),500); },4000);
+}
+
+// ════ HELPERS ════
+function setEl(id, val) { const el = document.getElementById(id); if(el) el.textContent = val; }
+function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+function animNum(id, target) {
+  const el = document.getElementById(id); if(!el) return;
+  let cur=0; const step=Math.max(1,Math.ceil(target/25));
+  const t = setInterval(()=>{ cur=Math.min(cur+step,target); el.textContent=cur; if(cur>=target)clearInterval(t); },40);
+}
+
+// Responsive sidebar on resize
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 900) { document.getElementById('sidebar').classList.remove('hidden-mobile','open'); document.getElementById('sbOverlay').classList.remove('show'); }
+  else { if(!document.getElementById('sidebar').classList.contains('open')) document.getElementById('sidebar').classList.add('hidden-mobile'); }
 });
+if (window.innerWidth <= 900) document.getElementById('sidebar').classList.add('hidden-mobile');
+else document.getElementById('sidebar').classList.remove('hidden-mobile');
 </script>
-
 </body>
 </html>

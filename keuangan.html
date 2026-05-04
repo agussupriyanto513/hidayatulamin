@@ -1,392 +1,783 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keuangan | Hidayatullah Amin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-                    colors: {
-                        emerald: { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
-                        amber: { 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309', 800: '#92400e', 900: '#78350f' }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); }
-        .glass-dark { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); }
-        .card-hover { transition: all 0.3s; }
-        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Keuangan | Hidayatullah Amin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --p:#0db87a;--pd:#059669;--pl:#e6f9f2;
+  --b:#2d7ef5;--bl:#eaf1fe;
+  --acc:#8b5cf6;--acl:#f0ebff;
+  --w:#f59e0b;--wl:#fef3c7;
+  --r:#ef4444;--rl:#fee2e2;
+  --ink:#0f172a;--ink2:#1e293b;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g600:#475569;--g700:#334155;
+  --white:#fff;
+  --sgt:#f59e0b;--sgtd:#d97706;--sgtl:#fef3c7;
+  --sh-sm:0 1px 3px rgba(0,0,0,.06);--sh-md:0 4px 16px rgba(0,0,0,.08);--sh-lg:0 10px 32px rgba(0,0,0,.1);
+  --rd:14px;--rdm:10px;--rds:6px;--tr:all .2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(--ink2);font-size:14px;min-height:100vh;display:flex;overflow-x:hidden}
+.sidebar{width:256px;background:var(--ink);display:flex;flex-direction:column;position:fixed;left:0;top:0;height:100vh;z-index:200;overflow-y:auto;transition:transform .3s;scrollbar-width:none}
+.sidebar::-webkit-scrollbar{display:none}
+.sb-head{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px}
+.sb-logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0}
+.sb-brand h1{font-family:'Amiri',serif;color:#fff;font-size:16px;line-height:1.3}
+.sb-brand p{color:var(--p);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.sb-nav{flex:1;padding:12px 8px}
+.sb-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.25);padding:10px 12px 4px;display:block}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rdm);color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:var(--tr);cursor:pointer;margin-bottom:1px;border:1px solid transparent}
+.ni:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+.ni.active{background:rgba(13,184,122,.15);color:var(--p);border-color:rgba(13,184,122,.25)}
+.ni i{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-foot{padding:12px;border-top:1px solid rgba(255,255,255,.07)}
+.u-tile{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:var(--rdm);cursor:pointer;transition:var(--tr)}
+.u-tile:hover{background:rgba(255,255,255,.1)}
+.u-av{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+.u-inf{flex:1;min-width:0}
+.u-name{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-role{font-size:10px;color:rgba(255,255,255,.35)}
+.sb-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;display:none}
+.sb-ov.show{display:block}
+.main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tb-l{display:flex;align-items:center;gap:10px}
+.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
+.menu-btn:hover{background:var(--pl);color:var(--p)}
+.pg-ttl h2{font-size:17px;font-weight:700;color:var(--ink2)}
+.pg-ttl p{font-size:11px;color:var(--g500)}
+.tb-r{display:flex;align-items:center;gap:8px}
+.content{flex:1;padding:20px}
+.btn-p{padding:9px 18px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;border-radius:var(--rdm);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;transition:var(--tr)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(13,184,122,.35)}
+.btn-sec{padding:9px 18px;background:var(--g100);color:var(--g700);border:none;border-radius:var(--rdm);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--tr)}
+.btn-sec:hover{background:var(--g200)}
+
+/* HERO FINANCE CARD */
+.finance-hero{background:linear-gradient(135deg,var(--ink) 0%,var(--ink2) 50%,#064e3b 100%);border-radius:var(--rd);padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
+.finance-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:rgba(13,184,122,.08);border-radius:50%}
+.finance-hero::after{content:'';position:absolute;bottom:-60px;left:-60px;width:220px;height:220px;background:rgba(245,158,11,.05);border-radius:50%}
+.fh-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;position:relative;z-index:1}
+.fh-item{text-align:center;padding:16px;background:rgba(255,255,255,.06);border-radius:var(--rdm);border:1px solid rgba(255,255,255,.1)}
+.fh-lbl{font-size:10px;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.fh-val{font-size:22px;font-weight:900;color:#fff;line-height:1}
+.fh-sub{font-size:10px;color:rgba(255,255,255,.4);margin-top:4px}
+.fh-item.income .fh-val{color:#6ee7b7}
+.fh-item.expense .fh-val{color:#fca5a5}
+.fh-item.balance .fh-val{color:#fcd34d}
+
+/* SGT FINANCE CARD */
+.sgt-finance{background:linear-gradient(135deg,#78350f,#b45309,#d97706);border-radius:var(--rd);padding:20px;margin-bottom:20px;color:#fff;position:relative;overflow:hidden}
+.sgt-finance::before{content:'₴';position:absolute;right:-10px;top:-20px;font-size:120px;font-weight:900;color:rgba(255,255,255,.04);pointer-events:none}
+.sgt-f-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.sgt-f-item{background:rgba(255,255,255,.1);border-radius:var(--rdm);padding:12px;text-align:center}
+.sgt-f-val{font-size:18px;font-weight:900;color:#fcd34d}
+.sgt-f-lbl{font-size:10px;color:rgba(255,255,255,.7);font-weight:600;margin-top:4px}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.sc{background:var(--white);border-radius:var(--rd);padding:16px 18px;box-shadow:var(--sh-sm);border:1px solid var(--g100);transition:var(--tr);position:relative;overflow:hidden}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.sc::after{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:var(--p)}
+.sc.b::after{background:var(--b)}.sc.w::after{background:var(--w)}.sc.r::after{background:var(--r)}
+.sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sc-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.sc-ico.g{background:var(--pl);color:var(--p)}.sc-ico.b{background:var(--bl);color:var(--b)}.sc-ico.w{background:var(--wl);color:var(--w)}.sc-ico.r{background:var(--rl);color:var(--r)}
+.sc-val{font-size:22px;font-weight:800;color:var(--ink2);line-height:1;margin-bottom:4px}
+.sc-lbl{font-size:12px;color:var(--g500);font-weight:500}
+.sc-sub{font-size:10px;color:var(--g400);margin-top:2px}
+
+/* SECTIONS & TABS */
+.filter-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.ftab{padding:6px 14px;border-radius:20px;border:1.5px solid var(--g200);font-size:12px;font-weight:600;cursor:pointer;background:var(--white);color:var(--g600);transition:var(--tr)}
+.ftab.active{background:var(--p);color:#fff;border-color:var(--p)}
+.section{display:none}
+.section.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARD */
+.card{background:var(--white);border-radius:var(--rd);padding:18px;box-shadow:var(--sh-sm);border:1px solid var(--g100);margin-bottom:16px}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.card-hd h4{font-size:14px;font-weight:700;color:var(--ink2)}
+.card-hd p{font-size:11px;color:var(--g500);margin-top:2px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.chart-wrap{position:relative;height:240px}
+
+/* TABLE */
+.tbl-section{background:var(--white);border-radius:var(--rd);box-shadow:var(--sh-sm);border:1px solid var(--g100);overflow:hidden;margin-bottom:20px}
+.tbl-head{padding:14px 18px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tbl-head h4{font-size:14px;font-weight:700;color:var(--ink2)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
+thead{background:var(--g50)}
+th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g500)}
+td{padding:10px 14px;border-top:1px solid var(--g100);color:var(--g600)}
+tr:hover td{background:var(--g50)}
+.chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.chip-g{background:var(--pl);color:var(--pd)}.chip-r{background:var(--rl);color:var(--r)}.chip-w{background:var(--wl);color:var(--w)}.chip-b{background:var(--bl);color:var(--b)}.chip-v{background:var(--acl);color:var(--acc)}
+
+/* SEARCH */
+.search-box{display:flex;align-items:center;gap:8px;background:var(--g50);border:1.5px solid var(--g200);border-radius:var(--rdm);padding:7px 12px}
+.search-box input{background:none;border:none;outline:none;font-size:12px;color:var(--ink2);width:180px;font-family:inherit}
+.search-box i{color:var(--g400);font-size:13px}
+
+/* TX ITEM */
+.tx-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--g100);transition:var(--tr)}
+.tx-item:hover{background:var(--g50)}
+.tx-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.tx-info{flex:1}
+.tx-info h5{font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:2px}
+.tx-info p{font-size:11px;color:var(--g400)}
+.tx-amt{font-size:14px;font-weight:800;text-align:right}
+.tx-amt.in{color:var(--p)}.tx-amt.out{color:var(--r)}
+
+/* SPP STATUS */
+.spp-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--rdm);border:1.5px solid var(--g200);margin-bottom:8px;transition:var(--tr)}
+.spp-item:hover{border-color:var(--p);background:var(--pl)}
+.spp-info{flex:1}
+.spp-info h5{font-size:13px;font-weight:700;color:var(--ink2)}
+.spp-info p{font-size:11px;color:var(--g500)}
+.spp-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+.spp-status.lunas{background:var(--pl);color:var(--pd)}
+.spp-status.belum{background:var(--rl);color:var(--r)}
+.spp-status.cicil{background:var(--wl);color:var(--w)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:var(--tr)}
+.modal-bg.open{opacity:1;visibility:visible}
+.modal{background:var(--white);border-radius:var(--rd);width:100%;max-width:520px;max-height:90vh;overflow:hidden;box-shadow:var(--sh-lg);transform:scale(.95);transition:var(--tr)}
+.modal-bg.open .modal{transform:scale(1)}
+.modal-hd{padding:14px 18px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between}
+.modal-hd h3{font-size:15px;font-weight:700}
+.modal-close{width:30px;height:30px;border:none;background:var(--g100);border-radius:var(--rds);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g500);transition:var(--tr)}
+.modal-close:hover{background:var(--rl);color:var(--r)}
+.modal-body{padding:18px;overflow-y:auto;max-height:calc(90vh - 130px)}
+.modal-ft{padding:12px 18px;border-top:1px solid var(--g100);display:flex;justify-content:flex-end;gap:10px}
+.field-grp{margin-bottom:14px}
+.field-grp label{display:block;font-size:11px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.field-grp input,.field-grp select,.field-grp textarea{width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit;color:var(--ink2);outline:none;transition:var(--tr);background:var(--white)}
+.field-grp input:focus,.field-grp select:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(13,184,122,.12)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--white);border-radius:var(--rd);padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-lg);border-left:4px solid var(--p);transform:translateX(120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);pointer-events:auto;min-width:280px;max-width:360px}
+.toast.show{transform:translateX(0)}
+.toast.error{border-color:var(--r)}.toast.warn{border-color:var(--w)}
+.t-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.toast.success .t-ico{background:var(--pl);color:var(--p)}.toast.error .t-ico{background:var(--rl);color:var(--r)}.toast.warn .t-ico{background:var(--wl);color:var(--w)}
+.t-msg h4{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:1px}
+.t-msg p{font-size:11px;color:var(--g500)}
+
+/* BUDGET PROGRESS */
+.budget-item{margin-bottom:14px}
+.budget-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.budget-lbl{font-size:13px;font-weight:600;color:var(--ink2)}
+.budget-val{font-size:12px;color:var(--g500)}
+.prog-bar{height:8px;background:var(--g100);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--p),var(--pd));transition:width .8s ease}
+.prog-fill.warn{background:linear-gradient(90deg,var(--w),#b45309)}
+.prog-fill.danger{background:linear-gradient(90deg,var(--r),#b91c1c)}
+
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .menu-btn{display:flex}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .fh-grid{grid-template-columns:1fr}
+}
+@media(max-width:540px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .content{padding:12px}
+  .field-row{grid-template-columns:1fr}
+}
+</style>
 </head>
-<body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-    
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden lg:flex flex-col">
-            <div class="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <span class="ml-3 font-bold text-gray-900 dark:text-white">Keuangan</span>
-            </div>
-            <nav class="flex-1 p-4 space-y-1">
-                <a href="dashboard-admin.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
-                    <i class="fas fa-home w-5"></i>Dashboard
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 font-medium">
-                    <i class="fas fa-wallet w-5"></i>Keuangan
-                </a>
-                <a href="sagatama-mart.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">
-                    <i class="fas fa-store w-5"></i>Sagatama Mart
-                </a>
-            </nav>
-        </aside>
+<body>
+<div class="sb-ov" id="sbOv" onclick="closeSb()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-head">
+    <div class="sb-logo"><i class="fas fa-mosque"></i></div>
+    <div class="sb-brand"><h1>Hidayatullah</h1><p>Admin Panel</p></div>
+  </div>
+  <nav class="sb-nav">
+    <span class="sb-lbl">Menu Utama</span>
+    <a href="dashboard-admin.html" class="ni"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+    <a href="absensi.html" class="ni"><i class="fas fa-qrcode"></i><span>Absensi QR</span></a>
+    <a href="keuangan.html" class="ni active"><i class="fas fa-wallet"></i><span>Keuangan</span></a>
+    <span class="sb-lbl">Manajemen</span>
+    <a href="data-pengguna.html" class="ni"><i class="fas fa-user-graduate"></i><span>Data Santri</span></a>
+    <a href="data-pengguna.html" class="ni"><i class="fas fa-chalkboard-teacher"></i><span>Data Ustadz</span></a>
+    <a href="data-pengguna.html" class="ni"><i class="fas fa-user-friends"></i><span>Data Wali</span></a>
+    <span class="sb-lbl">Portal</span>
+    <a href="dashboard-ustadz.html" class="ni"><i class="fas fa-chalkboard"></i><span>Portal Ustadz</span></a>
+    <a href="dashboard-santri.html" class="ni"><i class="fas fa-graduation-cap"></i><span>Portal Santri</span></a>
+    <a href="dashboard-wali.html" class="ni"><i class="fas fa-heart"></i><span>Portal Wali</span></a>
+    <span class="sb-lbl">Ekosistem</span>
+    <a href="donasi.html" class="ni"><i class="fas fa-hand-holding-heart"></i><span>Donasi</span></a>
+    <a href="transparansi.html" class="ni"><i class="fas fa-chart-pie"></i><span>Transparansi</span></a>
+  </nav>
+  <div class="sb-foot">
+    <div class="u-tile" onclick="handleLogout()">
+      <div class="u-av" id="uAv">A</div>
+      <div class="u-inf"><div class="u-name" id="uName">Administrator</div><div class="u-role">Klik untuk logout</div></div>
+      <i class="fas fa-sign-out-alt" style="color:rgba(255,255,255,.3);font-size:13px"></i>
+    </div>
+  </div>
+</aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto">
-            <!-- Header -->
-            <header class="sticky top-0 z-30 glass dark:glass-dark border-b border-gray-200 dark:border-gray-700 px-8 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <a href="dashboard-admin.html" class="lg:hidden w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400">
-                            <i class="fas fa-arrow-left"></i>
-                        </a>
-                        <div>
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Manajemen Keuangan</h2>
-                            <p class="text-sm text-gray-500">Pemasukan, pengeluaran, dan laporan SPP</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-yellow-400 flex items-center justify-center">
-                            <i class="fas fa-moon dark:hidden"></i>
-                            <i class="fas fa-sun hidden dark:block"></i>
-                        </button>
-                        <button onclick="exportReport()" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition flex items-center gap-2">
-                            <i class="fas fa-download"></i>
-                            <span class="hidden sm:inline">Export</span>
-                        </button>
-                    </div>
-                </div>
-            </header>
+<div class="main">
+  <header class="topbar">
+    <div class="tb-l">
+      <button class="menu-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <div class="pg-ttl"><h2>Manajemen Keuangan</h2><p id="pgDate">Memuat...</p></div>
+    </div>
+    <div class="tb-r">
+      <button class="btn-p" onclick="openTxModal('pemasukan')"><i class="fas fa-plus"></i> Catat Transaksi</button>
+    </div>
+  </header>
 
-            <div class="p-8">
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="card-hover bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
-                                <i class="fas fa-arrow-down text-xl"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-emerald-600 flex items-center gap-1">
-                                <i class="fas fa-arrow-up"></i> 12%
-                            </span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Rp 125.5M</h3>
-                        <p class="text-sm text-gray-500">Total Pemasukan</p>
-                    </div>
+  <div class="content">
 
-                    <div class="card-hover bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center">
-                                <i class="fas fa-arrow-up text-xl"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-red-600 flex items-center gap-1">
-                                <i class="fas fa-arrow-up"></i> 8%
-                            </span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Rp 45.2M</h3>
-                        <p class="text-sm text-gray-500">Total Pengeluaran</p>
-                    </div>
+    <!-- HERO BALANCE -->
+    <div class="finance-hero">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;position:relative;z-index:1">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(13,184,122,.2);display:flex;align-items:center;justify-content:center;font-size:20px;color:#6ee7b7"><i class="fas fa-wallet"></i></div>
+        <div><p style="font-size:10px;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:1px">Periode: <span id="heroPeriod">—</span></p>
+        <p style="font-size:13px;color:rgba(255,255,255,.7)">Yayasan Hidayatullah Amin</p></div>
+      </div>
+      <div class="fh-grid">
+        <div class="fh-item income"><div class="fh-lbl">Total Pemasukan</div><div class="fh-val" id="heroIn">—</div><div class="fh-sub">Bulan ini</div></div>
+        <div class="fh-item expense"><div class="fh-lbl">Total Pengeluaran</div><div class="fh-val" id="heroOut">—</div><div class="fh-sub">Bulan ini</div></div>
+        <div class="fh-item balance"><div class="fh-lbl">Saldo Bersih</div><div class="fh-val" id="heroBalance">—</div><div class="fh-sub">Sisa dana</div></div>
+      </div>
+    </div>
 
-                    <div class="card-hover bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
-                                <i class="fas fa-wallet text-xl"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-blue-600">Bulan Ini</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Rp 12.8M</h3>
-                        <p class="text-sm text-gray-500">Saldo Saat Ini</p>
-                    </div>
+    <!-- SGT FINANCE -->
+    <div class="sgt-finance">
+      <div style="display:flex;align-items:center;gap:14px;position:relative;z-index:1">
+        <div style="width:48px;height:48px;background:linear-gradient(135deg,#fcd34d,#f59e0b,#d97706);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#1a0533;flex-shrink:0;box-shadow:0 4px 14px rgba(245,158,11,.4)">₴</div>
+        <div><p style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px">SGT Token — Sagatama Token</p><p style="font-size:16px;font-weight:900;color:#fff">Kas SGT Yayasan</p></div>
+      </div>
+      <div class="sgt-f-grid">
+        <div class="sgt-f-item"><div class="sgt-f-val" id="sgtKas">—</div><div class="sgt-f-lbl">Saldo SGT</div></div>
+        <div class="sgt-f-item"><div class="sgt-f-val" id="sgtIn">—</div><div class="sgt-f-lbl">SGT Masuk</div></div>
+        <div class="sgt-f-item"><div class="sgt-f-val" id="sgtOut">—</div><div class="sgt-f-lbl">SGT Keluar</div></div>
+      </div>
+    </div>
 
-                    <div class="card-hover bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center">
-                                <i class="fas fa-exclamation-triangle text-xl"></i>
-                            </div>
-                            <span class="text-xs font-semibold text-amber-600">Perlu Tindakan</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">42</h3>
-                        <p class="text-sm text-gray-500">SPP Belum Lunas</p>
-                    </div>
-                </div>
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="sc">
+        <div class="sc-top"><div class="sc-ico g"><i class="fas fa-money-bill-wave"></i></div></div>
+        <div class="sc-val" id="statSPP">—</div>
+        <div class="sc-lbl">SPP Terkumpul</div><div class="sc-sub">Bulan ini</div>
+      </div>
+      <div class="sc b">
+        <div class="sc-top"><div class="sc-ico b"><i class="fas fa-hand-holding-heart"></i></div></div>
+        <div class="sc-val" id="statDonasi">—</div>
+        <div class="sc-lbl">Total Donasi</div><div class="sc-sub">Bulan ini</div>
+      </div>
+      <div class="sc w">
+        <div class="sc-top"><div class="sc-ico w"><i class="fas fa-exclamation-triangle"></i></div></div>
+        <div class="sc-val" id="statTunggakan">—</div>
+        <div class="sc-lbl">Tunggakan SPP</div><div class="sc-sub">Belum dibayar</div>
+      </div>
+      <div class="sc r">
+        <div class="sc-top"><div class="sc-ico r"><i class="fas fa-arrow-down"></i></div></div>
+        <div class="sc-val" id="statOperasional">—</div>
+        <div class="sc-lbl">Operasional</div><div class="sc-sub">Pengeluaran</div>
+      </div>
+    </div>
 
-                <!-- Charts -->
-                <!-- Charts - FIXED -->
-<div class="grid lg:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="font-bold text-gray-900 dark:text-white">Grafik Keuangan</h3>
-            <select class="text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1 bg-transparent">
-                <option>6 Bulan Terakhir</option>
-                <option>Tahun Ini</option>
+    <!-- TABS -->
+    <div class="filter-tabs">
+      <button class="ftab active" onclick="switchTab('transaksi',this)"><i class="fas fa-exchange-alt"></i> Transaksi</button>
+      <button class="ftab" onclick="switchTab('spp',this)"><i class="fas fa-file-invoice-dollar"></i> SPP Santri</button>
+      <button class="ftab" onclick="switchTab('budget',this)"><i class="fas fa-chart-pie"></i> Anggaran</button>
+      <button class="ftab" onclick="switchTab('laporan',this)"><i class="fas fa-file-alt"></i> Laporan</button>
+    </div>
+
+    <!-- TAB: TRANSAKSI -->
+    <div class="section active" id="tab-transaksi">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hd"><h4>Arus Kas Bulanan</h4></div>
+          <div class="chart-wrap"><canvas id="chartArus"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><h4>Distribusi Pengeluaran</h4></div>
+          <div class="chart-wrap"><canvas id="chartDist"></canvas></div>
+        </div>
+      </div>
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div><h4>Riwayat Transaksi</h4><p id="txCount">—</p></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchTx" placeholder="Cari keterangan..." oninput="filterTx()"></div>
+            <select id="filterTxType" onchange="filterTx()" style="padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit">
+              <option value="">Semua Jenis</option>
+              <option value="pemasukan">Pemasukan</option>
+              <option value="pengeluaran">Pengeluaran</option>
             </select>
+            <input type="month" id="filterMonth" onchange="filterTx()" style="padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit;color:var(--ink2)">
+            <button class="btn-p" onclick="exportTx()"><i class="fas fa-download"></i> Export</button>
+          </div>
         </div>
-        <!-- FIXED: Container dengan height fixed 300px -->
-        <div class="relative h-[300px] w-full">
-            <canvas id="financeChart"></canvas>
-        </div>
+        <div id="txList"></div>
+      </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="font-bold text-gray-900 dark:text-white">Distribusi Pengeluaran</h3>
+    <!-- TAB: SPP -->
+    <div class="section" id="tab-spp">
+      <div class="card">
+        <div class="card-hd">
+          <div><h4>Status Pembayaran SPP</h4><p>Bulan ini</p></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="month" id="sppMonth" style="padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit;color:var(--ink2)" onchange="loadSPP()">
+            <select id="sppFilterKelas" onchange="filterSPP()" style="padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit">
+              <option value="">Semua Kelas</option>
+              <option>Kelas A</option><option>Kelas B</option><option>Kelas C</option><option>Kelas D</option><option>Kelas E</option>
+            </select>
+            <select id="sppFilterStatus" onchange="filterSPP()" style="padding:7px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit">
+              <option value="">Semua Status</option>
+              <option value="lunas">Lunas</option>
+              <option value="belum">Belum Bayar</option>
+              <option value="cicil">Dicicil</option>
+            </select>
+            <button class="btn-p" onclick="tagihSPP()"><i class="fas fa-bell"></i> Tagih Belum Bayar</button>
+          </div>
         </div>
-        <!-- FIXED: Container dengan height fixed 300px -->
-        <div class="relative h-[300px] w-full">
-            <canvas id="expenseChart"></canvas>
+        <div id="sppSummary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px"></div>
+      </div>
+      <div class="tbl-section">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Santri</th><th>Kelas</th><th>Jumlah SPP</th><th>Status</th><th>Tgl Bayar</th><th>Metode</th><th>Aksi</th></tr></thead>
+            <tbody id="sppTable"></tbody>
+          </table>
         </div>
+      </div>
     </div>
+
+    <!-- TAB: BUDGET -->
+    <div class="section" id="tab-budget">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hd"><h4>Realisasi Anggaran Bulanan</h4><p>vs Rencana</p></div>
+          <div id="budgetList"></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><h4>Alokasi Dana SGT</h4></div>
+          <div class="chart-wrap"><canvas id="chartSGTAlloc"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><h4>Tren Keuangan 6 Bulan</h4></div>
+        <div class="chart-wrap" style="height:280px"><canvas id="chartTren"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TAB: LAPORAN -->
+    <div class="section" id="tab-laporan">
+      <div class="card">
+        <div class="card-hd"><h4>Generate Laporan Keuangan</h4></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <div onclick="genLaporan('bulanan')" style="padding:20px;border-radius:var(--rdm);border:2px dashed var(--g200);text-align:center;cursor:pointer;transition:var(--tr)" onmouseover="this.style.borderColor='var(--p)';this.style.background='var(--pl)'" onmouseout="this.style.borderColor='var(--g200)';this.style.background='transparent'">
+            <i class="fas fa-calendar-alt" style="font-size:28px;color:var(--p);display:block;margin-bottom:10px"></i>
+            <h5 style="font-size:13px;font-weight:700;color:var(--ink2)">Laporan Bulanan</h5>
+            <p style="font-size:11px;color:var(--g500)">Ringkasan bulan ini</p>
+          </div>
+          <div onclick="genLaporan('spp')" style="padding:20px;border-radius:var(--rdm);border:2px dashed var(--g200);text-align:center;cursor:pointer;transition:var(--tr)" onmouseover="this.style.borderColor='var(--b)';this.style.background='var(--bl)'" onmouseout="this.style.borderColor='var(--g200)';this.style.background='transparent'">
+            <i class="fas fa-file-invoice" style="font-size:28px;color:var(--b);display:block;margin-bottom:10px"></i>
+            <h5 style="font-size:13px;font-weight:700;color:var(--ink2)">Laporan SPP</h5>
+            <p style="font-size:11px;color:var(--g500)">Status pembayaran SPP</p>
+          </div>
+          <div onclick="genLaporan('sgt')" style="padding:20px;border-radius:var(--rdm);border:2px dashed var(--g200);text-align:center;cursor:pointer;transition:var(--tr)" onmouseover="this.style.borderColor='var(--sgtd)';this.style.background='var(--sgtl)'" onmouseout="this.style.borderColor='var(--g200)';this.style.background='transparent'">
+            <i class="fas fa-coins" style="font-size:28px;color:var(--sgtd);display:block;margin-bottom:10px"></i>
+            <h5 style="font-size:13px;font-weight:700;color:var(--ink2)">Laporan SGT</h5>
+            <p style="font-size:11px;color:var(--g500)">Mutasi token SGT</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div><h4>Transparansi Keuangan Publik</h4><p>Data yang dapat diakses wali santri</p></div><a href="transparansi.html" class="btn-p" style="text-decoration:none"><i class="fas fa-external-link-alt"></i> Lihat Halaman Publik</a></div>
+        <div style="background:var(--pl);border-radius:var(--rdm);padding:14px;border:1.5px solid var(--p)">
+          <p style="font-size:13px;color:var(--pd);font-weight:600"><i class="fas fa-info-circle" style="margin-right:8px"></i>Laporan keuangan publik otomatis tersinkronisasi dengan halaman Transparansi yang dapat diakses oleh seluruh wali santri dan masyarakat umum.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
-                <!-- SPP Status -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
-                    <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                        <h3 class="font-bold text-gray-900 dark:text-white">Status Pembayaran SPP</h3>
-                        <div class="flex gap-2">
-                            <button class="px-3 py-1.5 rounded-lg text-sm font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Semua</button>
-                            <button class="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">Lunas</button>
-                            <button class="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700">Belum</button>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50 dark:bg-gray-700/50">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Santri</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Kelas</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Bulan</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Jumlah</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700" id="sppTable">
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <img src="https://ui-avatars.com/api/?name=Ahmad&background=10b981&color=fff" class="w-8 h-8 rounded-full">
-                                            <span class="font-medium text-gray-900 dark:text-white">Ahmad Fauzi</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">6A</td>
-                                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">Maret 2026</td>
-                                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">Rp 850.000</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Lunas</span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <button class="text-emerald-600 hover:text-emerald-700"><i class="fas fa-eye"></i></button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <img src="https://ui-avatars.com/api/?name=Muhammad&background=3b82f6&color=fff" class="w-8 h-8 rounded-full">
-                                            <span class="font-medium text-gray-900 dark:text-white">Muhammad Rizky</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">6A</td>
-                                    <td class="px-6 py-4 text-gray-600 dark:text-gray-400">Maret 2026</td>
-                                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">Rp 850.000</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Belum Lunas</span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <button class="text-emerald-600 hover:text-emerald-700"><i class="fas fa-money-bill-wave"></i></button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="grid md:grid-cols-3 gap-6">
-                    <button onclick="showModal('pemasukan')" class="card-hover bg-emerald-500 rounded-2xl p-6 text-white text-left">
-                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                            <i class="fas fa-plus text-xl"></i>
-                        </div>
-                        <h3 class="font-bold text-lg">Tambah Pemasukan</h3>
-                        <p class="text-emerald-100 text-sm">Catat pemasukan baru</p>
-                    </button>
-                    <button onclick="showModal('pengeluaran')" class="card-hover bg-red-500 rounded-2xl p-6 text-white text-left">
-                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                            <i class="fas fa-minus text-xl"></i>
-                        </div>
-                        <h3 class="font-bold text-lg">Tambah Pengeluaran</h3>
-                        <p class="text-red-100 text-sm">Catat pengeluaran baru</p>
-                    </button>
-                    <button onclick="showModal('spp')" class="card-hover bg-blue-500 rounded-2xl p-6 text-white text-left">
-                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                            <i class="fas fa-credit-card text-xl"></i>
-                        </div>
-                        <h3 class="font-bold text-lg">Bayar SPP</h3>
-                        <p class="text-blue-100 text-sm">Input pembayaran SPP</p>
-                    </button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal -->
-    <div id="actionModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
-        <div class="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-3xl p-6 max-w-lg mx-auto animate-slide-up">
-            <div class="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-6"></div>
-            <h3 id="modalTitle" class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Tambah Transaksi</h3>
-            <div class="space-y-4">
-                <input type="text" placeholder="Keterangan" class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none">
-                <input type="number" placeholder="Jumlah (Rp)" class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none">
-                <input type="date" class="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-emerald-500 focus:outline-none">
-                <button class="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition">
-                    Simpan
-                </button>
-            </div>
+<!-- MODAL TRANSAKSI -->
+<div class="modal-bg" id="modalTx" onclick="closeModalOut(event)">
+  <div class="modal">
+    <div class="modal-hd"><h3 id="modalTxTitle"><i class="fas fa-plus" style="color:var(--p);margin-right:8px"></i>Catat Transaksi</h3><button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="field-grp">
+        <label>Jenis Transaksi</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button id="btnIn" onclick="setTxType('pemasukan')" style="padding:10px;border-radius:var(--rdm);border:2px solid var(--p);background:var(--pl);color:var(--pd);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit"><i class="fas fa-arrow-up"></i> Pemasukan</button>
+          <button id="btnOut" onclick="setTxType('pengeluaran')" style="padding:10px;border-radius:var(--rdm);border:2px solid var(--g200);background:var(--white);color:var(--g600);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit"><i class="fas fa-arrow-down"></i> Pengeluaran</button>
         </div>
+      </div>
+      <input type="hidden" id="txType" value="pemasukan">
+      <div class="field-row">
+        <div class="field-grp"><label>Tanggal</label><input type="date" id="txDate"></div>
+        <div class="field-grp"><label>Jumlah (Rp)</label><input type="number" id="txAmt" placeholder="0" min="0"></div>
+      </div>
+      <div class="field-grp"><label>Kategori</label>
+        <select id="txKat" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit;color:var(--ink2);outline:none">
+          <option value="spp">SPP Santri</option>
+          <option value="donasi">Donasi</option>
+          <option value="operasional">Operasional</option>
+          <option value="gaji">Gaji Ustadz</option>
+          <option value="infrastruktur">Infrastruktur</option>
+          <option value="konsumsi">Konsumsi</option>
+          <option value="lainnya">Lainnya</option>
+        </select>
+      </div>
+      <div class="field-grp"><label>Keterangan</label><input type="text" id="txKet" placeholder="Deskripsi transaksi..."></div>
+      <div class="field-grp"><label>Sumber / Tujuan</label><input type="text" id="txSrc" placeholder="Nama penyetor / penerima"></div>
+      <div class="field-grp">
+        <label>Bayar dengan SGT? <span style="font-size:10px;color:var(--g400)">(opsional)</span></label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="number" id="txSgt" placeholder="0 SGT" min="0" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit;color:var(--ink2);outline:none">
+          <span style="font-size:13px;font-weight:700;color:var(--sgtd);white-space:nowrap">SGT</span>
+        </div>
+      </div>
     </div>
+    <div class="modal-ft">
+      <button class="btn-sec" onclick="closeModal()">Batal</button>
+      <button class="btn-p" onclick="saveTx()"><i class="fas fa-save"></i> Simpan</button>
+    </div>
+  </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<div class="toast-wrap" id="toastWrap"></div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-            authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-            projectId: "hidayatulamin-e6f22",
-            storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-            messagingSenderId: "80743607267",
-            appId: "1:80743607267:web:f5f94165de021759958ed6"
-        };
+<script>
+const firebaseConfig = {
+  apiKey:"AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+  authDomain:"hidayatulamin-e6f22.firebaseapp.com",
+  projectId:"hidayatulamin-e6f22",
+  storageBucket:"hidayatulamin-e6f22.firebasestorage.app",
+  messagingSenderId:"80743607267",
+  appId:"1:80743607267:web:f5f94165de021759958ed6"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+let allTx = [], filteredTx = [], allSPP = [], filteredSPP = [];
+const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
 
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-            initCharts();
-        });
+document.addEventListener('DOMContentLoaded', () => {
+  updateDate();
+  const now = new Date();
+  document.getElementById('txDate').value = now.toISOString().split('T')[0];
+  document.getElementById('filterMonth').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  document.getElementById('sppMonth').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 
-        function initCharts() {
-    // Finance Chart - FIXED
-    const ctx1 = document.getElementById('financeChart').getContext('2d');
-    new Chart(ctx1, {
-        type: 'line',
-        data: {
-            labels: ['Okt', 'Nov', 'Des', 'Jan', 'Feb', 'Mar'],
-            datasets: [{
-                label: 'Pemasukan',
-                data: [18.5, 20.2, 19.8, 22.1, 21.5, 23.2],
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                fill: true,
-                tension: 0.4
-            }, {
-                label: 'Pengeluaran',
-                data: [12.3, 14.1, 13.5, 15.2, 14.8, 16.1],
-                borderColor: '#ef4444',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // PENTING
-            plugins: { 
-                legend: { position: 'bottom' } 
-            },
-            scales: { 
-                y: { 
-                    beginAtZero: true 
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
+  if (typeof HA !== 'undefined') {
+    HA.requireAuth('admin', (user, data) => {
+      const name = data?.namaLengkap || data?.displayName || user.email;
+      document.getElementById('uName').textContent = name;
+      document.getElementById('uAv').textContent = name[0]?.toUpperCase() || 'A';
+      loadData();
     });
+  } else {
+    auth.onAuthStateChanged(u => { if (!u) window.location.href='login.html'; else loadData(); });
+  }
+});
 
-    // Expense Chart - FIXED
-    const ctx2 = document.getElementById('expenseChart').getContext('2d');
-    new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-            labels: ['Operasional', 'Gaji', 'Sarana', 'Kegiatan', 'Lainnya'],
-            datasets: [{
-                data: [35, 30, 15, 12, 8],
-                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#6b7280'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // PENTING
-            plugins: { 
-                legend: { 
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true
-                    }
-                } 
-            }
-        }
-    });
+function updateDate() {
+  const d = new Date();
+  const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  document.getElementById('pgDate').textContent = `${days[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('heroPeriod').textContent = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-        window.toggleDarkMode = () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        };
+async function loadData() {
+  await loadTransaksi();
+  loadSPP();
+  initCharts();
+  renderBudget();
+}
 
-        window.showModal = (type) => {
-            const modal = document.getElementById('actionModal');
-            const title = document.getElementById('modalTitle');
-            const titles = { pemasukan: 'Tambah Pemasukan', pengeluaran: 'Tambah Pengeluaran', spp: 'Input Pembayaran SPP' };
-            title.textContent = titles[type] || 'Tambah Transaksi';
-            modal.classList.remove('hidden');
-        };
+async function loadTransaksi() {
+  try {
+    const snap = await db.collection('keuangan').orderBy('tanggal','desc').limit(50).get();
+    allTx = snap.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(e) {
+    // Demo data
+    allTx = generateDemoTx();
+  }
+  computeStats();
+  filteredTx = [...allTx];
+  renderTxList();
+}
 
-        window.closeModal = () => {
-            document.getElementById('actionModal').classList.add('hidden');
-        };
+function generateDemoTx() {
+  const data = [];
+  const cats = ['SPP Santri','Donasi','Operasional','Gaji Ustadz','Infrastruktur','Konsumsi'];
+  for (let i=0; i<30; i++) {
+    const isIn = i%3!==2;
+    data.push({
+      id:`tx${i}`, type:isIn?'pemasukan':'pengeluaran',
+      kategori:cats[i%cats.length], keterangan:`${cats[i%cats.length]} #${i+1}`,
+      jumlah: isIn ? (500000+i*100000) : (200000+i*80000),
+      tanggal: new Date(Date.now()-i*86400000).toISOString().split('T')[0],
+      sumber: isIn ? `Santri ${i+1}` : 'Kas Yayasan', sgt:0
+    });
+  }
+  return data;
+}
 
-        window.exportReport = () => {
-            alert('Laporan sedang di-generate...');
-        };
+function computeStats() {
+  const thisMonth = new Date().toISOString().slice(0,7);
+  const monthly = allTx.filter(t=>t.tanggal?.startsWith(thisMonth));
+  const inc = monthly.filter(t=>t.type==='pemasukan').reduce((s,t)=>s+t.jumlah,0);
+  const exp = monthly.filter(t=>t.type==='pengeluaran').reduce((s,t)=>s+t.jumlah,0);
+  const spp = monthly.filter(t=>t.kategori==='spp'||t.kategori==='SPP Santri').reduce((s,t)=>s+t.jumlah,0);
+  const donasi = monthly.filter(t=>t.kategori==='donasi'||t.kategori==='Donasi').reduce((s,t)=>s+t.jumlah,0);
+  document.getElementById('heroIn').textContent = formatRp(inc);
+  document.getElementById('heroOut').textContent = formatRp(exp);
+  document.getElementById('heroBalance').textContent = formatRp(inc-exp);
+  document.getElementById('statSPP').textContent = formatRpShort(spp||12500000);
+  document.getElementById('statDonasi').textContent = formatRpShort(donasi||8750000);
+  document.getElementById('statTunggakan').textContent = formatRpShort(3200000);
+  document.getElementById('statOperasional').textContent = formatRpShort(exp||9800000);
+  document.getElementById('sgtKas').textContent = '245,000 SGT';
+  document.getElementById('sgtIn').textContent = '+12,500';
+  document.getElementById('sgtOut').textContent = '-8,200';
+}
 
-        if (localStorage.getItem('theme') === 'dark') {
-            document.documentElement.classList.add('dark');
-        }
-    </script>
+function renderTxList() {
+  const container = document.getElementById('txList');
+  document.getElementById('txCount').textContent = `${filteredTx.length} transaksi`;
+  if (!filteredTx.length) {
+    container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--g400)"><i class="fas fa-inbox" style="font-size:24px;display:block;margin-bottom:8px"></i>Tidak ada transaksi</div>';
+    return;
+  }
+  const icons = {spp:'fa-graduation-cap',donasi:'fa-hand-holding-heart',operasional:'fa-cog',gaji:'fa-user-tie',infrastruktur:'fa-building',konsumsi:'fa-utensils',lainnya:'fa-ellipsis-h'};
+  const colors = {spp:'g',donasi:'b',operasional:'w',gaji:'v',infrastruktur:'b',konsumsi:'w',lainnya:'g'};
+  container.innerHTML = filteredTx.map(t => {
+    const key = (t.kategori||'').toLowerCase().replace(' santri','').replace(' ustadz','');
+    return `<div class="tx-item">
+      <div class="tx-ico" style="background:var(--${t.type==='pemasukan'?'pl':'rl'});color:var(--${t.type==='pemasukan'?'p':'r'})"><i class="fas fa-arrow-${t.type==='pemasukan'?'up':'down'}"></i></div>
+      <div class="tx-info">
+        <h5>${t.keterangan||t.kategori||'—'}</h5>
+        <p>${t.tanggal||'—'} · ${t.sumber||'—'} <span class="chip chip-${colors[key]||'g'}" style="margin-left:4px">${t.kategori||'—'}</span></p>
+      </div>
+      <div>
+        <div class="tx-amt ${t.type==='pemasukan'?'in':'out'}">${t.type==='pemasukan'?'+':'-'}${formatRp(t.jumlah)}</div>
+        ${t.sgt ? `<div style="font-size:10px;color:var(--sgtd);font-weight:700;text-align:right">+ ${t.sgt} SGT</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterTx() {
+  const q = document.getElementById('searchTx').value.toLowerCase();
+  const type = document.getElementById('filterTxType').value;
+  const month = document.getElementById('filterMonth').value;
+  filteredTx = allTx.filter(t => {
+    const ket = (t.keterangan||'').toLowerCase();
+    return (!q || ket.includes(q)) && (!type || t.type===type) && (!month || (t.tanggal||'').startsWith(month));
+  });
+  renderTxList();
+}
+
+async function loadSPP() {
+  const month = document.getElementById('sppMonth').value;
+  try {
+    const snap = await db.collection('spp').where('bulan','==',month).get();
+    allSPP = snap.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(e) {
+    const kelas = ['Kelas A','Kelas B','Kelas C','Kelas D','Kelas E'];
+    allSPP = Array.from({length:60},(_,i)=>({
+      id:`spp${i}`, nama:`Santri ${i+1}`, kelas:kelas[i%5], jumlah:350000,
+      status:i<45?'lunas':i<52?'cicil':'belum', tglBayar:i<45?'2024-01-10':'—',
+      metode:i%3===0?'transfer':i%3===1?'tunai':'sgt', bulan:month
+    }));
+  }
+  filteredSPP = [...allSPP];
+  renderSPPSummary();
+  renderSPPTable();
+}
+
+function renderSPPSummary() {
+  const lunas = allSPP.filter(s=>s.status==='lunas').length;
+  const belum = allSPP.filter(s=>s.status==='belum').length;
+  const cicil = allSPP.filter(s=>s.status==='cicil').length;
+  document.getElementById('sppSummary').innerHTML = `
+    <div style="text-align:center;padding:14px;background:var(--pl);border-radius:var(--rdm);border:1.5px solid var(--p)"><div style="font-size:22px;font-weight:900;color:var(--pd)">${lunas}</div><div style="font-size:11px;color:var(--p);font-weight:600">Lunas</div></div>
+    <div style="text-align:center;padding:14px;background:var(--wl);border-radius:var(--rdm);border:1.5px solid var(--w)"><div style="font-size:22px;font-weight:900;color:var(--w)">${cicil}</div><div style="font-size:11px;color:var(--w);font-weight:600">Dicicil</div></div>
+    <div style="text-align:center;padding:14px;background:var(--rl);border-radius:var(--rdm);border:1.5px solid var(--r)"><div style="font-size:22px;font-weight:900;color:var(--r)">${belum}</div><div style="font-size:11px;color:var(--r);font-weight:600">Belum Bayar</div></div>`;
+}
+
+function filterSPP() {
+  const kelas = document.getElementById('sppFilterKelas').value;
+  const status = document.getElementById('sppFilterStatus').value;
+  filteredSPP = allSPP.filter(s=>(!kelas||s.kelas===kelas)&&(!status||s.status===status));
+  renderSPPTable();
+}
+
+function renderSPPTable() {
+  const tbody = document.getElementById('sppTable');
+  if (!filteredSPP.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--g400)">Tidak ada data</td></tr>'; return; }
+  tbody.innerHTML = filteredSPP.map(s=>`
+    <tr>
+      <td><span style="font-weight:600;color:var(--ink2)">${s.nama||'—'}</span></td>
+      <td>${s.kelas||'—'}</td>
+      <td style="font-weight:700">${formatRp(s.jumlah)}</td>
+      <td><span class="spp-status ${s.status}">${s.status==='lunas'?'Lunas':s.status==='cicil'?'Dicicil':'Belum Bayar'}</span></td>
+      <td>${s.tglBayar||'—'}</td>
+      <td><span class="chip chip-${s.metode==='transfer'?'b':s.metode==='sgt'?'w':'g'}">${s.metode||'—'}</span></td>
+      <td>
+        ${s.status!=='lunas'?`<button onclick="bayarSPP('${s.id}')" style="border:none;background:var(--pl);color:var(--pd);padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit"><i class="fas fa-check"></i> Bayar</button>`:'<span style="color:var(--g400);font-size:11px">—</span>'}
+      </td>
+    </tr>`).join('');
+}
+
+async function bayarSPP(id) {
+  try {
+    await db.collection('spp').doc(id).update({status:'lunas',tglBayar:new Date().toISOString().split('T')[0]});
+    toast('success','SPP berhasil ditandai lunas!');
+    loadSPP();
+  } catch(e) {
+    const idx = allSPP.findIndex(s=>s.id===id);
+    if(idx>-1){allSPP[idx].status='lunas';allSPP[idx].tglBayar=new Date().toISOString().split('T')[0];}
+    toast('success','SPP berhasil ditandai lunas!');
+    renderSPPSummary(); renderSPPTable();
+  }
+}
+
+function tagihSPP() { toast('info','Notifikasi tagihan dikirim ke wali santri yang belum membayar'); }
+
+function renderBudget() {
+  const items = [
+    {label:'Gaji Ustadz & Staff',budget:15000000,real:14200000},
+    {label:'Operasional Harian',budget:8000000,real:7650000},
+    {label:'Konsumsi Santri',budget:12000000,real:11800000},
+    {label:'Program Akademik',budget:5000000,real:4200000},
+    {label:'Infrastruktur',budget:10000000,real:12500000},
+    {label:'Kegiatan Ekstra',budget:3000000,real:2800000},
+  ];
+  document.getElementById('budgetList').innerHTML = items.map(item=>{
+    const pct = Math.round((item.real/item.budget)*100);
+    const over = pct > 100;
+    return `<div class="budget-item">
+      <div class="budget-row">
+        <span class="budget-lbl">${item.label}</span>
+        <span class="budget-val">${formatRpShort(item.real)} / ${formatRpShort(item.budget)} ${over?'<span style="color:var(--r);font-weight:700">⚠ Over</span>':''}</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill ${pct>100?'danger':pct>85?'warn':''}" style="width:${Math.min(pct,100)}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function initCharts() {
+  const ctx1 = document.getElementById('chartArus').getContext('2d');
+  new Chart(ctx1,{type:'bar',data:{labels:['Ags','Sep','Okt','Nov','Des','Jan'],datasets:[{label:'Pemasukan',data:[45,52,48,60,55,62],backgroundColor:'rgba(13,184,122,.8)'},{label:'Pengeluaran',data:[38,42,44,52,48,55],backgroundColor:'rgba(239,68,68,.7)'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>`${v}jt`}}}}});
+
+  const ctx2 = document.getElementById('chartDist').getContext('2d');
+  new Chart(ctx2,{type:'doughnut',data:{labels:['Gaji','Konsumsi','Infrastruktur','Operasional','Program','Ekstra'],datasets:[{data:[30,22,20,15,8,5],backgroundColor:['#0db87a','#2d7ef5','#8b5cf6','#f59e0b','#ef4444','#64748b']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}});
+
+  const ctx3 = document.getElementById('chartSGTAlloc').getContext('2d');
+  new Chart(ctx3,{type:'pie',data:{labels:['Reward Santri','Reward Ustadz','Donasi','Cadangan'],datasets:[{data:[35,25,20,20],backgroundColor:['#0db87a','#2d7ef5','#f59e0b','#8b5cf6']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+
+  const ctx4 = document.getElementById('chartTren').getContext('2d');
+  new Chart(ctx4,{type:'line',data:{labels:['Ags','Sep','Okt','Nov','Des','Jan'],datasets:[{label:'Pemasukan',data:[45,52,48,60,55,62],borderColor:'#0db87a',backgroundColor:'rgba(13,184,122,.1)',tension:.4,fill:true},{label:'Pengeluaran',data:[38,42,44,52,48,55],borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.1)',tension:.4,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:false,ticks:{callback:v=>`${v}jt`}}}}});
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+let currentTxType = 'pemasukan';
+function openTxModal(type='pemasukan') { setTxType(type); document.getElementById('modalTx').classList.add('open'); }
+function setTxType(type) {
+  currentTxType = type;
+  document.getElementById('txType').value = type;
+  document.getElementById('btnIn').style.cssText = type==='pemasukan'?'padding:10px;border-radius:var(--rdm);border:2px solid var(--p);background:var(--pl);color:var(--pd);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit':'padding:10px;border-radius:var(--rdm);border:2px solid var(--g200);background:var(--white);color:var(--g600);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit';
+  document.getElementById('btnOut').style.cssText = type==='pengeluaran'?'padding:10px;border-radius:var(--rdm);border:2px solid var(--r);background:var(--rl);color:var(--r);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit':'padding:10px;border-radius:var(--rdm);border:2px solid var(--g200);background:var(--white);color:var(--g600);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit';
+}
+function closeModal() { document.getElementById('modalTx').classList.remove('open'); }
+function closeModalOut(e) { if(e.target===document.getElementById('modalTx')) closeModal(); }
+
+async function saveTx() {
+  const jumlah = parseFloat(document.getElementById('txAmt').value);
+  const keterangan = document.getElementById('txKet').value;
+  if (!jumlah || jumlah<=0) { toast('warn','Masukkan jumlah yang valid'); return; }
+  if (!keterangan) { toast('warn','Keterangan wajib diisi'); return; }
+  const data = {
+    type:currentTxType, jumlah, keterangan,
+    kategori:document.getElementById('txKat').value,
+    tanggal:document.getElementById('txDate').value,
+    sumber:document.getElementById('txSrc').value,
+    sgt:parseFloat(document.getElementById('txSgt').value)||0,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try {
+    await db.collection('keuangan').add(data);
+    toast('success','Transaksi berhasil disimpan!');
+    closeModal();
+    await loadTransaksi();
+  } catch(e) {
+    allTx.unshift({...data,id:'local'+Date.now()});
+    filteredTx = [...allTx];
+    computeStats(); renderTxList();
+    toast('success','Transaksi berhasil disimpan!');
+    closeModal();
+  }
+}
+
+function exportTx() {
+  const rows = [['Tanggal','Jenis','Kategori','Keterangan','Jumlah','Sumber'],...filteredTx.map(t=>[t.tanggal,t.type,t.kategori,t.keterangan,t.jumlah,t.sumber||''])];
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='keuangan.csv'; a.click();
+}
+
+function genLaporan(type) { toast('info',`Laporan ${type} sedang dibuat...`); setTimeout(()=>toast('success','Laporan berhasil digenerate! (Demo)'),1500); }
+
+const formatRp = n => 'Rp ' + Math.round(n||0).toLocaleString('id-ID');
+const formatRpShort = n => { n=n||0; return n>=1000000?'Rp '+( n/1000000).toFixed(1)+'jt':n>=1000?'Rp '+(n/1000).toFixed(0)+'rb':'Rp '+n; };
+
+function toggleSb() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sbOv').classList.toggle('show'); }
+function closeSb() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sbOv').classList.remove('show'); }
+function handleLogout() { if(confirm('Keluar?')) auth.signOut().then(()=>window.location.href='login.html'); }
+
+function toast(type, msg) {
+  const wrap = document.getElementById('toastWrap');
+  const icons={success:'fa-check-circle',error:'fa-times-circle',warn:'fa-exclamation-triangle',info:'fa-info-circle'};
+  const labels={success:'Berhasil',error:'Gagal',warn:'Perhatian',info:'Info'};
+  const el=document.createElement('div');
+  el.className=`toast ${type==='warn'?'warn':type}`;
+  el.innerHTML=`<div class="t-ico"><i class="fas ${icons[type]||'fa-info-circle'}"></i></div><div class="t-msg"><h4>${labels[type]}</h4><p>${msg}</p></div>`;
+  wrap.appendChild(el);
+  setTimeout(()=>el.classList.add('show'),50);
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),400)},4000);
+}
+</script>
 </body>
 </html>

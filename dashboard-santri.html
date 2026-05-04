@@ -1,1563 +1,1002 @@
 <!DOCTYPE html>
-<html lang="id" class="light">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Portal Santri — Hidayatul Amin</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dashboard Santri | Hidayatullah Amin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --p:#8b5cf6;--pd:#7c3aed;--pl:#f0ebff;
+  --g:#0db87a;--gd:#059669;--gl:#e6f9f2;
+  --b:#2d7ef5;--bl:#eaf1fe;
+  --w:#f59e0b;--wl:#fef3c7;
+  --r:#ef4444;--rl:#fee2e2;
+  --sgt:#d97706;--sgtl:#fef3c7;
+  --ink:#0f172a;--ink2:#1e293b;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;
+  --g300:#cbd5e1;--g400:#94a3b8;--g500:#64748b;--g600:#475569;
+  --white:#fff;
+  --sh-sm:0 1px 3px rgba(0,0,0,.06);--sh-md:0 4px 16px rgba(0,0,0,.08);--sh-lg:0 10px 32px rgba(0,0,0,.1);
+  --rd:14px;--rdm:10px;--rds:6px;
+  --tr:all .2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(--ink2);font-size:14px;min-height:100vh;display:flex;overflow-x:hidden}
 
-    <!-- Firebase compat -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+/* ═══ SIDEBAR ═══ */
+.sidebar{width:256px;background:var(--ink);display:flex;flex-direction:column;position:fixed;left:0;top:0;height:100vh;z-index:200;overflow-y:auto;transition:transform .3s;scrollbar-width:none}
+.sidebar::-webkit-scrollbar{display:none}
+.sidebar.off{transform:translateX(-100%)}
+.sb-head{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px}
+.sb-logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0}
+.sb-brand h1{font-family:'Amiri',serif;color:#fff;font-size:16px}
+.sb-brand p{color:var(--p);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.sb-nav{flex:1;padding:12px 8px}
+.sb-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.25);padding:10px 12px 4px;display:block}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rdm);color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:var(--tr);cursor:pointer;margin-bottom:1px;border:1px solid transparent}
+.ni:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+.ni.active{background:rgba(139,92,246,.18);color:var(--p);border-color:rgba(139,92,246,.3)}
+.ni i{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-foot{padding:12px;border-top:1px solid rgba(255,255,255,.07)}
+.u-tile{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:var(--rdm);cursor:pointer;transition:var(--tr)}
+.u-tile:hover{background:rgba(255,255,255,.1)}
+.u-av{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.u-nm{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-rl{font-size:10px;color:rgba(255,255,255,.35)}
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+/* OVERLAY */
+.sb-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;display:none}
+.sb-ov.show{display:block}
 
-    <!-- Fonts: Sora (display) + Nunito (body) -->
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+/* MAIN */
+.main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
 
-    <style>
-        /* ══════════════════════════════════
-           CSS VARIABLES — LIGHT / DARK
-        ══════════════════════════════════ */
-        :root {
-            --bg:        #f4f6fb;
-            --bg2:       #ffffff;
-            --bg3:       #eef1f8;
-            --border:    #e4e8f0;
-            --text:      #1a1d2e;
-            --text2:     #5a6285;
-            --text3:     #9aa3c2;
-            --shadow:    0 4px 24px rgba(80,100,180,.08);
-            --shadow-lg: 0 12px 40px rgba(80,100,180,.14);
-            --violet:    #7c3aed;
-            --violet2:   #9333ea;
-            --green:     #10b981;
-            --blue:      #3b82f6;
-            --amber:     #f59e0b;
-            --rose:      #f43f5e;
-            --cyan:      #06b6d4;
-        }
-        html.dark {
-            --bg:        #0f1221;
-            --bg2:       #171b2e;
-            --bg3:       #1e2440;
-            --border:    #252d48;
-            --text:      #e8ecf8;
-            --text2:     #8892b8;
-            --text3:     #4a5578;
-            --shadow:    0 4px 24px rgba(0,0,0,.25);
-            --shadow-lg: 0 12px 40px rgba(0,0,0,.4);
-        }
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+.tb-l{display:flex;align-items:center;gap:10px}
+.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
+.menu-btn:hover{background:var(--pl);color:var(--p)}
+.pg-ttl h2{font-size:17px;font-weight:700;color:var(--ink2)}
+.pg-ttl p{font-size:11px;color:var(--g500)}
+.tb-r{display:flex;align-items:center;gap:6px}
+.tb-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);position:relative}
+.tb-btn:hover{background:var(--pl);color:var(--p)}
+.tb-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--r);border-radius:50%;border:2px solid var(--white)}
 
-        *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
-        html { scroll-behavior:smooth; }
+/* CONTENT */
+.content{flex:1;padding:20px}
+.section{display:none}
+.section.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-        body {
-            font-family: 'Nunito', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding-bottom: 90px;
-            transition: background .3s, color .3s;
-        }
+/* GREETING */
+.greeting{background:linear-gradient(135deg,#1a0533 0%,#2d0f5e 50%,#3d1a7a 100%);border-radius:var(--rd);padding:22px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative}
+.greeting::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:rgba(139,92,246,.15);border-radius:50%}
+.greeting::after{content:'';position:absolute;bottom:-40px;left:-40px;width:140px;height:140px;background:rgba(13,184,122,.08);border-radius:50%}
+.gr-txt{position:relative;z-index:1}
+.gr-txt h3{font-family:'Amiri',serif;font-size:20px;color:#fff;margin-bottom:4px}
+.gr-txt p{font-size:12px;color:rgba(255,255,255,.5)}
+.gr-badge{position:relative;z-index:1;background:rgba(255,255,255,.08);border-radius:12px;padding:12px 16px;text-align:center;border:1px solid rgba(255,255,255,.1);min-width:100px}
+.gr-juz{font-size:28px;font-weight:900;color:#c4b5fd;line-height:1}
+.gr-juz-lbl{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px}
 
-        /* scrollbar */
-        ::-webkit-scrollbar { width:5px; height:5px; }
-        ::-webkit-scrollbar-thumb { background:rgba(124,58,237,.3); border-radius:4px; }
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.sc{background:var(--white);border-radius:var(--rd);padding:16px 18px;box-shadow:var(--sh-sm);border:1px solid var(--g100);transition:var(--tr)}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sc-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.sc-ico.v{background:var(--pl);color:var(--p)}
+.sc-ico.g{background:var(--gl);color:var(--g)}
+.sc-ico.b{background:var(--bl);color:var(--b)}
+.sc-ico.w{background:var(--wl);color:var(--w)}
+.sc-val{font-size:24px;font-weight:800;color:var(--ink2);margin-bottom:2px;line-height:1}
+.sc-lbl{font-size:12px;color:var(--g500);font-weight:500}
+.sc-sub{font-size:10px;color:var(--g400);margin-top:2px}
 
-        /* ══════════════════════════════════
-           HEADER
-        ══════════════════════════════════ */
-        .header {
-            position: sticky; top:0; z-index:100;
-            background: var(--bg2);
-            border-bottom: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            transition: background .3s;
-        }
-        .header-inner {
-            max-width: 540px; margin: 0 auto;
-            padding: 12px 18px;
-            display: flex; align-items: center; justify-content: space-between; gap:12px;
-        }
-        .header-brand { display:flex; align-items:center; gap:10px; }
-        .header-logo {
-            width:40px; height:40px; border-radius:12px; flex-shrink:0;
-            background: linear-gradient(135deg, var(--violet), var(--violet2));
-            display:flex; align-items:center; justify-content:center;
-            color:#fff; font-size:17px; box-shadow: 0 4px 14px rgba(124,58,237,.4);
-        }
-        .header-brand h1 { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; }
-        .header-brand p  { font-size:11px; color:var(--text2); margin-top:1px; }
+/* PROGRESS JUZ */
+.juz-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:20px}
+.juz-cell{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;transition:var(--tr);cursor:default;border:1.5px solid transparent}
+.juz-cell.done{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;box-shadow:0 2px 8px rgba(139,92,246,.25)}
+.juz-cell.current{background:var(--pl);color:var(--pd);border-color:var(--p);animation:pulse 2s infinite}
+.juz-cell.empty{background:var(--g50);color:var(--g300);border-color:var(--g200)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,.3)}50%{box-shadow:0 0 0 6px rgba(139,92,246,.0)}}
 
-        .header-actions { display:flex; align-items:center; gap:8px; }
-        .icon-btn {
-            width:36px; height:36px; border-radius:10px; border:none;
-            background:var(--bg3); color:var(--text2); cursor:pointer;
-            display:flex; align-items:center; justify-content:center;
-            font-size:14px; position:relative; transition:all .2s;
-        }
-        .icon-btn:hover { background:var(--border); color:var(--text); }
-        .notif-dot {
-            position:absolute; top:6px; right:6px; width:8px; height:8px;
-            background:var(--rose); border-radius:50%; border:2px solid var(--bg2);
-        }
+/* TWO-COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.card{background:var(--white);border-radius:var(--rd);padding:18px;box-shadow:var(--sh-sm);border:1px solid var(--g100)}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-hd h4{font-size:14px;font-weight:700;color:var(--ink2)}
+.card-hd p{font-size:11px;color:var(--g500)}
+.card-link{font-size:12px;color:var(--p);font-weight:600;cursor:pointer}
 
-        /* ══════════════════════════════════
-           MAIN / SECTIONS
-        ══════════════════════════════════ */
-        .main { max-width:540px; margin:0 auto; padding:16px 16px 0; }
+/* CHART */
+.chart-wrap{position:relative;height:220px}
 
-        .page { display:none; }
-        .page.active { display:block; animation: fadeUp .35s ease; }
+/* TABLE */
+.tbl-sec{background:var(--white);border-radius:var(--rd);box-shadow:var(--sh-sm);border:1px solid var(--g100);overflow:hidden;margin-bottom:20px}
+.tbl-hd{padding:16px 18px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tbl-hd h4{font-size:14px;font-weight:700;color:var(--ink2)}
+.tbl-hd p{font-size:11px;color:var(--g500)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:400px}
+thead{background:var(--g50)}
+th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g500)}
+td{padding:10px 14px;border-top:1px solid var(--g100);color:var(--g600)}
+tr:hover td{background:var(--g50)}
+.chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.chip-g{background:var(--gl);color:var(--g)}
+.chip-b{background:var(--bl);color:var(--b)}
+.chip-w{background:var(--wl);color:var(--w)}
+.chip-r{background:var(--rl);color:var(--r)}
+.chip-v{background:var(--pl);color:var(--p)}
 
-        @keyframes fadeUp {
-            from { opacity:0; transform:translateY(14px); }
-            to   { opacity:1; transform:translateY(0); }
-        }
+/* JADWAL */
+.jadwal-item{display:flex;gap:12px;padding:12px;border-radius:var(--rdm);border:1.5px solid var(--g200);margin-bottom:8px;transition:var(--tr);cursor:default}
+.jadwal-item:hover{border-color:var(--p);background:var(--pl)}
+.jd-time{min-width:60px;text-align:center}
+.jd-time .jt{font-size:12px;font-weight:800;color:var(--ink2)}
+.jd-time .jd{font-size:10px;color:var(--g400)}
+.jd-dot{width:3px;background:var(--p);border-radius:2px;flex-shrink:0}
+.jd-info h5{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:2px}
+.jd-info p{font-size:11px;color:var(--g500)}
+.jd-badge{margin-left:auto;font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700;white-space:nowrap;align-self:flex-start}
 
-        /* ══════════════════════════════════
-           CARDS
-        ══════════════════════════════════ */
-        .card {
-            background:var(--bg2); border:1px solid var(--border);
-            border-radius:20px; box-shadow:var(--shadow);
-            transition: transform .25s, box-shadow .25s, background .3s;
-        }
-        .card:active { transform:scale(.98); }
-        .card-p { padding:18px 20px; }
-        .card-tappable:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+/* SGT */
+.sgt-hero{background:linear-gradient(135deg,#1a0533 0%,#3d1078 40%,#7c3aed 75%,#f59e0b 100%);border-radius:var(--rd);padding:20px;color:#fff;margin-bottom:16px;position:relative;overflow:hidden}
+.sgt-hero::before{content:'₴';position:absolute;right:-10px;top:-20px;font-size:120px;font-weight:900;color:rgba(255,255,255,.03);pointer-events:none;line-height:1}
+.sgt-coin{width:48px;height:48px;background:linear-gradient(135deg,#fcd34d,#f59e0b,#d97706);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#1a0533;flex-shrink:0;box-shadow:0 4px 14px rgba(245,158,11,.4)}
+.sgt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.sgt-stat{background:rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center}
+.sgt-stat .sv{font-size:16px;font-weight:900;color:#fcd34d}
+.sgt-stat .sl{font-size:10px;color:rgba(255,255,255,.6);font-weight:600}
 
-        /* ══════════════════════════════════
-           PROFILE HERO
-        ══════════════════════════════════ */
-        .profile-hero {
-            border-radius:24px; padding:22px 20px;
-            background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #9333ea 100%);
-            color:#fff; position:relative; overflow:hidden;
-            box-shadow: 0 8px 30px rgba(124,58,237,.45);
-            margin-bottom:16px;
-        }
-        .hero-blob1 {
-            position:absolute; top:-30px; right:-30px;
-            width:120px; height:120px; border-radius:50%;
-            background:rgba(255,255,255,.1);
-        }
-        .hero-blob2 {
-            position:absolute; bottom:-25px; left:-20px;
-            width:90px; height:90px; border-radius:50%;
-            background:rgba(255,255,255,.08);
-        }
-        .hero-inner { position:relative; z-index:1; display:flex; align-items:center; gap:14px; }
-        .hero-avatar {
-            width:68px; height:68px; border-radius:18px;
-            border:3px solid rgba(255,255,255,.35);
-            object-fit:cover; flex-shrink:0;
-        }
-        .hero-info h2 { font-family:'Sora',sans-serif; font-size:18px; font-weight:800; }
-        .hero-info p  { font-size:12px; color:rgba(255,255,255,.75); margin-top:3px; }
-        .hero-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-        .hero-tag {
-            padding:3px 10px; border-radius:20px;
-            background:rgba(255,255,255,.18); font-size:11px; font-weight:600;
-        }
-        .hero-chevron {
-            margin-left:auto; width:36px; height:36px; border-radius:10px; flex-shrink:0;
-            background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center;
-            cursor:pointer; transition:.2s; border:none; color:#fff; font-size:14px;
-        }
-        .hero-chevron:hover { background:rgba(255,255,255,.28); }
+/* MISSION */
+.mission-list{display:flex;flex-direction:column;gap:10px}
+.mission-item{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--rdm);border:1.5px solid var(--g200);transition:var(--tr)}
+.mission-item.done{border-color:var(--g);background:var(--gl)}
+.mission-item:hover:not(.done){border-color:var(--p);background:var(--pl)}
+.m-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.m-info{flex:1}
+.m-info h5{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:2px}
+.m-info p{font-size:11px;color:var(--g500)}
+.m-reward{font-size:12px;font-weight:800;color:var(--sgt)}
+.m-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--g200);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--tr)}
+.mission-item.done .m-check{background:var(--g);border-color:var(--g);color:#fff}
 
-        /* ══════════════════════════════════
-           STAT CHIPS
-        ══════════════════════════════════ */
-        .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
-        .stat-chip {
-            background:var(--bg2); border:1px solid var(--border);
-            border-radius:16px; padding:14px 10px; text-align:center;
-            cursor:pointer; transition:all .25s;
-            box-shadow:var(--shadow);
-        }
-        .stat-chip:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
-        .stat-chip-icon {
-            width:38px; height:38px; border-radius:12px; margin:0 auto 8px;
-            display:flex; align-items:center; justify-content:center; font-size:15px;
-        }
-        .stat-chip-val { font-family:'Sora',sans-serif; font-size:20px; font-weight:800; }
-        .stat-chip-lbl { font-size:10px; color:var(--text2); margin-top:2px; font-weight:600; }
+/* TX LIST */
+.tx-list{display:flex;flex-direction:column;gap:8px}
+.tx-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--rdm);background:var(--g50);border:1px solid var(--g200)}
+.tx-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.tx-info{flex:1}
+.tx-info h5{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:1px}
+.tx-info p{font-size:10px;color:var(--g400)}
+.tx-amt{font-size:13px;font-weight:800}
+.tx-amt.earn{color:var(--g)}.tx-amt.spend{color:var(--r)}
 
-        /* ══════════════════════════════════
-           SECTION TITLE
-        ══════════════════════════════════ */
-        .sec-title {
-            display:flex; align-items:center; justify-content:space-between;
-            margin-bottom:12px;
-        }
-        .sec-title h3 { font-family:'Sora',sans-serif; font-size:15px; font-weight:700; }
-        .sec-link { font-size:12px; color:var(--violet); font-weight:700; cursor:pointer; }
+/* PROFILE */
+.profile-header{background:linear-gradient(135deg,#1a0533,var(--pd));border-radius:var(--rd);padding:24px;color:#fff;margin-bottom:16px;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px}
+.profile-av{width:70px;height:70px;border-radius:18px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;border:3px solid rgba(255,255,255,.2);flex-shrink:0}
+.profile-info h4{font-size:18px;font-weight:700;margin-bottom:4px}
+.profile-info p{font-size:12px;color:rgba(255,255,255,.6)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.info-box{background:var(--white);border-radius:var(--rdm);padding:14px;border:1px solid var(--g100)}
+.info-box label{font-size:10px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+.info-box p{font-size:13px;font-weight:600;color:var(--ink2)}
 
-        /* ══════════════════════════════════
-           PROGRESS BAR
-        ══════════════════════════════════ */
-        .progress-wrap {
-            background:var(--bg3); height:10px; border-radius:10px; overflow:hidden; margin:10px 0 6px;
-        }
-        .progress-bar {
-            height:10px; border-radius:10px;
-            background:linear-gradient(90deg,var(--violet),var(--violet2));
-            transition:width 1.2s cubic-bezier(.4,0,.2,1);
-        }
+/* PENGUMUMAN */
+.peng-item{padding:14px;border-radius:var(--rdm);border-left:4px solid var(--p);background:var(--white);box-shadow:var(--sh-sm);margin-bottom:10px}
+.peng-item.warning{border-color:var(--w);background:var(--wl)}
+.peng-item.info{border-color:var(--b);background:var(--bl)}
+.peng-title{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:4px}
+.peng-body{font-size:12px;color:var(--g600);line-height:1.5;margin-bottom:6px}
+.peng-time{font-size:10px;color:var(--g400)}
 
-        /* ══════════════════════════════════
-           MENU GRID (2x2)
-        ══════════════════════════════════ */
-        .menu-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
-        .menu-btn {
-            background:var(--bg2); border:1px solid var(--border);
-            border-radius:18px; padding:16px 14px; text-align:left;
-            cursor:pointer; transition:all .25s; box-shadow:var(--shadow);
-        }
-        .menu-btn:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); }
-        .menu-btn:active { transform:scale(.97); }
-        .menu-icon {
-            width:44px; height:44px; border-radius:14px; margin-bottom:10px;
-            display:flex; align-items:center; justify-content:center; font-size:18px;
-            transition:.25s;
-        }
-        .menu-btn:hover .menu-icon { filter:brightness(1.1); }
-        .menu-btn h4 { font-size:13px; font-weight:800; margin-bottom:3px; }
-        .menu-btn p  { font-size:11px; color:var(--text2); line-height:1.4; }
+/* PERIZINAN FORM */
+.field-grp label{font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:5px}
+.field-grp input,.field-grp select,.field-grp textarea{width:100%;padding:10px 13px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit;transition:var(--tr);background:var(--g50)}
+.field-grp input:focus,.field-grp select:focus,.field-grp textarea:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(139,92,246,.1);background:var(--white)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.btn-p{padding:10px 18px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;border-radius:var(--rdm);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:var(--tr);font-family:inherit}
+.btn-p:hover{box-shadow:0 4px 14px rgba(139,92,246,.3);transform:translateY(-1px)}
+.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-sec{padding:10px 18px;background:var(--g100);color:var(--g700);border:none;border-radius:var(--rdm);font-size:13px;font-weight:600;cursor:pointer;transition:var(--tr);font-family:inherit}
+.btn-sec:hover{background:var(--g200)}
 
-        /* ══════════════════════════════════
-           SCHEDULE ITEMS
-        ══════════════════════════════════ */
-        .sch-item {
-            display:flex; align-items:center; gap:12px;
-            padding:12px 14px; border-radius:14px; margin-bottom:8px;
-            border-left:4px solid;
-        }
-        .sch-item.done     { background:rgba(16,185,129,.07); border-color:var(--green); }
-        .sch-item.active   { background:rgba(124,58,237,.08); border-color:var(--violet); }
-        .sch-item.upcoming { background:var(--bg3);           border-color:var(--border); }
-        .sch-time { font-size:11px; font-weight:700; min-width:52px; line-height:1.4; color:var(--text2); }
-        .sch-subject { font-size:13px; font-weight:700; }
-        .sch-room { font-size:11px; color:var(--text2); margin-top:2px; }
-        .sch-status-icon { margin-left:auto; font-size:15px; }
+/* KONSULTASI */
+.chat-wrap{height:340px;overflow-y:auto;padding:12px;background:var(--g50);border-radius:var(--rdm);border:1px solid var(--g200);margin-bottom:10px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.chat-wrap::-webkit-scrollbar{width:4px}.chat-wrap::-webkit-scrollbar-thumb{background:var(--g300);border-radius:4px}
+.msg{max-width:75%;padding:10px 13px;border-radius:12px;font-size:12px;line-height:1.5}
+.msg.me{align-self:flex-end;background:var(--p);color:#fff;border-bottom-right-radius:4px}
+.msg.them{align-self:flex-start;background:var(--white);color:var(--ink2);border:1px solid var(--g200);border-bottom-left-radius:4px}
+.msg-time{font-size:9px;opacity:.6;margin-top:3px}
+.chat-input-wrap{display:flex;gap:8px}
+.chat-input-wrap input{flex:1;padding:10px 14px;border:1.5px solid var(--g200);border-radius:30px;font-size:13px;font-family:inherit;transition:var(--tr)}
+.chat-input-wrap input:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(139,92,246,.1)}
+.chat-send{width:40px;height:40px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);flex-shrink:0}
+.chat-send:hover{transform:scale(1.08)}
 
-        /* ══════════════════════════════════
-           ACHIEVEMENTS
-        ══════════════════════════════════ */
-        .achievements-row {
-            display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;
-            scrollbar-width:none;
-        }
-        .achievements-row::-webkit-scrollbar { display:none; }
-        .ach-chip {
-            flex-shrink:0; text-align:center; min-width:80px;
-        }
-        .ach-icon {
-            width:60px; height:60px; border-radius:18px; margin:0 auto 6px;
-            display:flex; align-items:center; justify-content:center; font-size:22px;
-        }
-        .ach-label { font-size:11px; font-weight:700; }
-        .ach-sub   { font-size:10px; color:var(--text3); }
+/* TOAST */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--white);border-radius:var(--rd);padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-lg);border-left:4px solid var(--p);transform:translateX(120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);pointer-events:auto;min-width:280px;max-width:360px}
+.toast.show{transform:translateX(0)}
+.toast.success{border-color:var(--g)}.toast.error{border-color:var(--r)}.toast.warn{border-color:var(--w)}.toast.info{border-color:var(--b)}
+.t-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.toast.success .t-ico{background:var(--gl);color:var(--g)}.toast.error .t-ico{background:var(--rl);color:var(--r)}.toast.warn .t-ico{background:var(--wl);color:var(--w)}.toast.info .t-ico{background:var(--bl);color:var(--b)}
+.t-msg h4{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:1px}
+.t-msg p{font-size:11px;color:var(--g500)}
 
-        /* ══════════════════════════════════
-           QUICK ACTIONS (4 buttons)
-        ══════════════════════════════════ */
-        .quick-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
-        .quick-btn {
-            background:var(--bg2); border:1px solid var(--border);
-            border-radius:14px; padding:10px 6px; cursor:pointer;
-            display:flex; flex-direction:column; align-items:center; gap:6px;
-            transition:all .2s; box-shadow:var(--shadow);
-        }
-        .quick-btn:hover { background:var(--bg3); transform:translateY(-2px); }
-        .quick-btn:active { transform:scale(.96); }
-        .quick-icon {
-            width:38px; height:38px; border-radius:12px;
-            display:flex; align-items:center; justify-content:center; font-size:15px;
-        }
-        .quick-label { font-size:10px; font-weight:700; color:var(--text2); }
+/* BOTTOM NAV */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--g200);z-index:150;padding:6px 0}
+.bn-row{display:flex;justify-content:space-around}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border-radius:var(--rdm);color:var(--g400);font-size:10px;font-weight:600;transition:var(--tr);cursor:pointer;border:none;background:none;font-family:inherit}
+.bn-item.active{color:var(--p)}
+.bn-item i{font-size:18px}
 
-        /* ══════════════════════════════════
-           HAFALAN PAGE
-        ══════════════════════════════════ */
-        .juz-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-top:14px; }
-        .juz-cell {
-            aspect-ratio:1; border-radius:10px; display:flex; align-items:center; justify-content:center;
-            font-size:12px; font-weight:700; cursor:pointer; transition:.2s;
-            border:1.5px solid var(--border); background:var(--bg3); color:var(--text2);
-        }
-        .juz-cell.done    { background:linear-gradient(135deg,var(--violet),var(--violet2)); color:#fff; border-color:transparent; }
-        .juz-cell.current { background:rgba(124,58,237,.12); border-color:var(--violet); color:var(--violet); }
-        .juz-cell:hover   { transform:scale(1.08); }
-
-        .setoran-item {
-            display:flex; align-items:flex-start; gap:10px;
-            padding:13px 0; border-bottom:1px solid var(--border);
-        }
-        .setoran-item:last-child { border-bottom:none; }
-        .setoran-dot {
-            width:10px; height:10px; border-radius:50%; margin-top:4px; flex-shrink:0;
-        }
-        .setoran-info h4 { font-size:13px; font-weight:700; }
-        .setoran-info p  { font-size:11px; color:var(--text2); margin-top:2px; }
-        .setoran-badge { margin-left:auto; flex-shrink:0; }
-
-        /* ══════════════════════════════════
-           NILAI / RAPORT PAGE
-        ══════════════════════════════════ */
-        .nilai-row {
-            display:flex; align-items:center; gap:12px;
-            padding:12px 0; border-bottom:1px solid var(--border);
-        }
-        .nilai-row:last-child { border-bottom:none; }
-        .nilai-icon {
-            width:34px; height:34px; border-radius:10px; flex-shrink:0;
-            display:flex; align-items:center; justify-content:center; font-size:13px;
-        }
-        .nilai-mapel { flex:1; font-size:13px; font-weight:600; }
-        .nilai-bar-wrap { width:60px; background:var(--bg3); height:5px; border-radius:5px; }
-        .nilai-bar { height:5px; border-radius:5px; }
-        .nilai-angka { font-family:'Sora',sans-serif; font-size:16px; font-weight:800; width:36px; text-align:right; }
-
-        /* ══════════════════════════════════
-           JADWAL PAGE
-        ══════════════════════════════════ */
-        .day-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:14px; scrollbar-width:none; }
-        .day-tabs::-webkit-scrollbar { display:none; }
-        .day-tab {
-            flex-shrink:0; padding:7px 16px; border-radius:20px; font-size:12px; font-weight:700;
-            background:var(--bg3); border:1px solid var(--border); color:var(--text2);
-            cursor:pointer; transition:.2s;
-        }
-        .day-tab.active { background:linear-gradient(135deg,var(--violet),var(--violet2)); color:#fff; border-color:transparent; }
-
-        /* ══════════════════════════════════
-           PROFIL PAGE
-        ══════════════════════════════════ */
-        .profil-row {
-            display:flex; justify-content:space-between; align-items:center;
-            padding:13px 0; border-bottom:1px solid var(--border);
-        }
-        .profil-row:last-child { border-bottom:none; }
-        .profil-row label { font-size:12px; color:var(--text2); font-weight:600; }
-        .profil-row span  { font-size:13px; font-weight:700; text-align:right; }
-
-        /* ══════════════════════════════════
-           PENGUMUMAN PAGE
-        ══════════════════════════════════ */
-        .ann-card {
-            background:var(--bg2); border:1px solid var(--border);
-            border-radius:18px; padding:16px 18px; margin-bottom:12px;
-            box-shadow:var(--shadow); transition:all .25s;
-        }
-        .ann-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
-        .ann-card h4 { font-size:14px; font-weight:800; margin-bottom:6px; }
-        .ann-card p  { font-size:12.5px; color:var(--text2); line-height:1.7; }
-        .ann-foot { display:flex; gap:12px; margin-top:10px; font-size:11px; color:var(--text3); }
-        .ann-foot i { font-size:10px; margin-right:3px; }
-
-        /* ══════════════════════════════════
-           BADGES
-        ══════════════════════════════════ */
-        .badge {
-            display:inline-flex; align-items:center; gap:4px;
-            padding:3px 9px; border-radius:20px;
-            font-size:10px; font-weight:700;
-        }
-        .badge-violet { background:rgba(124,58,237,.12); color:var(--violet); }
-        .badge-green  { background:rgba(16,185,129,.12);  color:var(--green); }
-        .badge-amber  { background:rgba(245,158,11,.12);  color:var(--amber); }
-        .badge-rose   { background:rgba(244,63,94,.12);   color:var(--rose); }
-        .badge-blue   { background:rgba(59,130,246,.12);  color:var(--blue); }
-
-        /* ══════════════════════════════════
-           BOTTOM NAV
-        ══════════════════════════════════ */
-        .bottom-nav {
-            position:fixed; bottom:0; left:0; right:0; z-index:100;
-            background:var(--bg2); border-top:1px solid var(--border);
-            box-shadow:0 -4px 24px rgba(0,0,0,.07);
-            transition:background .3s;
-        }
-        .bottom-nav-inner {
-            max-width:540px; margin:0 auto;
-            display:flex; justify-content:space-around;
-            padding:8px 12px 12px;
-        }
-        .nav-tab {
-            flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;
-            padding:6px 4px; border:none; background:none; cursor:pointer;
-            color:var(--text3); transition:.2s; border-radius:12px;
-            font-family:'Nunito',sans-serif;
-        }
-        .nav-tab.active { color:var(--violet); }
-        .nav-tab i { font-size:18px; transition:.2s; }
-        .nav-tab.active i { transform:scale(1.12); }
-        .nav-tab span { font-size:9.5px; font-weight:700; }
-
-        /* ══════════════════════════════════
-           MODAL
-        ══════════════════════════════════ */
-        .modal-overlay {
-            position:fixed; inset:0; z-index:200;
-            background:rgba(0,0,0,.5); backdrop-filter:blur(6px);
-            display:flex; align-items:flex-end; justify-content:center;
-            opacity:0; pointer-events:none; transition:opacity .25s;
-        }
-        .modal-overlay.open { opacity:1; pointer-events:all; }
-        .modal-sheet {
-            width:100%; max-width:540px;
-            background:var(--bg2); border-radius:24px 24px 0 0;
-            padding:20px 20px 36px;
-            max-height:85vh; overflow-y:auto;
-            transform:translateY(100%);
-            transition:transform .35s cubic-bezier(.4,0,.2,1);
-        }
-        .modal-overlay.open .modal-sheet { transform:translateY(0); }
-        .modal-handle {
-            width:38px; height:4px; background:var(--border);
-            border-radius:4px; margin:0 auto 18px;
-        }
-        .modal-title {
-            display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;
-        }
-        .modal-title h3 { font-family:'Sora',sans-serif; font-size:16px; font-weight:800; }
-        .modal-close {
-            width:32px; height:32px; border-radius:9px; background:var(--bg3);
-            border:1px solid var(--border); cursor:pointer; color:var(--text2);
-            display:flex; align-items:center; justify-content:center; font-size:13px; transition:.2s;
-        }
-        .modal-close:hover { background:var(--border); }
-
-        /* ══════════════════════════════════
-           TOAST
-        ══════════════════════════════════ */
-        .toast-wrap {
-            position:fixed; top:14px; left:50%; transform:translateX(-50%);
-            z-index:500; pointer-events:none; width:calc(100% - 32px); max-width:420px;
-        }
-        .toast {
-            display:flex; align-items:center; gap:10px;
-            background:var(--bg2); border:1px solid var(--border);
-            border-radius:14px; padding:13px 16px;
-            box-shadow:var(--shadow-lg); font-size:13px; font-weight:600;
-            transform:translateY(-80px); transition:transform .35s cubic-bezier(.4,0,.2,1);
-        }
-        .toast.show { transform:translateY(0); }
-        .toast-icon { font-size:16px; flex-shrink:0; }
-
-        /* ══════════════════════════════════
-           LOADING SKELETON
-        ══════════════════════════════════ */
-        .skeleton {
-            border-radius:16px;
-            background:linear-gradient(90deg,var(--bg3) 25%,var(--border) 50%,var(--bg3) 75%);
-            background-size:200% 100%; animation:shimmer 1.6s infinite;
-        }
-        @keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
-
-        /* ══════════════════════════════════
-           UTILITY
-        ══════════════════════════════════ */
-        .gap-section { margin-bottom:16px; }
-        .text-violet { color:var(--violet); }
-        .text-green  { color:var(--green); }
-        .text-amber  { color:var(--amber); }
-        .text-rose   { color:var(--rose); }
-        .text-blue   { color:var(--blue); }
-        .text-muted  { color:var(--text2); }
-    </style>
+/* RESPONSIVE */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .menu-btn{display:flex}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .content{padding:12px 12px 80px}
+  .bottom-nav{display:block}
+  .juz-grid{grid-template-columns:repeat(6,1fr)}
+}
+@media(max-width:540px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .field-row{grid-template-columns:1fr}
+  .info-grid{grid-template-columns:1fr}
+  .juz-grid{grid-template-columns:repeat(5,1fr)}
+  .sgt-grid{grid-template-columns:1fr 1fr}
+}
+</style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════
-     TOAST
-══════════════════════════════════ -->
-<div class="toast-wrap">
-    <div class="toast" id="toast">
-        <i class="toast-icon fas fa-info-circle text-violet" id="toastIcon"></i>
-        <span id="toastMsg">Pesan</span>
+<div class="sb-ov" id="sbOv" onclick="closeSb()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar off" id="sidebar">
+  <div class="sb-head">
+    <div class="sb-logo"><i class="fas fa-star-and-crescent"></i></div>
+    <div class="sb-brand"><h1>Hidayatullah</h1><p>Portal Santri</p></div>
+  </div>
+  <nav class="sb-nav">
+    <span class="sb-lbl">Menu Utama</span>
+    <a class="ni active" onclick="go('dashboard',this)"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+    <a class="ni" onclick="go('hafalan',this)"><i class="fas fa-book-open"></i><span>Hafalan Saya</span></a>
+    <a class="ni" onclick="go('jadwal',this)"><i class="fas fa-calendar-alt"></i><span>Jadwal</span></a>
+    <a class="ni" onclick="go('nilai',this)"><i class="fas fa-graduation-cap"></i><span>Nilai & Raport</span></a>
+    <a class="ni" onclick="go('absensi',this)"><i class="fas fa-calendar-check"></i><span>Absensi</span></a>
+    <a class="ni" onclick="go('pengumuman',this)"><i class="fas fa-bullhorn"></i><span>Pengumuman</span></a>
+    <a class="ni" onclick="go('perizinan',this)"><i class="fas fa-file-signature"></i><span>Perizinan</span></a>
+    <a class="ni" onclick="go('konsultasi',this)"><i class="fas fa-comments"></i><span>Konsultasi</span></a>
+    <span class="sb-lbl">Ekosistem</span>
+    <a class="ni" onclick="go('sgt',this)" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)"><span style="font-size:14px;font-weight:900;color:#d97706;width:16px;text-align:center">₴</span><span style="color:#d97706;font-weight:700">SGT Token</span></a>
+    <a href="https://sagatama-mart.vercel.app" target="_blank" class="ni" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)"><i class="fas fa-shopping-bag" style="color:var(--p)"></i><span style="color:var(--p);font-weight:700">Sagatama Mart</span></a>
+  </nav>
+  <div class="sb-foot">
+    <div class="u-tile" onclick="handleLogout()">
+      <div class="u-av" id="uAv">S</div>
+      <div style="flex:1;min-width:0"><div class="u-nm" id="uName">Santri</div><div class="u-rl">Klik untuk logout</div></div>
+      <i class="fas fa-sign-out-alt" style="color:rgba(255,255,255,.3);font-size:13px"></i>
     </div>
-</div>
+  </div>
+</aside>
 
-<!-- ══════════════════════════════════
-     HEADER
-══════════════════════════════════ -->
-<header class="header">
-    <div class="header-inner">
-        <div class="header-brand">
-            <div class="header-logo"><i class="fas fa-mosque"></i></div>
-            <div>
-                <h1>Portal Santri</h1>
-                <p id="greetingText">Selamat datang!</p>
-            </div>
-        </div>
-        <div class="header-actions">
-            <button class="icon-btn" onclick="toggleDarkMode()" id="darkBtn" title="Mode Gelap">
-                <i class="fas fa-moon" id="darkIcon"></i>
-            </button>
-            <button class="icon-btn" onclick="openNotif()" title="Notifikasi">
-                <i class="fas fa-bell"></i>
-                <span class="notif-dot" id="notifDot"></span>
-            </button>
-        </div>
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="tb-l">
+      <button class="menu-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <div class="pg-ttl"><h2 id="pgTitle">Dashboard Santri</h2><p id="pgDate">Memuat...</p></div>
     </div>
-</header>
-
-<!-- ══════════════════════════════════
-     MAIN
-══════════════════════════════════ -->
-<main class="main">
-
-    <!-- SKELETON LOADING -->
-    <div id="loadingState">
-        <div class="skeleton" style="height:110px;margin-bottom:14px"></div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
-            <div class="skeleton" style="height:90px"></div>
-            <div class="skeleton" style="height:90px"></div>
-            <div class="skeleton" style="height:90px"></div>
-        </div>
-        <div class="skeleton" style="height:130px;margin-bottom:14px"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div class="skeleton" style="height:100px"></div>
-            <div class="skeleton" style="height:100px"></div>
-            <div class="skeleton" style="height:100px"></div>
-            <div class="skeleton" style="height:100px"></div>
-        </div>
+    <div class="tb-r">
+      <button class="tb-btn" onclick="go('pengumuman',null)" title="Pengumuman"><i class="fas fa-bell"></i><div class="tb-dot" id="notifDot" style="display:block"></div></button>
+      <button class="tb-btn" onclick="go('sgt',null)" title="SGT"><span style="font-weight:900;font-size:13px;color:var(--sgt)">₴</span></button>
+      <button class="tb-btn" onclick="handleLogout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
     </div>
+  </header>
 
-    <!-- ════════════════════
-         PAGE: BERANDA
-    ════════════════════ -->
-    <div class="page" id="page-beranda">
+  <div class="content">
 
-        <!-- Profile Hero -->
-        <div class="profile-hero">
-            <div class="hero-blob1"></div>
-            <div class="hero-blob2"></div>
-            <div class="hero-inner">
-                <img class="hero-avatar" id="heroPhoto" src="" alt="Foto Santri">
-                <div class="hero-info" style="flex:1">
-                    <h2 id="heroName">—</h2>
-                    <p id="heroSubtitle">NIS — Kelas —</p>
-                    <div class="hero-tags">
-                        <span class="hero-tag" id="heroStatus">Aktif</span>
-                        <span class="hero-tag" id="heroProgram">Tahfidz</span>
-                    </div>
-                </div>
-                <button class="hero-chevron" onclick="switchTab('profil')"><i class="fas fa-chevron-right"></i></button>
-            </div>
+    <!-- ════ DASHBOARD ════ -->
+    <div class="section active" id="sec-dashboard">
+      <div class="greeting">
+        <div class="gr-txt">
+          <h3>Assalamu'alaikum, <span id="greetName">Santri</span>! 🌙</h3>
+          <p id="greetSub">Semangat menghafal hari ini</p>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <span style="background:rgba(139,92,246,.25);color:#c4b5fd;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700" id="kelasBadge">—</span>
+            <span style="background:rgba(13,184,122,.2);color:#6ee7b7;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700" id="nisBadge">—</span>
+          </div>
         </div>
-
-        <!-- Stat Chips -->
-        <div class="stat-row">
-            <div class="stat-chip card-tappable" onclick="switchTab('hafalan')">
-                <div class="stat-chip-icon" style="background:rgba(124,58,237,.1)">
-                    <i class="fas fa-book-quran text-violet"></i>
-                </div>
-                <div class="stat-chip-val text-violet" id="chipJuz">0</div>
-                <div class="stat-chip-lbl">Juz Hafalan</div>
-            </div>
-            <div class="stat-chip card-tappable" onclick="switchTab('jadwal')">
-                <div class="stat-chip-icon" style="background:rgba(16,185,129,.1)">
-                    <i class="fas fa-calendar-check text-green"></i>
-                </div>
-                <div class="stat-chip-val text-green" id="chipKehadiran">0%</div>
-                <div class="stat-chip-lbl">Kehadiran</div>
-            </div>
-            <div class="stat-chip card-tappable" onclick="switchTab('nilai')">
-                <div class="stat-chip-icon" style="background:rgba(245,158,11,.1)">
-                    <i class="fas fa-star text-amber"></i>
-                </div>
-                <div class="stat-chip-val text-amber" id="chipRanking">—</div>
-                <div class="stat-chip-lbl">Ranking</div>
-            </div>
+        <div class="gr-badge">
+          <div class="gr-juz" id="grJuz">0</div>
+          <div class="gr-juz-lbl">Juz Hafal</div>
         </div>
+      </div>
 
-        <!-- Hafalan Progress -->
-        <div class="card card-p gap-section">
-            <div class="sec-title">
-                <h3>Progres Hafalan</h3>
-                <span class="sec-link" onclick="switchTab('hafalan')">Detail →</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-                <span class="badge badge-violet" id="progressJuzLabel">Juz —</span>
-                <span style="font-family:'Sora',sans-serif;font-weight:800;font-size:13px;color:var(--violet)" id="progressPct">—%</span>
-            </div>
-            <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
-            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2)">
-                <span>Target: <b id="progressTarget">—</b> Juz</span>
-                <span id="progressEst">Estimasi: —</span>
-            </div>
+      <div class="stats-row">
+        <div class="sc"><div class="sc-top"><div class="sc-ico v"><i class="fas fa-book-open"></i></div></div><div class="sc-val" id="stJuz">0</div><div class="sc-lbl">Juz Hafal</div><div class="sc-sub">Total hafalan</div></div>
+        <div class="sc"><div class="sc-top"><div class="sc-ico g"><i class="fas fa-calendar-check"></i></div></div><div class="sc-val" id="stHadir">—</div><div class="sc-lbl">Kehadiran</div><div class="sc-sub">Bulan ini</div></div>
+        <div class="sc"><div class="sc-top"><div class="sc-ico b"><i class="fas fa-star"></i></div></div><div class="sc-val" id="stNilai">—</div><div class="sc-lbl">Nilai Rata-rata</div><div class="sc-sub">Semester ini</div></div>
+        <div class="sc"><div class="sc-top"><div class="sc-ico w"><i class="fas fa-coins"></i></div></div><div class="sc-val" id="stSGT">—</div><div class="sc-lbl">Saldo SGT</div><div class="sc-sub">Token reward</div></div>
+      </div>
+
+      <!-- JUZ GRID -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-hd"><div><h4>Peta Hafalan Al-Quran</h4><p>30 Juz — klik untuk detail</p></div><span style="font-size:12px;color:var(--g500)" id="juzPct">0%</span></div>
+        <div class="juz-grid" id="juzGrid"></div>
+        <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--g500);flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:linear-gradient(135deg,var(--p),var(--pd))"></div>Sudah Hafal</span>
+          <span style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--pl);border:1.5px solid var(--p)"></div>Sedang Dihafalkan</span>
+          <span style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--g50);border:1px solid var(--g200)"></div>Belum</span>
         </div>
+      </div>
 
-        <!-- Menu Grid -->
-        <div class="menu-grid gap-section">
-            <button class="menu-btn" onclick="switchTab('jadwal')">
-                <div class="menu-icon" style="background:rgba(59,130,246,.1)"><i class="fas fa-calendar-alt text-blue" style="font-size:20px"></i></div>
-                <h4>Jadwal</h4>
-                <p>Harian & mingguan</p>
-            </button>
-            <button class="menu-btn" onclick="switchTab('hafalan')">
-                <div class="menu-icon" style="background:rgba(16,185,129,.1)"><i class="fas fa-book-open text-green" style="font-size:20px"></i></div>
-                <h4>Hafalan</h4>
-                <p>Setoran & target juz</p>
-            </button>
-            <button class="menu-btn" onclick="switchTab('nilai')">
-                <div class="menu-icon" style="background:rgba(245,158,11,.1)"><i class="fas fa-chart-bar text-amber" style="font-size:20px"></i></div>
-                <h4>Nilai</h4>
-                <p>Rapor & evaluasi</p>
-            </button>
-            <button class="menu-btn" onclick="switchTab('pengumuman')">
-                <div class="menu-icon" style="background:rgba(124,58,237,.1)"><i class="fas fa-bullhorn text-violet" style="font-size:20px"></i></div>
-                <h4>Pengumuman</h4>
-                <p>Info & agenda</p>
-            </button>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hd"><div><h4>Progres Setoran</h4><p>7 hari terakhir</p></div></div>
+          <div class="chart-wrap"><canvas id="chartSetoran"></canvas></div>
         </div>
-
-        <!-- Today Schedule -->
-        <div class="card card-p gap-section">
-            <div class="sec-title">
-                <h3>Jadwal Hari Ini</h3>
-                <span class="badge badge-violet" id="todayLabel">—</span>
-            </div>
-            <div id="todaySchList"></div>
+        <div class="card">
+          <div class="card-hd"><h4>Jadwal Hari Ini</h4></div>
+          <div id="dashJadwal"></div>
         </div>
-
-        <!-- Achievements -->
-        <div class="card card-p gap-section">
-            <div class="sec-title">
-                <h3>Pencapaian</h3>
-                <span class="sec-link" onclick="showToast('Semua pencapaian akan segera tampil','info')">Semua →</span>
-            </div>
-            <div class="achievements-row" id="achRow"></div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="quick-row gap-section">
-            <button class="quick-btn" onclick="openPageExt('pembayaran')">
-                <div class="quick-icon" style="background:rgba(124,58,237,.1)"><i class="fas fa-wallet text-violet"></i></div>
-                <span class="quick-label">SPP</span>
-            </button>
-            <button class="quick-btn" onclick="openIzin()">
-                <div class="quick-icon" style="background:rgba(59,130,246,.1)"><i class="fas fa-file-signature text-blue"></i></div>
-                <span class="quick-label">Izin</span>
-            </button>
-            <button class="quick-btn" onclick="openKonsultasi()">
-                <div class="quick-icon" style="background:rgba(16,185,129,.1)"><i class="fas fa-comments text-green"></i></div>
-                <span class="quick-label">Konsul</span>
-            </button>
-            <button class="quick-btn" onclick="switchTab('pengumuman')">
-                <div class="quick-icon" style="background:rgba(245,158,11,.1)"><i class="fas fa-bullhorn text-amber"></i></div>
-                <span class="quick-label">Info</span>
-            </button>
-        </div>
-
-        <!-- SGT Token Card -->
-        <div class="card gap-section" style="background:linear-gradient(135deg,#1A0533 0%,#3D1078 45%,#7C3AED 75%,#F59E0B 100%);border:none;overflow:hidden;position:relative;">
-            <div style="position:absolute;right:-10px;top:-10px;font-size:90px;font-weight:900;color:rgba(255,255,255,0.04);pointer-events:none;line-height:1;">SGT</div>
-            <div style="position:relative;padding:20px;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-                    <div style="width:46px;height:46px;background:linear-gradient(135deg,#FCD34D,#F59E0B,#D97706);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#1A0533;box-shadow:0 4px 14px rgba(245,158,11,0.45);flex-shrink:0;">₴</div>
-                    <div style="flex:1;">
-                        <p style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Saldo SGT Kamu</p>
-                        <p style="font-size:28px;font-weight:900;line-height:1.1;background:linear-gradient(135deg,#FCD34D,#F59E0B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;" id="santriSgtBal">0 SGT</p>
-                    </div>
-                </div>
-                <!-- Progress to next reward -->
-                <div style="margin-bottom:14px;">
-                    <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-                        <span style="font-size:11px;color:rgba(255,255,255,0.65);font-weight:600;">Progress ke Reward Berikutnya</span>
-                        <span style="font-size:11px;color:#FCD34D;font-weight:800;" id="santriSgtProgress">0 / 500 SGT</span>
-                    </div>
-                    <div style="height:7px;background:rgba(255,255,255,0.15);border-radius:4px;overflow:hidden;">
-                        <div id="santriSgtBar" style="height:100%;background:linear-gradient(90deg,#FCD34D,#F59E0B);border-radius:4px;transition:width .8s ease;width:0%;"></div>
-                    </div>
-                    <p style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:4px;">Kumpulkan 500 SGT untuk bonus eksklusif!</p>
-                </div>
-                <!-- Buttons -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                    <a href="https://sagatama-mart.vercel.app" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:6px;background:white;color:#7C3AED;border:none;padding:11px;border-radius:11px;font-weight:800;font-size:12px;cursor:pointer;text-decoration:none;">
-                        <i class="fas fa-shopping-bag"></i> Belanja Mart
-                    </a>
-                    <button onclick="openSGTHistory()" style="display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.25);padding:11px;border-radius:11px;font-weight:700;font-size:12px;cursor:pointer;backdrop-filter:blur(10px);font-family:inherit;">
-                        <i class="fas fa-list"></i> Riwayat
-                    </button>
-                </div>
-            </div>
-        </div>
-
-    </div><!-- /beranda -->
-
-    <!-- ════════════════════
-         PAGE: JADWAL
-    ════════════════════ -->
-    <div class="page" id="page-jadwal">
-        <div class="sec-title" style="margin-bottom:14px">
-            <h3 style="font-size:18px">Jadwal Pelajaran</h3>
-        </div>
-
-        <div class="day-tabs" id="dayTabs"></div>
-
-        <div class="card card-p gap-section" id="jadwalContent"></div>
+      </div>
     </div>
 
-    <!-- ════════════════════
-         PAGE: HAFALAN
-    ════════════════════ -->
-    <div class="page" id="page-hafalan">
-        <div class="sec-title" style="margin-bottom:14px">
-            <h3 style="font-size:18px">Hafalan Al-Qur'an</h3>
-        </div>
+    <!-- ════ HAFALAN ════ -->
+    <div class="section" id="sec-hafalan">
+      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Hafalan Saya</h3><p style="font-size:12px;color:var(--g500)">Riwayat dan progres hafalan Al-Quran</p></div>
 
-        <!-- Hero progress hafalan -->
-        <div class="card card-p gap-section" style="background:linear-gradient(135deg,#6d28d9,#9333ea);border:none;color:#fff">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
-                <div>
-                    <div style="font-size:11px;opacity:.75;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Total Hafalan</div>
-                    <div style="font-family:'Sora',sans-serif;font-size:38px;font-weight:800;line-height:1.1" id="hafJuzBig">0 Juz</div>
-                    <div style="font-size:12px;opacity:.75;margin-top:4px" id="hafHalaman">0 halaman</div>
-                </div>
-                <div style="text-align:right">
-                    <div style="font-size:11px;opacity:.75;font-weight:700">Target</div>
-                    <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800" id="hafTarget">10 Juz</div>
-                </div>
-            </div>
-            <div style="background:rgba(255,255,255,.2);height:8px;border-radius:8px;overflow:hidden">
-                <div id="hafProgressBar" style="height:8px;border-radius:8px;background:#fff;transition:width 1.2s ease;width:0%"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:11px;opacity:.75;margin-top:6px">
-                <span>Juz yang sudah hafal</span>
-                <span id="hafPct">0%</span>
-            </div>
-        </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hd"><div><h4>Peta 30 Juz</h4></div><span style="font-size:13px;font-weight:800;color:var(--p)" id="juzPct2">0%</span></div>
+        <div class="juz-grid" id="juzGrid2"></div>
+      </div>
 
-        <!-- Peta Juz -->
-        <div class="card card-p gap-section">
-            <div class="sec-title"><h3>Peta 30 Juz</h3></div>
-            <div class="juz-grid" id="juzGrid"></div>
-            <div style="display:flex;gap:14px;margin-top:12px;font-size:11px;color:var(--text2)">
-                <span><span style="display:inline-block;width:12px;height:12px;background:linear-gradient(135deg,var(--violet),var(--violet2));border-radius:3px;margin-right:5px;vertical-align:middle"></span>Hafal</span>
-                <span><span style="display:inline-block;width:12px;height:12px;background:rgba(124,58,237,.12);border:1.5px solid var(--violet);border-radius:3px;margin-right:5px;vertical-align:middle"></span>Sedang Dihafal</span>
-                <span><span style="display:inline-block;width:12px;height:12px;background:var(--bg3);border-radius:3px;margin-right:5px;vertical-align:middle"></span>Belum</span>
-            </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hd"><div><h4>Statistik Hafalan</h4></div></div>
+          <div class="chart-wrap"><canvas id="chartHafBulan"></canvas></div>
         </div>
+        <div class="card">
+          <div class="card-hd"><h4>Ringkasan</h4></div>
+          <div id="hafalanSummary"></div>
+        </div>
+      </div>
 
-        <!-- Riwayat Setoran -->
-        <div class="card card-p gap-section">
-            <div class="sec-title">
-                <h3>Riwayat Setoran</h3>
-                <span class="badge badge-violet" id="hafTotalSetoran">0 setoran</span>
-            </div>
-            <div id="setoranList"></div>
+      <div class="tbl-sec">
+        <div class="tbl-hd"><h4>Riwayat Setoran</h4><p>Semua setoran yang pernah diterima</p></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Tanggal</th><th>Juz</th><th>Halaman</th><th>Nilai</th><th>Ustadz</th><th>Status</th></tr></thead>
+            <tbody id="hafalanLog"></tbody>
+          </table>
         </div>
+      </div>
     </div>
 
-    <!-- ════════════════════
-         PAGE: NILAI
-    ════════════════════ -->
-    <div class="page" id="page-nilai">
-        <div class="sec-title" style="margin-bottom:14px">
-            <h3 style="font-size:18px">Raport & Nilai</h3>
-        </div>
-
-        <!-- Summary cards -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-            <div class="card card-p" style="text-align:center">
-                <div style="font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Rata-rata</div>
-                <div style="font-family:'Sora',sans-serif;font-size:32px;font-weight:800;color:var(--violet);margin:6px 0" id="nilaiAvg">—</div>
-                <span class="badge badge-violet">Semester Ini</span>
-            </div>
-            <div class="card card-p" style="text-align:center">
-                <div style="font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Peringkat</div>
-                <div style="font-family:'Sora',sans-serif;font-size:32px;font-weight:800;color:var(--amber);margin:6px 0" id="nilaiRanking">—</div>
-                <span class="badge badge-amber">Kelas</span>
-            </div>
-        </div>
-
-        <!-- Nilai mapel -->
-        <div class="card card-p gap-section">
-            <div class="sec-title">
-                <h3>Nilai Per Mata Pelajaran</h3>
-                <select id="semesterSel" onchange="renderNilai()" style="font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 8px;color:var(--text);font-family:'Nunito',sans-serif;font-weight:700">
-                    <option value="1">Sem 1</option>
-                    <option value="2" selected>Sem 2</option>
-                </select>
-            </div>
-            <div id="nilaiList"></div>
-        </div>
-
-        <!-- Catatan wali kelas -->
-        <div class="card card-p gap-section">
-            <h3 style="font-family:'Sora',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px">Catatan Wali Kelas</h3>
-            <div style="background:rgba(124,58,237,.06);border-left:4px solid var(--violet);border-radius:0 12px 12px 0;padding:14px 16px">
-                <p style="font-size:13px;color:var(--text2);line-height:1.8;font-style:italic">
-                    "Santri menunjukkan perkembangan sangat baik dalam hafalan. Aktif dan disiplin dalam kegiatan pondok. Perlu ditingkatkan pada bidang Matematika dan Sains agar semakin optimal."
-                </p>
-                <p style="font-size:11px;color:var(--text3);margin-top:8px">— Ustadz Ahmad Fauzi, Wali Kelas VII-B</p>
-            </div>
-        </div>
+    <!-- ════ JADWAL ════ -->
+    <div class="section" id="sec-jadwal">
+      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Jadwal Pelajaran</h3><p style="font-size:12px;color:var(--g500)">Jadwal kegiatan harian & mingguan</p></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px" id="dayTabs"></div>
+      <div id="jadwalContent"></div>
     </div>
 
-    <!-- ════════════════════
-         PAGE: PENGUMUMAN
-    ════════════════════ -->
-    <div class="page" id="page-pengumuman">
-        <div class="sec-title" style="margin-bottom:16px">
-            <h3 style="font-size:18px">Pengumuman</h3>
-            <span class="badge badge-rose">3 Baru</span>
+    <!-- ════ NILAI ════ -->
+    <div class="section" id="sec-nilai">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div><h3 style="font-size:18px;font-weight:700">Nilai & Raport</h3><p style="font-size:12px;color:var(--g500)">Nilai akademik dan hafalan</p></div>
+        <button class="btn-p" onclick="downloadRaport()"><i class="fas fa-download"></i> Unduh Raport</button>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hd"><h4>Nilai Mata Pelajaran</h4></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Mata Pelajaran</th><th>UH</th><th>UTS</th><th>UAS</th><th>Akhir</th><th>Grade</th></tr></thead>
+              <tbody id="nilaiTable"></tbody>
+            </table>
+          </div>
         </div>
-        <div id="annList"></div>
+        <div class="card">
+          <div class="card-hd"><h4>Grafik Nilai</h4></div>
+          <div class="chart-wrap"><canvas id="chartNilai"></canvas></div>
+        </div>
+      </div>
     </div>
 
-    <!-- ════════════════════
-         PAGE: PROFIL
-    ════════════════════ -->
-    <div class="page" id="page-profil">
-        <div class="sec-title" style="margin-bottom:16px">
-            <h3 style="font-size:18px">Profil Saya</h3>
+    <!-- ════ ABSENSI ════ -->
+    <div class="section" id="sec-absensi">
+      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Data Absensi</h3><p style="font-size:12px;color:var(--g500)">Catatan kehadiran bulan ini</p></div>
+      <div class="stats-row">
+        <div class="sc"><div class="sc-top"><div class="sc-ico g"><i class="fas fa-check-circle"></i></div></div><div class="sc-val" id="absH">—</div><div class="sc-lbl">Hadir</div></div>
+        <div class="sc"><div class="sc-top"><div class="sc-ico b"><i class="fas fa-file-alt"></i></div></div><div class="sc-val" id="absI">—</div><div class="sc-lbl">Izin</div></div>
+        <div class="sc"><div class="sc-top"><div class="sc-ico w"><i class="fas fa-thermometer"></i></div></div><div class="sc-val" id="absS">—</div><div class="sc-lbl">Sakit</div></div>
+        <div class="sc"><div class="sc-top"><div class="sc-ico v" style="background:var(--rl);color:var(--r)"><i class="fas fa-times-circle"></i></div></div><div class="sc-val" id="absA">—</div><div class="sc-lbl">Alpha</div></div>
+      </div>
+      <div class="tbl-sec">
+        <div class="tbl-hd"><h4>Riwayat Absensi</h4><p>Bulan ini</p></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Tanggal</th><th>Hari</th><th>Sesi</th><th>Status</th></tr></thead>
+            <tbody id="absTable"></tbody>
+          </table>
         </div>
-
-        <!-- Profile card -->
-        <div class="card card-p gap-section" style="text-align:center">
-            <img id="profilPhoto" src="" style="width:80px;height:80px;border-radius:20px;object-fit:cover;margin:0 auto 12px;border:3px solid rgba(124,58,237,.3)">
-            <h2 style="font-family:'Sora',sans-serif;font-size:18px;font-weight:800" id="profilName">—</h2>
-            <p style="font-size:12px;color:var(--text2);margin-top:4px" id="profilNis">NIS —</p>
-            <div style="display:flex;justify-content:center;gap:8px;margin-top:10px">
-                <span class="badge badge-green">Aktif</span>
-                <span class="badge badge-violet" id="profilProgram">—</span>
-            </div>
-        </div>
-
-        <div class="card card-p gap-section">
-            <h3 style="font-family:'Sora',sans-serif;font-size:14px;font-weight:800;margin-bottom:4px">Data Diri</h3>
-            <div id="profilRows"></div>
-        </div>
-
-        <div class="card card-p gap-section">
-            <h3 style="font-family:'Sora',sans-serif;font-size:14px;font-weight:800;margin-bottom:12px">Akun & Keamanan</h3>
-            <div id="akunRows">
-                <div class="profil-row"><label>Status Akun</label><span class="badge badge-green">Aktif</span></div>
-                <div class="profil-row"><label>Verifikasi Email</label><span class="badge badge-green">✓ Terverifikasi</span></div>
-                <div class="profil-row"><label>Login Terakhir</label><span id="lastLoginEl" style="font-size:12px">—</span></div>
-            </div>
-        </div>
-
-        <!-- SGT Wallet di Profil -->
-        <div class="card card-p gap-section" style="border:2px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB,#FEF9EE);">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-                <div style="width:42px;height:42px;background:linear-gradient(135deg,#FCD34D,#F59E0B,#D97706);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1A0533;box-shadow:0 3px 10px rgba(245,158,11,0.35);flex-shrink:0;">₴</div>
-                <div>
-                    <p style="font-size:10px;color:#92400E;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Sagatama Token</p>
-                    <p style="font-size:22px;font-weight:900;color:#D97706;line-height:1.1;" id="profilSgtBal">0 SGT</p>
-                </div>
-                <div style="margin-left:auto;background:#FEF3C7;border:1.5px solid #F59E0B;border-radius:20px;padding:4px 10px;font-size:10px;font-weight:800;color:#92400E;">AKTIF</div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
-                <div style="text-align:center;background:white;padding:10px;border-radius:11px;border:1px solid #FDE68A;">
-                    <p style="font-size:16px;font-weight:900;color:#D97706;" id="profilSgtEarned">0</p>
-                    <p style="font-size:10px;color:#92400E;font-weight:600;">Didapat</p>
-                </div>
-                <div style="text-align:center;background:white;padding:10px;border-radius:11px;border:1px solid #FDE68A;">
-                    <p style="font-size:16px;font-weight:900;color:#D97706;" id="profilSgtSpent">0</p>
-                    <p style="font-size:10px;color:#92400E;font-weight:600;">Digunakan</p>
-                </div>
-                <div style="text-align:center;background:white;padding:10px;border-radius:11px;border:1px solid #FDE68A;">
-                    <p style="font-size:16px;font-weight:900;color:#D97706;" id="profilSgtTx">0</p>
-                    <p style="font-size:10px;color:#92400E;font-weight:600;">Transaksi</p>
-                </div>
-            </div>
-            <a href="https://hidayatulamin.vercel.app" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:white;padding:12px;border-radius:12px;font-weight:800;font-size:13px;text-decoration:none;">
-                <i class="fas fa-shopping-bag"></i> Buka Sagatama Mart
-                <i class="fas fa-external-link-alt" style="font-size:10px;opacity:0.7;"></i>
-            </a>
-        </div>
-
-        <button onclick="handleLogout()" style="width:100%;padding:14px;border-radius:16px;background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);color:var(--rose);font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.2s;margin-bottom:10px">
-            <i class="fas fa-sign-out-alt" style="margin-right:8px"></i>Logout
-        </button>
+      </div>
     </div>
 
-</main>
+    <!-- ════ PENGUMUMAN ════ -->
+    <div class="section" id="sec-pengumuman">
+      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Pengumuman</h3><p style="font-size:12px;color:var(--g500)">Informasi terbaru dari pesantren</p></div>
+      <div id="pengList"></div>
+    </div>
 
-<!-- ══════════════════════════════════
-     BOTTOM NAV
-══════════════════════════════════ -->
+    <!-- ════ PERIZINAN ════ -->
+    <div class="section" id="sec-perizinan">
+      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Perizinan</h3><p style="font-size:12px;color:var(--g500)">Ajukan izin keluar atau tidak hadir</p></div>
+      <div class="two-col">
+        <div class="card">
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:14px"><i class="fas fa-file-signature" style="color:var(--p);margin-right:8px"></i>Ajukan Izin</h4>
+          <div class="field-row">
+            <div class="field-grp"><label>Jenis Izin</label>
+              <select id="iznType"><option value="pulang">Pulang ke Rumah</option><option value="sakit">Sakit</option><option value="kegiatan">Kegiatan Luar</option><option value="lainnya">Lainnya</option></select>
+            </div>
+            <div class="field-grp"><label>Tanggal Mulai</label><input type="date" id="iznStart"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-grp"><label>Tanggal Kembali</label><input type="date" id="iznEnd"></div>
+            <div class="field-grp"><label>Nama Penjemput</label><input type="text" id="iznPenjemput" placeholder="Nama orang tua/wali"></div>
+          </div>
+          <div class="field-grp" style="margin-bottom:14px"><label>Alasan</label><textarea id="iznAlasan" rows="3" placeholder="Jelaskan alasan izin..."></textarea></div>
+          <button class="btn-p" id="btnIzin" onclick="ajukanIzin()"><i class="fas fa-paper-plane"></i><span id="btnIzinTxt">Kirim Permohonan</span></button>
+        </div>
+        <div class="card">
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:14px">Riwayat Izin</h4>
+          <div id="iznHistory"><div style="text-align:center;padding:20px;color:var(--g400)"><i class="fas fa-clipboard-list" style="font-size:32px;display:block;margin-bottom:8px;opacity:.3"></i>Belum ada riwayat</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ KONSULTASI ════ -->
+    <div class="section" id="sec-konsultasi">
+      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Konsultasi</h3><p style="font-size:12px;color:var(--g500)">Chat dengan ustadz pembimbing</p></div>
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--g100);margin-bottom:12px">
+          <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--b),#1a5fbb);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px"><i class="fas fa-chalkboard-teacher"></i></div>
+          <div><p style="font-size:13px;font-weight:700">Ustadz Pembimbing</p><p style="font-size:11px;color:var(--g)" id="ustadzOnline"><i class="fas fa-circle" style="font-size:8px;margin-right:4px"></i>Online</p></div>
+        </div>
+        <div class="chat-wrap" id="chatWrap"></div>
+        <div class="chat-input-wrap">
+          <input type="text" id="chatInput" placeholder="Tulis pesan..." onkeydown="if(event.key==='Enter')sendMsg()">
+          <button class="chat-send" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ SGT TOKEN ════ -->
+    <div class="section" id="sec-sgt">
+      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">SGT Token</h3><p style="font-size:12px;color:var(--g500)">Sagatama Token — Reward Santri Berprestasi</p></div>
+      <div class="sgt-hero">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;z-index:1">
+          <div class="sgt-coin">₴</div>
+          <div>
+            <p style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px">Saldo SGT Kamu</p>
+            <p style="font-size:28px;font-weight:900;color:#fcd34d;line-height:1.2" id="sgtBalBig">0 SGT</p>
+          </div>
+        </div>
+        <div class="sgt-grid">
+          <div class="sgt-stat"><div class="sv" id="sgtEarned">0</div><div class="sl">Total Didapat</div></div>
+          <div class="sgt-stat"><div class="sv" id="sgtSpent">0</div><div class="sl">Digunakan</div></div>
+          <div class="sgt-stat"><div class="sv" id="sgtTxCount">0</div><div class="sl">Transaksi</div></div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hd"><h4>Misi Harian</h4><p>Selesaikan untuk dapat SGT!</p></div>
+          <div class="mission-list" id="missionList"></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><h4>Riwayat Transaksi</h4></div>
+          <div class="tx-list" id="txList"><div style="text-align:center;padding:20px;color:var(--g400)">Belum ada transaksi</div></div>
+        </div>
+      </div>
+
+      <a href="https://sagatama-mart.vercel.app" target="_blank" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:2px solid var(--p);border-radius:var(--rd);padding:16px;text-decoration:none;transition:var(--tr)" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <div style="width:48px;height:48px;background:linear-gradient(135deg,var(--p),var(--pd));border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px"><i class="fas fa-shopping-bag"></i></div>
+        <div style="flex:1"><p style="font-weight:800;color:var(--ink2);font-size:14px">Belanja di Sagatama Mart</p><p style="font-size:12px;color:var(--g500)">Tukarkan SGT untuk hadiah seru!</p></div>
+        <i class="fas fa-chevron-right" style="color:var(--p)"></i>
+      </a>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-    <div class="bottom-nav-inner">
-        <button class="nav-tab active" id="btn-beranda" onclick="switchTab('beranda')">
-            <i class="fas fa-home"></i><span>Beranda</span>
-        </button>
-        <button class="nav-tab" id="btn-jadwal" onclick="switchTab('jadwal')">
-            <i class="fas fa-calendar-alt"></i><span>Jadwal</span>
-        </button>
-        <button class="nav-tab" id="btn-hafalan" onclick="switchTab('hafalan')">
-            <i class="fas fa-book-open"></i><span>Hafalan</span>
-        </button>
-        <button class="nav-tab" id="btn-nilai" onclick="switchTab('nilai')">
-            <i class="fas fa-chart-bar"></i><span>Nilai</span>
-        </button>
-        <button class="nav-tab" id="btn-mart" onclick="window.open('https://sagatama-mart.vercel.app','_blank')" style="position:relative;">
-            <i class="fas fa-shopping-bag" style="color:#8B5CF6;"></i>
-            <span style="color:#8B5CF6;">Mart</span>
-        </button>
-        <button class="nav-tab" id="btn-profil" onclick="switchTab('profil')">
-            <i class="fas fa-user"></i><span>Profil</span>
-        </button>
-    </div>
+  <div class="bn-row">
+    <button class="bn-item active" id="bn-dashboard" onclick="go('dashboard',null);setBn('dashboard')"><i class="fas fa-th-large"></i><span>Beranda</span></button>
+    <button class="bn-item" id="bn-hafalan" onclick="go('hafalan',null);setBn('hafalan')"><i class="fas fa-book-open"></i><span>Hafalan</span></button>
+    <button class="bn-item" id="bn-jadwal" onclick="go('jadwal',null);setBn('jadwal')"><i class="fas fa-calendar-alt"></i><span>Jadwal</span></button>
+    <button class="bn-item" id="bn-nilai" onclick="go('nilai',null);setBn('nilai')"><i class="fas fa-star"></i><span>Nilai</span></button>
+    <button class="bn-item" id="bn-sgt" onclick="go('sgt',null);setBn('sgt')"><span style="font-size:18px;font-weight:900;color:inherit">₴</span><span>SGT</span></button>
+  </div>
 </nav>
 
-<!-- ══════════════════════════════════
-     MODAL: Notifikasi
-══════════════════════════════════ -->
-<div class="modal-overlay" id="modalNotif" onclick="if(event.target===this)closeModal('modalNotif')">
-    <div class="modal-sheet">
-        <div class="modal-handle"></div>
-        <div class="modal-title">
-            <h3>Notifikasi</h3>
-            <button class="modal-close" onclick="closeModal('modalNotif')"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="notifContent"></div>
-    </div>
-</div>
-
-<!-- MODAL: Perizinan -->
-<div class="modal-overlay" id="modalIzin" onclick="if(event.target===this)closeModal('modalIzin')">
-    <div class="modal-sheet">
-        <div class="modal-handle"></div>
-        <div class="modal-title">
-            <h3>Ajukan Perizinan</h3>
-            <button class="modal-close" onclick="closeModal('modalIzin')"><i class="fas fa-times"></i></button>
-        </div>
-        <div>
-            <div style="margin-bottom:12px">
-                <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px">Jenis Izin</label>
-                <select style="width:100%;padding:11px 14px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px">
-                    <option>Pulang ke rumah</option>
-                    <option>Sakit</option>
-                    <option>Keperluan keluarga</option>
-                    <option>Lainnya</option>
-                </select>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-                <div>
-                    <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px">Tanggal Mulai</label>
-                    <input type="date" style="width:100%;padding:11px 14px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px">
-                </div>
-                <div>
-                    <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px">Tanggal Selesai</label>
-                    <input type="date" style="width:100%;padding:11px 14px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px">
-                </div>
-            </div>
-            <div style="margin-bottom:18px">
-                <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px">Keterangan</label>
-                <textarea rows="3" placeholder="Tulis keterangan izin..." style="width:100%;padding:11px 14px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;resize:none"></textarea>
-            </div>
-            <button onclick="closeModal('modalIzin');showToast('Permohonan izin berhasil dikirim','success')" style="width:100%;padding:13px;border-radius:14px;background:linear-gradient(135deg,var(--violet),var(--violet2));color:#fff;font-size:14px;font-weight:800;border:none;cursor:pointer;font-family:'Nunito',sans-serif">
-                <i class="fas fa-paper-plane" style="margin-right:8px"></i>Kirim Permohonan
-            </button>
-        </div>
-    </div>
-</div>
+<div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-/* ══════════════════════════════════════
-   FIREBASE
-══════════════════════════════════════ */
-const firebaseConfig = {
-    apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
-    authDomain: "hidayatulamin-e6f22.firebaseapp.com",
-    projectId: "hidayatulamin-e6f22",
-    storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
-    messagingSenderId: "80743607267",
-    appId: "1:80743607267:web:f5f94165de021759958ed6"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();
+// ════ FIREBASE ════
+const FC={apiKey:"AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",authDomain:"hidayatulamin-e6f22.firebaseapp.com",projectId:"hidayatulamin-e6f22",storageBucket:"hidayatulamin-e6f22.firebasestorage.app",messagingSenderId:"80743607267",appId:"1:80743607267:web:f5f94165de021759958ed6"};
+if(!firebase.apps.length)firebase.initializeApp(FC);
+const auth=firebase.auth();const db=firebase.firestore();
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 
-/* ══════════════════════════════════════
-   DEMO DATA
-══════════════════════════════════════ */
-const DEMO = {
-    nama:      'Muhammad Fauzi',
-    nis:       '2024001',
-    kelas:     'VII-B',
-    asrama:    'Al-Fatih',
-    program:   'Tahfidz Plus',
-    status:    'Aktif',
-    juz:       5,
-    targetJuz: 10,
-    kehadiran: 95,
-    ranking:   5,
-    photoURL:  'https://ui-avatars.com/api/?name=Muhammad+Fauzi&background=7c3aed&color=fff&size=200&rounded=true&bold=true',
-    ttl:       'Surabaya, 12 Maret 2012',
-    wali:      'Bapak Ahmad Fauzan',
-    noWali:    '0812-3456-7890',
+// ════ STATE ════
+let currentUid=null, santriData=null;
+let chartSet=null, chartHaf=null, chartNil=null;
+const chatHistory=[];
+
+const DEMO_DATA={
+  nama:'Muhammad Fauzi',nis:'2024001',kelas:'Kelas A',asrama:'Ar-Rasyid',
+  juz:7,targetJuz:30,kehadiran:95,nilai:87,sgt:1250,
+  ustadz:'Ust. Ahmad Zaki'
 };
 
-const DEMO_JADWAL = {
-    Senin:   [
-        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
-        { waktu:'07:00–08:30', mapel:'Tahfidz',               ruang:'Ruang Tahfidz 1',status:'done' },
-        { waktu:'08:45–10:15', mapel:'Bahasa Arab',            ruang:'Kelas VII-B',    status:'active' },
-        { waktu:'10:30–12:00', mapel:'Fiqih',                 ruang:'Kelas VII-B',    status:'upcoming' },
-        { waktu:'13:00–14:30', mapel:'Hadits',                ruang:'Kelas VII-B',    status:'upcoming' },
-        { waktu:'16:00–17:30', mapel:'Olahraga',              ruang:'Lapangan',       status:'upcoming' },
-    ],
-    Selasa:  [
-        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
-        { waktu:'07:00–08:30', mapel:'Tahfidz',               ruang:'Ruang Tahfidz 1',status:'done' },
-        { waktu:'08:45–10:15', mapel:'Matematika',            ruang:'Kelas VII-B',    status:'done' },
-        { waktu:'10:30–12:00', mapel:'IPA',                   ruang:'Lab IPA',        status:'done' },
-        { waktu:'13:00–14:30', mapel:'Bahasa Indonesia',      ruang:'Kelas VII-B',    status:'upcoming' },
-    ],
-    Rabu:    [
-        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
-        { waktu:'07:00–08:30', mapel:'Tahfidz',               ruang:'Ruang Tahfidz 1',status:'upcoming' },
-        { waktu:'08:45–10:15', mapel:'Aqidah Akhlak',         ruang:'Kelas VII-B',    status:'upcoming' },
-        { waktu:'10:30–12:00', mapel:'Bahasa Inggris',        ruang:'Kelas VII-B',    status:'upcoming' },
-    ],
-    Kamis:   [
-        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
-        { waktu:'07:00–08:30', mapel:'Tahfidz + Murojaah',    ruang:'Ruang Tahfidz 1',status:'upcoming' },
-        { waktu:'08:45–10:15', mapel:'IPS',                   ruang:'Kelas VII-B',    status:'upcoming' },
-        { waktu:'10:30–12:00', mapel:'PPKN',                  ruang:'Kelas VII-B',    status:'upcoming' },
-    ],
-    Jumat:   [
-        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
-        { waktu:'07:00–08:00', mapel:'Kebersihan Pondok',     ruang:'Area Pondok',    status:'upcoming' },
-        { waktu:'11:30–13:00', mapel:'Sholat Jumat',          ruang:'Masjid',         status:'upcoming' },
-        { waktu:'14:00–15:30', mapel:'Tahsin Al-Qur\'an',     ruang:'Ruang Tahfidz 2',status:'upcoming' },
-    ],
-    Sabtu:   [
-        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
-        { waktu:'07:00–09:00', mapel:'Ekskul / Kegiatan',     ruang:'Aula / Lapangan',status:'upcoming' },
-        { waktu:'09:00–11:00', mapel:'Muhadharah',            ruang:'Aula',           status:'upcoming' },
-    ],
-    Ahad:    [
-        { waktu:'04:30–05:30', mapel:'Sholat Subuh & Dhuha',  ruang:'Masjid',         status:'done' },
-        { waktu:'06:00–07:00', mapel:'Olahraga Pagi',         ruang:'Lapangan',       status:'done' },
-        { waktu:'08:00–10:00', mapel:'Bebas / Kunjungan',     ruang:'Area Pondok',    status:'upcoming' },
-    ],
+const DEMO_NILAI=[
+  {mapel:'Tahfidz Quran',uh:90,uts:88,uas:92,akhir:90,grade:'A'},
+  {mapel:'Fiqih',uh:85,uts:80,uas:88,akhir:84,grade:'A'},
+  {mapel:'Hadits',uh:82,uts:85,uas:80,akhir:82,grade:'B+'},
+  {mapel:'Bahasa Arab',uh:88,uts:90,uas:86,akhir:88,grade:'A'},
+  {mapel:'Tafsir',uh:78,uts:75,uas:80,akhir:78,grade:'B+'},
+  {mapel:'SKI',uh:72,uts:78,uas:75,akhir:75,grade:'B'},
+];
+
+const JADWAL_MINGGU={
+  Senin:[{waktu:'04:30',mapel:'Shalat Subuh Berjamaah',tempat:'Masjid',clr:'#8b5cf6'},{waktu:'06:00',mapel:'Tahfidz Quran',tempat:'Aula Hafalan',clr:'#0db87a'},{waktu:'08:00',mapel:'Bahasa Arab',tempat:'Kelas A',clr:'#2d7ef5'},{waktu:'10:00',mapel:'Fiqih',tempat:'Kelas A',clr:'#f59e0b'},{waktu:'14:00',mapel:'Tahsin',tempat:'Mushola',clr:'#8b5cf6'},{waktu:'19:30',mapel:'Hadits',tempat:'Kelas A',clr:'#ef4444'}],
+  Selasa:[{waktu:'06:00',mapel:'Muroja\'ah Hafalan',tempat:'Aula Hafalan',clr:'#0db87a'},{waktu:'08:00',mapel:'SKI',tempat:'Kelas A',clr:'#2d7ef5'},{waktu:'10:00',mapel:'Tafsir',tempat:'Kelas A',clr:'#8b5cf6'},{waktu:'14:00',mapel:'Tahfidz Quran',tempat:'Aula',clr:'#0db87a'}],
+  Rabu:[{waktu:'06:00',mapel:'Tahfidz Quran',tempat:'Aula Hafalan',clr:'#0db87a'},{waktu:'08:00',mapel:'Bahasa Arab',tempat:'Kelas A',clr:'#2d7ef5'},{waktu:'14:00',mapel:'Olahraga',tempat:'Lapangan',clr:'#f59e0b'}],
+  Kamis:[{waktu:'06:00',mapel:'Tahfidz Quran',tempat:'Aula Hafalan',clr:'#0db87a'},{waktu:'08:00',mapel:'Fiqih',tempat:'Kelas A',clr:'#f59e0b'},{waktu:'19:30',mapel:'Muhadharah',tempat:'Aula',clr:'#8b5cf6'}],
+  Jumat:[{waktu:'06:00',mapel:'Muroja\'ah',tempat:'Masjid',clr:'#0db87a'},{waktu:'11:30',mapel:'Shalat Jumat',tempat:'Masjid',clr:'#8b5cf6'},{waktu:'14:00',mapel:'Kegiatan Ekstra',tempat:'Lapangan',clr:'#2d7ef5'}],
+  Sabtu:[{waktu:'06:00',mapel:'Evaluasi Hafalan',tempat:'Aula',clr:'#0db87a'},{waktu:'08:00',mapel:'Kitab Kuning',tempat:'Kelas A',clr:'#f59e0b'}],
 };
 
-const DEMO_NILAI = [
-    { mapel:'Al-Qur\'an & Tahfidz', nilai:93, icon:'fas fa-book-quran',  color:'#7c3aed' },
-    { mapel:'Fiqih & Aqidah',       nilai:88, icon:'fas fa-mosque',      color:'#06b6d4' },
-    { mapel:'Bahasa Arab',           nilai:85, icon:'fas fa-language',    color:'#3b82f6' },
-    { mapel:'Bahasa Indonesia',      nilai:82, icon:'fas fa-pen-nib',     color:'#a855f7' },
-    { mapel:'Matematika',            nilai:78, icon:'fas fa-calculator',  color:'#f59e0b' },
-    { mapel:'IPA',                   nilai:80, icon:'fas fa-flask',       color:'#10b981' },
-    { mapel:'IPS',                   nilai:84, icon:'fas fa-globe-asia',  color:'#3b82f6' },
-    { mapel:'Bahasa Inggris',        nilai:81, icon:'fas fa-spell-check', color:'#10b981' },
+const PENGUMUMAN=[
+  {tipe:'default',judul:'📖 Evaluasi Hafalan Bulan Ini',isi:'Evaluasi hafalan akan dilaksanakan pada hari Sabtu, 10 Mei 2025. Semua santri wajib hadir dan mempersiapkan hafalan Juz yang ditargetkan.',waktu:'2 jam lalu',unread:true},
+  {tipe:'warning',judul:'⚠️ Libur Akhir Semester',isi:'Pesantren akan libur mulai 20 Juni – 10 Juli 2025. Santri yang ingin pulang wajib mengisi form perizinan paling lambat 3 hari sebelumnya.',waktu:'1 hari lalu',unread:true},
+  {tipe:'info',judul:'🏆 Lomba Hafalan Tingkat Provinsi',isi:'Pesantren membuka pendaftaran untuk Lomba Hafalan tingkat Provinsi pada bulan Juli. Santri yang berminat silakan hubungi ustadz pembimbing.',waktu:'3 hari lalu',unread:false},
+  {tipe:'default',judul:'📅 Jadwal Kunjungan Wali',isi:'Kunjungan wali santri dijadwalkan pada Minggu, 15 Juni 2025, pukul 08:00–12:00 WIB. Wali santri wajib membawa surat konfirmasi.',waktu:'1 minggu lalu',unread:false},
 ];
 
-const DEMO_SETORAN = [
-    { juz:'Juz 5', hari:'Selasa, 15 April 2025',  hal:'Hal. 88–90',  guru:'Ust. Hamid',   status:'Diterima' },
-    { juz:'Juz 5', hari:'Sabtu, 12 April 2025',   hal:'Hal. 85–87',  guru:'Ust. Hamid',   status:'Diterima' },
-    { juz:'Juz 5', hari:'Rabu, 9 April 2025',     hal:'Hal. 82–84',  guru:'Ust. Hamid',   status:'Diterima' },
-    { juz:'Juz 4', hari:'Senin, 7 April 2025',    hal:'Hal. 78–80',  guru:'Ust. Abdullah',status:'Diterima' },
-    { juz:'Juz 4', hari:'Jumat, 4 April 2025',    hal:'Hal. 74–77',  guru:'Ust. Abdullah',status:'Diterima' },
-    { juz:'Juz 4', hari:'Selasa, 1 April 2025',   hal:'Hal. 70–73',  guru:'Ust. Abdullah',status:'Perlu Perbaikan' },
-];
+// ════ AUTH ════
+document.addEventListener('DOMContentLoaded',()=>{
+  updateDate();
+  document.getElementById('iznStart').value=new Date().toISOString().split('T')[0];
 
-const DEMO_PENGUMUMAN = [
-    {
-        judul:'Ujian Tengah Semester 2 — Jadwal Lengkap',
-        isi:'UTS Semester 2 TA 2024/2025 dilaksanakan mulai 20–24 April 2025. Santri wajib hadir 15 menit sebelum ujian. Bawa alat tulis lengkap. Dilarang membawa HP ke ruang ujian.',
-        tgl:'14 April 2025', penulis:'Bag. Akademik', cat:'penting', baru:true,
-    },
-    {
-        judul:'Kunjungan Wali Santri — 25 April 2025',
-        isi:'Seluruh wali santri diundang hadir pada Jumat 25 April 2025 pukul 08.00 WIB di Aula Yayasan. Agenda: laporan perkembangan santri, konsultasi wali kelas, dan ramah tamah bersama pengurus.',
-        tgl:'12 April 2025', penulis:'Admin Yayasan', cat:'penting', baru:true,
-    },
-    {
-        judul:'Pembayaran SPP Mei 2025 Dibuka',
-        isi:'Pembayaran SPP bulan Mei 2025 dibuka mulai 25 April 2025. Pembayaran dapat dilakukan melalui transfer rekening yayasan atau langsung ke bendahara. Batas waktu 10 Mei 2025.',
-        tgl:'10 April 2025', penulis:'Bendahara', cat:'penting', baru:true,
-    },
-    {
-        judul:'Haflah Akhirusanah — 15 Mei 2025',
-        isi:'Haflah Akhirusanah insyaAllah diadakan 15 Mei 2025. Tiap wali santri mendapat 2 tiket undangan. Pengambilan tiket mulai 1 Mei di sekretariat yayasan.',
-        tgl:'8 April 2025', penulis:'Panitia Haflah', cat:'kegiatan', baru:false,
-    },
-    {
-        judul:'Perubahan Jadwal Tahajud Berjamaah',
-        isi:'Mulai 1 April 2025, tahajud berjamaah diubah dari 03.00 menjadi 03.30 WIB. Seluruh santri wajib mengikuti.',
-        tgl:'30 Maret 2025', penulis:'Pengasuh Pondok', cat:'kegiatan', baru:false,
-    },
-];
-
-const DEMO_NOTIF = [
-    { icon:'fas fa-clock',        color:'#7c3aed', judul:'Jadwal Ujian',       isi:'UTS dimulai besok pukul 07.30', waktu:'2 jam lalu' },
-    { icon:'fas fa-check-circle', color:'#10b981', judul:'Setoran Diterima',   isi:'Juz 5 hal. 88–90 disetujui ustadz', waktu:'5 jam lalu' },
-    { icon:'fas fa-wallet',       color:'#3b82f6', judul:'Pembayaran SPP',     isi:'SPP April telah diterima ✓', waktu:'1 hari lalu' },
-];
-
-const DEMO_ACHIEV = [
-    { icon:'fas fa-trophy',  color:'rgba(245,158,11,.12)',  icolor:'#f59e0b', label:'Juara 2',   sub:'MTQ Kelas' },
-    { icon:'fas fa-medal',   color:'rgba(16,185,129,.12)',  icolor:'#10b981', label:'5 Juz',     sub:'Hafalan' },
-    { icon:'fas fa-star',    color:'rgba(59,130,246,.12)',  icolor:'#3b82f6', label:'Teladan',   sub:'Santri' },
-    { icon:'fas fa-award',   color:'rgba(124,58,237,.12)',  icolor:'#7c3aed', label:'100%',      sub:'Kehadiran' },
-    { icon:'fas fa-pen',     color:'rgba(6,182,212,.12)',   icolor:'#06b6d4', label:'Terbaik',   sub:'Muhadharah' },
-];
-
-/* ══════════════════════════════════════
-   STATE
-══════════════════════════════════════ */
-let santriData = null;
-let activeTab  = 'beranda';
-let activeDay  = '';
-
-/* ══════════════════════════════════════
-   INIT
-══════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
-    updateGreeting();
-    setInterval(updateGreeting, 60000);
-
-    // Restore dark mode
-    if (localStorage.getItem('theme') === 'dark') applyDark(true);
-
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            loadSantriData(user.uid);
-        } else {
-            initDemo();
-        }
-    }, () => initDemo());
+  if(typeof HA!=='undefined'){
+    HA.requireAuth('santri',(user,data)=>{
+      currentUid=user.uid; santriData={...DEMO_DATA,...data};
+      initSantri();
+    });
+  } else {
+    auth.onAuthStateChanged(async user=>{
+      if(!user){window.location.href='login.html';return;}
+      try{
+        const doc=await db.collection('users').doc(user.uid).get();
+        if(!doc.exists||doc.data().role!=='santri'){await auth.signOut();window.location.href='login.html';return;}
+        currentUid=user.uid;
+        santriData={...DEMO_DATA,...doc.data()};
+        initSantri();
+      }catch(e){currentUid='demo';santriData=DEMO_DATA;initSantri();}
+    });
+  }
 });
 
-async function loadSantriData(uid) {
-    try {
-        const snap = await db.collection('santri').doc(uid).get();
-        santriData = snap.exists ? snap.data() : DEMO;
-        if (!santriData.nama) santriData = DEMO;
-    } catch (e) {
-        santriData = DEMO;
-    }
-    init();
+function initSantri(){
+  const d=santriData;
+  setEl('greetName',d.nama?.split(' ')[0]||'Santri');
+  setEl('uName',d.nama||'Santri');
+  setEl('uAv',(d.nama||'S')[0].toUpperCase());
+  setEl('kelasBadge',d.kelas||'—');
+  setEl('nisBadge','NIS: '+(d.nis||'—'));
+  renderDashboard();
+  loadSGT();
+  renderPengumuman();
+  renderJadwal();
+  renderNilai();
+  renderAbsensi();
+  loadHafalanRiwayat();
+  initChat();
+  loadIznHistory();
 }
 
-function initDemo() {
-    santriData = DEMO;
-    init();
-    showToast('Mode demo aktif', 'info');
+// ════ DASHBOARD ════
+function renderDashboard(){
+  const d=santriData;
+  const juz=d.juz||0;
+  setEl('grJuz',juz);
+  animNum('stJuz',juz);
+  setEl('stHadir',(d.kehadiran||95)+'%');
+  setEl('stNilai',d.nilai||87);
+  setEl('stSGT',fmtSGT(d.sgt||0));
+
+  renderJuzGrid('juzGrid',juz,d.targetJuz||30,'juzPct');
+  initChartSetoran();
+  renderDashJadwal();
 }
 
-function init() {
-    hideLoading();
-    populateAll();
-    switchTab('beranda');
+function renderJuzGrid(gridId, juzHafal, target, pctId){
+  const el=document.getElementById(gridId);if(!el)return;
+  const pct=Math.round((juzHafal/target)*100);
+  setEl(pctId,pct+'%');
+  el.innerHTML=Array.from({length:30},(_,i)=>{
+    const n=i+1;
+    const cls=n<juzHafal?'done':n===juzHafal?'current':'empty';
+    return `<div class="juz-cell ${cls}" title="Juz ${n}">${n}</div>`;
+  }).join('');
 }
 
-function hideLoading() {
-    document.getElementById('loadingState').style.display = 'none';
+function initChartSetoran(){
+  const ctx=document.getElementById('chartSetoran');if(!ctx)return;
+  if(chartSet)chartSet.destroy();
+  const days=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+  const data=[1,2,0,1,2,1,0];
+  chartSet=new Chart(ctx,{type:'bar',data:{labels:days,datasets:[{label:'Setoran',data,backgroundColor:'rgba(139,92,246,.7)',borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:4,ticks:{stepSize:1,font:{size:11}}},x:{ticks:{font:{size:11}}}}}});
 }
 
-/* ══════════════════════════════════════
-   POPULATE ALL
-══════════════════════════════════════ */
-function populateAll() {
-    const s = santriData;
-    const avatarUrl = s.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.nama)}&background=7c3aed&color=fff&size=200&bold=true`;
-
-    // Hero
-    document.getElementById('heroPhoto').src      = avatarUrl;
-    document.getElementById('heroName').textContent     = s.nama;
-    document.getElementById('heroSubtitle').textContent = `NIS ${s.nis} · Kelas ${s.kelas}`;
-    document.getElementById('heroStatus').textContent   = s.status || 'Aktif';
-    document.getElementById('heroProgram').textContent  = s.program || 'Reguler';
-
-    // Stats
-    document.getElementById('chipJuz').textContent      = s.juz;
-    document.getElementById('chipKehadiran').textContent = s.kehadiran + '%';
-    document.getElementById('chipRanking').textContent   = s.ranking || '–';
-
-    // Progress
-    const pct = Math.round((s.juz / (s.targetJuz||30)) * 100);
-    document.getElementById('progressJuzLabel').textContent = `Juz ${s.juz}`;
-    document.getElementById('progressPct').textContent      = pct + '%';
-    document.getElementById('progressTarget').textContent   = s.targetJuz;
-    document.getElementById('progressEst').textContent      = `Estimasi: ${s.targetJuz - s.juz} juz lagi`;
-    setTimeout(() => { document.getElementById('progressBar').style.width = pct + '%'; }, 200);
-
-    // Today schedule
-    const days = ['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-    activeDay = days[new Date().getDay()];
-    document.getElementById('todayLabel').textContent = activeDay + ', ' + new Date().toLocaleDateString('id-ID',{day:'numeric',month:'short'});
-    renderTodaySchedule(activeDay);
-
-    // Achievements
-    renderAchievements();
-
-    // Hafalan page
-    document.getElementById('hafJuzBig').textContent  = s.juz + ' Juz';
-    document.getElementById('hafHalaman').textContent = (s.juz * 20) + ' halaman telah hafal';
-    document.getElementById('hafTarget').textContent  = s.targetJuz + ' Juz';
-    document.getElementById('hafTotalSetoran').textContent = DEMO_SETORAN.length + ' setoran';
-    setTimeout(() => { document.getElementById('hafProgressBar').style.width = pct + '%'; }, 300);
-    document.getElementById('hafPct').textContent = pct + '%';
-    renderJuzGrid();
-    renderSetoran();
-
-    // Nilai page
-    const avg = (DEMO_NILAI.reduce((a,x)=>a+x.nilai,0)/DEMO_NILAI.length).toFixed(1);
-    document.getElementById('nilaiAvg').textContent     = avg;
-    document.getElementById('nilaiRanking').textContent = s.ranking || '–';
-    renderNilai();
-
-    // Pengumuman
-    renderPengumuman();
-
-    // Profil
-    document.getElementById('profilPhoto').src           = avatarUrl;
-    document.getElementById('profilName').textContent    = s.nama;
-    document.getElementById('profilNis').textContent     = 'NIS ' + s.nis;
-    document.getElementById('profilProgram').textContent = s.program || 'Reguler';
-    document.getElementById('lastLoginEl').textContent   = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-    document.getElementById('profilRows').innerHTML = `
-        ${pRow('Kelas',   s.kelas)}
-        ${pRow('Asrama',  s.asrama||'–')}
-        ${pRow('Program', s.program||'–')}
-        ${pRow('Tgl. Lahir', s.ttl||'–')}
-        ${pRow('Wali Santri', s.wali||'–')}
-        ${pRow('No. Wali', s.noWali||'–')}
-    `;
-
-    // Jadwal page
-    buildDayTabs();
-    renderJadwal(activeDay);
-
-    // Notif dot
-    document.getElementById('notifDot').style.display = 'block';
+function renderDashJadwal(){
+  const days=['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const today=days[new Date().getDay()];
+  const jadwal=JADWAL_MINGGU[today]||[];
+  const el=document.getElementById('dashJadwal');if(!el)return;
+  if(!jadwal.length){el.innerHTML='<p style="text-align:center;color:var(--g400);padding:20px;font-size:12px">Tidak ada jadwal hari ini</p>';return;}
+  el.innerHTML=jadwal.slice(0,4).map(j=>`
+    <div class="jadwal-item">
+      <div class="jd-time"><div class="jt">${j.waktu}</div></div>
+      <div class="jd-dot" style="background:${j.clr}"></div>
+      <div class="jd-info" style="flex:1"><h5>${j.mapel}</h5><p>${j.tempat}</p></div>
+    </div>`).join('');
 }
 
-function pRow(label, val) {
-    return `<div class="profil-row"><label>${label}</label><span>${val}</span></div>`;
+// ════ HAFALAN RIWAYAT ════
+function loadHafalanRiwayat(){
+  const tbody=document.getElementById('hafalanLog');if(!tbody)return;
+  const localLog=JSON.parse(localStorage.getItem('hafalan_log_santri_'+(currentUid||'demo'))||'[]');
+  const DEMO_LOG=[
+    {tanggal:'2025-05-02',juz:7,halaman:'88-90',nilai:90,ustadz:'Ust. Ahmad',status:'diterima'},
+    {tanggal:'2025-04-30',juz:7,halaman:'85-87',nilai:85,ustadz:'Ust. Ahmad',status:'diterima'},
+    {tanggal:'2025-04-28',juz:6,halaman:'80-82',nilai:78,ustadz:'Ust. Ahmad',status:'diulang'},
+    {tanggal:'2025-04-25',juz:6,halaman:'77-79',nilai:88,ustadz:'Ust. Ahmad',status:'diterima'},
+  ];
+  const log=[...localLog,...DEMO_LOG];
+  const statusMap={diterima:'chip-g',diulang:'chip-w',pending:'chip-b'};
+  tbody.innerHTML=log.slice(0,15).map(l=>`<tr>
+    <td style="font-size:11px;color:var(--g500)">${l.tanggal}</td>
+    <td>Juz ${l.juz}</td>
+    <td>${l.halaman}</td>
+    <td><strong style="color:${l.nilai>=85?'var(--g)':l.nilai>=70?'var(--w)':'var(--r)'}">${l.nilai}</strong></td>
+    <td style="font-size:11px">${l.ustadz||'—'}</td>
+    <td><span class="chip ${statusMap[l.status]||'chip-b'}">${l.status}</span></td>
+  </tr>`).join('');
+
+  renderJuzGrid('juzGrid2',santriData?.juz||7,30,'juzPct2');
+  renderHafalanSummary();
+  initChartHafBulan();
 }
 
-/* ══════════════════════════════════════
-   SCHEDULE RENDERS
-══════════════════════════════════════ */
-function renderTodaySchedule(day) {
-    const items = DEMO_JADWAL[day] || [];
-    const el = document.getElementById('todaySchList');
-    if (!items.length) { el.innerHTML = '<p style="font-size:13px;color:var(--text2);padding:10px 0">Tidak ada jadwal hari ini.</p>'; return; }
-    el.innerHTML = items.map(i => {
-        const [start,end] = i.waktu.split('–');
-        const icon = i.status==='done'
-            ? '<i class="fas fa-check-circle sch-status-icon text-green"></i>'
-            : i.status==='active'
-            ? '<i class="fas fa-circle sch-status-icon text-violet" style="animation:blink 1.2s infinite"></i>'
-            : '';
-        return `<div class="sch-item ${i.status}">
-            <div class="sch-time">${start}<br>${end}</div>
-            <div style="flex:1">
-                <div class="sch-subject">${i.mapel}</div>
-                <div class="sch-room"><i class="fas fa-map-marker-alt" style="font-size:9px;margin-right:3px"></i>${i.ruang}</div>
-            </div>
-            ${icon}
-        </div>`;
-    }).join('');
+function renderHafalanSummary(){
+  const d=santriData||DEMO_DATA;
+  const el=document.getElementById('hafalanSummary');if(!el)return;
+  const pct=Math.round((d.juz/30)*100);
+  el.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${sb('Juz Hafal',d.juz+' / 30',pct,'#8b5cf6')}
+      ${sb('Kehadiran',d.kehadiran+'%',d.kehadiran,'#0db87a')}
+      ${sb('Nilai Rata',d.nilai,d.nilai,'#2d7ef5')}
+    </div>`;
 }
 
-function buildDayTabs() {
-    const days = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Ahad'];
-    const el = document.getElementById('dayTabs');
-    el.innerHTML = days.map(d => `
-        <div class="day-tab ${d===activeDay?'active':''}" onclick="selectDay('${d}')">${d}</div>
-    `).join('');
+function sb(label,val,pct,clr){
+  return `<div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--g500);margin-bottom:4px"><span>${label}</span><strong style="color:${clr}">${val}</strong></div><div style="height:6px;background:var(--g100);border-radius:10px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${clr};border-radius:10px;transition:width .8s ease"></div></div></div>`;
 }
 
-function selectDay(day) {
-    activeDay = day;
-    document.querySelectorAll('.day-tab').forEach(t => {
-        t.classList.toggle('active', t.textContent === day);
-    });
-    renderJadwal(day);
+function initChartHafBulan(){
+  const ctx=document.getElementById('chartHafBulan');if(!ctx)return;
+  if(chartHaf)chartHaf.destroy();
+  chartHaf=new Chart(ctx,{type:'line',data:{labels:['Jan','Feb','Mar','Apr','Mei','Jun'],datasets:[{label:'Juz',data:[2,3,4,5,6,7],borderColor:'#8b5cf6',backgroundColor:'rgba(139,92,246,.1)',borderWidth:2.5,pointRadius:4,tension:.4,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:30,ticks:{font:{size:11}}},x:{ticks:{font:{size:11}}}}}});
 }
 
-function renderJadwal(day) {
-    const items = DEMO_JADWAL[day] || [];
-    const el = document.getElementById('jadwalContent');
-    if (!items.length) { el.innerHTML = '<p style="font-size:13px;color:var(--text2)">Tidak ada jadwal.</p>'; return; }
-    el.innerHTML = items.map(i => {
-        const [start,end] = i.waktu.split('–');
-        const statusIcon = i.status==='done'
-            ? '<i class="fas fa-check-circle sch-status-icon text-green"></i>'
-            : i.status==='active'
-            ? '<i class="fas fa-circle sch-status-icon text-violet"></i>'
-            : '';
-        return `<div class="sch-item ${i.status}">
-            <div class="sch-time">${start}<br>${end||''}</div>
-            <div style="flex:1">
-                <div class="sch-subject">${i.mapel}</div>
-                <div class="sch-room"><i class="fas fa-map-marker-alt" style="font-size:9px;margin-right:3px"></i>${i.ruang}</div>
-            </div>
-            ${statusIcon}
-        </div>`;
-    }).join('');
+// ════ JADWAL ════
+function renderJadwal(){
+  const dayNames=['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const tabEl=document.getElementById('dayTabs');if(!tabEl)return;
+  tabEl.innerHTML=dayNames.map((d,i)=>`<button onclick="showDayJadwal('${d}',this)" class="${i===0?'btn-p':'btn-sec'}" style="font-size:12px;padding:7px 14px">${d}</button>`).join('');
+  showDayJadwal('Senin',tabEl.firstChild);
 }
 
-/* ══════════════════════════════════════
-   HAFALAN RENDERS
-══════════════════════════════════════ */
-function renderJuzGrid() {
-    const current = santriData.juz;
-    let html = '';
-    for (let i=1; i<=30; i++) {
-        const cls = i < current ? 'done' : i === current ? 'current' : '';
-        html += `<div class="juz-cell ${cls}" title="Juz ${i}">${i}</div>`;
-    }
-    document.getElementById('juzGrid').innerHTML = html;
+function showDayJadwal(day,btn){
+  document.querySelectorAll('#dayTabs button').forEach(b=>{b.className='btn-sec';b.style.cssText='font-size:12px;padding:7px 14px';});
+  if(btn){btn.className='btn-p';btn.style.cssText='font-size:12px;padding:7px 14px';}
+  const jadwal=JADWAL_MINGGU[day]||[];
+  const el=document.getElementById('jadwalContent');if(!el)return;
+  if(!jadwal.length){el.innerHTML='<div class="card"><p style="text-align:center;color:var(--g400);padding:30px">Libur / tidak ada jadwal</p></div>';return;}
+  el.innerHTML='<div class="card">'+jadwal.map(j=>`
+    <div class="jadwal-item">
+      <div class="jd-time"><div class="jt">${j.waktu}</div><div class="jd">WIB</div></div>
+      <div class="jd-dot" style="background:${j.clr}"></div>
+      <div class="jd-info" style="flex:1"><h5>${j.mapel}</h5><p>${j.tempat}</p></div>
+      <span class="jd-badge chip-v chip" style="background:${j.clr}22;color:${j.clr}">${j.waktu.split(':')[0]>=14?'Sore':'Pagi'}</span>
+    </div>`).join('')+'</div>';
 }
 
-function renderSetoran() {
-    document.getElementById('setoranList').innerHTML = DEMO_SETORAN.map(s => {
-        const ok = s.status === 'Diterima';
-        return `<div class="setoran-item">
-            <div class="setoran-dot" style="background:${ok?'var(--green)':'var(--amber)'}"></div>
-            <div class="setoran-info" style="flex:1">
-                <h4>${s.juz} — ${s.hal}</h4>
-                <p>${s.hari} · ${s.guru}</p>
-            </div>
-            <span class="badge ${ok?'badge-green':'badge-amber'} setoran-badge">${s.status}</span>
-        </div>`;
-    }).join('');
+// ════ NILAI ════
+function renderNilai(){
+  const tbody=document.getElementById('nilaiTable');if(!tbody)return;
+  tbody.innerHTML=DEMO_NILAI.map(n=>`<tr>
+    <td><strong>${n.mapel}</strong></td>
+    <td>${n.uh}</td><td>${n.uts}</td><td>${n.uas}</td>
+    <td style="font-weight:800;color:${n.akhir>=90?'var(--g)':n.akhir>=80?'var(--b)':'var(--w)'}">${n.akhir}</td>
+    <td><span class="chip ${n.akhir>=90?'chip-g':n.akhir>=80?'chip-b':'chip-w'}">${n.grade}</span></td>
+  </tr>`).join('');
+
+  const ctx=document.getElementById('chartNilai');if(!ctx)return;
+  if(chartNil)chartNil.destroy();
+  chartNil=new Chart(ctx,{type:'radar',data:{labels:DEMO_NILAI.map(n=>n.mapel.split(' ')[0]),datasets:[{label:'Nilai',data:DEMO_NILAI.map(n=>n.akhir),borderColor:'#8b5cf6',backgroundColor:'rgba(139,92,246,.15)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#8b5cf6'}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{font:{size:10}}}},plugins:{legend:{display:false}}}});
 }
 
-/* ══════════════════════════════════════
-   NILAI RENDER
-══════════════════════════════════════ */
-function renderNilai() {
-    document.getElementById('nilaiList').innerHTML = DEMO_NILAI.map(n => {
-        const col = n.nilai>=90?'#7c3aed':n.nilai>=80?'#3b82f6':n.nilai>=75?'#f59e0b':'#f43f5e';
-        return `<div class="nilai-row">
-            <div class="nilai-icon" style="background:${n.color}18"><i class="${n.icon}" style="color:${n.color};font-size:13px"></i></div>
-            <div class="nilai-mapel">${n.mapel}</div>
-            <div class="nilai-bar-wrap"><div class="nilai-bar" style="width:${n.nilai}%;background:${col}"></div></div>
-            <div class="nilai-angka" style="color:${col}">${n.nilai}</div>
-        </div>`;
-    }).join('');
+// ════ ABSENSI ════
+function renderAbsensi(){
+  const days=['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const now=new Date();
+  const fake=Array.from({length:22},(_,i)=>{
+    const d=new Date(now);d.setDate(d.getDate()-i);
+    const opts=['hadir','hadir','hadir','hadir','izin'];
+    const st=opts[Math.floor(Math.random()*opts.length)];
+    return{tgl:d.toLocaleDateString('id-ID',{day:'numeric',month:'short'}),hari:days[d.getDay()],sesi:'Pagi & Sore',st};
+  });
+  const h=fake.filter(x=>x.st==='hadir').length;
+  const iz=fake.filter(x=>x.st==='izin').length;
+  animNum('absH',h);animNum('absI',iz);animNum('absS',0);animNum('absA',0);
+  const cm={hadir:'chip-g',izin:'chip-b',sakit:'chip-w',alpha:'chip-r'};
+  document.getElementById('absTable').innerHTML=fake.map(f=>`<tr>
+    <td>${f.tgl}</td><td>${f.hari}</td><td>${f.sesi}</td>
+    <td><span class="chip ${cm[f.st]||'chip-g'}">${f.st.charAt(0).toUpperCase()+f.st.slice(1)}</span></td>
+  </tr>`).join('');
 }
 
-/* ══════════════════════════════════════
-   ACHIEVEMENTS
-══════════════════════════════════════ */
-function renderAchievements() {
-    document.getElementById('achRow').innerHTML = DEMO_ACHIEV.map(a => `
-        <div class="ach-chip">
-            <div class="ach-icon" style="background:${a.color}"><i class="${a.icon}" style="color:${a.icolor}"></i></div>
-            <div class="ach-label">${a.label}</div>
-            <div class="ach-sub">${a.sub}</div>
-        </div>
-    `).join('');
+// ════ PENGUMUMAN ════
+function renderPengumuman(){
+  const el=document.getElementById('pengList');if(!el)return;
+  const typeMap={default:'',warning:'warning',info:'info'};
+  el.innerHTML=PENGUMUMAN.map(p=>`
+    <div class="peng-item ${typeMap[p.tipe]||''}" onclick="this.querySelector('.unread-dot')?.remove()">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div class="peng-title">${p.judul}</div>
+        ${p.unread?'<span class="unread-dot chip chip-v" style="font-size:9px">Baru</span>':''}
+      </div>
+      <div class="peng-body">${p.isi}</div>
+      <div class="peng-time"><i class="fas fa-clock" style="margin-right:4px"></i>${p.waktu}</div>
+    </div>`).join('');
+  document.getElementById('notifDot').style.display=PENGUMUMAN.some(p=>p.unread)?'block':'none';
 }
 
-/* ══════════════════════════════════════
-   PENGUMUMAN
-══════════════════════════════════════ */
-function renderPengumuman() {
-    document.getElementById('annList').innerHTML = DEMO_PENGUMUMAN.map(a => `
-        <div class="ann-card">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px">
-                <h4>${a.judul}</h4>
-                ${a.baru ? '<span class="badge badge-rose" style="flex-shrink:0">Baru</span>' : ''}
-            </div>
-            <p>${a.isi}</p>
-            <div class="ann-foot">
-                <span><i class="fas fa-user"></i>${a.penulis}</span>
-                <span><i class="fas fa-calendar"></i>${a.tgl}</span>
-                <span class="badge ${a.cat==='penting'?'badge-amber':'badge-violet'}">${a.cat==='penting'?'Penting':'Kegiatan'}</span>
-            </div>
-        </div>
-    `).join('');
+// ════ PERIZINAN ════
+async function ajukanIzin(){
+  const type=document.getElementById('iznType').value;
+  const start=document.getElementById('iznStart').value;
+  const end=document.getElementById('iznEnd').value||start;
+  const penjemput=document.getElementById('iznPenjemput').value.trim();
+  const alasan=document.getElementById('iznAlasan').value.trim();
+  if(!start||!alasan){showToast('warn','Lengkapi Form','Tanggal dan alasan wajib diisi');return;}
+
+  setEl('btnIzinTxt','Mengirim...');document.getElementById('btnIzin').disabled=true;
+  const payload={santriId:currentUid,santriNama:santriData?.nama||'Santri',jenis:type,mulai:start,kembali:end,penjemput,alasan,status:'menunggu',createdAt:new Date().toISOString()};
+  try{
+    await db.collection('perizinan').add({...payload,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    showToast('success','Terkirim!','Permohonan izin berhasil dikirim ke ustadz');
+  }catch(e){
+    const log=JSON.parse(localStorage.getItem('izin_log_'+currentUid)||'[]');
+    log.unshift(payload);localStorage.setItem('izin_log_'+currentUid,JSON.stringify(log.slice(0,20)));
+    showToast('success','Terkirim (Lokal)','Permohonan izin tersimpan');
+  }
+  loadIznHistory();
+  document.getElementById('iznAlasan').value='';
+  setEl('btnIzinTxt','Kirim Permohonan');document.getElementById('btnIzin').disabled=false;
 }
 
-/* ══════════════════════════════════════
-   NOTIFIKASI MODAL
-══════════════════════════════════════ */
-function openNotif() {
-    document.getElementById('notifContent').innerHTML = DEMO_NOTIF.map(n => `
-        <div style="display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)">
-            <div style="width:38px;height:38px;border-radius:12px;background:${n.color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <i class="${n.icon}" style="color:${n.color};font-size:15px"></i>
-            </div>
-            <div style="flex:1">
-                <div style="font-size:13px;font-weight:800">${n.judul}</div>
-                <div style="font-size:12px;color:var(--text2);margin-top:3px">${n.isi}</div>
-                <div style="font-size:10px;color:var(--text3);margin-top:4px">${n.waktu}</div>
-            </div>
-        </div>
-    `).join('') + `<button onclick="closeModal('modalNotif')" style="width:100%;padding:12px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-weight:700;font-size:13px;cursor:pointer;margin-top:14px;font-family:'Nunito',sans-serif">Tandai Semua Dibaca</button>`;
-    openModal('modalNotif');
-    document.getElementById('notifDot').style.display = 'none';
+function loadIznHistory(){
+  const el=document.getElementById('iznHistory');if(!el)return;
+  const log=JSON.parse(localStorage.getItem('izin_log_'+currentUid)||'[]');
+  const DEMO_IZN=[{jenis:'pulang',mulai:'2025-04-20',kembali:'2025-04-22',alasan:'Acara keluarga',status:'disetujui',createdAt:'2025-04-18T10:00:00'}];
+  const all=[...log,...DEMO_IZN];
+  const sc={menunggu:{bg:'var(--wl)',clr:'var(--w)',ic:'fa-clock'},disetujui:{bg:'var(--gl)',clr:'var(--g)',ic:'fa-check'},ditolak:{bg:'var(--rl)',clr:'var(--r)',ic:'fa-times'}};
+  el.innerHTML=all.slice(0,5).map(iz=>{
+    const s=sc[iz.status]||sc.menunggu;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--rdm);background:var(--g50);border:1px solid var(--g200);margin-bottom:8px">
+      <div style="width:34px;height:34px;border-radius:8px;background:${s.bg};color:${s.clr};display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${s.ic}"></i></div>
+      <div style="flex:1"><p style="font-size:12px;font-weight:700;color:var(--ink2)">${iz.jenis.charAt(0).toUpperCase()+iz.jenis.slice(1)}</p><p style="font-size:11px;color:var(--g400)">${iz.mulai} → ${iz.kembali}</p></div>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${s.bg};color:${s.clr}">${iz.status}</span>
+    </div>`;
+  }).join('')||'<div style="text-align:center;padding:20px;color:var(--g400)"><i class="fas fa-clipboard-list" style="font-size:32px;display:block;margin-bottom:8px;opacity:.3"></i>Belum ada riwayat</div>';
 }
 
-/* ══════════════════════════════════════
-   NAVIGATION
-══════════════════════════════════════ */
-function switchTab(tab) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+// ════ KONSULTASI CHAT ════
+const USTADZ_REPLIES=[
+  'Alhamdulillah, terus semangat dalam menghafal ya, ananda! 🌟',
+  'Baik, nanti kita coba lagi besok. Jangan lupa murajaah dulu.',
+  'Untuk juz tersebut, fokus dulu pada ayat-ayat yang sering salah.',
+  'Insya Allah, jika istiqomah, target akan tercapai tepat waktu.',
+  'Bagus! Teruslah konsisten dalam setoran harian.',
+  'Jangan lupa membaca dengan tartil dan memperhatikan tajwid ya.',
+];
 
-    const page = document.getElementById('page-' + tab);
-    const btn  = document.getElementById('btn-' + tab);
-    if (page) page.classList.add('active');
-    if (btn)  btn.classList.add('active');
-
-    activeTab = tab;
-    window.scrollTo({ top:0, behavior:'smooth' });
+function initChat(){
+  const greetings=[
+    {me:false,text:'Assalamu\'alaikum! Ada yang bisa ustadz bantu?',time:getTime()},
+  ];
+  greetings.forEach(m=>appendMsg(m.me,m.text,m.time));
 }
 
-/* ══════════════════════════════════════
-   MODAL
-══════════════════════════════════════ */
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function openIzin()       { openModal('modalIzin'); }
-function openKonsultasi() {
-    showToast('Membuka WhatsApp admin...','info');
-    setTimeout(() => window.open('https://wa.me/6285213346061?text=Assalamualaikum, saya santri Hidayatul Amin ingin berkonsultasi.','_blank'), 600);
-}
-function openPageExt(page) { showToast('Halaman ' + page + ' sedang dikembangkan','info'); }
-
-/* ══════════════════════════════════════
-   DARK MODE
-══════════════════════════════════════ */
-function applyDark(on) {
-    document.documentElement.classList.toggle('dark', on);
-    document.getElementById('darkIcon').className = on ? 'fas fa-sun' : 'fas fa-moon';
-}
-function toggleDarkMode() {
-    const isDark = document.documentElement.classList.contains('dark');
-    applyDark(!isDark);
-    localStorage.setItem('theme', !isDark ? 'dark' : 'light');
+function sendMsg(){
+  const inp=document.getElementById('chatInput');
+  const txt=inp.value.trim();if(!txt)return;
+  appendMsg(true,txt,getTime());inp.value='';
+  setTimeout(()=>{
+    const reply=USTADZ_REPLIES[Math.floor(Math.random()*USTADZ_REPLIES.length)];
+    appendMsg(false,reply,getTime());
+  },800+Math.random()*600);
 }
 
-/* ══════════════════════════════════════
-   TOAST
-══════════════════════════════════════ */
-let toastTimer = null;
-function showToast(msg, type='info') {
-    const t = document.getElementById('toast');
-    const icons = { success:'fa-check-circle', error:'fa-times-circle', info:'fa-info-circle', warning:'fa-exclamation-triangle' };
-    const colors = { success:'var(--green)', error:'var(--rose)', info:'var(--violet)', warning:'var(--amber)' };
-    document.getElementById('toastMsg').textContent = msg;
-    document.getElementById('toastIcon').className  = `toast-icon fas ${icons[type]||icons.info}`;
-    document.getElementById('toastIcon').style.color = colors[type]||colors.info;
-    t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+function appendMsg(isMe,text,time){
+  const wrap=document.getElementById('chatWrap');if(!wrap)return;
+  const div=document.createElement('div');
+  div.className=`msg ${isMe?'me':'them'}`;
+  div.innerHTML=`<div>${text}</div><div class="msg-time">${time}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
 }
 
-/* ══════════════════════════════════════
-   GREETING
-══════════════════════════════════════ */
-function updateGreeting() {
-    const h = new Date().getHours();
-    const g = h<11 ? 'Selamat pagi! ☀️' : h<15 ? 'Selamat siang! 🌤️' : h<18 ? 'Selamat sore! 🌇' : 'Selamat malam! 🌙';
-    document.getElementById('greetingText').textContent = g;
+function getTime(){return new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});}
+
+// ════ SGT ════
+const MISSIONS=[
+  {id:'m1',ico:'fa-book-open',bg:'#e6f9f2',clr:'#0db87a',title:'Setoran Hari Ini',desc:'Setor minimal 1 halaman',reward:50,done:true},
+  {id:'m2',ico:'fa-calendar-check',bg:'#eaf1fe',clr:'#2d7ef5',title:'Hadir Full Hari Ini',desc:'Semua sesi hadir',reward:30,done:true},
+  {id:'m3',ico:'fa-star',bg:'#f0ebff',clr:'#8b5cf6',title:'Nilai di Atas 85',desc:'Nilai ujian ≥ 85',reward:100,done:false},
+  {id:'m4',ico:'fa-comments',bg:'#fef3c7',clr:'#f59e0b',title:'Konsultasi Ustadz',desc:'Chat dengan ustadz pembimbing',reward:20,done:false},
+];
+
+function loadSGT(){
+  const uid=currentUid||'demo';
+  let bal=parseInt(localStorage.getItem('sgt_bal_'+uid)||'0');
+  if(!bal&&santriData?.sgt){bal=santriData.sgt;localStorage.setItem('sgt_bal_'+uid,bal.toString());}
+  const txs=JSON.parse(localStorage.getItem('sgt_transactions_'+uid)||'[]');
+  const earned=txs.filter(t=>t.type==='earn').reduce((s,t)=>s+(t.amount||0),0)||bal;
+  const spent=txs.filter(t=>t.type==='spend').reduce((s,t)=>s+(t.amount||0),0);
+  setEl('stSGT',fmtSGT(bal));
+  setEl('sgtBalBig',bal.toLocaleString('id-ID')+' SGT');
+  setEl('sgtEarned',fmtSGT(earned));
+  setEl('sgtSpent',fmtSGT(spent));
+  setEl('sgtTxCount',txs.length.toString());
+  renderMissions();
+  renderTxList(txs,bal);
 }
 
-/* ══════════════════════════════════════
-   LOGOUT
-══════════════════════════════════════ */
-function handleLogout() {
-    if (!confirm('Yakin ingin logout?')) return;
-    auth.signOut().then(() => {
-        window.location.href = 'login.html';
-    }).catch(() => { window.location.href = 'login.html'; });
+function renderMissions(){
+  const el=document.getElementById('missionList');if(!el)return;
+  el.innerHTML=MISSIONS.map(m=>`
+    <div class="mission-item ${m.done?'done':''}" onclick="${m.done?'':` claimMission('${m.id}',${m.reward})`}">
+      <div class="m-ico" style="background:${m.bg};color:${m.clr}"><i class="fas ${m.ico}"></i></div>
+      <div class="m-info"><h5>${m.title}</h5><p>${m.desc}</p></div>
+      <span class="m-reward">${m.done?'✅':'+'} ${m.reward} SGT</span>
+      <div class="m-check">${m.done?'<i class="fas fa-check" style="font-size:10px"></i>':''}</div>
+    </div>`).join('');
 }
 
-/* ══════════════════════════════════════
-   SGT TOKEN — SANTRI
-══════════════════════════════════════ */
-const SGT_TOTAL_SUPPLY = 1_000_000_000;
-
-function loadSantriSGT(uid) {
-    if (!uid) return;
-    const key = 'sgt_balance_' + uid;
-    const txKey = 'sgt_transactions_' + uid;
-    const bal = parseInt(localStorage.getItem(key) || '0');
-    const txs = JSON.parse(localStorage.getItem(txKey) || '[]');
-
-    // Beranda card
-    const balEl = document.getElementById('santriSgtBal');
-    if (balEl) balEl.textContent = bal.toLocaleString('id-ID') + ' SGT';
-
-    const nextTarget = 500;
-    const progress = Math.min((bal % nextTarget) / nextTarget * 100, 100);
-    const barEl = document.getElementById('santriSgtBar');
-    if (barEl) barEl.style.width = progress + '%';
-    const progEl = document.getElementById('santriSgtProgress');
-    if (progEl) progEl.textContent = (bal % nextTarget) + ' / ' + nextTarget + ' SGT';
-
-    // Profil card
-    const profilBal = document.getElementById('profilSgtBal');
-    if (profilBal) profilBal.textContent = bal.toLocaleString('id-ID') + ' SGT';
-
-    const earned = txs.filter(t => t.type === 'earn').reduce((s, t) => s + (t.amount || 0), 0);
-    const spent  = txs.filter(t => t.type !== 'earn').reduce((s, t) => s + (t.amount || 0), 0);
-    const earnEl = document.getElementById('profilSgtEarned');
-    if (earnEl) earnEl.textContent = earned.toLocaleString('id-ID');
-    const spentEl = document.getElementById('profilSgtSpent');
-    if (spentEl) spentEl.textContent = spent.toLocaleString('id-ID');
-    const txEl = document.getElementById('profilSgtTx');
-    if (txEl) txEl.textContent = txs.length;
-}
-
-window.openSGTHistory = function() {
-    const uid = window._currentUid || '';
-    const txs = JSON.parse(localStorage.getItem('sgt_transactions_' + uid) || '[]');
-    if (txs.length === 0) { showToast('Belum ada riwayat SGT', 'info'); return; }
-    const list = txs.slice(0, 10).map(t => {
-        const isEarn = t.type === 'earn';
-        const d = t.date ? new Date(t.date).toLocaleDateString('id-ID', {day:'numeric', month:'short'}) : '-';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(124,58,237,.08);">
-            <div style="width:34px;height:34px;background:${isEarn?'rgba(5,150,105,.12)':'rgba(244,63,94,.08)'};border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;color:${isEarn?'#059669':'#f43f5e'};flex-shrink:0;">
-                <i class="fas ${isEarn?'fa-arrow-down':'fa-arrow-up'}"></i>
-            </div>
-            <div style="flex:1;min-width:0;">
-                <p style="font-weight:700;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.description || (isEarn?'SGT Diterima':'SGT Digunakan')}</p>
-                <p style="font-size:10px;color:var(--text2);">${d}</p>
-            </div>
-            <p style="font-weight:900;font-size:13px;color:${isEarn?'#059669':'#f43f5e'};flex-shrink:0;">${isEarn?'+':'-'}${t.amount} SGT</p>
-        </div>`;
-    }).join('');
-
-    // Inject into notif modal temporarily
-    const nc = document.getElementById('notifContent');
-    if (nc) {
-        nc.innerHTML = `<div style="padding:0 4px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                <div style="width:36px;height:36px;background:linear-gradient(135deg,#FCD34D,#F59E0B);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#1A0533;">₴</div>
-                <div>
-                    <p style="font-weight:800;font-size:13px;">Riwayat SGT</p>
-                    <p style="font-size:11px;color:var(--text2);">10 transaksi terakhir</p>
-                </div>
-            </div>
-            ${list}
-        </div>`;
-        openModal('modalNotif');
-    }
+window.claimMission=(id,reward)=>{
+  const m=MISSIONS.find(x=>x.id===id);if(!m||m.done)return;
+  m.done=true;
+  const uid=currentUid||'demo';
+  const bal=parseInt(localStorage.getItem('sgt_bal_'+uid)||'0')+reward;
+  localStorage.setItem('sgt_bal_'+uid,bal.toString());
+  const txs=JSON.parse(localStorage.getItem('sgt_transactions_'+uid)||'[]');
+  txs.unshift({type:'earn',amount:reward,desc:m.title,date:new Date().toISOString()});
+  localStorage.setItem('sgt_transactions_'+uid,JSON.stringify(txs.slice(0,50)));
+  showToast('success','SGT Didapat!',`+${reward} SGT dari misi: ${m.title}`);
+  loadSGT();
 };
 
-// Hook into auth to load SGT after login
-const _origAuthCb = window._authCallback;
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        window._currentUid = user.uid;
-        // Delay slightly so other auth handlers run first
-        setTimeout(() => loadSantriSGT(user.uid), 500);
-    }
-});</script>
+function renderTxList(txs,bal){
+  const el=document.getElementById('txList');if(!el)return;
+  const DEMO_TXS=[
+    {type:'earn',amount:50,desc:'Setoran Hafalan',date:'2025-05-02'},
+    {type:'earn',amount:30,desc:'Kehadiran Penuh',date:'2025-05-01'},
+    {type:'spend',amount:100,desc:'Beli Produk Mart',date:'2025-04-28'},
+  ];
+  const all=[...txs,...(txs.length?[]:DEMO_TXS)];
+  if(!all.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--g400)">Belum ada transaksi</div>';return;}
+  const icons={earn:'fa-plus-circle',spend:'fa-minus-circle'};
+  const bg={earn:'var(--gl)',spend:'var(--rl)'};
+  el.innerHTML=all.slice(0,8).map(t=>`
+    <div class="tx-item">
+      <div class="tx-ico" style="background:${bg[t.type]||bg.earn};color:${t.type==='earn'?'var(--g)':'var(--r)'}"><i class="fas ${icons[t.type]||icons.earn}"></i></div>
+      <div class="tx-info"><h5>${t.desc||'Transaksi SGT'}</h5><p>${t.date?.split('T')[0]||'—'}</p></div>
+      <span class="tx-amt ${t.type}">${t.type==='earn'?'+':'-'}${(t.amount||0).toLocaleString()} SGT</span>
+    </div>`).join('');
+}
+
+// ════ HELPERS ════
+function fmtSGT(n){if(n>=1e6)return (n/1e6).toFixed(1)+'M';if(n>=1e3)return (n/1e3).toFixed(1)+'K';return n.toLocaleString('id-ID');}
+function downloadRaport(){showToast('info','Mengunduh Raport','File raport akan segera diunduh...')}
+
+// ════ SECTION SWITCH ════
+function go(name,navEl){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+name)?.classList.add('active');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  if(navEl)navEl.classList.add('active');
+  const titles={dashboard:'Dashboard Santri',hafalan:'Hafalan Saya',jadwal:'Jadwal',nilai:'Nilai & Raport',absensi:'Data Absensi',pengumuman:'Pengumuman',perizinan:'Perizinan',konsultasi:'Konsultasi',sgt:'SGT Token'};
+  setEl('pgTitle',titles[name]||'Dashboard');
+  if(name==='nilai')setTimeout(()=>renderNilai(),50);
+  if(name==='jadwal')renderJadwal();
+  if(name==='hafalan')loadHafalanRiwayat();
+  if(name==='pengumuman')renderPengumuman();
+  if(name==='perizinan')loadIznHistory();
+  closeSb();
+}
+
+function setBn(n){document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));const el=document.getElementById('bn-'+n);if(el)el.classList.add('active');}
+
+// ════ SIDEBAR ════
+function toggleSb(){document.getElementById('sidebar').classList.toggle('off');document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOv').classList.toggle('show');}
+function closeSb(){if(window.innerWidth<=900){document.getElementById('sidebar').classList.add('off');document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOv').classList.remove('show');}}
+
+// ════ DATE ════
+function updateDate(){
+  const now=new Date();
+  const days=['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const mfull=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  setEl('pgDate',`${days[now.getDay()]}, ${now.getDate()} ${mfull[now.getMonth()]} ${now.getFullYear()}`);
+}
+
+// ════ LOGOUT ════
+async function handleLogout(){if(!confirm('Yakin logout?'))return;await auth.signOut().catch(()=>{});sessionStorage.removeItem('currentUser');window.location.href='login.html';}
+
+// ════ TOAST ════
+function showToast(type,title,msg){
+  const wrap=document.getElementById('toastWrap');
+  const icons={success:'fa-check-circle',error:'fa-circle-xmark',warn:'fa-triangle-exclamation',info:'fa-circle-info'};
+  const div=document.createElement('div');
+  div.className=`toast ${type}`;
+  div.innerHTML=`<div class="t-ico"><i class="fas ${icons[type]||icons.info}"></i></div><div class="t-msg"><h4>${title}</h4><p>${msg}</p></div>`;
+  wrap.appendChild(div);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>div.classList.add('show')));
+  setTimeout(()=>{div.classList.remove('show');setTimeout(()=>div.remove(),500);},4000);
+}
+
+// ════ HELPERS ════
+function setEl(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
+function animNum(id,target){const el=document.getElementById(id);if(!el)return;let c=0;const s=Math.max(1,Math.ceil(target/20));const t=setInterval(()=>{c=Math.min(c+s,target);el.textContent=c;if(c>=target)clearInterval(t);},40);}
+
+window.addEventListener('resize',()=>{
+  if(window.innerWidth>900){document.getElementById('sidebar').classList.remove('off','open');document.getElementById('sbOv').classList.remove('show');}
+  else{if(!document.getElementById('sidebar').classList.contains('open'))document.getElementById('sidebar').classList.add('off');}
+});
+if(window.innerWidth<=900)document.getElementById('sidebar').classList.add('off');
+else document.getElementById('sidebar').classList.remove('off');
+</script>
 </body>
 </html>
