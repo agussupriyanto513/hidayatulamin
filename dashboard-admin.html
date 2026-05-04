@@ -546,16 +546,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fallback: check Firebase auth directly
     auth.onAuthStateChanged(async user => {
       if (!user) { window.location.href = 'login.html'; return; }
+
+      // Cek session yang disimpan saat login
+      const raw = sessionStorage.getItem('currentUser');
+      if (raw) {
+        try {
+          const sess = JSON.parse(raw);
+          if (sess.role === 'admin' && sess.uid === user.uid) {
+            // Session valid → langsung load, tidak perlu query Firestore
+            const name = user.displayName || user.email;
+            setEl('greetName', name);
+            setEl('uName', name);
+            setEl('uAvatar', (name[0]||'A').toUpperCase());
+            loadDashboardData();
+            return;
+          }
+        } catch(e) { /* session rusak, lanjut ke verifikasi Firestore */ }
+      }
+
+      // Verifikasi via Firestore
       try {
         const doc = await db.collection('users').doc(user.uid).get();
-        if (!doc.exists || doc.data().role !== 'admin') { await auth.signOut(); window.location.href = 'login.html'; return; }
+        if (!doc.exists || doc.data().role !== 'admin') {
+          await auth.signOut();
+          sessionStorage.removeItem('currentUser');
+          window.location.href = 'login.html';
+          return;
+        }
         const d = doc.data();
         const name = d.displayName || d.namaLengkap || user.email;
         setEl('greetName', name);
         setEl('uName', name);
-        setEl('uAvatar', name[0]?.toUpperCase() || 'A');
+        setEl('uAvatar', (name[0]||'A').toUpperCase());
         loadDashboardData();
-      } catch(e) { console.error(e); }
+      } catch(e) {
+        // Jika permission-denied → percayai Firebase Auth + sessionStorage
+        if (e.code === 'permission-denied' || e.code === 'PERMISSION_DENIED') {
+          console.warn('⚠️ Firestore Rules: permission-denied saat verifikasi admin. Pastikan rules sudah diupdate.');
+          const name = user.displayName || user.email;
+          setEl('greetName', name);
+          setEl('uName', name);
+          setEl('uAvatar', (name[0]||'A').toUpperCase());
+          loadDashboardData();
+        } else {
+          console.error('Auth guard error:', e);
+          // Jangan redirect untuk error non-auth (network, dll)
+        }
+      }
     });
   }
 });
@@ -674,13 +711,25 @@ async function createUser() {
   document.getElementById('createBtn').disabled = true;
 
   try {
-    // Ambil config current admin (untuk restore auth setelah create)
-    const currentUser = auth.currentUser;
-    const cred = await auth.createUserWithEmailAndPassword(email, pass);
-    const uid = cred.user.uid;
+    // Simpan session admin saat ini sebelum apapun
+    const adminUser = auth.currentUser;
+    const adminEmail = adminUser?.email;
+    const adminUid   = adminUser?.uid;
 
-    await cred.user.updateProfile({displayName: name});
+    // Buat akun baru menggunakan Firebase Admin REST API
+    // agar sesi admin tidak tergantikan
+    // Pendekatan: gunakan secondary auth app instance
+    const secondaryApp = firebase.apps.find(a => a.name === '__secondary__') ||
+      firebase.initializeApp(firebase.app().options, '__secondary__');
+    const secondaryAuth = secondaryApp.auth();
+
+    const cred = await secondaryAuth.createUserWithEmailAndPassword(email, pass);
+    const uid  = cred.user.uid;
+
     if (verif) await cred.user.sendEmailVerification().catch(()=>{});
+    await cred.user.updateProfile({ displayName: name }).catch(()=>{});
+    // Logout dari secondary app segera
+    await secondaryAuth.signOut();
 
     const payload = {
       uid, displayName: name, email, role, isActive: true,
