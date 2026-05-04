@@ -21,6 +21,10 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
+// ── Variabel global agar bisa dipakai langsung di semua halaman ──
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
 // ██████████████████████████████████████████
 // 2. ROLE → HALAMAN (sesuaikan jika perlu)
 // ██████████████████████████████████████████
