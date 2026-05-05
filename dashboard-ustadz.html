@@ -489,6 +489,199 @@ tr:hover td{background:var(--g50)}
         </div>
       </div>
 
+      <!-- ══ CARA DAPAT SGT ══ -->
+      <div style="background:#fff;border-radius:var(--rd);border:1px solid var(--g100);padding:16px;margin-bottom:14px;box-shadow:var(--sh-sm)">
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:4px">💡 Cara Mendapatkan SGT</h4>
+        <p style="font-size:11px;color:var(--g500);margin-bottom:14px">Ajukan reward ke admin — akan dikreditkan setelah disetujui</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:var(--pl);border-radius:var(--rdm);padding:12px;border:1.5px solid rgba(13,184,122,.2)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:32px;height:32px;background:var(--p);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px"><i class="fas fa-qrcode"></i></div>
+              <div><p style="font-size:12px;font-weight:700;color:var(--ink2)">Absensi Mengajar</p></div>
+            </div>
+            <p style="font-size:11px;color:var(--g600)">Hadir mengajar → <b style="color:var(--p)">+50 SGT/sesi</b></p>
+            <p style="font-size:10px;color:var(--g400);margin-top:2px">Bonus hadir bulan penuh: +500 SGT</p>
+          </div>
+          <div style="background:var(--bl);border-radius:var(--rdm);padding:12px;border:1.5px solid rgba(45,126,245,.2)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:32px;height:32px;background:var(--b);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px"><i class="fas fa-book-open"></i></div>
+              <div><p style="font-size:12px;font-weight:700;color:var(--ink2)">Input Hafalan Santri</p></div>
+            </div>
+            <p style="font-size:11px;color:var(--g600)">Setiap setoran dicatat → <b style="color:var(--b)">+25 SGT</b></p>
+            <p style="font-size:10px;color:var(--g400);margin-top:2px">Bonus santri khatam: +1.000 SGT</p>
+          </div>
+          <div style="background:var(--acl);border-radius:var(--rdm);padding:12px;border:1.5px solid rgba(139,92,246,.2)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:32px;height:32px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px"><i class="fas fa-star"></i></div>
+              <div><p style="font-size:12px;font-weight:700;color:var(--ink2)">Performa Santri</p></div>
+            </div>
+            <p style="font-size:11px;color:var(--g600)">Nilai rata-rata ≥90 → <b style="color:var(--acc)">+200 SGT/bulan</b></p>
+            <p style="font-size:10px;color:var(--g400);margin-top:2px">Berdasarkan evaluasi bulanan admin</p>
+          </div>
+          <div style="background:var(--wl);border-radius:var(--rdm);padding:12px;border:1.5px solid rgba(245,158,11,.2)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:32px;height:32px;background:var(--w);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px"><i class="fas fa-gift"></i></div>
+              <div><p style="font-size:12px;font-weight:700;color:var(--ink2)">Bonus Admin</p></div>
+            </div>
+            <p style="font-size:11px;color:var(--g600)">Reward khusus dari admin</p>
+            <p style="font-size:10px;color:var(--g400);margin-top:2px">Event, kontribusi, pencapaian, dll</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ FORM AJUKAN REWARD ══ -->
+      <div style="background:#fff;border-radius:var(--rd);border:1.5px solid var(--p);padding:16px;margin-bottom:14px;box-shadow:var(--sh-sm)">
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:2px"><i class="fas fa-paper-plane" style="color:var(--p);margin-right:8px"></i>Ajukan Reward SGT</h4>
+        <p style="font-size:11px;color:var(--g500);margin-bottom:14px">Admin akan review dan kreditkan SGT ke wallet Anda</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--g600);display:block;margin-bottom:5px">Jenis Reward</label>
+            <select id="earnType" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-family:inherit" onchange="updateEarnHint()">
+              <option value="">Pilih jenis...</option>
+              <option value="absensi">📋 Absensi Mengajar</option>
+              <option value="hafalan">📖 Input Hafalan Santri</option>
+              <option value="performa">⭐ Performa Santri</option>
+              <option value="bonus">🎁 Bonus / Kontribusi Lain</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--g600);display:block;margin-bottom:5px">Tanggal Kegiatan</label>
+            <input type="date" id="earnDate" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:13px">
+          </div>
+        </div>
+        <div id="earnHint" style="background:var(--g50);border-radius:9px;padding:9px 12px;font-size:11px;color:var(--g500);margin-bottom:10px;display:none"></div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:var(--g600);display:block;margin-bottom:5px">Keterangan / Bukti</label>
+          <textarea id="earnNote" rows="3" placeholder="Contoh: Mengajar Kelas A sesi Tahfidz, 14 santri hadir. Atau: Santri Ahmad berhasil khatam juz 10." style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-family:inherit;resize:vertical"></textarea>
+        </div>
+        <button onclick="submitEarnRequest()" style="margin-top:12px;background:linear-gradient(135deg,var(--p),var(--pd));border:none;border-radius:9px;padding:10px 20px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;width:100%"><i class="fas fa-paper-plane"></i> Kirim Pengajuan Reward</button>
+      </div>
+
+      <!-- Status Pengajuan Reward -->
+      <div style="background:#fff;border-radius:var(--rd);border:1px solid var(--g100);overflow:hidden;box-shadow:var(--sh-sm);margin-bottom:14px">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--g100)">
+          <h4 style="font-size:14px;font-weight:700">Status Pengajuan Reward</h4>
+          <p style="font-size:11px;color:var(--g500)">Tracking permohonan SGT yang diajukan</p>
+        </div>
+        <div id="earnReqList" style="padding:8px 0;min-height:60px">
+          <div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
+        </div>
+      </div>
+
+      <!-- Aksi Cepat Cairkan -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <button onclick="openModal('mdlCairIdr')" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#065f46,#0db87a);border:none;border-radius:var(--rd);padding:14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700">
+          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px"><i class="fas fa-money-bill-wave"></i></div>
+          <div style="text-align:left"><div>Cairkan ke</div><div style="font-size:11px;font-weight:600;opacity:.85">Rupiah (IDR)</div></div>
+        </button>
+        <button onclick="openModal('mdlCairPi')" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1e3a8a,#2d7ef5);border:none;border-radius:var(--rd);padding:14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700">
+          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px">π</div>
+          <div style="text-align:left"><div>Cairkan ke</div><div style="font-size:11px;font-weight:600;opacity:.85">Pi Coin</div></div>
+        </button>
+      </div>
+
+      <!-- Sagatama Mart -->
+      <a href="https://sagatama-mart.vercel.app" target="_blank" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:2px solid var(--acc);border-radius:var(--rd);padding:14px;text-decoration:none;transition:var(--tr);margin-bottom:14px" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--acc),#7c3aed);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px"><i class="fas fa-shopping-bag"></i></div>
+        <div style="flex:1"><p style="font-weight:800;color:var(--ink2);font-size:13px">Belanja di Sagatama Mart</p><p style="font-size:11px;color:var(--g500)">Tukarkan SGT untuk reward</p></div>
+        <i class="fas fa-chevron-right" style="color:var(--acc)"></i>
+      </a>
+
+      <!-- Riwayat Transaksi -->
+      <div style="background:#fff;border-radius:var(--rd);border:1px solid var(--g100);overflow:hidden;box-shadow:var(--sh-sm)">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between">
+          <div><h4 style="font-size:14px;font-weight:700">Riwayat Transaksi</h4><p style="font-size:11px;color:var(--g500)" id="sgtTxSub">—</p></div>
+        </div>
+        <div id="sgtTxList" style="padding:8px 0;min-height:60px">
+          <div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
+        </div>
+      </div>
+
+      <!-- Riwayat Pencairan -->
+      <div style="background:#fff;border-radius:var(--rd);border:1px solid var(--g100);overflow:hidden;box-shadow:var(--sh-sm);margin-top:14px">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--g100)">
+          <h4 style="font-size:14px;font-weight:700">Riwayat Pencairan</h4>
+          <p style="font-size:11px;color:var(--g500)">Status permintaan pencairan SGT</p>
+        </div>
+        <div id="sgtWdList" style="padding:8px 0;min-height:60px">
+          <div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL CAIRKAN IDR -->
+    <div class="modal-bg" id="mdlCairIdr" onclick="closeModalOut(event,'mdlCairIdr')">
+      <div class="modal">
+        <div class="modal-hd"><h3>Cairkan SGT → Rupiah</h3><button class="modal-close" onclick="closeModal('mdlCairIdr')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+          <div style="background:var(--pl);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--pd)">
+            <b>Kurs:</b> 1.000 SGT = Rp 100.000 &nbsp;|&nbsp; <b>Saldo:</b> <span id="mdlIdrBal">—</span> SGT
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Jumlah SGT yang dicairkan</label>
+          <input type="number" id="cairIdrAmt" min="1000" step="1000" placeholder="Min. 1.000 SGT" oninput="calcIdr()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;margin-bottom:10px">
+          <div style="background:var(--g50);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--g600);margin-bottom:10px">
+            Anda akan menerima: <b style="color:var(--p);font-size:14px" id="idrResult">Rp 0</b>
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">No. Rekening / Tujuan Transfer</label>
+          <input type="text" id="cairIdrDest" placeholder="Contoh: BCA 1234567890 a/n Nama" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px">
+        </div>
+        <div class="modal-ft">
+          <button class="btn-sec" onclick="closeModal('mdlCairIdr')">Batal</button>
+          <button class="btn-p" onclick="submitCair('idr')"><i class="fas fa-paper-plane"></i> Ajukan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL CAIRKAN PI -->
+    <div class="modal-bg" id="mdlCairPi" onclick="closeModalOut(event,'mdlCairPi')">
+      <div class="modal">
+        <div class="modal-hd"><h3>Cairkan SGT → Pi Coin</h3><button class="modal-close" onclick="closeModal('mdlCairPi')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+          <div style="background:var(--bl);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
+            <b>Kurs:</b> 500 SGT = 1 π &nbsp;|&nbsp; <b>Saldo:</b> <span id="mdlPiBal">—</span> SGT
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Jumlah SGT yang dicairkan</label>
+          <input type="number" id="cairPiAmt" min="500" step="500" placeholder="Min. 500 SGT" oninput="calcPi()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;margin-bottom:10px">
+          <div style="background:var(--g50);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--g600);margin-bottom:10px">
+            Anda akan menerima: <b style="color:var(--b);font-size:14px" id="piResult">0 π</b>
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Username Pi Network</label>
+          <input type="text" id="cairPiDest" placeholder="Contoh: @username_pi" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px">
+        </div>
+        <div class="modal-ft">
+          <button class="btn-sec" onclick="closeModal('mdlCairPi')">Batal</button>
+          <button class="btn-p" onclick="submitCair('pi')"><i class="fas fa-paper-plane"></i> Ajukan</button>
+        </div>
+      </div>
+    </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;z-index:1">
+          <div class="sgt-coin">₴</div>
+          <div style="flex:1">
+            <p style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px">Saldo SGT Anda</p>
+            <p style="font-size:28px;font-weight:900;color:#fcd34d;line-height:1.2" id="sgtBal">— SGT</p>
+          </div>
+          <button onclick="loadSGT(currentUid)" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:7px 10px;color:#fff;cursor:pointer;font-size:12px"><i class="fas fa-sync-alt" id="sgtRefIco"></i></button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+          <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:13px;font-weight:900;color:#fcd34d" id="sgtEarned">0</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:600">Total Didapat</div>
+          </div>
+          <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:13px;font-weight:900;color:#fcd34d" id="sgtSpent">0</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:600">Digunakan</div>
+          </div>
+          <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:13px;font-weight:900;color:#fcd34d" id="sgtTxCount">0</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:600">Transaksi</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:9px 12px;font-size:11px;color:rgba(255,255,255,.65)">
+          <i class="fas fa-info-circle" style="margin-right:6px;color:#fcd34d"></i>
+          SGT diberikan sebagai reward kontribusi mengajar. Total supply: 1 Miliar SGT.
+        </div>
+      </div>
+
       <!-- Aksi Cepat -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
         <button onclick="openModal('mdlCairIdr')" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#065f46,#0db87a);border:none;border-radius:var(--rd);padding:14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700">
@@ -626,6 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateDate();
   document.getElementById('absDate').value = new Date().toISOString().split('T')[0];
   document.getElementById('hfDate').value  = new Date().toISOString().split('T')[0];
+  const ed = document.getElementById('earnDate'); if(ed) ed.value = new Date().toISOString().split('T')[0];
 
   if (typeof HA !== 'undefined') {
     HA.requireAuth('ustadz', (user, data) => {
@@ -936,8 +1130,83 @@ function initChartLaporan(tab='setoran') {
 
 // ════ SGT WALLET ════
 const SGT_PER_PI  = 500;
-const SGT_PER_IDR = 1000;   // 1000 SGT = Rp 100.000
-const IDR_PER_LOT = 100000; // rupiah yang diterima per 1000 SGT
+const SGT_PER_IDR = 1000;
+const IDR_PER_LOT = 100000;
+
+// Hint reward per jenis
+const EARN_HINTS = {
+  absensi:  '📋 Reward <b>+50 SGT</b> per sesi mengajar. Bonus +500 SGT jika hadir penuh 1 bulan.',
+  hafalan:  '📖 Reward <b>+25 SGT</b> per setoran hafalan dicatat. Bonus +1.000 SGT jika santri khatam.',
+  performa: '⭐ Reward <b>+200 SGT/bulan</b> jika rata-rata nilai santri ≥90. Dievaluasi admin tiap bulan.',
+  bonus:    '🎁 Reward khusus dari admin untuk kontribusi luar biasa, event, atau pencapaian istimewa.',
+};
+function updateEarnHint() {
+  const type = document.getElementById('earnType')?.value;
+  const hint = document.getElementById('earnHint');
+  if (!hint) return;
+  if (type && EARN_HINTS[type]) {
+    hint.innerHTML = EARN_HINTS[type];
+    hint.style.display = 'block';
+  } else {
+    hint.style.display = 'none';
+  }
+}
+
+async function submitEarnRequest() {
+  const type = document.getElementById('earnType')?.value;
+  const date = document.getElementById('earnDate')?.value;
+  const note = document.getElementById('earnNote')?.value?.trim();
+  if (!type) { showToast('warn','Pilih Jenis','Pilih jenis reward terlebih dahulu'); return; }
+  if (!note) { showToast('warn','Isi Keterangan','Tambahkan keterangan / bukti kegiatan'); return; }
+  try {
+    await db.collection('sgt_earn_requests').add({
+      uid:       currentUid,
+      userName:  document.getElementById('uName')?.textContent || '—',
+      role:      'ustadz',
+      type,
+      date:      date || new Date().toISOString().split('T')[0],
+      note,
+      status:    'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    showToast('success','Berhasil Diajukan','Reward SGT sedang diproses oleh admin');
+    document.getElementById('earnType').value = '';
+    document.getElementById('earnNote').value = '';
+    document.getElementById('earnHint').style.display = 'none';
+    await loadEarnRequests(currentUid);
+  } catch(e) { showToast('error','Gagal',e.message); }
+}
+
+async function loadEarnRequests(uid) {
+  const el = document.getElementById('earnReqList');
+  if (!el) return;
+  try {
+    const snap = await db.collection('sgt_earn_requests').where('uid','==',uid).orderBy('createdAt','desc').limit(15).get();
+    if (snap.empty) {
+      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--g400);font-size:13px"><i class="fas fa-inbox" style="font-size:22px;display:block;margin-bottom:8px;opacity:.4"></i>Belum ada pengajuan</div>';
+      return;
+    }
+    const icons = { absensi:'fa-qrcode', hafalan:'fa-book-open', performa:'fa-star', bonus:'fa-gift' };
+    const statusCfg = { pending:{clr:'#d97706',bg:'#fef3c7',lbl:'Menunggu'}, approved:{clr:'#059669',bg:'#e6f9f2',lbl:'Disetujui'}, rejected:{clr:'#dc2626',bg:'#fee2e2',lbl:'Ditolak'} };
+    el.innerHTML = snap.docs.map(d => {
+      const r = d.data(); const s = statusCfg[r.status]||statusCfg.pending;
+      const typeLabel = {absensi:'Absensi',hafalan:'Hafalan',performa:'Performa',bonus:'Bonus'}[r.type]||r.type;
+      const dateStr = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : r.date||'—';
+      return `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 16px;border-bottom:1px solid var(--g50)">
+        <div style="width:36px;height:36px;border-radius:9px;background:var(--pl);display:flex;align-items:center;justify-content:center;color:var(--p);font-size:13px;flex-shrink:0"><i class="fas ${icons[r.type]||'fa-coins'}"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:12px;font-weight:700;color:var(--ink2)">${typeLabel}</span>
+            <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${s.bg};color:${s.clr}">${s.lbl}</span>
+          </div>
+          <div style="font-size:11px;color:var(--g500);margin-top:2px">${r.note||'—'}</div>
+          <div style="font-size:10px;color:var(--g400);margin-top:2px">${dateStr}${r.sgtCredited?` · <b style="color:var(--p)">+${r.sgtCredited.toLocaleString('id-ID')} SGT dikreditkan</b>`:''}</div>
+          ${r.adminNote?`<div style="font-size:10px;color:var(--r);margin-top:3px">📝 Admin: ${r.adminNote}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Gagal memuat</div>'; }
+}
 
 async function loadSGT(uid) {
   const ico = document.getElementById('sgtRefIco');
@@ -983,6 +1252,7 @@ async function loadSGT(uid) {
 
     // Render riwayat pencairan
     await loadWdHistory(uid);
+    await loadEarnRequests(uid);
   } catch(e) {
     console.error('loadSGT:', e);
     setEl('sgtBal', 'Error');
