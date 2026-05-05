@@ -1181,14 +1181,15 @@ async function loadEarnRequests(uid) {
   const el = document.getElementById('earnReqList');
   if (!el) return;
   try {
-    const snap = await db.collection('sgt_earn_requests').where('uid','==',uid).orderBy('createdAt','desc').limit(15).get();
+    const snap = await db.collection('sgt_earn_requests').where('uid','==',uid).limit(20).get();
     if (snap.empty) {
       el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--g400);font-size:13px"><i class="fas fa-inbox" style="font-size:22px;display:block;margin-bottom:8px;opacity:.4"></i>Belum ada pengajuan</div>';
       return;
     }
     const icons = { absensi:'fa-qrcode', hafalan:'fa-book-open', performa:'fa-star', bonus:'fa-gift' };
     const statusCfg = { pending:{clr:'#d97706',bg:'#fef3c7',lbl:'Menunggu'}, approved:{clr:'#059669',bg:'#e6f9f2',lbl:'Disetujui'}, rejected:{clr:'#dc2626',bg:'#fee2e2',lbl:'Ditolak'} };
-    el.innerHTML = snap.docs.map(d => {
+    const sortedDocs = snap.docs.slice().sort((a,b)=>(b.data().createdAt?.seconds||0)-(a.data().createdAt?.seconds||0));
+    el.innerHTML = sortedDocs.map(d => {
       const r = d.data(); const s = statusCfg[r.status]||statusCfg.pending;
       const typeLabel = {absensi:'Absensi',hafalan:'Hafalan',performa:'Performa',bonus:'Bonus'}[r.type]||r.type;
       const dateStr = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : r.date||'—';

@@ -1110,6 +1110,7 @@ function setBn(n){document.querySelectorAll('.bn-item').forEach(b=>b.classList.r
 function downloadRaport(){showToast('info','Menyiapkan Raport','File raport akan segera diunduh...')}
 
 // ════ MODAL ════
+function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 function closeModalOut(e,id){if(e.target===document.getElementById(id))closeModal(id)}
 
