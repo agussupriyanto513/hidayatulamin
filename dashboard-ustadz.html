@@ -566,7 +566,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (raw) {
         try {
           const sess = JSON.parse(raw);
-          if (sess.role === 'ustadz' && sess.uid === user.uid && Date.now() - (sess.ts||0) < 8*3600*1000) {
+          const age = Date.now() - (sess.ts||0);
+          const MAX = 8*3600*1000;
+          if ((sess.role === 'ustadz' || sess.role === 'admin') && sess.uid === user.uid && age < MAX) {
             bootDashboard(user, null); return;
           }
         } catch(e) {}
@@ -574,9 +576,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         await ensureFreshToken();
         const doc = await db.collection('users').doc(user.uid).get();
-        if (doc.exists && doc.data().role === 'ustadz') {
-          localStorage.setItem('currentUser', JSON.stringify({uid:user.uid,role:'ustadz',ts:Date.now()}));
-          bootDashboard(user, doc.data());
+        const role = doc.exists ? doc.data().role : null;
+        if (role === 'ustadz' || role === 'admin') {
+          if (role === 'ustadz') localStorage.setItem('currentUser', JSON.stringify({uid:user.uid,role:'ustadz',ts:Date.now()}));
+          bootDashboard(user, doc.exists ? doc.data() : null);
         } else {
           await auth.signOut();
           localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
@@ -596,8 +599,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (raw) {
         try {
           const sess = JSON.parse(raw);
-          if (sess.role === 'ustadz' && Date.now() - (sess.ts||0) < 8*3600*1000) {
-            await new Promise(r => setTimeout(r, 1200));
+          const validRole = sess.role === 'ustadz' || sess.role === 'admin';
+          if (validRole && Date.now() - (sess.ts||0) < 8*3600*1000) {
+            await new Promise(r => setTimeout(r, 1500));
             if (auth.currentUser) return;
           }
         } catch(e) {}

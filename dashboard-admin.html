@@ -539,8 +539,9 @@ const SGT_ALLOC_DEFAULT = {
 // ════ AUTH GUARD ════
 // currentAdminUid: uid admin yang sudah terverifikasi di sesi ini
 // Dipakai untuk membedakan "user null karena logout" vs "user null karena token refresh sementara"
-let currentAdminUid = null;
-let dashboardReady  = false;
+let currentAdminUid  = null;
+let dashboardReady   = false;
+let _creatingUser    = false; // flag: sedang buat akun via secondary app, abaikan auth null
 
 function bootDashboard(user, name) {
   if (dashboardReady) return; // jangan load ulang jika sudah siap
@@ -623,6 +624,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     //   b) createUser dengan secondary app lalu secondaryAuth.signOut()
     //      → TIDAK boleh redirect, karena main app admin masih login
     //   c) Logout sungguhan
+
+    // Jika sedang proses buat user baru (secondary signOut), abaikan
+    if (_creatingUser) return;
 
     // Jika dashboard sudah ready, ini kemungkinan false-null dari secondary app sign-out
     // atau token refresh → tunggu sebentar lalu re-check
@@ -795,6 +799,7 @@ async function createUser() {
     // Set flag agar auth guard TIDAK redirect selama secondary sign-out
     const prevAdminUid = currentAdminUid;
     dashboardReady = true; // pastikan flag tetap true
+    _creatingUser  = true; // blok auth guard
 
     const cred = await secondaryAuth.createUserWithEmailAndPassword(email, pass);
     const uid  = cred.user.uid;
@@ -805,6 +810,10 @@ async function createUser() {
     // Sign out secondary — ini bisa trigger onAuthStateChanged di main app sesaat
     // Auth guard sudah aman karena dashboardReady = true dan kita cek auth.currentUser
     await secondaryAuth.signOut();
+
+    // Tunggu sebentar agar auth state settle, lalu lepas flag
+    await new Promise(r => setTimeout(r, 500));
+    _creatingUser = false;
 
     // Pastikan main auth masih valid
     currentAdminUid = prevAdminUid;
