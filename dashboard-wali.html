@@ -950,6 +950,85 @@ const SGT_PER_PI  = 500;
 const SGT_PER_IDR = 1000;
 const IDR_PER_LOT = 100000;
 
+// Hint per jenis reward wali
+const EARN_HINTS = {
+  spp:      '💳 Cashback <b>+100 SGT</b> setiap pembayaran SPP tepat waktu.',
+  referral: '👥 Reward <b>+500 SGT</b> untuk setiap referral santri baru yang mendaftar.',
+  donasi:   '🤲 Reward <b>+200 SGT</b> untuk setiap donasi ke pesantren.',
+  kegiatan: '🎪 Reward <b>+150 SGT</b> per partisipasi kegiatan pesantren.',
+  bonus:    '🎁 Reward khusus dari admin untuk kontribusi luar biasa.',
+};
+
+function updateEarnHint() {
+  const type = document.getElementById('earnType')?.value;
+  const hint = document.getElementById('earnHint');
+  if (!hint) return;
+  if (type && EARN_HINTS[type]) {
+    hint.innerHTML = EARN_HINTS[type];
+    hint.style.display = 'block';
+  } else {
+    hint.style.display = 'none';
+  }
+}
+
+async function submitEarnRequest() {
+  const type = document.getElementById('earnType')?.value;
+  const date = document.getElementById('earnDate')?.value;
+  const note = document.getElementById('earnNote')?.value?.trim();
+  if (!type) { showToast('warn','Pilih Jenis','Pilih jenis reward terlebih dahulu'); return; }
+  if (!note) { showToast('warn','Isi Keterangan','Tambahkan keterangan / bukti kegiatan'); return; }
+  try {
+    await db.collection('sgt_earn_requests').add({
+      uid:       currentUid,
+      userName:  waliData?.displayName || document.getElementById('uName')?.textContent || '—',
+      role:      'wali',
+      type,
+      date:      date || new Date().toISOString().split('T')[0],
+      note,
+      status:    'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    showToast('success','Berhasil Diajukan','Reward SGT sedang diproses oleh admin');
+    document.getElementById('earnType').value = '';
+    document.getElementById('earnNote').value = '';
+    document.getElementById('earnDate').value = '';
+    document.getElementById('earnHint').style.display = 'none';
+    await loadEarnRequests(currentUid);
+  } catch(e) { showToast('error','Gagal',e.message); }
+}
+
+async function loadEarnRequests(uid) {
+  const el = document.getElementById('earnReqList');
+  if (!el) return;
+  try {
+    const snap = await db.collection('sgt_earn_requests').where('uid','==',uid).limit(20).get();
+    if (snap.empty) {
+      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--g400);font-size:13px"><i class="fas fa-inbox" style="font-size:22px;display:block;margin-bottom:8px;opacity:.4"></i>Belum ada pengajuan</div>';
+      return;
+    }
+    const icons = { spp:'fa-credit-card', referral:'fa-users', donasi:'fa-hand-holding-heart', kegiatan:'fa-calendar-check', bonus:'fa-gift' };
+    const statusCfg = { pending:{clr:'#d97706',bg:'#fef3c7',lbl:'Menunggu'}, approved:{clr:'#059669',bg:'#e6f9f2',lbl:'Disetujui'}, rejected:{clr:'#dc2626',bg:'#fee2e2',lbl:'Ditolak'} };
+    const sortedDocs = snap.docs.slice().sort((a,b)=>(b.data().createdAt?.seconds||0)-(a.data().createdAt?.seconds||0));
+    el.innerHTML = sortedDocs.map(d => {
+      const r = d.data(); const s = statusCfg[r.status]||statusCfg.pending;
+      const typeLabel = {spp:'SPP/Cashback',referral:'Referral',donasi:'Donasi',kegiatan:'Kegiatan',bonus:'Bonus'}[r.type]||r.type;
+      const dateStr = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : r.date||'—';
+      return `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 16px;border-bottom:1px solid var(--g50)">
+        <div style="width:36px;height:36px;border-radius:9px;background:var(--pl);display:flex;align-items:center;justify-content:center;color:var(--p);font-size:13px;flex-shrink:0"><i class="fas ${icons[r.type]||'fa-coins'}"></i></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:12px;font-weight:700;color:var(--ink2)">${typeLabel}</span>
+            <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${s.bg};color:${s.clr}">${s.lbl}</span>
+          </div>
+          <div style="font-size:11px;color:var(--g500);margin-top:2px">${r.note||'—'}</div>
+          <div style="font-size:10px;color:var(--g400);margin-top:2px">${dateStr}${r.sgtCredited?` · <b style="color:var(--p)">+${r.sgtCredited.toLocaleString('id-ID')} SGT dikreditkan</b>`:''}</div>
+          ${r.adminNote?`<div style="font-size:10px;color:var(--r);margin-top:3px">📝 Admin: ${r.adminNote}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Gagal memuat</div>'; }
+}
+
 async function loadSGT(uid) {
   const ico = document.getElementById('sgtRefIco');
   if (ico) ico.classList.add('fa-spin');
@@ -992,6 +1071,7 @@ async function loadSGT(uid) {
     }
 
     await loadWdHistory(uid);
+    await loadEarnRequests(uid);
   } catch(e) {
     console.error('loadSGT:', e);
     setEl('sgtBal', 'Error');
