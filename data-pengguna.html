@@ -390,10 +390,10 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 
 <script>
 // Firebase auth & db sudah tersedia via auth.js
-db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+// enablePersistence sudah dipanggil di auth.js — jangan panggil lagi di sini
 
-let dataSantri=[], dataUstadz=[], dataWali=[];
-let editingId = null;
+var dataSantri=[], dataUstadz=[], dataWali=[];
+var editingId = null;
 
 // ════ AUTH GUARD ════
 // ════ TOKEN HELPER ════

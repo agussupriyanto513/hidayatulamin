@@ -1218,7 +1218,27 @@ async function doDistribute() {
     renderAllocGrid(); renderDistLog();
     showToast('success','SGT Terkirim!',`${amount.toLocaleString()} SGT dikirim ke ${userData.displayName||target}`);
   } catch(e) {
-    showToast('error','Gagal',e.message||'Gagal mendistribusikan SGT');
+    if (e.code === 'permission-denied') {
+      showToast('error','Permission Denied','Firestore Rules belum mengizinkan admin update sgtBalance. Lihat console untuk panduan rules.');
+      console.error('%c[SGT Fix] Tambahkan rule ini di Firestore Console → Rules:', 'color:orange;font-weight:bold');
+      console.info(`
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /sgt_transactions/{doc} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}`);
+    } else {
+      showToast('error','Gagal',e.message||'Gagal mendistribusikan SGT');
+    }
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-coins"></i> Distribusikan SGT'; }
   }
