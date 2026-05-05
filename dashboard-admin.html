@@ -1897,17 +1897,29 @@ function openEarnApprove(id) {
 }
 
 async function confirmEarnApprove(id) {
-  const r       = earnAllData.find(x => x.id === id);
+  const r      = earnAllData.find(x => x.id === id);
   if (!r) return;
-  const sgtAmt  = parseInt(document.getElementById('earnSgtAmount')?.value || '0');
-  const note    = document.getElementById('earnAdminNote')?.value?.trim() || '';
+  const sgtAmt = parseInt(document.getElementById('earnSgtAmount')?.value || '0');
+  const note   = document.getElementById('earnAdminNote')?.value?.trim() || '';
   if (!sgtAmt || sgtAmt <= 0) { showToast('warn','Jumlah SGT','Masukkan jumlah SGT yang valid'); return; }
 
+  // Disable tombol agar tidak double-submit
+  const btn = document.querySelector('#earnApproveFt .btn-p');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...'; }
+
   try {
+    // Force refresh token admin dulu — ini kunci utama mencegah permission-denied
     await ensureFreshToken();
+
+    const sgtRef = db.collection('sgt').doc(r.uid);
+
+    // Step 1: Baca wallet dulu SEBELUM batch (read di luar batch, write di dalam)
+    const sgtDoc = await sgtRef.get();
+
+    // Step 2: Jalankan semua write dalam satu batch
     const batch = db.batch();
 
-    // 1. Update doc pengajuan
+    // 2a. Update status pengajuan reward
     batch.update(db.collection('sgt_earn_requests').doc(id), {
       status:      'approved',
       sgtCredited: sgtAmt,
@@ -1916,19 +1928,26 @@ async function confirmEarnApprove(id) {
       approvedBy:  currentAdminUid || 'admin',
     });
 
-    // 2. Kreditkan SGT ke wallet user
-    const sgtRef = db.collection('sgt').doc(r.uid);
-    const sgtDoc = await sgtRef.get();
+    // 2b. Kreditkan SGT ke wallet user
+    const txEntry = {
+      amount: sgtAmt,
+      note:   `Reward ${EARN_TYPE_LABEL[r.type]||r.type} — disetujui admin`,
+      date:   new Date().toISOString()
+    };
     if (sgtDoc.exists) {
       const cur = sgtDoc.data();
-      const txs = cur.transactions || [];
-      txs.push({ amount: sgtAmt, note: `Reward ${EARN_TYPE_LABEL[r.type]||r.type} — disetujui admin`, date: new Date().toISOString() });
-      batch.update(sgtRef, { balance: (cur.balance||0) + sgtAmt, transactions: txs });
+      const txs = Array.isArray(cur.transactions) ? [...cur.transactions] : [];
+      txs.push(txEntry);
+      batch.update(sgtRef, {
+        balance:      (cur.balance || 0) + sgtAmt,
+        transactions: txs,
+      });
     } else {
       batch.set(sgtRef, {
-        uid: r.uid, balance: sgtAmt,
-        transactions: [{ amount: sgtAmt, note: `Reward ${EARN_TYPE_LABEL[r.type]||r.type}`, date: new Date().toISOString() }],
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        uid:          r.uid,
+        balance:      sgtAmt,
+        transactions: [txEntry],
+        createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
       });
     }
 
@@ -1940,9 +1959,11 @@ async function confirmEarnApprove(id) {
 
     closeEarnModal();
     renderEarnRequests(); updateEarnStats(); updateEarnBadge();
-    showToast('success','✅ SGT Dikreditkan',`${sgtAmt.toLocaleString()} SGT berhasil dikirim ke wallet ${r.userName||'user'}`);
+    showToast('success','✅ SGT Dikreditkan',`${sgtAmt.toLocaleString('id-ID')} SGT berhasil dikirim ke wallet ${r.userName||'user'}`);
   } catch(e) {
+    console.error('confirmEarnApprove:', e);
     showToast('error','Gagal', e.message);
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-coins"></i> Kreditkan SGT'; }
   }
 }
 
