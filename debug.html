@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debug — Hidayatullah Amin</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="auth.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:monospace;background:#0d1117;color:#e6edf3;padding:20px;font-size:13px}
+  h1{color:#58a6ff;margin-bottom:16px;font-size:18px}
+  h2{color:#79c0ff;margin:20px 0 8px;font-size:14px;border-bottom:1px solid #30363d;padding-bottom:4px}
+  .card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}
+  .ok  {color:#3fb950}
+  .err {color:#f85149}
+  .warn{color:#d29922}
+  .info{color:#58a6ff}
+  .tag {display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;margin:2px}
+  .tag.admin  {background:#1d3557;color:#79c0ff}
+  .tag.santri {background:#1a3228;color:#3fb950}
+  .tag.ustadz {background:#2d1f63;color:#a5a0fa}
+  .tag.wali   {background:#3a2400;color:#d29922}
+  pre{white-space:pre-wrap;word-break:break-all;color:#8b949e;font-size:11px;margin-top:4px}
+  button{background:#238636;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:13px;margin:4px}
+  button:hover{background:#2ea043}
+  button.red{background:#da3633}
+  button.red:hover{background:#f85149}
+  button.blue{background:#1f6feb}
+  button.blue:hover{background:#388bfd}
+  input{background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:13px;width:260px;margin:4px}
+  #log{max-height:400px;overflow-y:auto}
+  .log-entry{padding:4px 0;border-bottom:1px solid #21262d}
+</style>
+</head>
+<body>
+<h1>🔧 Debug Panel — Hidayatullah Amin</h1>
+
+<div class="card">
+  <h2>🔐 Status Auth</h2>
+  <div id="authStatus">Memeriksa...</div>
+</div>
+
+<div class="card">
+  <h2>💾 LocalStorage Session</h2>
+  <div id="lsStatus">—</div>
+</div>
+
+<div class="card">
+  <h2>🗄️ Koleksi Firestore: users</h2>
+  <button onclick="loadUsers()">Load Semua User</button>
+  <button class="blue" onclick="loadCollection('santri')">Koleksi santri</button>
+  <button class="blue" onclick="loadCollection('admins')">Koleksi admins</button>
+  <div id="usersResult" style="margin-top:12px"></div>
+</div>
+
+<div class="card">
+  <h2>✍️ Tulis Dokumen Test</h2>
+  <p style="color:#8b949e;margin-bottom:8px">Jika write berhasil → Firestore Rules OK. Jika gagal → Rules perlu diperbaiki.</p>
+  <button class="blue" onclick="testWrite()">Test Write ke Firestore</button>
+  <div id="writeResult" style="margin-top:8px"></div>
+</div>
+
+<div class="card">
+  <h2>🔑 Login Test</h2>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+    <input id="testEmail" placeholder="email@test.com" type="email">
+    <input id="testPass"  placeholder="password" type="password">
+    <button onclick="testLogin()">Login</button>
+    <button class="red" onclick="testLogout()">Logout</button>
+  </div>
+  <div id="loginResult" style="margin-top:8px"></div>
+</div>
+
+<div class="card">
+  <h2>📋 Log</h2>
+  <button class="red" onclick="document.getElementById('log').innerHTML=''">Clear</button>
+  <div id="log" style="margin-top:8px"></div>
+</div>
+
+<div class="card">
+  <h2>📝 Firestore Rules yang Diperlukan</h2>
+  <p style="color:#8b949e;margin-bottom:8px">Salin rules ini ke <a href="https://console.firebase.google.com/project/hidayatulamin-e6f22/firestore/rules" target="_blank" style="color:#58a6ff">Firebase Console → Firestore → Rules</a></p>
+  <pre style="background:#0d1117;padding:12px;border-radius:6px;border:1px solid #30363d">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User yang login bisa baca/tulis dokumennya sendiri
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Admin bisa baca semua user
+      allow read: if request.auth != null 
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow write: if request.auth != null 
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    // Koleksi role-spesifik
+    match /admins/{userId}   { allow read, write: if request.auth != null; }
+    match /ustadz/{userId}   { allow read, write: if request.auth != null; }
+    match /santri/{userId}   { allow read, write: if request.auth != null; }
+    match /wali_santri/{userId} { allow read, write: if request.auth != null; }
+  }
+}</pre>
+  <p style="color:#d29922;margin-top:8px">⚡ ATAU untuk development cepat (kurang aman):</p>
+  <pre style="background:#0d1117;padding:12px;border-radius:6px;border:1px solid #30363d">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</pre>
+</div>
+
+<script>
+function log(msg, type='info') {
+  const el = document.getElementById('log');
+  const cls = {ok:'ok', err:'err', warn:'warn', info:'info'}[type] || 'info';
+  const ts  = new Date().toLocaleTimeString('id-ID');
+  el.innerHTML = `<div class="log-entry"><span class="${cls}">[${ts}] ${msg}</span></div>` + el.innerHTML;
+}
+
+// Auth status
+auth.onAuthStateChanged(user => {
+  const el = document.getElementById('authStatus');
+  if (user) {
+    el.innerHTML = `<span class="ok">✅ Login sebagai: <b>${user.email}</b> (uid: <code>${user.uid}</code>)</span>`;
+    log('Auth: user login — ' + user.email, 'ok');
+    checkUserDoc(user.uid);
+  } else {
+    el.innerHTML = `<span class="err">❌ Tidak ada user yang login</span>`;
+    log('Auth: tidak ada user', 'warn');
+  }
+});
+
+// localStorage
+function checkLS() {
+  const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+  const el  = document.getElementById('lsStatus');
+  if (raw) {
+    try {
+      const sess = JSON.parse(raw);
+      const age  = Math.round((Date.now() - (sess.ts||0)) / 60000);
+      el.innerHTML = `<span class="ok">✅ Session ada</span><pre>${JSON.stringify(sess, null, 2)}\n\nUsia: ${age} menit</pre>`;
+    } catch(e) {
+      el.innerHTML = `<span class="err">❌ Session rusak: ${raw}</span>`;
+    }
+  } else {
+    el.innerHTML = `<span class="warn">⚠️ Tidak ada session di localStorage</span>`;
+  }
+}
+checkLS();
+
+// Cek dokumen user di Firestore
+async function checkUserDoc(uid) {
+  try {
+    const snap = await db.collection('users').doc(uid).get();
+    if (snap.exists) {
+      log('Firestore users/' + uid + ' → ' + JSON.stringify(snap.data()), 'ok');
+    } else {
+      log('Firestore users/' + uid + ' → TIDAK ADA dokumen! Ini masalahnya.', 'err');
+    }
+  } catch(e) {
+    log('Firestore users/' + uid + ' → ERROR: ' + e.code + ' — ' + e.message, 'err');
+    if (e.code === 'permission-denied') {
+      log('⚠️ FIRESTORE RULES MEMBLOKIR! Perbaiki rules di Firebase Console.', 'err');
+    }
+  }
+}
+
+async function loadUsers() {
+  const el = document.getElementById('usersResult');
+  el.innerHTML = '<span class="info">Loading...</span>';
+  try {
+    const snap = await db.collection('users').get();
+    if (snap.empty) {
+      el.innerHTML = '<span class="warn">⚠️ Koleksi users kosong atau tidak bisa dibaca</span>';
+      log('users: kosong', 'warn');
+      return;
+    }
+    const rows = snap.docs.map(d => {
+      const data = d.data();
+      return `<div style="padding:8px 0;border-bottom:1px solid #21262d">
+        <span class="tag ${data.role||'info'}">${data.role||'no-role'}</span>
+        <b>${data.displayName || data.email || d.id}</b>
+        <span style="color:#8b949e;font-size:11px"> — uid: ${d.id}</span>
+        <pre>${JSON.stringify(data, null, 2)}</pre>
+      </div>`;
+    });
+    el.innerHTML = `<span class="ok">✅ ${snap.size} user ditemukan</span>${rows.join('')}`;
+    log('users: ' + snap.size + ' dokumen ditemukan', 'ok');
+  } catch(e) {
+    el.innerHTML = `<span class="err">❌ Error: ${e.code} — ${e.message}</span>`;
+    log('users error: ' + e.code + ' — ' + e.message, 'err');
+  }
+}
+
+async function loadCollection(col) {
+  const el = document.getElementById('usersResult');
+  el.innerHTML = '<span class="info">Loading koleksi ' + col + '...</span>';
+  try {
+    const snap = await db.collection(col).get();
+    if (snap.empty) {
+      el.innerHTML = `<span class="warn">⚠️ Koleksi "${col}" kosong</span>`;
+      log(col + ': kosong', 'warn');
+      return;
+    }
+    const rows = snap.docs.map(d => `<div style="padding:8px 0;border-bottom:1px solid #21262d">
+      <b>${d.id}</b><pre>${JSON.stringify(d.data(), null, 2)}</pre></div>`);
+    el.innerHTML = `<span class="ok">✅ ${snap.size} dokumen di "${col}"</span>${rows.join('')}`;
+    log(col + ': ' + snap.size + ' dokumen', 'ok');
+  } catch(e) {
+    el.innerHTML = `<span class="err">❌ Error: ${e.code} — ${e.message}</span>`;
+    log(col + ' error: ' + e.code, 'err');
+  }
+}
+
+async function testWrite() {
+  const el = document.getElementById('writeResult');
+  const user = auth.currentUser;
+  if (!user) { el.innerHTML = '<span class="err">❌ Harus login dulu</span>'; return; }
+  try {
+    await db.collection('_debug_test').doc(user.uid).set({
+      ts: firebase.firestore.FieldValue.serverTimestamp(),
+      by: user.email
+    });
+    el.innerHTML = '<span class="ok">✅ Write berhasil! Firestore Rules OK.</span>';
+    log('Write test: berhasil', 'ok');
+    // Cleanup
+    await db.collection('_debug_test').doc(user.uid).delete().catch(()=>{});
+  } catch(e) {
+    el.innerHTML = `<span class="err">❌ Write gagal: ${e.code} — ${e.message}<br>
+      Perbaiki Firestore Rules di Firebase Console!</span>`;
+    log('Write test gagal: ' + e.code, 'err');
+  }
+}
+
+async function testLogin() {
+  const email = document.getElementById('testEmail').value.trim();
+  const pass  = document.getElementById('testPass').value;
+  const el    = document.getElementById('loginResult');
+  if (!email || !pass) { el.innerHTML = '<span class="warn">⚠️ Isi email dan password</span>'; return; }
+  el.innerHTML = '<span class="info">Login...</span>';
+  try {
+    const cred = await auth.signInWithEmailAndPassword(email, pass);
+    el.innerHTML = `<span class="ok">✅ Login berhasil! uid: ${cred.user.uid}</span>`;
+    log('Login berhasil: ' + email, 'ok');
+    checkLS();
+  } catch(e) {
+    el.innerHTML = `<span class="err">❌ Login gagal: ${e.code}</span>`;
+    log('Login gagal: ' + e.code, 'err');
+  }
+}
+
+async function testLogout() {
+  await auth.signOut();
+  localStorage.removeItem('currentUser');
+  sessionStorage.removeItem('currentUser');
+  document.getElementById('loginResult').innerHTML = '<span class="ok">✅ Logout berhasil</span>';
+  document.getElementById('authStatus').innerHTML = '<span class="err">❌ Tidak ada user</span>';
+  checkLS();
+  log('Logout', 'warn');
+}
+</script>
+</body>
+</html>

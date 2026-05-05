@@ -500,9 +500,9 @@ function updateDate() {
 // ════ LOAD DATA ════
 async function loadAll() {
   const [snap1, snap2, snap3] = await Promise.all([
-    db.collection('users').where('role','==','santri').orderBy('createdAt','desc').get().catch(()=>null),
-    db.collection('users').where('role','==','ustadz').orderBy('createdAt','desc').get().catch(()=>null),
-    db.collection('users').where('role','==','wali').orderBy('createdAt','desc').get().catch(()=>null),
+    db.collection('users').where('role','==','santri').get().catch(()=>null),
+    db.collection('users').where('role','==','ustadz').get().catch(()=>null),
+    db.collection('users').where('role','==','wali').get().catch(()=>null),
   ]);
   dataSantri = snap1 ? snap1.docs.map(d=>({id:d.id,...d.data()})) : [];
   dataUstadz = snap2 ? snap2.docs.map(d=>({id:d.id,...d.data()})) : [];

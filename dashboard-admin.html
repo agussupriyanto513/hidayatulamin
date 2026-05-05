@@ -686,7 +686,7 @@ async function loadDashboardData() {
     animNum('statUstadz', ustadzSnap.size);
 
     // Load recent users for welcome screen
-    const recentSnap = await db.collection('users').orderBy('createdAt','desc').limit(5).get();
+    const recentSnap = await db.collection('users').limit(10).get();
     allUsers = recentSnap.docs.map(d => ({id:d.id,...d.data()}));
   } catch(e) { console.error('loadData:', e); }
   initChart();
@@ -698,7 +698,7 @@ async function loadAllUsers() {
   document.getElementById('usersTable').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr>';
   try {
     await ensureFreshToken();
-    const snap = await db.collection('users').orderBy('createdAt','desc').get();
+    const snap = await db.collection('users').get();
     allUsers = snap.docs.map(d => ({id:d.id,...d.data()}));
     renderUsersTable(allUsers);
   } catch(e) { showToast('error','Gagal','Gagal memuat data user: ' + e.message); }

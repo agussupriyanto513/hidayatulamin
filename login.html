@@ -1084,9 +1084,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
     if (rem) localStorage.setItem('rememberedEmail', email);
     else     localStorage.removeItem('rememberedEmail');
 
-    saveSession(uid, activeRole, 'email');
-    // Simpan juga ke localStorage sebagai backup
-    localStorage.setItem('currentUser', JSON.stringify({ uid, role: activeRole, authMethod: 'email', ts: Date.now() }));
+    saveSession(uid, activeRole, 'email', cred.user.email);
     goTo(activeRole);
 
   } catch(err) {
@@ -1168,50 +1166,41 @@ async function checkSession() {
 async function verifyRole(uid, role) {
   const cfg = ROLES[role];
 
-  // 1. Cek koleksi users (dokumen milik user sendiri)
   try {
     const doc = await db.collection('users').doc(uid).get();
     if (doc.exists) {
       const d = doc.data();
-      if (d.role === role) return { ok: true };
-      if (d.role && d.role !== role) {
-        return { ok: false, msg: `Akun ini terdaftar sebagai ${ROLES[d.role]?.label||d.role}. Pilih role yang benar.` };
+      if (!d.role) {
+        // Dokumen ada tapi tanpa field role → update dengan role yang dipilih
+        await db.collection('users').doc(uid).update({ role, lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
+        return { ok: true };
       }
-      // Dokumen ada tapi belum ada field role → izinkan masuk, role akan di-set nanti
-      return { ok: true };
+      if (d.role === role || d.role === 'admin') return { ok: true };
+      return { ok: false, msg: `Akun ini terdaftar sebagai "${ROLES[d.role]?.label||d.role}". Pilih role yang benar.` };
     }
-    // Dokumen belum ada → user baru, buat dokumen dulu
+
+    // Dokumen belum ada → buat baru dengan role yang dipilih
     await db.collection('users').doc(uid).set({
-      uid,
-      role,
+      uid, role, isActive: true, authMethod: 'email',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      lastLogin:  firebase.firestore.FieldValue.serverTimestamp()
+      lastLogin: firebase.firestore.FieldValue.serverTimestamp()
     });
+    // Tulis juga ke koleksi role-spesifik
+    await db.collection(cfg.col).doc(uid).set({
+      uid, role, isActive: true, authMethod: 'email',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(()=>{});
     return { ok: true };
-  } catch(e) {
-    console.warn('users check:', e.message);
-    // Jika permission-denied, coba koleksi role-spesifik
-    if (e.code !== 'permission-denied' && e.code !== 'PERMISSION_DENIED') {
-      // Error lain (network, dll) — jangan blokir login
-      return { ok: true };
-    }
-  }
 
-  // 2. Fallback: cek koleksi role-spesifik
-  try {
-    const doc = await db.collection(cfg.col).doc(uid).get();
-    if (doc.exists) return { ok: true };
-    // Koleksi role juga tidak bisa dibaca → percayai Firebase Auth saja
+  } catch(e) {
+    console.warn('[verifyRole] error:', e.code, e.message);
+    // Apapun errornya (permission-denied, network, dll) → izinkan masuk
+    // Dashboard akan menangani verifikasi lanjutan
+    if (e.code === 'permission-denied') {
+      console.warn('⚠️ Firestore Rules memblokir. Buka debug.html untuk petunjuk perbaikan.');
+    }
     return { ok: true };
-  } catch(e) {
-    if (e.code === 'permission-denied' || e.code === 'PERMISSION_DENIED') {
-      // Kedua koleksi diblokir Rules → tetap izinkan masuk, Rules perlu diperbaiki di konsol
-      console.warn('⚠️ Firestore Rules memblokir verifikasi. Periksa rules di Firebase Console. Login dilanjutkan.');
-      return { ok: true };
-    }
   }
-
-  return { ok: false, msg: `Akun tidak terdaftar sebagai ${cfg.label}. Pilih role yang benar atau hubungi admin.` };
 }
 
 // ════════════════════════════════════════
@@ -1221,9 +1210,9 @@ function goTo(role) {
   window.location.href = ROLES[role].page;
 }
 
-function saveSession(uid, role, method) {
+function saveSession(uid, role, method, email) {
   // Gunakan localStorage agar sesi bertahan saat redirect antar halaman
-  const session = JSON.stringify({ uid, role, authMethod: method, ts: Date.now() });
+  const session = JSON.stringify({ uid, role, email: email||'', authMethod: method, ts: Date.now() });
   localStorage.setItem('currentUser', session);
   sessionStorage.setItem('currentUser', session); // backup fallback
 }
