@@ -592,12 +592,29 @@ async function ensureFreshToken() {
 let dashboardReady     = false;
 let currentUidVerified = null;
 
-function bootDashboard(user, data) {
+async function bootDashboard(user, data) {
   if (dashboardReady) return;
   dashboardReady = true; currentUidVerified = user.uid;
+  currentUid = user.uid;
+
+  // Selalu fetch data santri langsung dari Firestore berdasarkan uid login
+  // agar tidak tergantung pada 'data' dari HA yang bisa null saat boot dari cache
+  let firestoreData = data || {};
+  try {
+    const snap = await db.collection('users').doc(user.uid).get();
+    if (snap.exists) firestoreData = snap.data();
+  } catch(e) {
+    console.warn('[santri] Gagal fetch data user:', e.message);
+  }
+
+  // Merge: DEMO_DATA hanya sebagai fallback nilai numerik, nama selalu dari Firestore
+  santriData = {
+    ...DEMO_DATA,
+    ...firestoreData,
+    nama: firestoreData.nama || firestoreData.displayName || user.displayName || user.email || 'Santri',
+  };
+
   document.body.style.visibility = '';
-  currentUid  = user.uid;
-  santriData  = {...DEMO_DATA, ...(data||{})};
   initSantri();
 }
 
