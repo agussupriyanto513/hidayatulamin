@@ -537,128 +537,123 @@ const SGT_ALLOC_DEFAULT = {
 };
 
 // ════ AUTH GUARD ════
+// currentAdminUid: uid admin yang sudah terverifikasi di sesi ini
+// Dipakai untuk membedakan "user null karena logout" vs "user null karena token refresh sementara"
+let currentAdminUid = null;
+let dashboardReady  = false;
+
+function bootDashboard(user, name) {
+  if (dashboardReady) return; // jangan load ulang jika sudah siap
+  dashboardReady = true;
+  currentAdminUid = user.uid;
+  document.body.style.visibility = '';
+  setEl('greetName', name);
+  setEl('uName', name);
+  setEl('uAvatar', (name[0] || 'A').toUpperCase());
+  loadDashboardData();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   updateDate();
   initNotif();
-
-  // Tampilkan loading state sementara auth belum siap
   document.body.style.visibility = 'hidden';
 
   if (typeof HA !== 'undefined') {
     HA.requireAuth('admin', (user, data) => {
-      document.body.style.visibility = '';
       const name = data?.namaLengkap || data?.name || data?.displayName || user.email;
-      setEl('greetName', name);
-      setEl('uName', name);
-      setEl('uAvatar', name[0]?.toUpperCase() || 'A');
-      loadDashboardData();
+      bootDashboard(user, name);
     });
-  } else {
-    // Beri waktu Firebase Auth restore session dari IndexedDB persistence
-    // (enablePersistence bersifat async dan onAuthStateChanged bisa terpanggil
-    //  sebelum session ter-restore jika tidak ada delay)
-    await new Promise(resolve => setTimeout(resolve, 500));
+    return;
+  }
 
-    let authHandled = false;
+  // Tunggu Firebase Auth restore session dari IndexedDB (async persistence)
+  await new Promise(resolve => setTimeout(resolve, 600));
 
-    auth.onAuthStateChanged(async user => {
-      // Pastikan handler ini hanya dieksekusi sekali untuk menghindari race condition
-      if (authHandled) return;
+  auth.onAuthStateChanged(async user => {
+    // ── Kasus 1: user ada ──────────────────────────────────────────
+    if (user) {
+      // Kalau dashboard sudah di-boot sebelumnya (token refresh normal), abaikan saja
+      if (dashboardReady && user.uid === currentAdminUid) return;
 
-      if (!user) {
-        // Cek apakah ada session di localStorage sebelum redirect
-        // (bisa terjadi race condition: auth belum restore tapi session sudah ada)
-        const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-        if (raw) {
-          try {
-            const sess = JSON.parse(raw);
-            const age = Date.now() - (sess.ts || 0);
-            const maxAge = 8 * 60 * 60 * 1000;
-            // Session masih valid → tunggu sebentar lagi, mungkin auth sedang restore
-            if (sess.role === 'admin' && age < maxAge) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              // Jika setelah wait masih tidak ada user, barulah redirect
-              if (!auth.currentUser) {
-                authHandled = true;
-                localStorage.removeItem('currentUser');
-                sessionStorage.removeItem('currentUser');
-                document.body.style.visibility = '';
-                window.location.href = 'login.html';
-              }
-              return;
-            }
-          } catch(e) { /* session rusak */ }
-        }
-        authHandled = true;
-        document.body.style.visibility = '';
-        window.location.href = 'login.html';
-        return;
-      }
-
-      authHandled = true;
-
-      // Cek session localStorage (lebih andal dari sessionStorage)
+      // Cek session localStorage dulu — hindari round-trip Firestore yang tidak perlu
       const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
       if (raw) {
         try {
           const sess = JSON.parse(raw);
-          const age = Date.now() - (sess.ts || 0);
-          const maxAge = 8 * 60 * 60 * 1000;
-          if (sess.role === 'admin' && sess.uid === user.uid && age < maxAge) {
-            // Session valid → langsung load tanpa query Firestore
-            document.body.style.visibility = '';
-            const name = user.displayName || user.email;
-            setEl('greetName', name);
-            setEl('uName', name);
-            setEl('uAvatar', (name[0]||'A').toUpperCase());
-            loadDashboardData();
+          const age  = Date.now() - (sess.ts || 0);
+          const MAX  = 8 * 60 * 60 * 1000; // 8 jam
+          if (sess.role === 'admin' && sess.uid === user.uid && age < MAX) {
+            bootDashboard(user, user.displayName || user.email);
             return;
           }
-        } catch(e) { /* session rusak, lanjut ke verifikasi Firestore */ }
+        } catch(e) { /* session rusak, lanjut ke Firestore */ }
       }
 
       // Verifikasi via Firestore
       try {
         const doc = await db.collection('users').doc(user.uid).get();
-        if (!doc.exists || doc.data().role !== 'admin') {
+        if (doc.exists && doc.data().role === 'admin') {
+          const d = doc.data();
+          const name = d.displayName || d.namaLengkap || user.email;
+          localStorage.setItem('currentUser', JSON.stringify({
+            uid: user.uid, role: 'admin',
+            authMethod: d.authMethod || 'email', ts: Date.now()
+          }));
+          bootDashboard(user, name);
+        } else {
+          // Bukan admin → logout dan balik ke login
           await auth.signOut();
           localStorage.removeItem('currentUser');
           sessionStorage.removeItem('currentUser');
           document.body.style.visibility = '';
           window.location.href = 'login.html';
-          return;
         }
-        const d = doc.data();
-        const name = d.displayName || d.namaLengkap || user.email;
-        // Perbarui session dengan data terbaru
-        localStorage.setItem('currentUser', JSON.stringify({ uid: user.uid, role: 'admin', authMethod: d.authMethod || 'email', ts: Date.now() }));
-        document.body.style.visibility = '';
-        setEl('greetName', name);
-        setEl('uName', name);
-        setEl('uAvatar', (name[0]||'A').toUpperCase());
-        loadDashboardData();
       } catch(e) {
-        if (e.code === 'permission-denied' || e.code === 'PERMISSION_DENIED') {
-          console.warn('⚠️ Firestore Rules: permission-denied saat verifikasi admin. Pastikan rules sudah diupdate.');
-          document.body.style.visibility = '';
-          const name = user.displayName || user.email;
-          setEl('greetName', name);
-          setEl('uName', name);
-          setEl('uAvatar', (name[0]||'A').toUpperCase());
-          loadDashboardData();
-        } else {
-          // Error network / lainnya → jangan redirect, tampilkan saja
-          console.error('Auth guard error:', e);
-          document.body.style.visibility = '';
-          const name = user.displayName || user.email;
-          setEl('greetName', name);
-          setEl('uName', name);
-          setEl('uAvatar', (name[0]||'A').toUpperCase());
-          loadDashboardData();
-        }
+        // permission-denied atau network error → jangan redirect,
+        // percayai Firebase Auth yang sudah valid
+        console.warn('Firestore verify error:', e.code, e.message);
+        bootDashboard(user, user.displayName || user.email);
       }
-    });
-  }
+      return;
+    }
+
+    // ── Kasus 2: user null ────────────────────────────────────────
+    // Bisa terjadi karena:
+    //   a) Token refresh sesaat (false null) — ditangani dengan re-check
+    //   b) createUser dengan secondary app lalu secondaryAuth.signOut()
+    //      → TIDAK boleh redirect, karena main app admin masih login
+    //   c) Logout sungguhan
+
+    // Jika dashboard sudah ready, ini kemungkinan false-null dari secondary app sign-out
+    // atau token refresh → tunggu sebentar lalu re-check
+    if (dashboardReady) {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      if (auth.currentUser) return; // auth sudah kembali, abaikan
+      // Masih null setelah wait → logout sungguhan
+    } else {
+      // Dashboard belum ready tapi user null → cek apakah session masih ada
+      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+      if (raw) {
+        try {
+          const sess = JSON.parse(raw);
+          const age  = Date.now() - (sess.ts || 0);
+          if (sess.role === 'admin' && age < 8 * 60 * 60 * 1000) {
+            // Session masih valid → mungkin Firebase Auth masih restore, tunggu lebih lama
+            await new Promise(resolve => setTimeout(resolve, 1200));
+            if (auth.currentUser) return; // Auth sudah restore
+          }
+        } catch(e) { /* lanjut redirect */ }
+      }
+    }
+
+    // Benar-benar tidak ada user → bersihkan dan redirect
+    if (!auth.currentUser) {
+      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('currentUser');
+      document.body.style.visibility = '';
+      window.location.href = 'login.html';
+    }
+  });
 });
 
 // ════ SECTION SWITCH ════
@@ -674,6 +669,16 @@ function switchSection(name, el) {
 }
 
 // ════ LOAD DATA ════
+// ════ TOKEN HELPER ════
+// Force-refresh ID token sebelum operasi Firestore yang sensitif
+// Mencegah error "permission-denied" akibat token expired
+async function ensureFreshToken() {
+  try {
+    const user = auth.currentUser;
+    if (user) await user.getIdToken(true);
+  } catch(e) { console.warn('Token refresh failed:', e.message); }
+}
+
 async function loadDashboardData() {
   try {
     const [santriSnap, ustadzSnap] = await Promise.all([
@@ -695,10 +700,11 @@ async function loadDashboardData() {
 async function loadAllUsers() {
   document.getElementById('usersTable').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr>';
   try {
+    await ensureFreshToken();
     const snap = await db.collection('users').orderBy('createdAt','desc').get();
     allUsers = snap.docs.map(d => ({id:d.id,...d.data()}));
     renderUsersTable(allUsers);
-  } catch(e) { showToast('error','Gagal','Gagal memuat data user'); }
+  } catch(e) { showToast('error','Gagal','Gagal memuat data user: ' + e.message); }
 }
 
 // ════ USERS TABLE ════
@@ -748,6 +754,7 @@ window.toggleUser = async (uid, isActive) => {
   const active = isActive === 'true';
   if (!confirm(`${active?'Nonaktifkan':'Aktifkan'} user ini?`)) return;
   try {
+    await ensureFreshToken();
     await db.collection('users').doc(uid).update({isActive: !active});
     showToast('success','Berhasil',`User berhasil ${active?'dinonaktifkan':'diaktifkan'}`);
     loadAllUsers();
@@ -775,25 +782,32 @@ async function createUser() {
   document.getElementById('createBtn').disabled = true;
 
   try {
-    // Simpan session admin saat ini sebelum apapun
+    // Simpan uid admin saat ini — dipakai untuk proteksi auth guard
     const adminUser = auth.currentUser;
-    const adminEmail = adminUser?.email;
-    const adminUid   = adminUser?.uid;
+    const adminUid  = adminUser?.uid;
+    if (!adminUid) { showToast('error','Sesi Berakhir','Silakan login ulang'); return; }
 
-    // Buat akun baru menggunakan Firebase Admin REST API
-    // agar sesi admin tidak tergantikan
-    // Pendekatan: gunakan secondary auth app instance
+    // Gunakan secondary app instance agar sesi admin utama tidak tergantikan
     const secondaryApp = firebase.apps.find(a => a.name === '__secondary__') ||
       firebase.initializeApp(firebase.app().options, '__secondary__');
     const secondaryAuth = secondaryApp.auth();
+
+    // Set flag agar auth guard TIDAK redirect selama secondary sign-out
+    const prevAdminUid = currentAdminUid;
+    dashboardReady = true; // pastikan flag tetap true
 
     const cred = await secondaryAuth.createUserWithEmailAndPassword(email, pass);
     const uid  = cred.user.uid;
 
     if (verif) await cred.user.sendEmailVerification().catch(()=>{});
     await cred.user.updateProfile({ displayName: name }).catch(()=>{});
-    // Logout dari secondary app segera
+
+    // Sign out secondary — ini bisa trigger onAuthStateChanged di main app sesaat
+    // Auth guard sudah aman karena dashboardReady = true dan kita cek auth.currentUser
     await secondaryAuth.signOut();
+
+    // Pastikan main auth masih valid
+    currentAdminUid = prevAdminUid;
 
     const payload = {
       uid, displayName: name, email, role, isActive: true,
@@ -808,6 +822,9 @@ async function createUser() {
     batch.set(db.collection('users').doc(uid), payload);
     const colMap = {admin:'admins',ustadz:'ustadz',santri:'santri',wali:'wali_santri'};
     batch.set(db.collection(colMap[role]).doc(uid), payload);
+
+    // Pastikan token admin masih fresh sebelum write ke Firestore
+    await ensureFreshToken();
     await batch.commit();
 
     showToast('success','User Dibuat!',`${name} berhasil ditambahkan sebagai ${role}`);
