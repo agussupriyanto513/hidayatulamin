@@ -368,6 +368,7 @@ tr:hover td{background:var(--g50)}
     <span class="sb-sect-lbl">Ekosistem</span>
     <a class="nav-item" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)" onclick="switchSection('sgt',this)"><span style="font-size:14px;font-weight:900;color:#d97706;width:16px;text-align:center">₴</span><span style="color:#d97706;font-weight:700">Kelola SGT</span></a>
     <a class="nav-item" id="navPencairan" onclick="switchSection('pencairan',this)"><i class="fas fa-hand-holding-usd" style="color:#d97706"></i><span style="color:#d97706;font-weight:700">Pencairan SGT</span><span class="nav-badge" id="pendingBadge" style="display:none;background:#f59e0b">0</span></a>
+    <a class="nav-item" id="navEarnReq" onclick="switchSection('earnreq',this)"><i class="fas fa-paper-plane" style="color:#8b5cf6"></i><span style="color:#8b5cf6;font-weight:700">Pengajuan Reward</span><span class="nav-badge" id="earnBadge" style="display:none;background:#8b5cf6">0</span></a>
     <a href="https://sagatama-mart.vercel.app" target="_blank" class="nav-item" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)"><i class="fas fa-shopping-bag" style="color:var(--acc)"></i><span style="color:var(--acc);font-weight:700">Sagatama Mart</span><i class="fas fa-external-link-alt" style="font-size:9px;color:var(--acc);margin-left:auto"></i></a>
   </nav>
   <div class="sb-foot">
@@ -621,6 +622,91 @@ tr:hover td{background:var(--g50)}
         </div>
       </div>
     </div><!-- /pencairan -->
+    <!-- ════ PENGAJUAN REWARD SGT SECTION ════ -->
+    <div class="section" id="sec-earnreq">
+      <div class="sec-hd">
+        <div><h3>Pengajuan Reward SGT</h3><p>Review dan setujui / tolak pengajuan reward dari Ustadz & Wali</p></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-p" style="background:linear-gradient(135deg,#5b21b6,#7c3aed)" onclick="loadEarnRequests()">
+            <i class="fas fa-sync-alt" id="earnRefIco"></i> Refresh
+          </button>
+          <span id="earnLastUpdate" style="font-size:11px;color:var(--g400)"></span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="wd-stats">
+        <div class="wd-stat pending"><div class="wd-stat-val" id="earnStatPending">—</div><div class="wd-stat-lbl">⏳ Menunggu Review</div></div>
+        <div class="wd-stat approved"><div class="wd-stat-val" id="earnStatApproved">—</div><div class="wd-stat-lbl">✅ Disetujui</div></div>
+        <div class="wd-stat rejected"><div class="wd-stat-val" id="earnStatRejected">—</div><div class="wd-stat-lbl">❌ Ditolak</div></div>
+        <div class="wd-stat total"><div class="wd-stat-val" id="earnStatSgt">—</div><div class="wd-stat-lbl">💰 SGT Dikreditkan</div></div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="wd-filter-bar">
+        <button class="wd-fb active" id="ernfAll"  onclick="earnFilter('all')">Semua</button>
+        <button class="wd-fb pend"   id="ernfPend" onclick="earnFilter('pending')">⏳ Menunggu</button>
+        <button class="wd-fb appr"   id="ernfAppr" onclick="earnFilter('approved')">✅ Disetujui</button>
+        <button class="wd-fb reje"   id="ernfReje" onclick="earnFilter('rejected')">❌ Ditolak</button>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+          <select id="earnRoleFilter" onchange="renderEarnRequests()" style="padding:6px 10px;border:1.5px solid var(--g200);border-radius:20px;font-size:11px;font-family:inherit;font-weight:700">
+            <option value="">Semua Role</option>
+            <option value="ustadz">Ustadz</option>
+            <option value="wali">Wali</option>
+          </select>
+          <select id="earnTypeFilter" onchange="renderEarnRequests()" style="padding:6px 10px;border:1.5px solid var(--g200);border-radius:20px;font-size:11px;font-family:inherit;font-weight:700">
+            <option value="">Semua Jenis</option>
+            <option value="absensi">Absensi</option>
+            <option value="hafalan">Hafalan</option>
+            <option value="performa">Performa</option>
+            <option value="spp">SPP/Cashback</option>
+            <option value="referral">Referral</option>
+            <option value="donasi">Donasi</option>
+            <option value="kegiatan">Kegiatan</option>
+            <option value="bonus">Bonus</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Daftar Pengajuan Reward</h4><p id="earnTableSub">Memuat data...</p></div>
+          <div class="search-box"><i class="fas fa-search"></i><input type="text" id="earnSearch" placeholder="Cari nama..." oninput="renderEarnRequests()"></div>
+        </div>
+        <div class="wd-table-wrap">
+          <table class="wd-table">
+            <thead><tr><th>Nama</th><th>Role</th><th>Jenis</th><th>Keterangan</th><th>Tanggal</th><th>Status</th><th>SGT</th><th>Aksi</th></tr></thead>
+            <tbody id="earnTableBody"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /earnreq -->
+
+    <!-- MODAL APPROVE REWARD -->
+    <div class="modal-bg" id="earnApproveModal" onclick="if(event.target===this)closeEarnModal()">
+      <div class="modal" style="max-width:460px">
+        <div class="modal-hd">
+          <h3><i class="fas fa-coins" style="color:#8b5cf6;margin-right:8px"></i>Setujui & Kreditkan SGT</h3>
+          <button class="modal-close" onclick="closeEarnModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="earnApproveBody"></div>
+        <div class="modal-ft" id="earnApproveFt"></div>
+      </div>
+    </div>
+
+    <!-- MODAL REJECT REWARD -->
+    <div class="modal-bg" id="earnRejectModal" onclick="if(event.target===this)closeEarnRejectModal()">
+      <div class="modal" style="max-width:460px">
+        <div class="modal-hd">
+          <h3><i class="fas fa-times-circle" style="color:var(--r);margin-right:8px"></i>Tolak Pengajuan Reward</h3>
+          <button class="modal-close" onclick="closeEarnRejectModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="earnRejectBody"></div>
+        <div class="modal-ft" id="earnRejectFt"></div>
+      </div>
+    </div>
+
 
     <!-- MODAL DETAIL PENCAIRAN -->
     <div class="modal-bg" id="wdDetailModal" onclick="closeWdModal(event)">
@@ -864,6 +950,10 @@ async function loadDashboardData() {
   initChart();
   renderAllocGrid();
   loadMartStats();
+  // Load badge count pengajuan reward pending
+  db.collection('sgt_earn_requests').where('status','==','pending').get()
+    .then(s=>{ earnAllData = s.docs.map(d=>({id:d.id,...d.data()})); updateEarnBadge(); })
+    .catch(()=>{});
 }
 
 async function loadAllUsers() {
@@ -1209,9 +1299,10 @@ let wdFilter_    = 'all';
 const _origSwitchSection = switchSection;
 switchSection = function(name, el) {
   _origSwitchSection(name, el);
-  const titles = {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token',pencairan:'Pencairan SGT'};
+  const titles = {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token',pencairan:'Pencairan SGT',earnreq:'Pengajuan Reward SGT'};
   setEl('pgTitle', titles[name] || 'Dashboard');
   if (name === 'pencairan') { loadFonnteConfig(); loadWithdrawals(); }
+  if (name === 'earnreq') { loadEarnRequests(); }
 };
 
 // ── Load dari Firestore koleksi `withdrawals` ──
@@ -1651,6 +1742,280 @@ if (window.innerWidth <= 900) {
   document.getElementById('sidebar').classList.remove('hidden-mobile');
   document.getElementById('sbOverlay').classList.remove('show');
 }
+// ════ PENGAJUAN REWARD SGT ════
+let earnAllData  = [];
+let earnFilter_  = 'all';
+
+const EARN_TYPE_LABEL = {
+  absensi:'Absensi Mengajar', hafalan:'Input Hafalan', performa:'Performa Santri',
+  spp:'SPP/Cashback', referral:'Referral', donasi:'Donasi', kegiatan:'Kegiatan', bonus:'Bonus Admin'
+};
+const EARN_TYPE_ICON = {
+  absensi:'fa-qrcode', hafalan:'fa-book-open', performa:'fa-star',
+  spp:'fa-credit-card', referral:'fa-users', donasi:'fa-hand-holding-heart',
+  kegiatan:'fa-calendar-check', bonus:'fa-gift'
+};
+const EARN_DEFAULT_SGT = {
+  absensi:50, hafalan:25, performa:200, spp:100, referral:500, donasi:200, kegiatan:150, bonus:100
+};
+
+async function loadEarnRequests() {
+  const ico = document.getElementById('earnRefIco');
+  if (ico) ico.classList.add('fa-spin');
+  try {
+    await ensureFreshToken();
+    const snap = await db.collection('sgt_earn_requests').orderBy('createdAt','desc').limit(300).get();
+    earnAllData = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderEarnRequests();
+    updateEarnStats();
+    updateEarnBadge();
+    setEl('earnLastUpdate', 'Update: ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
+  } catch(e) {
+    console.error('loadEarnRequests:', e);
+    showToast('error','Gagal Memuat','Tidak bisa load pengajuan reward: ' + e.message);
+  } finally {
+    if (ico) ico.classList.remove('fa-spin');
+  }
+}
+
+function renderEarnRequests() {
+  const q       = (document.getElementById('earnSearch')?.value || '').toLowerCase();
+  const roleF   = document.getElementById('earnRoleFilter')?.value || '';
+  const typeF   = document.getElementById('earnTypeFilter')?.value || '';
+  const tbody   = document.getElementById('earnTableBody');
+  if (!tbody) return;
+
+  let data = earnAllData.filter(r => {
+    const matchStatus = earnFilter_ === 'all' || r.status === earnFilter_;
+    const matchRole   = !roleF || r.role === roleF;
+    const matchType   = !typeF || r.type === typeF;
+    const matchQ      = !q || (r.userName||'').toLowerCase().includes(q);
+    return matchStatus && matchRole && matchType && matchQ;
+  });
+
+  setEl('earnTableSub', `${data.length} pengajuan`);
+
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-inbox" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>Tidak ada pengajuan</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(r => {
+    const isPending  = r.status === 'pending';
+    const isApproved = r.status === 'approved';
+    const dateStr    = r.createdAt?.toDate
+      ? r.createdAt.toDate().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})
+      : (r.date || '—');
+    const roleBadge  = r.role === 'ustadz'
+      ? `<span style="background:#eaf1fe;color:#2d7ef5;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">Ustadz</span>`
+      : `<span style="background:#fef3c7;color:#d97706;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">Wali</span>`;
+    const typeLabel  = EARN_TYPE_LABEL[r.type] || r.type;
+    const typeIcon   = EARN_TYPE_ICON[r.type] || 'fa-coins';
+    const statusBadge = isPending
+      ? `<span class="badge-pending"><i class="fas fa-clock" style="font-size:9px"></i> Menunggu</span>`
+      : isApproved
+        ? `<span class="badge-approved"><i class="fas fa-check" style="font-size:9px"></i> Disetujui</span>`
+        : `<span class="badge-rejected"><i class="fas fa-times" style="font-size:9px"></i> Ditolak</span>`;
+    const sgtCell    = isApproved && r.sgtCredited
+      ? `<span style="font-weight:800;color:#d97706">+${r.sgtCredited.toLocaleString('id-ID')} SGT</span>`
+      : `<span style="color:var(--g400)">—</span>`;
+    const actBtns    = isPending
+      ? `<button class="wd-act-btn approve" onclick="openEarnApprove('${r.id}')"><i class="fas fa-check"></i> Setujui</button>
+         <button class="wd-act-btn reject"  onclick="openEarnReject('${r.id}')"><i class="fas fa-times"></i> Tolak</button>`
+      : `<button class="wd-act-btn view"   onclick="openEarnDetail('${r.id}')"><i class="fas fa-eye"></i> Detail</button>`;
+    return `<tr class="${isPending?'row-pending':''}">
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--acl);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--acc);flex-shrink:0">${(r.userName||'U')[0]}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--ink2)">${escHtml(r.userName||'—')}</div>
+      </div></td>
+      <td>${roleBadge}</td>
+      <td><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--acc)"><i class="fas ${typeIcon}"></i> ${typeLabel}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--g500)" title="${escHtml(r.note||'')}">${escHtml(r.note||'—')}</td>
+      <td style="font-size:11px;color:var(--g500)">${dateStr}</td>
+      <td>${statusBadge}</td>
+      <td>${sgtCell}</td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">${actBtns}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateEarnStats() {
+  const pending  = earnAllData.filter(r => r.status === 'pending').length;
+  const approved = earnAllData.filter(r => r.status === 'approved').length;
+  const rejected = earnAllData.filter(r => r.status === 'rejected').length;
+  const totalSgt = earnAllData.filter(r => r.status === 'approved').reduce((s,r) => s + (r.sgtCredited||0), 0);
+  setEl('earnStatPending',  pending.toString());
+  setEl('earnStatApproved', approved.toString());
+  setEl('earnStatRejected', rejected.toString());
+  setEl('earnStatSgt',      fmtSGT(totalSgt) + ' SGT');
+}
+
+function updateEarnBadge() {
+  const pending = earnAllData.filter(r => r.status === 'pending').length;
+  const badge = document.getElementById('earnBadge');
+  if (!badge) return;
+  if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline-flex'; }
+  else badge.style.display = 'none';
+}
+
+function earnFilter(f) {
+  earnFilter_ = f;
+  ['All','Pend','Appr','Reje'].forEach(k => document.getElementById('ernf'+k)?.classList.remove('active'));
+  const map = {all:'All',pending:'Pend',approved:'Appr',rejected:'Reje'};
+  document.getElementById('ernf'+(map[f]||'All'))?.classList.add('active');
+  renderEarnRequests();
+}
+
+// ── Open Approve Modal ──
+function openEarnApprove(id) {
+  const r = earnAllData.find(x => x.id === id);
+  if (!r) return;
+  const defSgt = EARN_DEFAULT_SGT[r.type] || 100;
+  const typeLabel = EARN_TYPE_LABEL[r.type] || r.type;
+  document.getElementById('earnApproveBody').innerHTML = `
+    <div style="background:var(--acl);border:1.5px solid rgba(139,92,246,.2);border-radius:10px;padding:14px;margin-bottom:16px">
+      <p style="font-size:12px;font-weight:700;color:var(--acc);margin-bottom:6px"><i class="fas fa-user"></i> ${escHtml(r.userName||'—')}
+        <span style="font-size:10px;background:#fff;padding:2px 8px;border-radius:20px;margin-left:6px">${r.role}</span>
+      </p>
+      <p style="font-size:12px;color:var(--g600);margin-bottom:4px"><b>Jenis:</b> ${typeLabel}</p>
+      <p style="font-size:12px;color:var(--g600);margin-bottom:4px"><b>Tanggal Kegiatan:</b> ${r.date||'—'}</p>
+      <p style="font-size:12px;color:var(--g600)"><b>Keterangan:</b> ${escHtml(r.note||'—')}</p>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px">JUMLAH SGT YANG DIKREDITKAN</label>
+      <input type="number" id="earnSgtAmount" value="${defSgt}" min="1" style="width:100%;padding:10px 12px;border:1.5px solid var(--acc);border-radius:var(--rdm);font-size:16px;font-weight:800;color:#d97706;font-family:inherit">
+      <p style="font-size:10px;color:var(--g400);margin-top:4px">Default reward untuk jenis ini: <b>${defSgt} SGT</b>. Ubah jika perlu.</p>
+    </div>
+    <div>
+      <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px">CATATAN ADMIN (opsional)</label>
+      <input type="text" id="earnAdminNote" placeholder="Misal: Sudah diverifikasi absensi kelas A..." style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit">
+    </div>`;
+  document.getElementById('earnApproveFt').innerHTML = `
+    <button class="btn-sec" onclick="closeEarnModal()">Batal</button>
+    <button class="btn-p" style="background:linear-gradient(135deg,#5b21b6,#7c3aed)" onclick="confirmEarnApprove('${id}')"><i class="fas fa-coins"></i> Kreditkan SGT</button>`;
+  document.getElementById('earnApproveModal').classList.add('open');
+}
+
+async function confirmEarnApprove(id) {
+  const r       = earnAllData.find(x => x.id === id);
+  if (!r) return;
+  const sgtAmt  = parseInt(document.getElementById('earnSgtAmount')?.value || '0');
+  const note    = document.getElementById('earnAdminNote')?.value?.trim() || '';
+  if (!sgtAmt || sgtAmt <= 0) { showToast('warn','Jumlah SGT','Masukkan jumlah SGT yang valid'); return; }
+
+  try {
+    await ensureFreshToken();
+    const batch = db.batch();
+
+    // 1. Update doc pengajuan
+    batch.update(db.collection('sgt_earn_requests').doc(id), {
+      status:      'approved',
+      sgtCredited: sgtAmt,
+      adminNote:   note,
+      approvedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      approvedBy:  currentAdminUid || 'admin',
+    });
+
+    // 2. Kreditkan SGT ke wallet user
+    const sgtRef = db.collection('sgt').doc(r.uid);
+    const sgtDoc = await sgtRef.get();
+    if (sgtDoc.exists) {
+      const cur = sgtDoc.data();
+      const txs = cur.transactions || [];
+      txs.push({ amount: sgtAmt, note: `Reward ${EARN_TYPE_LABEL[r.type]||r.type} — disetujui admin`, date: new Date().toISOString() });
+      batch.update(sgtRef, { balance: (cur.balance||0) + sgtAmt, transactions: txs });
+    } else {
+      batch.set(sgtRef, {
+        uid: r.uid, balance: sgtAmt,
+        transactions: [{ amount: sgtAmt, note: `Reward ${EARN_TYPE_LABEL[r.type]||r.type}`, date: new Date().toISOString() }],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    await batch.commit();
+
+    // Update local state
+    const local = earnAllData.find(x => x.id === id);
+    if (local) { local.status = 'approved'; local.sgtCredited = sgtAmt; local.adminNote = note; }
+
+    closeEarnModal();
+    renderEarnRequests(); updateEarnStats(); updateEarnBadge();
+    showToast('success','✅ SGT Dikreditkan',`${sgtAmt.toLocaleString()} SGT berhasil dikirim ke wallet ${r.userName||'user'}`);
+  } catch(e) {
+    showToast('error','Gagal', e.message);
+  }
+}
+
+// ── Open Reject Modal ──
+function openEarnReject(id) {
+  const r = earnAllData.find(x => x.id === id);
+  if (!r) return;
+  const typeLabel = EARN_TYPE_LABEL[r.type] || r.type;
+  document.getElementById('earnRejectBody').innerHTML = `
+    <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:14px;margin-bottom:16px">
+      <p style="font-size:13px;font-weight:700;color:#c2410c;margin-bottom:4px"><i class="fas fa-exclamation-triangle"></i> Tolak Pengajuan Reward</p>
+      <p style="font-size:12px;color:#92400e">Dari: <b>${escHtml(r.userName||'—')}</b> (${r.role}) — ${typeLabel}</p>
+    </div>
+    <div>
+      <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px">ALASAN PENOLAKAN *</label>
+      <textarea id="earnRejectReason" class="reject-reason" rows="3" placeholder="Contoh: Bukti tidak lengkap, kegiatan tidak sesuai, duplikasi pengajuan, dll..."></textarea>
+    </div>`;
+  document.getElementById('earnRejectFt').innerHTML = `
+    <button class="btn-sec" onclick="closeEarnRejectModal()">Batal</button>
+    <button class="btn-p" style="background:linear-gradient(135deg,var(--r),#dc2626)" onclick="confirmEarnReject('${id}')"><i class="fas fa-times-circle"></i> Konfirmasi Tolak</button>`;
+  document.getElementById('earnRejectModal').classList.add('open');
+}
+
+async function confirmEarnReject(id) {
+  const reason = document.getElementById('earnRejectReason')?.value?.trim();
+  if (!reason) { showToast('warn','Isi Alasan','Masukkan alasan penolakan'); return; }
+  const r = earnAllData.find(x => x.id === id);
+  if (!r) return;
+  try {
+    await ensureFreshToken();
+    await db.collection('sgt_earn_requests').doc(id).update({
+      status:     'rejected',
+      adminNote:  reason,
+      rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      rejectedBy: currentAdminUid || 'admin',
+    });
+    const local = earnAllData.find(x => x.id === id);
+    if (local) { local.status = 'rejected'; local.adminNote = reason; }
+    closeEarnRejectModal();
+    renderEarnRequests(); updateEarnStats(); updateEarnBadge();
+    showToast('success','Ditolak','Pengajuan reward berhasil ditolak');
+  } catch(e) {
+    showToast('error','Gagal', e.message);
+  }
+}
+
+// ── Detail view ──
+function openEarnDetail(id) {
+  const r = earnAllData.find(x => x.id === id);
+  if (!r) return;
+  const typeLabel = EARN_TYPE_LABEL[r.type] || r.type;
+  const isApproved = r.status === 'approved';
+  const statusHtml = isApproved
+    ? `<span class="badge-approved"><i class="fas fa-check" style="font-size:9px"></i> Disetujui — +${(r.sgtCredited||0).toLocaleString('id-ID')} SGT</span>`
+    : `<span class="badge-rejected"><i class="fas fa-times" style="font-size:9px"></i> Ditolak${r.adminNote?' — '+escHtml(r.adminNote):''}</span>`;
+  document.getElementById('earnApproveBody').innerHTML = `
+    <div style="background:var(--g50);border-radius:10px;padding:14px">
+      ${[
+        ['Nama',        r.userName||'—'],
+        ['Role',        r.role||'—'],
+        ['Jenis Reward',typeLabel],
+        ['Tanggal',     r.date||'—'],
+        ['Keterangan',  r.note||'—'],
+        ['Status',      statusHtml, true],
+      ].map(([l,v,raw])=>`<div class="wd-detail-row"><span class="wd-detail-lbl">${l}</span><span class="wd-detail-val">${raw?v:escHtml(v)}</span></div>`).join('')}
+    </div>`;
+  document.getElementById('earnApproveFt').innerHTML = `<button class="btn-sec" onclick="closeEarnModal()">Tutup</button>`;
+  document.getElementById('earnApproveModal').classList.add('open');
+}
+
+function closeEarnModal()       { document.getElementById('earnApproveModal').classList.remove('open'); }
+function closeEarnRejectModal() { document.getElementById('earnRejectModal').classList.remove('open'); }
+
 </script>
 </body>
 </html>
