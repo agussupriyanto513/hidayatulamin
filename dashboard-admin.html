@@ -349,7 +349,7 @@ tr:hover td{background:var(--g50)}
 <aside class="sidebar hidden-mobile" id="sidebar">
   <div class="sb-head">
     <div class="sb-logo"><i class="fas fa-mosque"></i></div>
-    <div class="sb-brand"><h1>Hidayatullah</h1><p>Admin Panel</p></div>
+    <div class="sb-brand"><h1>Hidayatulamin</h1><p>Admin Panel</p></div>
   </div>
   <nav class="sb-nav">
     <span class="sb-sect-lbl">Menu Utama</span>
@@ -670,6 +670,26 @@ tr:hover td{background:var(--g50)}
 // ════ FIREBASE ════
 // Firebase auth & db sudah tersedia via auth.js
 // (enablePersistence sudah dipanggil di auth.js — tidak perlu dipanggil lagi)
+
+// ════ HELPER ════
+/**
+ * setEl(id, value)
+ * Jika value adalah string/number → set textContent elemen #id
+ * Jika value adalah object        → set textContent per key: {key: val} → el.querySelector('[data-key]') atau getElementById
+ */
+function setEl(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (typeof value === 'object' && value !== null) {
+    // object: {key: val} — isi inner element dengan data-key atau id
+    Object.entries(value).forEach(([k, v]) => {
+      const child = el.querySelector('[data-key="' + k + '"]') || document.getElementById(k);
+      if (child) child.textContent = v;
+    });
+  } else {
+    el.textContent = value ?? '';
+  }
+}
 
 // ════ STATE ════
 let allUsers = [];
