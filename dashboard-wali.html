@@ -519,7 +519,7 @@ tr:hover td{background:var(--g50)}
 <script>
 // ════ FIREBASE ════
 // Firebase auth & db sudah tersedia via auth.js
-db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+// enablePersistence sudah dipanggil di auth.js — tidak perlu dipanggil lagi
 
 // ════ STATE ════
 let currentUid=null, waliData=null, santriList=[];
