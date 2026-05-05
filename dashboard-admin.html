@@ -250,8 +250,79 @@ tr:hover td{background:var(--g50)}
 .sec-hd h3{font-size:18px;font-weight:700;color:var(--ink2)}
 .sec-hd p{font-size:12px;color:var(--g500)}
 
+/* ═══ PENCAIRAN / WITHDRAWAL ═══ */
+.wd-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.wd-stat{background:var(--white);border-radius:var(--rdm);padding:14px;border:1px solid var(--g100);box-shadow:var(--sh-sm);position:relative;overflow:hidden}
+.wd-stat::after{content:'';position:absolute;left:0;top:0;width:3px;height:100%}
+.wd-stat.pending::after{background:#f59e0b}
+.wd-stat.approved::after{background:#0db87a}
+.wd-stat.rejected::after{background:#ef4444}
+.wd-stat.total::after{background:#8b5cf6}
+.wd-stat-val{font-size:22px;font-weight:800;color:var(--ink2);margin-bottom:2px}
+.wd-stat-lbl{font-size:11px;color:var(--g500);font-weight:600}
+
+.wd-filter-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.wd-fb{padding:6px 14px;border:1.5px solid var(--g200);border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;color:var(--g600);background:var(--white);font-family:inherit;transition:all .2s}
+.wd-fb.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.wd-fb.pend{}.wd-fb.pend.active{background:#f59e0b;border-color:#f59e0b}
+.wd-fb.appr.active{background:var(--p);border-color:var(--p)}
+.wd-fb.reje.active{background:var(--r);border-color:var(--r)}
+
+.wd-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.wd-table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.wd-table thead{background:var(--g50)}
+.wd-table th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);white-space:nowrap}
+.wd-table td{padding:10px 14px;border-top:1px solid var(--g100);color:var(--g600);vertical-align:middle}
+.wd-table tr:hover td{background:var(--g50)}
+.wd-table tr.row-pending td{background:#fffbeb}
+.wd-table tr.row-pending:hover td{background:#fef3c7}
+
+.badge-pending{background:#fef3c7;color:#d97706;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.badge-approved{background:#e6f9f2;color:#059669;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.badge-rejected{background:#fee2e2;color:#ef4444;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.badge-idr{background:#e6f9f2;color:#0db87a;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.badge-pi{background:#eef2ff;color:#6366f1;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+
+.wd-act-btn{padding:5px 11px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;transition:all .2s}
+.wd-act-btn.approve{background:#e6f9f2;color:#059669}
+.wd-act-btn.approve:hover{background:#0db87a;color:#fff}
+.wd-act-btn.reject{background:#fee2e2;color:#ef4444}
+.wd-act-btn.reject:hover{background:#ef4444;color:#fff}
+.wd-act-btn.view{background:var(--bl);color:var(--b)}
+.wd-act-btn.view:hover{background:var(--b);color:#fff}
+.wd-act-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Fonnte config card */
+.fonnte-card{background:linear-gradient(135deg,#064e3b,#047857,#0db87a);border-radius:var(--rdm);padding:16px;margin-bottom:14px;color:#fff;position:relative;overflow:hidden}
+.fonnte-card::before{content:'WA';position:absolute;right:-10px;top:-10px;font-size:90px;font-weight:900;color:rgba(255,255,255,.04);pointer-events:none;line-height:1}
+.fonnte-field{margin-top:12px}
+.fonnte-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.6);display:block;margin-bottom:5px}
+.fonnte-field input{width:100%;padding:9px 12px;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rdm);font-size:13px;font-family:inherit;background:rgba(255,255,255,.1);color:#fff;transition:all .2s}
+.fonnte-field input::placeholder{color:rgba(255,255,255,.4)}
+.fonnte-field input:focus{outline:none;border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.15)}
+.fonnte-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.btn-wa{padding:10px 16px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:var(--rdm);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+.btn-wa:hover{background:rgba(255,255,255,.25)}
+.btn-wa.save{background:#fff;color:#047857}
+.btn-wa.save:hover{background:#f0fdf4}
+.wa-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;margin-top:8px}
+.wa-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3)}
+.wa-dot.on{background:#6ee7b7;box-shadow:0 0 0 3px rgba(110,231,183,.25)}
+
+/* Detail modal pencairan */
+.wd-detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--g100)}
+.wd-detail-row:last-child{border-bottom:none}
+.wd-detail-lbl{font-size:12px;color:var(--g500)}
+.wd-detail-val{font-size:13px;font-weight:700;color:var(--ink2)}
+.wd-detail-val.green{color:var(--p)}
+.wd-detail-val.gold{color:#d97706}
+.reject-reason{width:100%;padding:9px 12px;border:1.5px solid var(--r);border-radius:var(--rdm);font-size:13px;font-family:inherit;margin-top:6px;transition:all .2s;background:#fff9f9}
+.reject-reason:focus{outline:none;box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:900px){
+  .wd-stats{grid-template-columns:1fr 1fr}
+}
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
   .main{margin-left:0}
@@ -296,6 +367,7 @@ tr:hover td{background:var(--g50)}
     <a href="dashboard-wali.html" class="nav-item"><i class="fas fa-heart"></i><span>Portal Wali</span></a>
     <span class="sb-sect-lbl">Ekosistem</span>
     <a class="nav-item" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)" onclick="switchSection('sgt',this)"><span style="font-size:14px;font-weight:900;color:#d97706;width:16px;text-align:center">₴</span><span style="color:#d97706;font-weight:700">Kelola SGT</span></a>
+    <a class="nav-item" id="navPencairan" onclick="switchSection('pencairan',this)"><i class="fas fa-hand-holding-usd" style="color:#d97706"></i><span style="color:#d97706;font-weight:700">Pencairan SGT</span><span class="nav-badge" id="pendingBadge" style="display:none;background:#f59e0b">0</span></a>
     <a href="https://sagatama-mart.vercel.app" target="_blank" class="nav-item" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)"><i class="fas fa-shopping-bag" style="color:var(--acc)"></i><span style="color:var(--acc);font-weight:700">Sagatama Mart</span><i class="fas fa-external-link-alt" style="font-size:9px;color:var(--acc);margin-left:auto"></i></a>
   </nav>
   <div class="sb-foot">
@@ -480,7 +552,87 @@ tr:hover td{background:var(--g50)}
       </div>
     </div><!-- /sgt -->
 
-  </div><!-- /content -->
+    <!-- ════ PENCAIRAN SGT SECTION ════ -->
+    <div class="section" id="sec-pencairan">
+      <div class="sec-hd">
+        <div><h3>Pencairan SGT</h3><p>Permintaan pencairan SGT dari santri — approval diperlukan sebelum dana ditransfer</p></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-p" style="background:linear-gradient(135deg,#047857,#059669)" onclick="loadWithdrawals()"><i class="fas fa-sync-alt" id="wdRefreshIco"></i> Refresh</button>
+          <span id="wdLastUpdate" style="font-size:11px;color:var(--g400)"></span>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="wd-stats">
+        <div class="wd-stat pending"><div class="wd-stat-val" id="wdStatPending">—</div><div class="wd-stat-lbl">⏳ Menunggu Approval</div></div>
+        <div class="wd-stat approved"><div class="wd-stat-val" id="wdStatApproved">—</div><div class="wd-stat-lbl">✅ Disetujui</div></div>
+        <div class="wd-stat rejected"><div class="wd-stat-val" id="wdStatRejected">—</div><div class="wd-stat-lbl">❌ Ditolak</div></div>
+        <div class="wd-stat total"><div class="wd-stat-val" id="wdStatTotal">—</div><div class="wd-stat-lbl">📊 Total SGT Dicairkan</div></div>
+      </div>
+
+      <!-- FONNTE WA CONFIG -->
+      <div class="fonnte-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px">📱</div>
+            <div>
+              <p style="font-size:13px;font-weight:700;color:#fff">Notifikasi WhatsApp via Fonnte</p>
+              <p style="font-size:11px;color:rgba(255,255,255,.55)">Admin akan dapat notif WA saat ada permintaan pencairan baru</p>
+            </div>
+          </div>
+          <div class="wa-status"><div class="wa-dot" id="waDot"></div><span id="waStatusTxt" style="color:rgba(255,255,255,.7)">Belum dikonfigurasi</span></div>
+        </div>
+        <div class="fonnte-row">
+          <div class="fonnte-field"><label>Fonnte API Token</label><input type="password" id="fonnteToken" placeholder="Token dari dashboard.fonnte.com" autocomplete="off"></div>
+          <div class="fonnte-field"><label>No. WA Admin (dengan kode negara)</label><input type="tel" id="adminWaNum" placeholder="628xxxxxxxxxx"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn-wa save" onclick="saveFonnteConfig()"><i class="fas fa-save"></i> Simpan Konfigurasi</button>
+          <button class="btn-wa" onclick="testWaNotif()"><i class="fas fa-paper-plane"></i> Kirim Pesan Test</button>
+        </div>
+      </div>
+
+      <!-- FILTER -->
+      <div class="wd-filter-bar">
+        <button class="wd-fb active" id="wdfAll"  onclick="wdFilter('all')">Semua</button>
+        <button class="wd-fb pend"   id="wdfPend" onclick="wdFilter('pending')">⏳ Menunggu</button>
+        <button class="wd-fb appr"   id="wdfAppr" onclick="wdFilter('approved')">✅ Disetujui</button>
+        <button class="wd-fb reje"   id="wdfReje" onclick="wdFilter('rejected')">❌ Ditolak</button>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+          <select id="wdTypeFilter" onchange="renderWithdrawals()" style="padding:6px 10px;border:1.5px solid var(--g200);border-radius:20px;font-size:11px;font-family:inherit;font-weight:700">
+            <option value="">Semua Jenis</option>
+            <option value="sgt-idr">SGT → Rupiah</option>
+            <option value="sgt-pi">SGT → Pi</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Daftar Permintaan Pencairan</h4><p id="wdTableSub">Memuat data...</p></div>
+          <div class="search-box"><i class="fas fa-search"></i><input type="text" id="wdSearch" placeholder="Cari nama santri..." oninput="renderWithdrawals()"></div>
+        </div>
+        <div class="wd-table-wrap">
+          <table class="wd-table">
+            <thead><tr><th>Santri</th><th>Jenis</th><th>SGT</th><th>Hasil</th><th>Tujuan</th><th>Waktu</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="wdTableBody"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /pencairan -->
+
+    <!-- MODAL DETAIL PENCAIRAN -->
+    <div class="modal-bg" id="wdDetailModal" onclick="closeWdModal(event)">
+      <div class="modal" style="max-width:480px">
+        <div class="modal-hd">
+          <h3><i class="fas fa-hand-holding-usd" style="color:#d97706;margin-right:8px"></i>Detail Pencairan</h3>
+          <button class="modal-close" onclick="closeWdDetailModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="wdDetailBody"></div>
+        <div class="modal-ft" id="wdDetailFt"></div>
+      </div>
+    </div>
 </div><!-- /main -->
 
 <!-- MODAL BUAT USER -->
@@ -1014,8 +1166,430 @@ function showToast(type, title, msg) {
   setTimeout(()=>{ div.classList.remove('show'); setTimeout(()=>div.remove(),500); },4000);
 }
 
-// ════ HELPERS ════
-function setEl(id, val) { const el = document.getElementById(id); if(el) el.textContent = val; }
+// ════ PENCAIRAN SGT ════
+const WD_SGT_PER_PI  = 500;
+const WD_IDR_PER_SGT = 100;
+let wdAllData    = [];   // semua withdrawal dari Firestore
+let wdFilter_    = 'all';
+
+// ── Patch switchSection agar handle 'pencairan' ──
+const _origSwitchSection = switchSection;
+switchSection = function(name, el) {
+  _origSwitchSection(name, el);
+  const titles = {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token',pencairan:'Pencairan SGT'};
+  setEl('pgTitle', titles[name] || 'Dashboard');
+  if (name === 'pencairan') { loadFonnteConfig(); loadWithdrawals(); }
+};
+
+// ── Load dari Firestore koleksi `withdrawals` ──
+async function loadWithdrawals() {
+  const ico = document.getElementById('wdRefreshIco');
+  if (ico) { ico.classList.add('fa-spin'); }
+  try {
+    await ensureFreshToken();
+    const snap = await db.collection('withdrawals').orderBy('createdAt','desc').limit(200).get();
+    wdAllData = snap.docs.map(d => ({id: d.id, ...d.data()}));
+
+    // Juga cek dari walletHistory di tiap user jika koleksi `withdrawals` masih kosong
+    if (!wdAllData.length) {
+      const usersSnap = await db.collection('users').where('role','==','santri').limit(100).get();
+      const temp = [];
+      usersSnap.forEach(doc => {
+        const d = doc.data();
+        const hist = d.walletHistory || [];
+        hist.forEach(tx => {
+          if (tx.type === 'sgt-idr' || tx.type === 'sgt-pi') {
+            temp.push({
+              id: tx.id || ('WX'+Math.random()),
+              uid: doc.id,
+              santriName: d.displayName || d.nama || 'Santri',
+              santriNis: d.nis || '—',
+              ...tx,
+              status: tx.status || 'pending',
+              createdAt: tx.date ? new firebase.firestore.Timestamp(Math.floor(new Date(tx.date).getTime()/1000),0) : null,
+            });
+          }
+        });
+      });
+      wdAllData = temp.sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+    }
+
+    renderWithdrawals();
+    updateWdStats();
+    updatePendingBadge();
+    setEl('wdLastUpdate', 'Update: ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
+  } catch(e) {
+    console.error('loadWithdrawals:', e);
+    showToast('error','Gagal Memuat','Tidak bisa load data pencairan: ' + e.message);
+  } finally {
+    if (ico) ico.classList.remove('fa-spin');
+  }
+}
+
+function renderWithdrawals() {
+  const q      = (document.getElementById('wdSearch')?.value || '').toLowerCase();
+  const typeF  = document.getElementById('wdTypeFilter')?.value || '';
+  const tbody  = document.getElementById('wdTableBody');
+  if (!tbody) return;
+
+  let data = wdAllData.filter(w => {
+    const matchStatus = wdFilter_ === 'all' || w.status === wdFilter_;
+    const matchType   = !typeF || w.type === typeF;
+    const matchQ      = !q || (w.santriName||'').toLowerCase().includes(q) || (w.santriNis||'').toLowerCase().includes(q) || (w.dest||'').toLowerCase().includes(q);
+    return matchStatus && matchType && matchQ;
+  });
+
+  setEl('wdTableSub', `${data.length} permintaan`);
+
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-inbox" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>Tidak ada data</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(w => {
+    const isPending  = w.status === 'pending';
+    const isApproved = w.status === 'approved';
+    const isIdr      = w.type === 'sgt-idr';
+    const hasil      = isIdr
+      ? 'Rp ' + ((w.rpReceived||0).toLocaleString('id-ID'))
+      : ((w.piReceived||0).toFixed?.(4)||'0') + ' π';
+    const dateStr = w.createdAt?.toDate
+      ? w.createdAt.toDate().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+      : (w.dateStr || '—');
+    const statusBadge = isPending
+      ? `<span class="badge-pending"><i class="fas fa-clock" style="font-size:9px"></i> Menunggu</span>`
+      : isApproved
+        ? `<span class="badge-approved"><i class="fas fa-check" style="font-size:9px"></i> Disetujui</span>`
+        : `<span class="badge-rejected"><i class="fas fa-times" style="font-size:9px"></i> Ditolak</span>`;
+    const typeBadge = isIdr ? `<span class="badge-idr">Rupiah</span>` : `<span class="badge-pi">Pi</span>`;
+    const actBtns = isPending
+      ? `<button class="wd-act-btn approve" onclick="approveWd('${w.id}')"><i class="fas fa-check"></i> Setujui</button>
+         <button class="wd-act-btn reject"  onclick="openRejectModal('${w.id}')"><i class="fas fa-times"></i> Tolak</button>`
+      : `<button class="wd-act-btn view" onclick="openWdDetail('${w.id}')"><i class="fas fa-eye"></i> Detail</button>`;
+    return `<tr class="${isPending?'row-pending':''}">
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--acl);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--acc);flex-shrink:0">${(w.santriName||'S')[0]}</div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--ink2)">${w.santriName||'—'}</div><div style="font-size:10px;color:var(--g400)">${w.santriNis||w.uid?.slice(0,8)||'—'}</div></div>
+      </div></td>
+      <td>${typeBadge}</td>
+      <td style="font-weight:700;color:#d97706">${(w.sgtUsed||0).toLocaleString('id-ID')} SGT</td>
+      <td style="font-weight:700;color:var(--p)">${hasil}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${w.dest||''}">${w.dest||'—'}</td>
+      <td style="font-size:11px;color:var(--g500)">${dateStr}</td>
+      <td>${statusBadge}</td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">${actBtns}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateWdStats() {
+  const pending  = wdAllData.filter(w => w.status === 'pending').length;
+  const approved = wdAllData.filter(w => w.status === 'approved').length;
+  const rejected = wdAllData.filter(w => w.status === 'rejected').length;
+  const totalSgt = wdAllData.filter(w => w.status === 'approved').reduce((s,w) => s + (w.sgtUsed||0), 0);
+  setEl('wdStatPending',  pending.toString());
+  setEl('wdStatApproved', approved.toString());
+  setEl('wdStatRejected', rejected.toString());
+  setEl('wdStatTotal',    fmtSGT(totalSgt) + ' SGT');
+}
+
+function updatePendingBadge() {
+  const pending = wdAllData.filter(w => w.status === 'pending').length;
+  const badge = document.getElementById('pendingBadge');
+  if (!badge) return;
+  if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline-flex'; }
+  else badge.style.display = 'none';
+}
+
+function wdFilter(f) {
+  wdFilter_ = f;
+  ['All','Pend','Appr','Reje'].forEach(k => document.getElementById('wdf'+k)?.classList.remove('active'));
+  const map = {all:'All',pending:'Pend',approved:'Appr',rejected:'Reje'};
+  document.getElementById('wdf'+(map[f]||'All'))?.classList.add('active');
+  renderWithdrawals();
+}
+
+// ── Approve ──
+async function approveWd(wdId) {
+  const wd = wdAllData.find(w => w.id === wdId);
+  if (!wd) return;
+  const isIdr = wd.type === 'sgt-idr';
+  const hasil = isIdr
+    ? `Rp ${(wd.rpReceived||0).toLocaleString('id-ID')} ke ${wd.dest}`
+    : `${(wd.piReceived||0).toFixed?.(4)||0} π ke ${wd.dest}`;
+  if (!confirm(`Setujui pencairan ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}?\n\nPastikan transfer sudah atau akan segera dilakukan.`)) return;
+
+  try {
+    await ensureFreshToken();
+    const now = new Date();
+    const updateData = {
+      status: 'approved',
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      approvedBy: currentAdminUid || 'admin',
+    };
+
+    // Update koleksi withdrawals (jika ada)
+    try { await db.collection('withdrawals').doc(wdId).update(updateData); } catch(e) { /* mungkin tidak ada doc terpisah */ }
+
+    // Update walletHistory di dokumen user
+    if (wd.uid) {
+      try {
+        const userDoc = await db.collection('users').doc(wd.uid).get();
+        if (userDoc.exists) {
+          const hist = userDoc.data().walletHistory || [];
+          const idx = hist.findIndex(h => h.id === wdId || h.id === wd.id);
+          if (idx > -1) {
+            hist[idx] = {...hist[idx], status:'approved', approvedAt: now.toISOString(), approvedBy: currentAdminUid||'admin'};
+            await db.collection('users').doc(wd.uid).update({ walletHistory: hist });
+          }
+        }
+      } catch(e) { console.warn('update walletHistory:', e.message); }
+    }
+
+    // Update local
+    const local = wdAllData.find(w => w.id === wdId);
+    if (local) { local.status = 'approved'; local.approvedAt = now; }
+
+    // Kirim notif WA ke santri (jika punya nomor HP)
+    await sendWaToSantri(wd, 'approved');
+
+    renderWithdrawals(); updateWdStats(); updatePendingBadge();
+    showToast('success','✅ Disetujui',`Pencairan ${(wd.sgtUsed||0).toLocaleString()} SGT berhasil disetujui`);
+  } catch(e) {
+    showToast('error','Gagal', e.message);
+  }
+}
+
+// ── Open reject modal (inside detail modal) ──
+function openRejectModal(wdId) {
+  const wd = wdAllData.find(w => w.id === wdId);
+  if (!wd) return;
+  const isIdr = wd.type === 'sgt-idr';
+  const hasil = isIdr
+    ? `Rp ${(wd.rpReceived||0).toLocaleString('id-ID')}`
+    : `${(wd.piReceived||0).toFixed?.(4)||0} π`;
+
+  const body = document.getElementById('wdDetailBody');
+  const ft   = document.getElementById('wdDetailFt');
+  body.innerHTML = `
+    <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:14px;margin-bottom:16px">
+      <p style="font-size:13px;font-weight:700;color:#c2410c;margin-bottom:4px"><i class="fas fa-exclamation-triangle"></i> Tolak Permintaan Pencairan</p>
+      <p style="font-size:12px;color:#92400e">Dari: <strong>${wd.santriName||'Santri'}</strong> — ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}</p>
+    </div>
+    <div>
+      <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px">ALASAN PENOLAKAN *</label>
+      <textarea id="rejectReason" class="reject-reason" rows="3" placeholder="Contoh: Nomor rekening tidak valid, saldo tidak mencukupi, dll..."></textarea>
+    </div>
+    <p style="font-size:11px;color:var(--g400);margin-top:8px"><i class="fas fa-info-circle" style="color:var(--b)"></i> SGT santri akan dikembalikan setelah ditolak</p>`;
+  ft.innerHTML = `
+    <button class="btn-sec" onclick="closeWdDetailModal()">Batal</button>
+    <button class="btn-p" style="background:linear-gradient(135deg,var(--r),#dc2626)" onclick="confirmReject('${wdId}')"><i class="fas fa-times-circle"></i> Konfirmasi Tolak</button>`;
+  document.getElementById('wdDetailModal').classList.add('open');
+}
+
+async function confirmReject(wdId) {
+  const reason = document.getElementById('rejectReason')?.value.trim();
+  if (!reason) { showToast('warn','Isi Alasan','Masukkan alasan penolakan'); return; }
+  const wd = wdAllData.find(w => w.id === wdId);
+  if (!wd) return;
+
+  try {
+    await ensureFreshToken();
+    const now = new Date();
+    const updateData = {
+      status: 'rejected',
+      rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      rejectedBy: currentAdminUid || 'admin',
+      rejectReason: reason,
+    };
+
+    try { await db.collection('withdrawals').doc(wdId).update(updateData); } catch(e) {}
+
+    if (wd.uid) {
+      try {
+        const userDoc = await db.collection('users').doc(wd.uid).get();
+        if (userDoc.exists) {
+          const hist = userDoc.data().walletHistory || [];
+          const idx  = hist.findIndex(h => h.id === wdId || h.id === wd.id);
+          if (idx > -1) {
+            hist[idx] = {...hist[idx], status:'rejected', rejectedAt: now.toISOString(), rejectReason: reason, rejectedBy: currentAdminUid||'admin'};
+            await db.collection('users').doc(wd.uid).update({ walletHistory: hist });
+          }
+          // Kembalikan saldo SGT santri
+          const currentSgt = userDoc.data().sgt || 0;
+          await db.collection('users').doc(wd.uid).update({ sgt: currentSgt + (wd.sgtUsed||0) });
+        }
+      } catch(e) { console.warn('reject update user:', e.message); }
+    }
+
+    const local = wdAllData.find(w => w.id === wdId);
+    if (local) { local.status = 'rejected'; local.rejectedAt = now; local.rejectReason = reason; }
+
+    await sendWaToSantri(wd, 'rejected', reason);
+
+    closeWdDetailModal();
+    renderWithdrawals(); updateWdStats(); updatePendingBadge();
+    showToast('success','Ditolak','Pencairan ditolak & SGT santri dikembalikan');
+  } catch(e) {
+    showToast('error','Gagal', e.message);
+  }
+}
+
+// ── Detail view (read-only) ──
+function openWdDetail(wdId) {
+  const wd = wdAllData.find(w => w.id === wdId);
+  if (!wd) return;
+  const isIdr = wd.type === 'sgt-idr';
+  const hasil = isIdr
+    ? `Rp ${(wd.rpReceived||0).toLocaleString('id-ID')}`
+    : `${(wd.piReceived||0).toFixed?.(4)||0} π`;
+  const dateStr = wd.createdAt?.toDate
+    ? wd.createdAt.toDate().toLocaleString('id-ID')
+    : (wd.date ? new Date(wd.date).toLocaleString('id-ID') : '—');
+  const statusHtml = wd.status === 'approved'
+    ? `<span class="badge-approved"><i class="fas fa-check" style="font-size:9px"></i> Disetujui</span>`
+    : `<span class="badge-rejected"><i class="fas fa-times" style="font-size:9px"></i> Ditolak${wd.rejectReason?' — '+wd.rejectReason:''}</span>`;
+
+  const body = document.getElementById('wdDetailBody');
+  body.innerHTML = `
+    <div style="background:var(--g50);border-radius:10px;padding:14px;margin-bottom:14px">
+      ${[
+        ['Santri',      wd.santriName||'—'],
+        ['NIS',         wd.santriNis||wd.uid?.slice(0,8)||'—'],
+        ['Jenis',       isIdr?'SGT → Rupiah':'SGT → Pi'],
+        ['SGT Digunakan', (wd.sgtUsed||0).toLocaleString('id-ID') + ' SGT'],
+        ['Hasil',       hasil],
+        ['Tujuan',      wd.dest||'—'],
+        ['Waktu Submit',dateStr],
+        ['Status',      statusHtml, true],
+      ].map(([l,v,raw])=>`<div class="wd-detail-row"><span class="wd-detail-lbl">${l}</span><span class="wd-detail-val ${l==='Hasil'?'green':l.includes('SGT')?'gold':''}">${raw?v:escHtml(v)}</span></div>`).join('')}
+    </div>
+    ${wd.note?`<div style="background:var(--bl);border-radius:8px;padding:10px;font-size:12px;color:var(--b)"><i class="fas fa-sticky-note" style="margin-right:6px"></i>${escHtml(wd.note)}</div>`:''}`;
+  document.getElementById('wdDetailFt').innerHTML = `<button class="btn-sec" onclick="closeWdDetailModal()">Tutup</button>`;
+  document.getElementById('wdDetailModal').classList.add('open');
+}
+
+function closeWdDetailModal() { document.getElementById('wdDetailModal').classList.remove('open'); }
+function closeWdModal(e) { if(e.target.id==='wdDetailModal') closeWdDetailModal(); }
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Fonnte WA Config ──
+function saveFonnteConfig() {
+  const token = document.getElementById('fonnteToken').value.trim();
+  const num   = document.getElementById('adminWaNum').value.trim();
+  if (!token || !num) { showToast('warn','Lengkapi Data','Isi token dan nomor WA admin'); return; }
+  localStorage.setItem('fonnte_token', token);
+  localStorage.setItem('admin_wa_num', num);
+  updateWaStatus(true);
+  showToast('success','Tersimpan','Konfigurasi Fonnte berhasil disimpan');
+}
+
+function loadFonnteConfig() {
+  const token = localStorage.getItem('fonnte_token') || '';
+  const num   = localStorage.getItem('admin_wa_num') || '';
+  if (document.getElementById('fonnteToken')) document.getElementById('fonnteToken').value = token ? '••••••••••••' : '';
+  if (document.getElementById('adminWaNum'))  document.getElementById('adminWaNum').value  = num;
+  updateWaStatus(!!token && !!num);
+}
+
+function updateWaStatus(ok) {
+  const dot = document.getElementById('waDot');
+  const txt = document.getElementById('waStatusTxt');
+  if (dot) dot.className = 'wa-dot' + (ok?' on':'');
+  if (txt) txt.textContent = ok ? 'Terhubung — siap kirim notifikasi' : 'Belum dikonfigurasi';
+}
+
+async function testWaNotif() {
+  const token = localStorage.getItem('fonnte_token');
+  const num   = localStorage.getItem('admin_wa_num');
+  if (!token || !num) { showToast('warn','Belum Dikonfigurasi','Simpan token dan nomor WA terlebih dahulu'); return; }
+  await sendFonnteWA(num, `✅ *Test Notifikasi — Dashboard Admin*\n\nKonfigurasi Fonnte berhasil! Admin akan mendapat notifikasi WhatsApp setiap ada permintaan pencairan SGT dari santri.\n\n_Hidayatullah Amin System_`, token);
+}
+
+async function sendFonnteWA(target, message, tokenOverride) {
+  const token = tokenOverride || localStorage.getItem('fonnte_token');
+  if (!token || !target) return false;
+  try {
+    const resp = await fetch('https://api.fonnte.com/send', {
+      method: 'POST',
+      headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target, message, countryCode: '62' })
+    });
+    const data = await resp.json();
+    if (data.status) {
+      showToast('success','WA Terkirim','Notifikasi WhatsApp berhasil dikirim');
+      return true;
+    } else {
+      showToast('warn','WA Gagal', data.reason || 'Cek token Fonnte Anda');
+      return false;
+    }
+  } catch(e) {
+    showToast('warn','WA Offline','Tidak bisa kirim WA: ' + e.message);
+    return false;
+  }
+}
+
+// Kirim WA ke admin saat ada pencairan baru
+async function sendWaAdminNewRequest(wd) {
+  const adminNum = localStorage.getItem('admin_wa_num');
+  if (!adminNum) return;
+  const isIdr = wd.type === 'sgt-idr';
+  const hasil = isIdr
+    ? `Rp ${(wd.rpReceived||0).toLocaleString('id-ID')}`
+    : `${(wd.piReceived||0).toFixed?.(4)||0} π`;
+  const msg = `🔔 *Permintaan Pencairan SGT Baru*\n\n` +
+    `👤 Santri: ${wd.santriName||'—'}\n` +
+    `💰 SGT: ${(wd.sgtUsed||0).toLocaleString()} SGT\n` +
+    `🎯 Tujuan: ${isIdr?'Rupiah':'Pi Coin'}\n` +
+    `💵 Hasil: ${hasil}\n` +
+    `📍 Tujuan Transfer: ${wd.dest||'—'}\n` +
+    `🕐 Waktu: ${new Date().toLocaleString('id-ID')}\n\n` +
+    `Buka dashboard admin untuk approve/tolak.`;
+  await sendFonnteWA(adminNum, msg);
+}
+
+// Kirim WA ke santri setelah approve/reject (jika ada no HP di data)
+async function sendWaToSantri(wd, status, reason) {
+  if (!wd.uid) return;
+  try {
+    const userDoc = await db.collection('users').doc(wd.uid).get();
+    const phone = userDoc.data()?.phone || userDoc.data()?.phoneNumber || '';
+    if (!phone) return;
+    const isIdr = wd.type === 'sgt-idr';
+    const hasil = isIdr
+      ? `Rp ${(wd.rpReceived||0).toLocaleString('id-ID')}`
+      : `${(wd.piReceived||0).toFixed?.(4)||0} π`;
+    const msg = status === 'approved'
+      ? `✅ *Pencairan SGT Disetujui*\n\nHai ${wd.santriName||'Santri'}, pencairan kamu telah disetujui!\n\n💰 ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}\n📍 Ke: ${wd.dest||'—'}\n\nProses transfer akan dilakukan segera. Terima kasih!\n\n_Hidayatullah Amin_`
+      : `❌ *Pencairan SGT Ditolak*\n\nHai ${wd.santriName||'Santri'}, pencairan kamu ditolak.\n\n💰 ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}\n📝 Alasan: ${reason||'—'}\n\nSaldo SGT kamu telah dikembalikan. Hubungi admin untuk info lebih lanjut.\n\n_Hidayatullah Amin_`;
+    await sendFonnteWA(phone, msg);
+  } catch(e) { console.warn('sendWaToSantri:', e.message); }
+}
+
+// Fungsi dipanggil dari dashboard-santri setelah submit pencairan (inject ke Firestore withdrawals)
+window.submitWithdrawalRequest = async function(uid, santriName, santriNis, txRecord) {
+  try {
+    const docRef = await db.collection('withdrawals').add({
+      uid, santriName, santriNis,
+      ...txRecord,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    // Notif WA ke admin
+    await sendWaAdminNewRequest({uid, santriName, santriNis, ...txRecord});
+    return docRef.id;
+  } catch(e) {
+    console.warn('submitWithdrawalRequest:', e.message);
+    return null;
+  }
+};
+
+function fmtSGT(n) {
+  n = Math.round(n||0);
+  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toLocaleString('id-ID');
+}
 function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
 function animNum(id, target) {
   const el = document.getElementById(id); if(!el) return;
