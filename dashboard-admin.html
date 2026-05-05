@@ -517,7 +517,14 @@ tr:hover td{background:var(--g50)}
 <script>
 // ════ FIREBASE ════
 // Firebase auth & db sudah tersedia via auth.js
-db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+// enablePersistence dipanggil satu kali saja, tidak blocking
+db.enablePersistence({synchronizeTabs:true}).catch(e => {
+  if (e.code === 'failed-precondition') {
+    console.warn('Persistence: multiple tabs open, persistence enabled in one tab only');
+  } else if (e.code === 'unimplemented') {
+    console.warn('Persistence: browser tidak support IndexedDB');
+  }
+});
 
 // ════ STATE ════
 let allUsers = [];
@@ -530,12 +537,16 @@ const SGT_ALLOC_DEFAULT = {
 };
 
 // ════ AUTH GUARD ════
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   updateDate();
   initNotif();
 
+  // Tampilkan loading state sementara auth belum siap
+  document.body.style.visibility = 'hidden';
+
   if (typeof HA !== 'undefined') {
     HA.requireAuth('admin', (user, data) => {
+      document.body.style.visibility = '';
       const name = data?.namaLengkap || data?.name || data?.displayName || user.email;
       setEl('greetName', name);
       setEl('uName', name);
@@ -543,17 +554,59 @@ document.addEventListener('DOMContentLoaded', () => {
       loadDashboardData();
     });
   } else {
-    // Fallback: check Firebase auth directly
-    auth.onAuthStateChanged(async user => {
-      if (!user) { window.location.href = 'login.html'; return; }
+    // Beri waktu Firebase Auth restore session dari IndexedDB persistence
+    // (enablePersistence bersifat async dan onAuthStateChanged bisa terpanggil
+    //  sebelum session ter-restore jika tidak ada delay)
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Cek session yang disimpan saat login
-      const raw = sessionStorage.getItem('currentUser');
+    let authHandled = false;
+
+    auth.onAuthStateChanged(async user => {
+      // Pastikan handler ini hanya dieksekusi sekali untuk menghindari race condition
+      if (authHandled) return;
+
+      if (!user) {
+        // Cek apakah ada session di localStorage sebelum redirect
+        // (bisa terjadi race condition: auth belum restore tapi session sudah ada)
+        const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+        if (raw) {
+          try {
+            const sess = JSON.parse(raw);
+            const age = Date.now() - (sess.ts || 0);
+            const maxAge = 8 * 60 * 60 * 1000;
+            // Session masih valid → tunggu sebentar lagi, mungkin auth sedang restore
+            if (sess.role === 'admin' && age < maxAge) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              // Jika setelah wait masih tidak ada user, barulah redirect
+              if (!auth.currentUser) {
+                authHandled = true;
+                localStorage.removeItem('currentUser');
+                sessionStorage.removeItem('currentUser');
+                document.body.style.visibility = '';
+                window.location.href = 'login.html';
+              }
+              return;
+            }
+          } catch(e) { /* session rusak */ }
+        }
+        authHandled = true;
+        document.body.style.visibility = '';
+        window.location.href = 'login.html';
+        return;
+      }
+
+      authHandled = true;
+
+      // Cek session localStorage (lebih andal dari sessionStorage)
+      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
       if (raw) {
         try {
           const sess = JSON.parse(raw);
-          if (sess.role === 'admin' && sess.uid === user.uid) {
-            // Session valid → langsung load, tidak perlu query Firestore
+          const age = Date.now() - (sess.ts || 0);
+          const maxAge = 8 * 60 * 60 * 1000;
+          if (sess.role === 'admin' && sess.uid === user.uid && age < maxAge) {
+            // Session valid → langsung load tanpa query Firestore
+            document.body.style.visibility = '';
             const name = user.displayName || user.email;
             setEl('greetName', name);
             setEl('uName', name);
@@ -569,28 +622,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const doc = await db.collection('users').doc(user.uid).get();
         if (!doc.exists || doc.data().role !== 'admin') {
           await auth.signOut();
+          localStorage.removeItem('currentUser');
           sessionStorage.removeItem('currentUser');
+          document.body.style.visibility = '';
           window.location.href = 'login.html';
           return;
         }
         const d = doc.data();
         const name = d.displayName || d.namaLengkap || user.email;
+        // Perbarui session dengan data terbaru
+        localStorage.setItem('currentUser', JSON.stringify({ uid: user.uid, role: 'admin', authMethod: d.authMethod || 'email', ts: Date.now() }));
+        document.body.style.visibility = '';
         setEl('greetName', name);
         setEl('uName', name);
         setEl('uAvatar', (name[0]||'A').toUpperCase());
         loadDashboardData();
       } catch(e) {
-        // Jika permission-denied → percayai Firebase Auth + sessionStorage
         if (e.code === 'permission-denied' || e.code === 'PERMISSION_DENIED') {
           console.warn('⚠️ Firestore Rules: permission-denied saat verifikasi admin. Pastikan rules sudah diupdate.');
+          document.body.style.visibility = '';
           const name = user.displayName || user.email;
           setEl('greetName', name);
           setEl('uName', name);
           setEl('uAvatar', (name[0]||'A').toUpperCase());
           loadDashboardData();
         } else {
+          // Error network / lainnya → jangan redirect, tampilkan saja
           console.error('Auth guard error:', e);
-          // Jangan redirect untuk error non-auth (network, dll)
+          document.body.style.visibility = '';
+          const name = user.displayName || user.email;
+          setEl('greetName', name);
+          setEl('uName', name);
+          setEl('uAvatar', (name[0]||'A').toUpperCase());
+          loadDashboardData();
         }
       }
     });
@@ -913,7 +977,9 @@ function updateDate() {
 async function handleLogout() {
   if (!confirm('Yakin ingin logout?')) return;
   await auth.signOut().catch(()=>{});
-  sessionStorage.removeItem('currentUser'); localStorage.removeItem('piAuthUser');
+  sessionStorage.removeItem('currentUser');
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('piAuthUser');
   window.location.href = 'login.html';
 }
 

@@ -859,16 +859,18 @@ body.role-santri .btn-login:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(2
 <script>
 // ════════════════════════════════════════
 // Firebase sudah diinisialisasi via auth.js
-// Gunakan instance yang sudah ada
-db.enablePersistence({ synchronizeTabs: true }).catch(e => console.log('Persistence:', e));
-
-// Tunggu Firebase Auth siap sebelum apapun menyentuh Firestore
-auth.onAuthStateChanged(user => {
-  if (user) {
-    // User sudah login, aman akses Firestore
-    console.log('✅ Auth ready, user:', user.uid);
-  }
-});
+// Panggil enablePersistence hanya jika belum dipanggil di auth.js
+// Gunakan flag global untuk mencegah double-call
+if (!window.__firestorePersistenceEnabled) {
+  window.__firestorePersistenceEnabled = true;
+  db.enablePersistence({ synchronizeTabs: true }).catch(e => {
+    if (e.code === 'failed-precondition') {
+      console.warn('Persistence: multiple tabs, only one tab can use persistence');
+    } else if (e.code === 'unimplemented') {
+      console.warn('Persistence: browser tidak mendukung IndexedDB');
+    }
+  });
+}
 
 // ════════════════════════════════════════
 // CONSTANTS
@@ -895,6 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (logout === 'true') {
     sessionStorage.removeItem('currentUser');
+    localStorage.removeItem('currentUser');
     localStorage.removeItem('piAuthUser');
     auth.signOut().catch(() => {});
   }
@@ -1040,6 +1043,7 @@ async function processPiAuth(auth2) {
 
     saveSession(fUid, activeRole, 'pi_network');
     localStorage.setItem('piAuthUser', JSON.stringify({ uid: fUid, piUid, username: piUser, role: activeRole }));
+    localStorage.setItem('currentUser', JSON.stringify({ uid: fUid, role: activeRole, authMethod: 'pi_network', ts: Date.now() }));
     hideLoader();
     setTimeout(() => goTo(activeRole), 1400);
 
@@ -1091,6 +1095,8 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
     else     localStorage.removeItem('rememberedEmail');
 
     saveSession(uid, activeRole, 'email');
+    // Simpan juga ke localStorage sebagai backup
+    localStorage.setItem('currentUser', JSON.stringify({ uid, role: activeRole, authMethod: 'email', ts: Date.now() }));
     goTo(activeRole);
 
   } catch(err) {
@@ -1131,21 +1137,32 @@ async function doForgot(e) {
 // ════════════════════════════════════════
 async function checkSession() {
   showLoader('Memeriksa sesi...');
+
+  // Beri waktu Firebase Auth restore session dari IndexedDB (persistence)
+  await new Promise(resolve => setTimeout(resolve, 300));
+
   auth.onAuthStateChanged(async user => {
-    if (user) {
-      const raw = sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const { role } = JSON.parse(raw);
-          if (role && ROLES[role]) {
-            const v = await verifyRole(user.uid, role);
-            if (v.ok) { hideLoader(); goTo(role); return; }
-          }
-        } catch(e) { console.warn(e); }
-        sessionStorage.removeItem('currentUser');
-      }
-      await auth.signOut();
+    if (!user) { hideLoader(); return; }
+
+    // Cek localStorage dulu (lebih andal dari sessionStorage)
+    const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+    if (raw) {
+      try {
+        const sess = JSON.parse(raw);
+        // Validasi: session tidak boleh lebih dari 8 jam
+        const age = Date.now() - (sess.ts || 0);
+        const maxAge = 8 * 60 * 60 * 1000;
+        if (sess.role && ROLES[sess.role] && sess.uid === user.uid && age < maxAge) {
+          const v = await verifyRole(user.uid, sess.role);
+          if (v.ok) { hideLoader(); goTo(sess.role); return; }
+        }
+      } catch(e) { console.warn('Session parse error:', e); }
     }
+
+    // Tidak ada session valid → sign out bersih
+    await auth.signOut();
+    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('currentUser');
     hideLoader();
   });
 }
@@ -1210,7 +1227,10 @@ function goTo(role) {
 }
 
 function saveSession(uid, role, method) {
-  sessionStorage.setItem('currentUser', JSON.stringify({ uid, role, authMethod: method }));
+  // Gunakan localStorage agar sesi bertahan saat redirect antar halaman
+  const session = JSON.stringify({ uid, role, authMethod: method, ts: Date.now() });
+  localStorage.setItem('currentUser', session);
+  sessionStorage.setItem('currentUser', session); // backup fallback
 }
 
 function togglePw() {
