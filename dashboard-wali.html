@@ -241,10 +241,6 @@ tr:hover td{background:var(--g50)}
     <a class="ni" onclick="go('sgt',this)" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)"><span style="font-size:14px;font-weight:900;color:#d97706;width:16px;text-align:center">₴</span><span style="color:#d97706;font-weight:700">Saldo SGT</span></a>
   </nav>
   <div class="sb-foot">
-    <a onclick="goBackToAdmin()" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;margin-bottom:8px;text-decoration:none;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">
-      <i class="fas fa-arrow-left" style="color:rgba(255,255,255,.4);font-size:12px;width:16px;text-align:center"></i>
-      <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5)">Kembali ke Admin</span>
-    </a>
     <div class="u-tile" onclick="handleLogout()">
       <div class="u-av" id="uAv">W</div>
       <div style="flex:1;min-width:0"><div class="u-nm" id="uName">Wali Santri</div><div class="u-rl">Klik untuk logout</div></div>
@@ -389,14 +385,17 @@ tr:hover td{background:var(--g50)}
 
     <!-- ════ SGT ════ -->
     <div class="section" id="sec-sgt">
-      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Saldo SGT Token</h3><p style="font-size:12px;color:var(--g500)">Sagatama Token</p></div>
-      <div class="sgt-card">
+      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Wallet SGT Token</h3><p style="font-size:12px;color:var(--g500)">Sagatama Token</p></div>
+
+      <!-- Kartu Saldo -->
+      <div class="sgt-card" style="margin-bottom:14px">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;z-index:1">
           <div class="sgt-coin">₴</div>
-          <div>
+          <div style="flex:1">
             <p style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px">Saldo SGT Anda</p>
-            <p style="font-size:26px;font-weight:900;color:#fcd34d;line-height:1.2" id="sgtBal">0 SGT</p>
+            <p style="font-size:28px;font-weight:900;color:#fcd34d;line-height:1.2" id="sgtBal">— SGT</p>
           </div>
+          <button onclick="loadSGT(currentUid)" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:7px 10px;color:#fff;cursor:pointer;font-size:12px"><i class="fas fa-sync-alt" id="sgtRefIco"></i></button>
         </div>
         <div class="sgt-grid">
           <div class="sgt-stat"><div class="sv" id="sgtEarned">0</div><div class="sl">Total Didapat</div></div>
@@ -404,11 +403,92 @@ tr:hover td{background:var(--g50)}
           <div class="sgt-stat"><div class="sv" id="sgtTx">0</div><div class="sl">Transaksi</div></div>
         </div>
       </div>
-      <a href="https://sagatama-mart.vercel.app" target="_blank" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:2px solid var(--acc);border-radius:var(--rd);padding:14px;text-decoration:none;transition:var(--tr)" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+
+      <!-- Aksi Cepat -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <button onclick="openModal('mdlCairIdr')" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#065f46,#0db87a);border:none;border-radius:var(--rd);padding:14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700">
+          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px"><i class="fas fa-money-bill-wave"></i></div>
+          <div style="text-align:left"><div>Cairkan ke</div><div style="font-size:11px;font-weight:600;opacity:.85">Rupiah (IDR)</div></div>
+        </button>
+        <button onclick="openModal('mdlCairPi')" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1e3a8a,#2d7ef5);border:none;border-radius:var(--rd);padding:14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700">
+          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px">π</div>
+          <div style="text-align:left"><div>Cairkan ke</div><div style="font-size:11px;font-weight:600;opacity:.85">Pi Coin</div></div>
+        </button>
+      </div>
+
+      <!-- Sagatama Mart -->
+      <a href="https://sagatama-mart.vercel.app" target="_blank" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:2px solid var(--acc);border-radius:var(--rd);padding:14px;text-decoration:none;transition:var(--tr);margin-bottom:14px" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
         <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--acc),#7c3aed);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px"><i class="fas fa-shopping-bag"></i></div>
         <div style="flex:1"><p style="font-weight:800;color:var(--ink2);font-size:13px">Belanja di Sagatama Mart</p><p style="font-size:11px;color:var(--g500)">Tukarkan SGT untuk reward menarik</p></div>
         <i class="fas fa-chevron-right" style="color:var(--acc)"></i>
       </a>
+
+      <!-- Riwayat Transaksi -->
+      <div style="background:#fff;border-radius:var(--rd);border:1px solid var(--g100);overflow:hidden;box-shadow:var(--sh-sm)">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between">
+          <div><h4 style="font-size:14px;font-weight:700">Riwayat Transaksi</h4><p style="font-size:11px;color:var(--g500)" id="sgtTxSub">—</p></div>
+        </div>
+        <div id="sgtTxList" style="padding:8px 0;min-height:60px">
+          <div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
+        </div>
+      </div>
+
+      <!-- Riwayat Pencairan -->
+      <div style="background:#fff;border-radius:var(--rd);border:1px solid var(--g100);overflow:hidden;box-shadow:var(--sh-sm);margin-top:14px">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--g100)">
+          <h4 style="font-size:14px;font-weight:700">Riwayat Pencairan</h4>
+          <p style="font-size:11px;color:var(--g500)">Status permintaan pencairan SGT</p>
+        </div>
+        <div id="sgtWdList" style="padding:8px 0;min-height:60px">
+          <div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL CAIRKAN IDR -->
+    <div class="modal-bg" id="mdlCairIdr" onclick="closeModalOut(event,'mdlCairIdr')">
+      <div class="modal">
+        <div class="modal-hd"><h3>Cairkan SGT → Rupiah</h3><button class="modal-close" onclick="closeModal('mdlCairIdr')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+          <div style="background:var(--pl);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--pd)">
+            <b>Kurs:</b> 1.000 SGT = Rp 100.000 &nbsp;|&nbsp; <b>Saldo:</b> <span id="mdlIdrBal">—</span> SGT
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Jumlah SGT yang dicairkan</label>
+          <input type="number" id="cairIdrAmt" min="1000" step="1000" placeholder="Min. 1.000 SGT" oninput="calcIdr()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;margin-bottom:10px">
+          <div style="background:var(--g50);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--g600);margin-bottom:10px">
+            Anda akan menerima: <b style="color:var(--p);font-size:14px" id="idrResult">Rp 0</b>
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">No. Rekening / Tujuan Transfer</label>
+          <input type="text" id="cairIdrDest" placeholder="Contoh: BCA 1234567890 a/n Nama" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px">
+        </div>
+        <div class="modal-ft">
+          <button class="btn-sec" onclick="closeModal('mdlCairIdr')">Batal</button>
+          <button class="btn-p" onclick="submitCair('idr')"><i class="fas fa-paper-plane"></i> Ajukan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL CAIRKAN PI -->
+    <div class="modal-bg" id="mdlCairPi" onclick="closeModalOut(event,'mdlCairPi')">
+      <div class="modal">
+        <div class="modal-hd"><h3>Cairkan SGT → Pi Coin</h3><button class="modal-close" onclick="closeModal('mdlCairPi')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+          <div style="background:var(--bl);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
+            <b>Kurs:</b> 500 SGT = 1 π &nbsp;|&nbsp; <b>Saldo:</b> <span id="mdlPiBal">—</span> SGT
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Jumlah SGT yang dicairkan</label>
+          <input type="number" id="cairPiAmt" min="500" step="500" placeholder="Min. 500 SGT" oninput="calcPi()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;margin-bottom:10px">
+          <div style="background:var(--g50);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--g600);margin-bottom:10px">
+            Anda akan menerima: <b style="color:var(--b);font-size:14px" id="piResult">0 π</b>
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Username Pi Network</label>
+          <input type="text" id="cairPiDest" placeholder="Contoh: @username_pi" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px">
+        </div>
+        <div class="modal-ft">
+          <button class="btn-sec" onclick="closeModal('mdlCairPi')">Batal</button>
+          <button class="btn-p" onclick="submitCair('pi')"><i class="fas fa-paper-plane"></i> Ajukan</button>
+        </div>
+      </div>
     </div>
 
   </div><!-- /content -->
@@ -439,7 +519,7 @@ tr:hover td{background:var(--g50)}
 <script>
 // ════ FIREBASE ════
 // Firebase auth & db sudah tersedia via auth.js
-// (enablePersistence sudah dipanggil di auth.js)
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 
 // ════ STATE ════
 let currentUid=null, waliData=null, santriList=[];
@@ -466,93 +546,28 @@ const DEMO_NOTIF=[
 ];
 
 // ════ AUTH ════
-async function ensureFreshToken() {
-  try { const u = auth.currentUser; if (u) await u.getIdToken(true); }
-  catch(e) { console.warn('Token refresh:', e.message); }
-}
-
-let dashboardReady     = false;
-let currentUidVerified = null;
-
-function bootDashboard(user, data) {
-  if (dashboardReady) return;
-  dashboardReady = true; currentUidVerified = user.uid;
-  document.body.style.visibility = '';
-  currentUid = user.uid; waliData = data || {};
-  const nm = data?.namaLengkap || data?.nama || data?.displayName || data?.name || user.email;
-  setEl('greetName', nm); setEl('uName', nm); setEl('uAv', (nm[0]||'W').toUpperCase());
-  loadWaliData(user.uid);
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded',()=>{
   updateDate();
-  document.body.style.visibility = 'hidden';
-
-  if (typeof HA !== 'undefined') {
-    HA.requireAuth('wali', (user, data) => { bootDashboard(user, data); });
-    return;
+  if(typeof HA!=='undefined'){
+    HA.requireAuth('wali',(user,data)=>{
+      currentUid=user.uid; waliData=data;
+      const nm=data?.namaLengkap||data?.nama||data?.name||user.email;
+      setEl('greetName',nm);setEl('uName',nm);setEl('uAv',nm[0]?.toUpperCase()||'W');
+      loadWaliData(user.uid);
+    });
+  } else {
+    auth.onAuthStateChanged(async user=>{
+      if(!user){window.location.href='login.html';return;}
+      try{
+        const doc=await db.collection('users').doc(user.uid).get();
+        if(!doc.exists||doc.data().role!=='wali'){await auth.signOut();window.location.href='login.html';return;}
+        currentUid=user.uid;waliData=doc.data();
+        const nm=doc.data().displayName||user.email;
+        setEl('greetName',nm);setEl('uName',nm);setEl('uAv',nm[0]?.toUpperCase()||'W');
+        loadWaliData(user.uid);
+      }catch(e){console.error(e);}
+    });
   }
-
-  await new Promise(r => setTimeout(r, 600));
-
-  auth.onAuthStateChanged(async user => {
-    if (user) {
-      if (dashboardReady && user.uid === currentUidVerified) return;
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          const age = Date.now() - (sess.ts||0);
-          const MAX = 8*3600*1000;
-          // Izinkan wali masuk langsung
-          if (sess.role === 'wali' && sess.uid === user.uid && age < MAX) {
-            bootDashboard(user, null); return;
-          }
-          // Izinkan admin melihat portal wali (mode preview) tanpa redirect
-          if (sess.role === 'admin' && sess.uid === user.uid && age < MAX) {
-            bootDashboard(user, null); return;
-          }
-        } catch(e) {}
-      }
-      try {
-        await ensureFreshToken();
-        const doc = await db.collection('users').doc(user.uid).get();
-        const role = doc.exists ? doc.data().role : null;
-        if (role === 'wali' || role === 'admin') {
-          if (role === 'wali') localStorage.setItem('currentUser', JSON.stringify({uid:user.uid,role:'wali',ts:Date.now()}));
-          bootDashboard(user, doc.exists ? doc.data() : null);
-        } else {
-          await auth.signOut();
-          localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
-          document.body.style.visibility = ''; window.location.href = 'login.html';
-        }
-      } catch(e) {
-        console.warn('Firestore verify:', e.code, e.message);
-        bootDashboard(user, null);
-      }
-      return;
-    }
-    if (dashboardReady) {
-      await new Promise(r => setTimeout(r, 800));
-      if (auth.currentUser) return;
-    } else {
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          const validRole = sess.role === 'wali' || sess.role === 'admin';
-          if (validRole && Date.now() - (sess.ts||0) < 8*3600*1000) {
-            await new Promise(r => setTimeout(r, 1500));
-            if (auth.currentUser) return;
-          }
-        } catch(e) {}
-      }
-    }
-    if (!auth.currentUser) {
-      localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
-      document.body.style.visibility = ''; window.location.href = 'login.html';
-    }
-  });
 });
 
 // ════ LOAD DATA ════
@@ -749,15 +764,146 @@ function renderNotif(){
 }
 
 // ════ SGT ════
-function loadSGT(uid){
-  const bal=parseInt(localStorage.getItem('sgt_bal_'+uid)||'0');
-  const txs=JSON.parse(localStorage.getItem('sgt_transactions_'+uid)||'[]');
-  const earned=txs.filter(t=>t.type==='earn').reduce((s,t)=>s+(t.amount||0),0);
-  const spent=txs.filter(t=>t.type!=='earn').reduce((s,t)=>s+(t.amount||0),0);
-  setEl('sgtBal',bal.toLocaleString('id-ID')+' SGT');
-  setEl('sgtEarned',earned.toLocaleString('id-ID'));
-  setEl('sgtSpent',spent.toLocaleString('id-ID'));
-  setEl('sgtTx',txs.length.toString());
+// ════ SGT WALLET ════
+const SGT_PER_PI  = 500;
+const SGT_PER_IDR = 1000;
+const IDR_PER_LOT = 100000;
+
+async function loadSGT(uid) {
+  const ico = document.getElementById('sgtRefIco');
+  if (ico) ico.classList.add('fa-spin');
+  try {
+    const doc = await db.collection('sgt').doc(uid).get();
+    const data = doc.exists ? doc.data() : {};
+    const bal    = data.balance || 0;
+    const txs    = data.transactions || [];
+    const earned = txs.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
+    const spent  = txs.filter(t=>t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
+
+    setEl('sgtBal',    bal.toLocaleString('id-ID') + ' SGT');
+    setEl('sgtEarned', earned.toLocaleString('id-ID'));
+    setEl('sgtSpent',  spent.toLocaleString('id-ID'));
+    setEl('sgtTx',     txs.length.toString());
+    setEl('mdlIdrBal', bal.toLocaleString('id-ID'));
+    setEl('mdlPiBal',  bal.toLocaleString('id-ID'));
+    setEl('sgtTxSub',  txs.length + ' transaksi');
+
+    const txList = document.getElementById('sgtTxList');
+    if (txList) {
+      if (!txs.length) {
+        txList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-inbox" style="font-size:24px;display:block;margin-bottom:8px;opacity:.4"></i>Belum ada transaksi</div>';
+      } else {
+        txList.innerHTML = [...txs].reverse().slice(0,20).map(tx => {
+          const plus = tx.amount > 0;
+          const dateStr = tx.date ? new Date(tx.date).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+          return `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--g50)">
+            <div style="width:36px;height:36px;border-radius:9px;background:${plus?'var(--pl)':'var(--rl)'};display:flex;align-items:center;justify-content:center;color:${plus?'var(--p)':'var(--r)'};font-size:14px;flex-shrink:0">
+              <i class="fas fa-${plus?'arrow-down':'arrow-up'}"></i>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tx.note||'Transaksi SGT'}</div>
+              <div style="font-size:11px;color:var(--g400)">${dateStr}</div>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:${plus?'var(--p)':'var(--r)'};flex-shrink:0">${plus?'+':''}${(tx.amount||0).toLocaleString('id-ID')} SGT</div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    await loadWdHistory(uid);
+  } catch(e) {
+    console.error('loadSGT:', e);
+    setEl('sgtBal', 'Error');
+  } finally {
+    if (ico) ico.classList.remove('fa-spin');
+  }
+}
+
+async function loadWdHistory(uid) {
+  const el = document.getElementById('sgtWdList');
+  if (!el) return;
+  try {
+    const snap = await db.collection('withdrawals').where('uid','==',uid).orderBy('createdAt','desc').limit(20).get();
+    if (snap.empty) {
+      el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-inbox" style="font-size:24px;display:block;margin-bottom:8px;opacity:.4"></i>Belum ada pencairan</div>';
+      return;
+    }
+    const statusCfg = {
+      pending:  {clr:'#d97706',bg:'#fef3c7',lbl:'Menunggu'},
+      approved: {clr:'#059669',bg:'#e6f9f2',lbl:'Disetujui'},
+      rejected: {clr:'#dc2626',bg:'#fee2e2',lbl:'Ditolak'},
+    };
+    el.innerHTML = snap.docs.map(d => {
+      const w = d.data();
+      const s = statusCfg[w.status] || statusCfg.pending;
+      const isIdr = w.type === 'sgt-idr';
+      const hasil = isIdr ? `Rp ${(w.rpReceived||0).toLocaleString('id-ID')}` : `${(w.piReceived||0).toFixed(4)} π`;
+      const dateStr = w.createdAt?.toDate ? w.createdAt.toDate().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--g50)">
+        <div style="width:36px;height:36px;border-radius:9px;background:${isIdr?'var(--pl)':'var(--bl)'};display:flex;align-items:center;justify-content:center;color:${isIdr?'var(--p)':'var(--b)'};font-size:14px;flex-shrink:0">
+          <i class="fas fa-${isIdr?'money-bill-wave':'pi'}"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--ink2)">${(w.sgtUsed||0).toLocaleString('id-ID')} SGT → ${hasil}</div>
+          <div style="font-size:11px;color:var(--g400)">${dateStr} · ${w.dest||'—'}</div>
+        </div>
+        <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;background:${s.bg};color:${s.clr};flex-shrink:0">${s.lbl}</span>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Gagal memuat</div>';
+  }
+}
+
+function calcIdr() {
+  const amt = parseInt(document.getElementById('cairIdrAmt')?.value||'0');
+  setEl('idrResult', 'Rp ' + (Math.floor(amt/SGT_PER_IDR)*IDR_PER_LOT).toLocaleString('id-ID'));
+}
+function calcPi() {
+  const amt = parseInt(document.getElementById('cairPiAmt')?.value||'0');
+  setEl('piResult', (amt/SGT_PER_PI).toFixed(4) + ' π');
+}
+
+async function submitCair(type) {
+  const isIdr  = type === 'idr';
+  const amtEl  = document.getElementById(isIdr?'cairIdrAmt':'cairPiAmt');
+  const destEl = document.getElementById(isIdr?'cairIdrDest':'cairPiDest');
+  const amt    = parseInt(amtEl?.value||'0');
+  const dest   = destEl?.value?.trim()||'';
+  const minSgt = isIdr ? SGT_PER_IDR : SGT_PER_PI;
+
+  if (!amt||amt<minSgt){showToast('warn','Jumlah Kurang',`Minimum ${minSgt.toLocaleString()} SGT`);return;}
+  if (!dest){showToast('warn','Lengkapi Data','Isi tujuan transfer / username Pi');return;}
+
+  const sgtDoc = await db.collection('sgt').doc(currentUid).get().catch(()=>null);
+  const bal    = sgtDoc?.data()?.balance||0;
+  if (amt>bal){showToast('warn','Saldo Kurang',`Saldo Anda hanya ${bal.toLocaleString('id-ID')} SGT`);return;}
+
+  const rpReceived = isIdr ? Math.floor(amt/SGT_PER_IDR)*IDR_PER_LOT : 0;
+  const piReceived = !isIdr ? parseFloat((amt/SGT_PER_PI).toFixed(4)) : 0;
+
+  try {
+    await db.collection('withdrawals').add({
+      uid:        currentUid,
+      santriName: waliData?.displayName || document.getElementById('uName')?.textContent || '—',
+      santriNis:  '—',
+      role:       'wali',
+      type:       isIdr?'sgt-idr':'sgt-pi',
+      sgtUsed:    amt,
+      rpReceived,
+      piReceived,
+      dest,
+      status:     'pending',
+      createdAt:  firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    showToast('success','Berhasil Diajukan','Permintaan pencairan sedang diproses admin');
+    closeModal(isIdr?'mdlCairIdr':'mdlCairPi');
+    if(amtEl)amtEl.value='';
+    if(destEl)destEl.value='';
+    await loadWdHistory(currentUid);
+  } catch(e) {
+    showToast('error','Gagal',e.message);
+  }
 }
 
 // ════ SECTION SWITCH ════
@@ -801,13 +947,7 @@ function updateDate(){
 }
 
 // ════ LOGOUT ════
-async function handleLogout() {
-  if (!confirm('Yakin logout?')) return;
-  await auth.signOut().catch(() => {});
-  localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser'); localStorage.removeItem('piAuthUser');
-  window.location.href = 'login.html';
-}
-function goBackToAdmin() { window.location.href = 'dashboard-admin.html'; }
+async function handleLogout(){if(!confirm('Yakin logout?'))return;await auth.signOut().catch(()=>{});sessionStorage.removeItem('currentUser');window.location.href='login.html'}
 
 // ════ TOAST ════
 function showToast(type,title,msg){
