@@ -1181,63 +1181,67 @@ async function doDistribute() {
       showToast('error','User Tidak Ditemukan',`Tidak ada akun dengan email: ${target}`);
       return;
     }
-    const userDoc = snap.docs[0];
+    const userDoc  = snap.docs[0];
     const userData = userDoc.data();
-    const uid = userDoc.id;
-    const currentBal = userData.sgtBalance || 0;
+    const uid      = userDoc.id;
 
-    // Update sgtBalance di Firestore
+    // ── 1. Update sgtBalance di /users (untuk tampilan di data-pengguna) ──
     await db.collection('users').doc(uid).update({
-      sgtBalance: currentBal + amount,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      sgtBalance: firebase.firestore.FieldValue.increment(amount),
+      updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // Simpan ke log transaksi SGT
+    // ── 2. Update /sgt/{uid} (yang dibaca dashboard ustadz/santri) ──
+    const sgtRef  = db.collection('sgt').doc(uid);
+    const sgtSnap = await sgtRef.get();
+    const txEntry = { amount, note, date: new Date().toISOString(), type: 'distribute' };
+    if (sgtSnap.exists) {
+      await sgtRef.update({
+        balance:      firebase.firestore.FieldValue.increment(amount),
+        transactions: firebase.firestore.FieldValue.arrayUnion(txEntry),
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      await sgtRef.set({
+        uid,
+        balance:      amount,
+        transactions: [txEntry],
+        createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // ── 3. Log ke sgt_transactions ──
     await db.collection('sgt_transactions').add({
-      type: 'distribute',
-      fromUid: currentAdminUid || 'admin',
-      toUid: uid,
-      toEmail: target,
-      toName: userData.displayName || target,
-      toRole: userData.role || '—',
+      type:      'distribute',
+      fromUid:   currentAdminUid || 'admin',
+      toUid:     uid,
+      toEmail:   target,
+      toName:    userData.displayName || target,
+      toRole:    userData.role || '—',
       amount,
       note,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // Update localStorage supply counter
+    // ── 4. Update log localStorage (untuk tampilan log distribusi) ──
     const issued = parseInt(localStorage.getItem('sgt_issued')||'0');
     localStorage.setItem('sgt_issued', (issued+amount).toString());
     const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
-    log.unshift({target, toName: userData.displayName||target, amount, note, date:new Date().toISOString()});
+    log.unshift({ target, toName: userData.displayName||target, amount, note, date: new Date().toISOString() });
     localStorage.setItem('sgt_log', JSON.stringify(log.slice(0,100)));
 
     document.getElementById('distTarget').value='';
     document.getElementById('distAmount').value='';
     document.getElementById('distNote').value='';
     renderAllocGrid(); renderDistLog();
-    showToast('success','SGT Terkirim!',`${amount.toLocaleString()} SGT dikirim ke ${userData.displayName||target}`);
+    showToast('success','SGT Terkirim!',`${amount.toLocaleString()} SGT → ${userData.displayName||target}`);
   } catch(e) {
     if (e.code === 'permission-denied') {
-      showToast('error','Permission Denied','Firestore Rules belum mengizinkan admin update sgtBalance. Lihat console untuk panduan rules.');
-      console.error('%c[SGT Fix] Tambahkan rule ini di Firestore Console → Rules:', 'color:orange;font-weight:bold');
-      console.info(`
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read, write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    match /sgt_transactions/{doc} {
-      allow read, write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-  }
-}`);
+      showToast('error','Permission Denied','Update Firestore Rules di Firebase Console (lihat console)');
+      console.error('%c[SGT Fix] Tambahkan rule /sgt/{userId} allow write: if isAdmin()', 'color:orange;font-weight:bold');
     } else {
-      showToast('error','Gagal',e.message||'Gagal mendistribusikan SGT');
+      showToast('error','Gagal', e.message||'Gagal mendistribusikan SGT');
     }
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-coins"></i> Distribusikan SGT'; }

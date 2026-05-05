@@ -280,7 +280,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
         <div class="tbl-head">
           <div class="tbl-title"><h4>Daftar Santri</h4><p>Semua santri terdaftar</p></div>
           <div class="tbl-acts">
-            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Cari nama / NIS..." oninput="filterData('santri',this.value)"></div>
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchSantri" autocomplete="off" placeholder="Cari nama / NIS..." oninput="filterData('santri',this.value)"></div>
             <select class="filter-sel" onchange="filterKelas(this.value)">
               <option value="">Semua Kelas</option>
               <option>Kelas A</option><option>Kelas B</option><option>Kelas C</option><option>Kelas D</option><option>Kelas E</option>
@@ -302,7 +302,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
         <div class="tbl-head">
           <div class="tbl-title"><h4>Daftar Ustadz</h4><p>Tenaga pengajar pesantren</p></div>
           <div class="tbl-acts">
-            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Cari nama / bidang..." oninput="filterData('ustadz',this.value)"></div>
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchUstadz" autocomplete="off" placeholder="Cari nama / bidang..." oninput="filterData('ustadz',this.value)"></div>
           </div>
         </div>
         <div class="tbl-wrap">
@@ -320,7 +320,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
         <div class="tbl-head">
           <div class="tbl-title"><h4>Daftar Wali Santri</h4><p>Orang tua / wali terdaftar</p></div>
           <div class="tbl-acts">
-            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Cari nama / no. HP..." oninput="filterData('wali',this.value)"></div>
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchWali" autocomplete="off" placeholder="Cari nama / no. HP..." oninput="filterData('wali',this.value)"></div>
           </div>
         </div>
         <div class="tbl-wrap">
@@ -418,6 +418,11 @@ function bootDashboard(user, data) {
 
 document.addEventListener('DOMContentLoaded', async () => {
   updateDate();
+  // Paksa kosongkan semua search box — cegah autofill browser
+  ['searchSantri','searchUstadz','searchWali'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   document.body.style.visibility = 'hidden';
 
   if (typeof HA !== 'undefined') {
