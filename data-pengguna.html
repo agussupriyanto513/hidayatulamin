@@ -181,12 +181,16 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.on{transform:translateX(0)}
-  .main{margin-left:0}
+  .main{margin-left:0!important}
   .menu-btn{display:flex!important}
   .stats-row{grid-template-columns:1fr}
   .field-row{grid-template-columns:1fr}
   .search-box input{width:150px}
   .tab-btn{font-size:12px;padding:8px 10px}
+}
+@media(min-width:769px){
+  .sidebar{transform:translateX(0)!important}
+  .sidebar.off{transform:translateX(0)!important}
 }
 @media(max-width:480px){
   .content{padding:12px}
@@ -196,7 +200,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 <body>
 
 <div class="sb-ov" id="sbOv" onclick="closeSb()"></div>
-<aside class="sidebar off" id="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sb-head">
     <div class="sb-logo"><i class="fas fa-mosque"></i></div>
     <div class="sb-brand"><h1>Hidayatullah</h1><p>Admin Panel</p></div>
@@ -236,6 +240,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
   <header class="topbar">
     <div class="tb-l">
       <button class="menu-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <a href="dashboard-admin.html" title="Kembali ke Dashboard" style="width:36px;height:36px;border:none;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:all .2s;text-decoration:none;flex-shrink:0" onmouseover="this.style.background='var(--pl)';this.style.color='var(--p)'" onmouseout="this.style.background='#fff';this.style.color='var(--g500)'"><i class="fas fa-arrow-left"></i></a>
       <div class="pg-ttl"><h2>Data Pengguna</h2><p id="pgDate">Memuat...</p></div>
     </div>
     <div class="tb-r">
@@ -390,7 +395,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 
 <script>
 // Firebase auth & db sudah tersedia via auth.js
-db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+// (enablePersistence sudah dipanggil di auth.js — tidak perlu dipanggil lagi)
 
 let dataSantri=[], dataUstadz=[], dataWali=[];
 let editingId = null;
@@ -495,9 +500,9 @@ function updateDate() {
 // ════ LOAD DATA ════
 async function loadAll() {
   const [snap1, snap2, snap3] = await Promise.all([
-    db.collection('users').where('role','==','santri').orderBy('createdAt','desc').get().catch(()=>null),
-    db.collection('users').where('role','==','ustadz').orderBy('createdAt','desc').get().catch(()=>null),
-    db.collection('users').where('role','==','wali').orderBy('createdAt','desc').get().catch(()=>null),
+    db.collection('users').where('role','==','santri').get().catch(()=>null),
+    db.collection('users').where('role','==','ustadz').get().catch(()=>null),
+    db.collection('users').where('role','==','wali').get().catch(()=>null),
   ]);
   dataSantri = snap1 ? snap1.docs.map(d=>({id:d.id,...d.data()})) : [];
   dataUstadz = snap2 ? snap2.docs.map(d=>({id:d.id,...d.data()})) : [];
@@ -586,10 +591,6 @@ function switchTab(t, el) {
   document.getElementById('pane-'+t).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   if (el) el.classList.add('active');
-  // Re-render data agar tidak hilang saat pindah tab
-  if (t === 'santri') renderSantri(dataSantri);
-  if (t === 'ustadz') renderUstadz(dataUstadz);
-  if (t === 'wali')   renderWali(dataWali);
 }
 
 // ════ MODAL ════
@@ -613,7 +614,7 @@ function onRoleChange() {
 }
 
 async function saveUser() {
-  const name = document.getElementById('fName').value.trim();
+  const name  = document.getElementById('fName').value.trim();
   const email = document.getElementById('fEmail').value.trim();
   const pass  = document.getElementById('fPass').value;
   const role  = document.getElementById('fRole').value;
@@ -622,26 +623,67 @@ async function saveUser() {
   const btn = document.getElementById('saveBtn');
   btn.disabled=true; document.getElementById('saveTxt').textContent='Menyimpan...';
 
+  // Simpan referensi admin yang sedang login sebelum apapun terjadi
+  const adminUser = auth.currentUser;
+
   try {
     let uid;
     if (!editingId) {
-      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      // ── Pakai secondary Firebase App agar admin TIDAK ter-logout ──────────
+      // Buat secondary app (reuse jika sudah ada)
+      const SEC = '__secondary__';
+      const secondaryApp  = firebase.apps.find(a => a.name === SEC)
+                          || firebase.initializeApp(firebase.app().options, SEC);
+      const secondaryAuth = secondaryApp.auth();
+
+      const cred = await secondaryAuth.createUserWithEmailAndPassword(email, pass);
       uid = cred.user.uid;
-    } else { uid = editingId; }
 
-    const payload = { displayName:name, email, role, isActive:true,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
-    if (!editingId) { payload.createdAt = firebase.firestore.FieldValue.serverTimestamp(); payload.sgtBalance=0; }
-    if (role==='santri') { payload.nis=document.getElementById('fNIS').value; payload.kelas=document.getElementById('fKelas').value; }
-    if (role==='ustadz') { payload.bidang=document.getElementById('fBidang').value; payload.kelasAmpu=document.getElementById('fKelasAmpu').value; }
-    if (role==='wali')   { payload.phone=document.getElementById('fPhone').value; payload.hubungan=document.getElementById('fHubungan').value; }
+      // Sign-out dari secondary app — tidak mempengaruhi auth utama
+      await secondaryAuth.signOut().catch(()=>{});
+    } else {
+      uid = editingId;
+    }
 
-    await db.collection('users').doc(uid).set(payload, {merge:true});
-    toast('s', editingId ? 'Data berhasil diperbarui' : 'Pengguna berhasil dibuat');
+    // Pastikan admin masih login (sanity check)
+    if (!auth.currentUser && adminUser) {
+      // Re-autentikasi tidak mungkin di sini, tapi session localStorage masih valid
+      console.warn('[saveUser] auth.currentUser hilang sementara, lanjut dengan uid admin tersimpan');
+    }
+
+    const colMap = { admin:'admins', ustadz:'ustadz', santri:'santri', wali:'wali_santri' };
+    const payload = {
+      uid, displayName: name, email, role, isActive: true,
+      authMethod: 'email',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (!editingId) {
+      payload.createdAt  = firebase.firestore.FieldValue.serverTimestamp();
+      payload.sgtBalance = 0;
+    }
+    if (role==='santri') { payload.nis=document.getElementById('fNIS').value.trim(); payload.kelas=document.getElementById('fKelas').value; }
+    if (role==='ustadz') { payload.bidang=document.getElementById('fBidang').value.trim(); payload.kelasAmpu=document.getElementById('fKelasAmpu').value; }
+    if (role==='wali')   { payload.phone=document.getElementById('fPhone').value.trim(); payload.hubungan=document.getElementById('fHubungan').value; }
+
+    // Tulis ke koleksi 'users' (dipakai semua query di halaman ini)
+    // DAN ke koleksi role-spesifik (untuk konsistensi dengan dashboard-admin)
+    const batch = db.batch();
+    batch.set(db.collection('users').doc(uid), payload, {merge:true});
+    if (!editingId && colMap[role]) {
+      batch.set(db.collection(colMap[role]).doc(uid), payload);
+    }
+    await batch.commit();
+
+    toast('s', editingId ? 'Data berhasil diperbarui' : `Pengguna berhasil dibuat sebagai ${role}`);
     closeModal();
     loadAll();
   } catch(e) {
-    toast('e', e.message||'Gagal menyimpan data');
+    const errMap = {
+      'auth/email-already-in-use': 'Email sudah terdaftar',
+      'auth/weak-password':        'Password minimal 6 karakter',
+      'auth/invalid-email':        'Format email tidak valid',
+    };
+    toast('e', errMap[e.code] || e.message || 'Gagal menyimpan data');
   } finally {
     btn.disabled=false; document.getElementById('saveTxt').textContent='Simpan';
   }
@@ -682,12 +724,22 @@ function toast(type, msg) {
 }
 
 // ════ SIDEBAR ════
-function toggleSb() { document.getElementById('sidebar').classList.toggle('off'); document.getElementById('sbOv').classList.toggle('show'); }
-function closeSb() { document.getElementById('sidebar').classList.add('off'); document.getElementById('sbOv').classList.remove('show'); }
+function toggleSb() {
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.toggle('on');
+    document.getElementById('sbOv').classList.toggle('show');
+  }
+}
+function closeSb() {
+  document.getElementById('sidebar').classList.remove('on');
+  document.getElementById('sbOv').classList.remove('show');
+}
 
 async function handleLogout() {
   await auth.signOut().catch(()=>{});
   sessionStorage.removeItem('currentUser');
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('piAuthUser');
   location.href='login.html';
 }
 </script>
