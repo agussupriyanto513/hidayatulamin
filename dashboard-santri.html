@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Dashboard Santri | Hidayatullah Amin</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -75,6 +75,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .section{display:none}
 .section.active{display:block;animation:fadeUp .3s ease}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin360{to{transform:rotate(360deg)}}
 
 /* GREETING */
 .greeting{background:linear-gradient(135deg,#1a0533 0%,#2d0f5e 50%,#3d1a7a 100%);border-radius:var(--rd);padding:22px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative}
@@ -180,6 +181,116 @@ tr:hover td{background:var(--g50)}
 .tx-info p{font-size:10px;color:var(--g400)}
 .tx-amt{font-size:13px;font-weight:800}
 .tx-amt.earn{color:var(--g)}.tx-amt.spend{color:var(--r)}
+
+/* ═══ WALLET INLINE ═══ */
+.wallet-section{margin-top:16px}
+.wallet-sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g400);margin-bottom:10px;padding-left:2px;display:flex;align-items:center;gap:6px}
+.wallet-sec-title::after{content:'';flex:1;height:1px;background:var(--g200)}
+
+/* Equiv pills di hero SGT */
+.sgt-equiv-row{display:flex;gap:8px;margin-top:12px;position:relative;z-index:1;flex-wrap:wrap}
+.sgt-eq-pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;flex:1;min-width:110px}
+.seq-ico{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.seq-ico.pi{background:rgba(99,102,241,.3);color:#a5b4fc}
+.seq-ico.idr{background:rgba(13,184,122,.25);color:#6ee7b7}
+.seq-val{font-size:12px;font-weight:800;color:#fff;display:block;line-height:1.1}
+.seq-lbl{font-size:9px;color:rgba(255,255,255,.4);display:block;margin-top:1px}
+
+/* Hero action buttons */
+.sgt-hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;position:relative;z-index:1}
+.sha-btn{padding:10px 8px;border:none;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:var(--tr);font-family:inherit}
+.sha-btn i{font-size:13px}
+.sha-btn.to-pi{background:rgba(99,102,241,.2);color:#a5b4fc;border:1px solid rgba(99,102,241,.3)}
+.sha-btn.to-pi:hover{background:rgba(99,102,241,.35);transform:translateY(-1px)}
+.sha-btn.to-idr{background:rgba(13,184,122,.18);color:#6ee7b7;border:1px solid rgba(13,184,122,.25)}
+.sha-btn.to-idr:hover{background:rgba(13,184,122,.3);transform:translateY(-1px)}
+
+/* Rate info strip */
+.rate-strip{background:linear-gradient(90deg,#3730a3,#4338ca,#6366f1);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.rs-left{display:flex;align-items:center;gap:8px}
+.rs-ico{width:30px;height:30px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px}
+.rs-text{font-size:12px;font-weight:700;color:#fff}
+.rs-sub{font-size:10px;color:rgba(255,255,255,.5);margin-top:1px}
+.rs-right{text-align:right}
+.rs-rate{font-size:12px;font-weight:800;color:#fff}
+.rs-rate2{font-size:10px;color:rgba(255,255,255,.45);margin-top:1px}
+
+/* Conv card */
+.wconv-card{background:var(--white);border-radius:var(--rd);padding:16px;box-shadow:var(--sh-sm);border:1px solid var(--g100);margin-bottom:14px}
+.wconv-tabs{display:flex;gap:4px;background:var(--g50);border-radius:8px;padding:3px;margin-bottom:14px}
+.wct{flex:1;padding:7px 4px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:var(--g500);background:transparent;font-family:inherit;transition:all .2s;white-space:nowrap}
+.wct.active{background:var(--white);color:var(--ink2);box-shadow:var(--sh-sm)}
+.wqpills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.wqp{padding:4px 10px;border:1.5px solid var(--g200);border-radius:20px;font-size:11px;font-weight:700;color:var(--g600);cursor:pointer;background:var(--white);transition:all .2s}
+.wqp:hover,.wqp.sel{border-color:var(--p);color:var(--p);background:var(--pl)}
+.winput-box{border:1.5px solid var(--g200);border-radius:10px;padding:12px;margin-bottom:4px;transition:all .2s}
+.winput-box:focus-within{border-color:var(--p);box-shadow:0 0 0 3px rgba(139,92,246,.08)}
+.wib-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g400);margin-bottom:5px}
+.wib-row{display:flex;align-items:center;gap:8px}
+.wib-input{flex:1;border:none;background:transparent;font-size:20px;font-weight:800;color:var(--ink2);outline:none;min-width:0;font-family:'Space Mono',monospace}
+.wib-input::placeholder{color:var(--g300)}
+.wib-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.wbadge-sgt{background:var(--sgtl);color:var(--sgt)}
+.wbadge-pi{background:#eef2ff;color:#6366f1}
+.wbadge-idr{background:var(--gl);color:var(--g)}
+.warrow-div{display:flex;align-items:center;gap:8px;margin:5px 0}
+.warrow-line{height:1px;background:var(--g200);flex:1}
+.warrow-btn{width:28px;height:28px;border:1.5px solid var(--g200);background:var(--white);border-radius:50%;color:var(--p);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--sh-sm);transition:all .25s}
+.warrow-btn:hover{background:var(--pl);border-color:var(--p);transform:rotate(180deg)}
+.wresult-row{background:var(--g50);border-radius:8px;padding:9px 12px;margin-top:8px;display:flex;align-items:center;justify-content:space-between}
+.wrr-label{font-size:11px;color:var(--g500)}
+.wrr-val{font-size:15px;font-weight:800;color:var(--ink2);font-family:'Space Mono',monospace}
+.wconv-hint{font-size:11px;color:var(--r);margin-top:5px;display:none;align-items:center;gap:5px}
+.wconv-hint.show{display:flex}
+.wexec-btn{width:100%;margin-top:10px;padding:12px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.wexec-btn:hover:not(:disabled){box-shadow:0 4px 14px rgba(139,92,246,.3);transform:translateY(-1px)}
+.wexec-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* Wallet Hist */
+.whist-card{background:var(--white);border-radius:var(--rd);overflow:hidden;box-shadow:var(--sh-sm);border:1px solid var(--g100)}
+.whist-head{padding:12px 16px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between}
+.whist-head h4{font-size:13px;font-weight:700;color:var(--ink2)}
+.whist-filter{display:flex;gap:4px}
+.whf-btn{padding:3px 9px;border:1px solid var(--g200);border-radius:20px;font-size:10px;font-weight:600;cursor:pointer;color:var(--g500);background:transparent;font-family:inherit;transition:all .2s}
+.whf-btn.active{background:var(--pl);border-color:var(--p);color:var(--p)}
+.wtx-item{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--g50);transition:background .15s}
+.wtx-item:last-child{border-bottom:none}
+.wtx-item:hover{background:var(--g50)}
+.wtx-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.wtx-body{flex:1;min-width:0}
+.wtx-body h5{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wtx-body p{font-size:10px;color:var(--g400)}
+.wtx-right{text-align:right;flex-shrink:0}
+.wtx-amt{font-size:12px;font-weight:800;display:block}
+.wtx-amt.earn{color:var(--g)}.wtx-amt.spend{color:var(--r)}
+.wtx-sub{font-size:10px;color:var(--g400)}
+.wno-tx{text-align:center;padding:28px 16px}
+.wno-tx i{font-size:28px;color:var(--g300);display:block;margin-bottom:10px}
+.wno-tx p{font-size:12px;font-weight:600;color:var(--g500)}
+
+/* WALLET MODAL */
+.wmodal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.wmodal-bg.open{opacity:1;pointer-events:auto}
+.wmodal{background:var(--white);border-radius:20px 20px 0 0;padding:18px 18px 30px;width:100%;max-width:520px;transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.4,.64,1);max-height:88vh;overflow-y:auto}
+.wmodal-bg.open .wmodal{transform:translateY(0)}
+.wmodal-handle{width:36px;height:4px;background:var(--g300);border-radius:2px;margin:0 auto 18px}
+.wmodal-title{font-size:16px;font-weight:800;color:var(--ink2);margin-bottom:3px}
+.wmodal-sub{font-size:12px;color:var(--g500);margin-bottom:16px}
+.wfield-grp{margin-bottom:12px}
+.wfield-grp label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);display:block;margin-bottom:5px}
+.wfield-grp input{width:100%;padding:11px 13px;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-family:inherit;background:var(--g50);transition:all .2s}
+.wfield-grp input:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(139,92,246,.1);background:#fff}
+.wsum-box{background:var(--g50);border-radius:10px;padding:13px;margin-bottom:14px;border:1px solid var(--g200)}
+.wsb-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0}
+.wsb-row:not(:last-child){border-bottom:1px solid var(--g200);padding-bottom:8px;margin-bottom:3px}
+.wsb-lbl{font-size:12px;color:var(--g500)}
+.wsb-val{font-size:13px;font-weight:700;color:var(--ink2)}
+.wsb-val.green{color:var(--g);font-size:14px}
+.wmodal-confirm{width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;margin-bottom:8px}
+.wmodal-confirm:hover:not(:disabled){box-shadow:0 4px 14px rgba(139,92,246,.3)}
+.wmodal-confirm:disabled{opacity:.5;cursor:not-allowed}
+.wmodal-cancel{width:100%;padding:11px;border:none;border-radius:10px;background:var(--g100);color:var(--g600);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}
+.wmodal-cancel:hover{background:var(--g200)}
 
 /* PROFILE */
 .profile-header{background:linear-gradient(135deg,#1a0533,var(--pd));border-radius:var(--rd);padding:24px;color:#fff;margin-bottom:16px;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px}
@@ -492,7 +603,9 @@ tr:hover td{background:var(--g50)}
 
     <!-- ════ SGT TOKEN ════ -->
     <div class="section" id="sec-sgt">
-      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">SGT Token</h3><p style="font-size:12px;color:var(--g500)">Sagatama Token — Reward Santri Berprestasi</p></div>
+      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">SGT Token & Wallet</h3><p style="font-size:12px;color:var(--g500)">Sagatama Token — Reward & Pencairan Santri Berprestasi</p></div>
+
+      <!-- HERO -->
       <div class="sgt-hero">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;z-index:1">
           <div class="sgt-coin">₴</div>
@@ -501,21 +614,114 @@ tr:hover td{background:var(--g50)}
             <p style="font-size:28px;font-weight:900;color:#fcd34d;line-height:1.2" id="sgtBalBig">0 SGT</p>
           </div>
         </div>
-        <div class="sgt-grid">
+        <!-- Equiv pills -->
+        <div class="sgt-equiv-row">
+          <div class="sgt-eq-pill">
+            <div class="seq-ico pi"><i class="fas fa-circle"></i></div>
+            <div><span class="seq-val" id="sgtEquivPi">0 π</span><span class="seq-lbl">Pi Coin</span></div>
+          </div>
+          <div class="sgt-eq-pill">
+            <div class="seq-ico idr"><i class="fas fa-money-bill-wave"></i></div>
+            <div><span class="seq-val" id="sgtEquivRp">Rp 0</span><span class="seq-lbl">Rupiah</span></div>
+          </div>
+        </div>
+        <!-- Quick action buttons -->
+        <div class="sgt-hero-actions" style="margin-top:14px">
+          <button class="sha-btn to-idr" onclick="openWalletModal('sgt-idr')"><i class="fas fa-money-bill"></i> Cairkan ke Rupiah</button>
+          <button class="sha-btn to-pi"  onclick="openWalletModal('sgt-pi')"><i class="fas fa-circle"></i> Cairkan ke Pi</button>
+        </div>
+        <div class="sgt-grid" style="margin-top:12px">
           <div class="sgt-stat"><div class="sv" id="sgtEarned">0</div><div class="sl">Total Didapat</div></div>
           <div class="sgt-stat"><div class="sv" id="sgtSpent">0</div><div class="sl">Digunakan</div></div>
           <div class="sgt-stat"><div class="sv" id="sgtTxCount">0</div><div class="sl">Transaksi</div></div>
         </div>
       </div>
 
+      <!-- RATE STRIP -->
+      <div class="rate-strip">
+        <div class="rs-left">
+          <div class="rs-ico"><i class="fas fa-exchange-alt"></i></div>
+          <div><div class="rs-text">Kurs Resmi SGT</div><div class="rs-sub">Hidayatullah Amin · Pesantren</div></div>
+        </div>
+        <div class="rs-right">
+          <div class="rs-rate">500 SGT = 1 π</div>
+          <div class="rs-rate2">1 SGT = Rp 100 · 1 π = Rp 50.000</div>
+        </div>
+      </div>
+
+      <!-- WALLET SECTION -->
+      <div class="wallet-section">
+        <div class="wallet-sec-title"><i class="fas fa-wallet" style="color:var(--p)"></i>Kalkulator Pencairan</div>
+
+        <!-- CONV CARD -->
+        <div class="wconv-card">
+          <div class="wconv-tabs">
+            <button class="wct active" id="wctIdr" onclick="wSwitchTab('idr')">SGT → Rupiah</button>
+            <button class="wct"        id="wctPi"  onclick="wSwitchTab('pi')">SGT → Pi</button>
+          </div>
+          <div class="wqpills" id="wqpills">
+            <span class="wqp" onclick="wSetQ(100)">100</span>
+            <span class="wqp" onclick="wSetQ(250)">250</span>
+            <span class="wqp" onclick="wSetQ(500)">500</span>
+            <span class="wqp" onclick="wSetQ(1000)">1.000</span>
+          </div>
+          <div class="winput-box">
+            <div class="wib-label" id="wFromLbl">JUMLAH SGT</div>
+            <div class="wib-row">
+              <input class="wib-input" id="wConvIn" type="number" placeholder="0" min="0" oninput="wCalc()">
+              <span class="wib-badge wbadge-sgt">SGT ₴</span>
+            </div>
+          </div>
+          <div class="warrow-div">
+            <div class="warrow-line"></div>
+            <button class="warrow-btn" onclick="wCycleTab()"><i class="fas fa-arrows-alt-v"></i></button>
+            <div class="warrow-line"></div>
+          </div>
+          <div class="winput-box" style="background:var(--g50)">
+            <div class="wib-label" id="wToLbl">HASIL KONVERSI</div>
+            <div class="wib-row">
+              <input class="wib-input" id="wConvOut" type="text" placeholder="0" readonly style="color:var(--p)">
+              <span class="wib-badge wbadge-idr" id="wToBadge">Rp</span>
+            </div>
+          </div>
+          <div class="wconv-hint" id="wConvHint"><i class="fas fa-exclamation-circle"></i><span id="wHintMsg">—</span></div>
+          <div class="wresult-row">
+            <span class="wrr-label" id="wRrLabel">Nilai dalam Rupiah</span>
+            <span class="wrr-val"   id="wRrVal">—</span>
+          </div>
+          <button class="wexec-btn" id="wExecBtn" onclick="wOpenFromCalc()" disabled>
+            <i class="fas fa-exchange-alt"></i><span id="wExecTxt">Masukkan jumlah SGT</span>
+          </button>
+          <p style="font-size:11px;color:var(--g400);text-align:center;margin-top:8px;line-height:1.5"><i class="fas fa-info-circle" style="color:var(--b)"></i> Kurs: 500 SGT = 1 π · 1 SGT = Rp 100</p>
+        </div>
+      </div>
+
+      <!-- MISI + RIWAYAT MISI -->
+      <div class="wallet-sec-title"><i class="fas fa-star" style="color:var(--w)"></i>Misi & Reward</div>
       <div class="two-col">
         <div class="card">
           <div class="card-hd"><h4>Misi Harian</h4><p>Selesaikan untuk dapat SGT!</p></div>
           <div class="mission-list" id="missionList"></div>
         </div>
         <div class="card">
-          <div class="card-hd"><h4>Riwayat Transaksi</h4></div>
+          <div class="card-hd"><h4>Riwayat SGT</h4></div>
           <div class="tx-list" id="txList"><div style="text-align:center;padding:20px;color:var(--g400)">Belum ada transaksi</div></div>
+        </div>
+      </div>
+
+      <!-- WALLET HISTORY -->
+      <div class="wallet-sec-title" style="margin-top:4px"><i class="fas fa-history" style="color:var(--b)"></i>Riwayat Pencairan Wallet</div>
+      <div class="whist-card" style="margin-bottom:16px">
+        <div class="whist-head">
+          <h4>Aktivitas Pencairan</h4>
+          <div class="whist-filter">
+            <button class="whf-btn active" id="whf-all"    onclick="wFilterHist('all')">Semua</button>
+            <button class="whf-btn"        id="whf-idr"    onclick="wFilterHist('sgt-idr')">Rupiah</button>
+            <button class="whf-btn"        id="whf-pi"     onclick="wFilterHist('sgt-pi')">Pi</button>
+          </div>
+        </div>
+        <div id="wHistList">
+          <div class="wno-tx"><i class="fas fa-wallet"></i><p>Belum ada pencairan</p></div>
         </div>
       </div>
 
@@ -524,6 +730,33 @@ tr:hover td{background:var(--g50)}
         <div style="flex:1"><p style="font-weight:800;color:var(--ink2);font-size:14px">Belanja di Sagatama Mart</p><p style="font-size:12px;color:var(--g500)">Tukarkan SGT untuk hadiah seru!</p></div>
         <i class="fas fa-chevron-right" style="color:var(--p)"></i>
       </a>
+    </div>
+
+    <!-- WALLET MODAL -->
+    <div class="wmodal-bg" id="wConfirmModal" onclick="wBgClose(event)">
+      <div class="wmodal">
+        <div class="wmodal-handle"></div>
+        <div class="wmodal-title" id="wmTitle">Konfirmasi Pencairan</div>
+        <div class="wmodal-sub"   id="wmSub">Periksa detail sebelum melanjutkan</div>
+        <div class="wfield-grp">
+          <label id="wmDestLabel">Tujuan Pencairan</label>
+          <input type="text" id="wmDest" placeholder="Masukkan tujuan...">
+        </div>
+        <div class="wfield-grp" id="wmNoteWrap" style="display:none">
+          <label>Catatan (opsional)</label>
+          <input type="text" id="wmNote" placeholder="Keterangan tambahan...">
+        </div>
+        <div class="wsum-box">
+          <div class="wsb-row"><span class="wsb-lbl" id="wmFromLabel">SGT Digunakan</span><span class="wsb-val" id="wmFromVal">—</span></div>
+          <div class="wsb-row"><span class="wsb-lbl" id="wmToLabel">Kamu Terima</span><span class="wsb-val green" id="wmToVal">—</span></div>
+          <div class="wsb-row"><span class="wsb-lbl">Sisa Saldo</span><span class="wsb-val" id="wmSisa">—</span></div>
+          <div class="wsb-row"><span class="wsb-lbl">Waktu</span><span class="wsb-val" style="font-size:11px" id="wmTime">—</span></div>
+        </div>
+        <button class="wmodal-confirm" id="wmConfirmBtn" onclick="wExecConvert()">
+          <i class="fas fa-check-circle"></i> Konfirmasi Pencairan
+        </button>
+        <button class="wmodal-cancel" onclick="wCloseModal()">Batal</button>
+      </div>
     </div>
 
   </div><!-- /content -->
@@ -972,8 +1205,232 @@ function loadSGT(){
   setEl('sgtEarned',fmtSGT(earned));
   setEl('sgtSpent',fmtSGT(spent));
   setEl('sgtTxCount',txs.length.toString());
+  // Update equiv
+  const SGT_PER_PI=500,IDR_PER_SGT=100;
+  setEl('sgtEquivPi',(bal/SGT_PER_PI).toFixed(2)+' π');
+  setEl('sgtEquivRp','Rp '+(bal*IDR_PER_SGT).toLocaleString('id-ID'));
   renderMissions();
   renderTxList(txs,bal);
+  wRenderHist();
+}
+
+// ════ WALLET INLINE ════
+const W_SGT_PER_PI=500, W_IDR_PER_SGT=100;
+let wActiveTab='idr', wPendingTx=null, wHistFilter='all';
+
+function wGetBal(){
+  const uid=currentUid||'demo';
+  return parseInt(localStorage.getItem('sgt_bal_'+uid)||'0');
+}
+
+function wSwitchTab(tab){
+  wActiveTab=tab;
+  document.getElementById('wctIdr').classList.toggle('active',tab==='idr');
+  document.getElementById('wctPi').classList.toggle('active',tab==='pi');
+  if(tab==='idr'){
+    setEl('wFromLbl','JUMLAH SGT'); setEl('wToLbl','RUPIAH DITERIMA');
+    document.getElementById('wToBadge').className='wib-badge wbadge-idr';
+    setEl('wToBadge','Rp');
+    setEl('wRrLabel','Total nilai SGT');
+  } else {
+    setEl('wFromLbl','JUMLAH SGT'); setEl('wToLbl','PI DITERIMA');
+    document.getElementById('wToBadge').className='wib-badge wbadge-pi';
+    setEl('wToBadge','π Pi');
+    setEl('wRrLabel','Nilai dalam Rupiah');
+  }
+  document.getElementById('wConvIn').value='';
+  document.getElementById('wConvOut').value='';
+  setEl('wRrVal','—');
+  document.getElementById('wExecBtn').disabled=true;
+  setEl('wExecTxt','Masukkan jumlah SGT');
+  document.getElementById('wConvHint').classList.remove('show');
+  document.querySelectorAll('.wqp').forEach(p=>p.classList.remove('sel'));
+}
+
+function wCycleTab(){ wSwitchTab(wActiveTab==='idr'?'pi':'idr'); }
+
+function wSetQ(val){
+  document.getElementById('wConvIn').value=val;
+  document.querySelectorAll('.wqp').forEach(p=>p.classList.toggle('sel',parseInt(p.textContent.replace(/\./g,''))===val));
+  wCalc();
+}
+
+function wCalc(){
+  const raw=parseInt(document.getElementById('wConvIn').value)||0;
+  const bal=wGetBal();
+  const hint=document.getElementById('wConvHint');
+  const execBtn=document.getElementById('wExecBtn');
+  hint.classList.remove('show');
+  if(raw<=0){execBtn.disabled=true;setEl('wExecTxt','Masukkan jumlah SGT');document.getElementById('wConvOut').value='';setEl('wRrVal','—');return;}
+  if(raw>bal){
+    setEl('wHintMsg','Saldo tidak cukup ('+fmtSGT(bal)+' SGT tersedia)');
+    hint.classList.add('show');
+    execBtn.disabled=true;setEl('wExecTxt','Saldo tidak cukup');
+    document.getElementById('wConvOut').value='';setEl('wRrVal','—');return;
+  }
+  if(wActiveTab==='idr'){
+    const rp=raw*W_IDR_PER_SGT;
+    document.getElementById('wConvOut').value='Rp '+rp.toLocaleString('id-ID');
+    setEl('wRrVal','Rp '+rp.toLocaleString('id-ID'));
+  } else {
+    const pi=(raw/W_SGT_PER_PI);
+    document.getElementById('wConvOut').value=pi.toFixed(4)+' π';
+    const rp=raw*W_IDR_PER_SGT;
+    setEl('wRrVal','Rp '+rp.toLocaleString('id-ID'));
+  }
+  execBtn.disabled=false;
+  setEl('wExecTxt',wActiveTab==='idr'?'Cairkan ke Rupiah':'Cairkan ke Pi');
+}
+
+function wOpenFromCalc(){
+  const raw=parseInt(document.getElementById('wConvIn').value)||0;
+  if(raw<=0)return;
+  openWalletModal(wActiveTab==='idr'?'sgt-idr':'sgt-pi',raw);
+}
+
+function openWalletModal(type,prefill){
+  const bal=wGetBal();
+  const raw=prefill||0;
+  const now=new Date();
+  setEl('wmTime',now.toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}));
+  document.getElementById('wmDest').value='';
+  document.getElementById('wmNote').value='';
+  document.getElementById('wmNoteWrap').style.display='none';
+  document.getElementById('wmConfirmBtn').disabled=false;
+  document.getElementById('wmConfirmBtn').innerHTML='<i class="fas fa-check-circle"></i> Konfirmasi Pencairan';
+
+  if(type==='sgt-idr'){
+    const rp=raw*W_IDR_PER_SGT;
+    wPendingTx={type:'sgt-idr',sgtUsed:raw,rpReceived:rp};
+    setEl('wmTitle','Cairkan SGT ke Rupiah');
+    setEl('wmSub','Konfirmasi pencairan '+fmtSGT(raw)+' SGT ke Rupiah');
+    setEl('wmDestLabel','No. Rekening / E-Wallet (OVO, DANA, GoPay)');
+    document.getElementById('wmDest').placeholder='08xxxxxxxxxx';
+    setEl('wmFromLabel','SGT Digunakan'); setEl('wmFromVal',fmtSGT(raw)+' SGT');
+    setEl('wmToLabel','Rupiah Diterima'); setEl('wmToVal','Rp '+rp.toLocaleString('id-ID'));
+    setEl('wmSisa',fmtSGT(bal-raw)+' SGT');
+  } else {
+    const pi=(raw/W_SGT_PER_PI);
+    wPendingTx={type:'sgt-pi',sgtUsed:raw,piReceived:pi};
+    setEl('wmTitle','Cairkan SGT ke Pi');
+    setEl('wmSub','Konfirmasi pencairan '+fmtSGT(raw)+' SGT ke Pi');
+    setEl('wmDestLabel','Alamat Wallet Pi / Username Pi');
+    document.getElementById('wmDest').placeholder='Username Pi Network...';
+    document.getElementById('wmNoteWrap').style.display='block';
+    setEl('wmFromLabel','SGT Digunakan'); setEl('wmFromVal',fmtSGT(raw)+' SGT');
+    setEl('wmToLabel','Pi Diterima'); setEl('wmToVal',pi.toFixed(4)+' π');
+    setEl('wmSisa',fmtSGT(bal-raw)+' SGT');
+  }
+  document.getElementById('wConfirmModal').classList.add('open');
+}
+
+function wCloseModal(){ document.getElementById('wConfirmModal').classList.remove('open'); wPendingTx=null; }
+function wBgClose(e){ if(e.target.id==='wConfirmModal') wCloseModal(); }
+
+async function wExecConvert(){
+  if(!wPendingTx) return;
+  const dest=document.getElementById('wmDest').value.trim();
+  if(!dest){showToast('warn','Lengkapi Data','Isi tujuan pencairan terlebih dahulu');return;}
+  const note=document.getElementById('wmNote').value.trim();
+  const btn=document.getElementById('wmConfirmBtn');
+  btn.disabled=true; btn.innerHTML='<div style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin360 .7s linear infinite;margin-right:6px"></div> Menyimpan…';
+
+  try {
+    const uid=currentUid||'demo';
+    const bal=wGetBal();
+    if(bal<wPendingTx.sgtUsed) throw new Error('Saldo SGT tidak cukup');
+    const newBal=bal-wPendingTx.sgtUsed;
+    localStorage.setItem('sgt_bal_'+uid,newBal.toString());
+
+    const now=new Date();
+    const txRecord={
+      id:'WTX'+Date.now(),
+      type:wPendingTx.type,
+      dest, note:note||'',
+      sgtUsed:wPendingTx.sgtUsed,
+      dateStr:now.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}),
+      timeStr:now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}),
+      date:now.toISOString(),
+    };
+    if(wPendingTx.type==='sgt-pi')  txRecord.piReceived=wPendingTx.piReceived;
+    if(wPendingTx.type==='sgt-idr') txRecord.rpReceived=wPendingTx.rpReceived;
+
+    const wtxs=JSON.parse(localStorage.getItem('wallet_history_'+uid)||'[]');
+    wtxs.unshift(txRecord);
+    localStorage.setItem('wallet_history_'+uid,JSON.stringify(wtxs.slice(0,100)));
+
+    // Also add to SGT transactions
+    const stxs=JSON.parse(localStorage.getItem('sgt_transactions_'+uid)||'[]');
+    stxs.unshift({type:'spend',amount:wPendingTx.sgtUsed,desc:wPendingTx.type==='sgt-idr'?'Cairkan ke Rupiah':'Cairkan ke Pi',date:now.toISOString()});
+    localStorage.setItem('sgt_transactions_'+uid,JSON.stringify(stxs.slice(0,50)));
+
+    // Try save to Firestore
+    if(currentUid && typeof db!=='undefined'){
+      try {
+        await db.collection('users').doc(currentUid).update({
+          walletHistory: firebase.firestore.FieldValue.arrayUnion(txRecord),
+          sgt: newBal
+        });
+      } catch(e){ console.warn('Firestore wallet update:', e.message); }
+    }
+
+    const msg=wPendingTx.type==='sgt-idr'
+      ?`${fmtSGT(wPendingTx.sgtUsed)} SGT → Rp ${(wPendingTx.rpReceived||0).toLocaleString('id-ID')} ke ${dest}`
+      :`${fmtSGT(wPendingTx.sgtUsed)} SGT → ${(wPendingTx.piReceived||0).toFixed(4)} π ke ${dest}`;
+    showToast('success','✅ Pencairan Berhasil!',msg);
+    wPendingTx=null;
+    wCloseModal();
+    document.getElementById('wConvIn').value='';
+    document.getElementById('wConvOut').value='';
+    setEl('wRrVal','—');
+    document.getElementById('wExecBtn').disabled=true;
+    loadSGT();
+  } catch(err){
+    console.error(err);
+    showToast('error','Gagal',err.message||'Terjadi kesalahan, coba lagi');
+  } finally {
+    btn.disabled=false;
+    btn.innerHTML='<i class="fas fa-check-circle"></i> Konfirmasi Pencairan';
+  }
+}
+
+function wRenderHist(){
+  const uid=currentUid||'demo';
+  const wtxs=JSON.parse(localStorage.getItem('wallet_history_'+uid)||'[]');
+  const el=document.getElementById('wHistList'); if(!el) return;
+  const filtered=wHistFilter==='all'?wtxs:wtxs.filter(t=>t.type===wHistFilter);
+  if(!filtered.length){
+    el.innerHTML='<div class="wno-tx"><i class="fas fa-wallet"></i><p>Belum ada pencairan</p></div>';
+    return;
+  }
+  el.innerHTML=filtered.slice(0,12).map(t=>{
+    const isIdr=t.type==='sgt-idr';
+    const ico=isIdr?'fa-money-bill':'fa-circle';
+    const bg=isIdr?'var(--gl)':'#eef2ff';
+    const clr=isIdr?'var(--g)':'#6366f1';
+    const amtMain=isIdr?('Rp '+(t.rpReceived||0).toLocaleString('id-ID')):((t.piReceived||0).toFixed(4)+' π');
+    const label=isIdr?'Cairkan ke Rupiah':'Cairkan ke Pi';
+    return `<div class="wtx-item">
+      <div class="wtx-icon" style="background:${bg};color:${clr}"><i class="fas ${ico}"></i></div>
+      <div class="wtx-body"><h5>${label}</h5><p>${t.dest||'—'} · ${t.dateStr||''}</p></div>
+      <div class="wtx-right">
+        <span class="wtx-amt spend">-${fmtSGT(t.sgtUsed||0)} SGT</span>
+        <span class="wtx-sub">${amtMain}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function wFilterHist(f){
+  wHistFilter=f;
+  ['all','idr','pi'].forEach(k=>{
+    const btn=document.getElementById('whf-'+k);
+    if(btn) btn.classList.toggle('active',k===f||(f==='sgt-idr'&&k==='idr')||(f==='sgt-pi'&&k==='pi')||(f==='all'&&k==='all'));
+  });
+  // Normalize
+  const map={'idr':'sgt-idr','pi':'sgt-pi','all':'all'};
+  wHistFilter=map[f]||f;
+  wRenderHist();
 }
 
 function renderMissions(){
