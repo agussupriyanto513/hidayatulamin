@@ -545,7 +545,7 @@ tr:hover td{background:var(--g50)}
 <script>
 // ════ FIREBASE ════
 // Firebase auth & db sudah tersedia via auth.js
-// (enablePersistence sudah dipanggil di auth.js)
+if (!window.__fspe) { window.__fspe = true; db.enablePersistence({synchronizeTabs:true}).catch(e => { if(e.code==='failed-precondition') console.warn('Persistence: multiple tabs'); }); }
 
 // ════ STATE ════
 let currentUid=null, santriData=null;
@@ -935,209 +935,70 @@ function appendMsg(isMe,text,time){
 
 function getTime(){return new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});}
 
-// ════ SGT — Firestore-backed ════
-// Definisi misi (konten statis, status disimpan di Firestore)
+// ════ SGT ════
 const MISSIONS=[
-  {id:'m1',ico:'fa-book-open',bg:'#e6f9f2',clr:'#0db87a',title:'Setoran Hari Ini',desc:'Setor minimal 1 halaman',reward:50},
-  {id:'m2',ico:'fa-calendar-check',bg:'#eaf1fe',clr:'#2d7ef5',title:'Hadir Full Hari Ini',desc:'Semua sesi hadir',reward:30},
-  {id:'m3',ico:'fa-star',bg:'#f0ebff',clr:'#8b5cf6',title:'Nilai di Atas 85',desc:'Nilai ujian ≥ 85',reward:100},
-  {id:'m4',ico:'fa-comments',bg:'#fef3c7',clr:'#f59e0b',title:'Konsultasi Ustadz',desc:'Chat dengan ustadz pembimbing',reward:20},
+  {id:'m1',ico:'fa-book-open',bg:'#e6f9f2',clr:'#0db87a',title:'Setoran Hari Ini',desc:'Setor minimal 1 halaman',reward:50,done:true},
+  {id:'m2',ico:'fa-calendar-check',bg:'#eaf1fe',clr:'#2d7ef5',title:'Hadir Full Hari Ini',desc:'Semua sesi hadir',reward:30,done:true},
+  {id:'m3',ico:'fa-star',bg:'#f0ebff',clr:'#8b5cf6',title:'Nilai di Atas 85',desc:'Nilai ujian ≥ 85',reward:100,done:false},
+  {id:'m4',ico:'fa-comments',bg:'#fef3c7',clr:'#f59e0b',title:'Konsultasi Ustadz',desc:'Chat dengan ustadz pembimbing',reward:20,done:false},
 ];
 
-// State SGT in-memory (di-load dari Firestore)
-let _sgtData = null; // {saldo, transactions:[], missionsClaimedToday:{}}
-let _sgtLoading = false;
-
-// Ambil tanggal hari ini format YYYY-MM-DD (lokal)
-function _today() {
-  return new Date().toLocaleDateString('sv-SE'); // sv-SE = ISO date lokal
-}
-
-// Cek apakah misi sudah diklaim hari ini
-function _isMissionDoneToday(missionId) {
-  if (!_sgtData) return false;
-  const claimed = _sgtData.missionsClaimedToday || {};
-  return claimed[missionId] === _today();
-}
-
-// ── Load SGT dari Firestore ──────────────────────────────────────
-async function loadSGT() {
-  const uid = currentUid;
-  if (!uid) return;
-  if (_sgtLoading) return;
-  _sgtLoading = true;
-
-  // Tampilkan loading sementara
-  setEl('sgtBalBig', '...');
-  setEl('stSGT', '...');
-
-  try {
-    const ref = db.collection('sgt').doc(uid);
-    const snap = await ref.get();
-
-    if (snap.exists) {
-      _sgtData = snap.data();
-    } else {
-      // Dokumen belum ada — cek localStorage lama untuk migrasi
-      const oldBal = parseInt(localStorage.getItem('sgt_bal_' + uid) || '0');
-      const oldTxs = JSON.parse(localStorage.getItem('sgt_transactions_' + uid) || '[]');
-      _sgtData = {
-        saldo: oldBal || santriData?.sgt || 0,
-        transactions: oldTxs,
-        missionsClaimedToday: {},
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      };
-      // Simpan ke Firestore sekaligus (migrasi data lama)
-      await ref.set(_sgtData).catch(() => {});
-      // Hapus localStorage lama agar tidak double
-      localStorage.removeItem('sgt_bal_' + uid);
-      localStorage.removeItem('sgt_transactions_' + uid);
-    }
-  } catch (err) {
-    console.warn('[SGT] Gagal load dari Firestore, pakai localStorage fallback:', err.message);
-    // Fallback ke localStorage jika Firestore error (offline dll)
-    const oldBal = parseInt(localStorage.getItem('sgt_bal_' + uid) || '0');
-    const oldTxs = JSON.parse(localStorage.getItem('sgt_transactions_' + uid) || '[]');
-    _sgtData = {
-      saldo: oldBal || santriData?.sgt || 0,
-      transactions: oldTxs,
-      missionsClaimedToday: {},
-    };
-  } finally {
-    _sgtLoading = false;
-  }
-
-  _renderSGTUI();
-}
-
-// ── Simpan SGT ke Firestore ──────────────────────────────────────
-async function _saveSGT() {
-  const uid = currentUid;
-  if (!uid || !_sgtData) return;
-  try {
-    await db.collection('sgt').doc(uid).set({
-      ..._sgtData,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-  } catch (err) {
-    console.warn('[SGT] Gagal simpan ke Firestore:', err.message);
-    // Fallback: simpan ke localStorage agar tidak hilang
-    localStorage.setItem('sgt_bal_' + uid, String(_sgtData.saldo));
-    localStorage.setItem('sgt_transactions_' + uid, JSON.stringify(_sgtData.transactions.slice(0, 50)));
-  }
-}
-
-// ── Render UI dari _sgtData ──────────────────────────────────────
-function _renderSGTUI() {
-  if (!_sgtData) return;
-  const { saldo = 0, transactions = [] } = _sgtData;
-  const earned = transactions.filter(t => t.type === 'earn').reduce((s, t) => s + (t.amount || 0), 0) || saldo;
-  const spent  = transactions.filter(t => t.type === 'spend').reduce((s, t) => s + (t.amount || 0), 0);
-
-  setEl('stSGT',     fmtSGT(saldo));
-  setEl('sgtBalBig', saldo.toLocaleString('id-ID') + ' SGT');
-  setEl('sgtEarned', fmtSGT(earned));
-  setEl('sgtSpent',  fmtSGT(spent));
-  setEl('sgtTxCount', transactions.length.toString());
+function loadSGT(){
+  const uid=currentUid||'demo';
+  let bal=parseInt(localStorage.getItem('sgt_bal_'+uid)||'0');
+  if(!bal&&santriData?.sgt){bal=santriData.sgt;localStorage.setItem('sgt_bal_'+uid,bal.toString());}
+  const txs=JSON.parse(localStorage.getItem('sgt_transactions_'+uid)||'[]');
+  const earned=txs.filter(t=>t.type==='earn').reduce((s,t)=>s+(t.amount||0),0)||bal;
+  const spent=txs.filter(t=>t.type==='spend').reduce((s,t)=>s+(t.amount||0),0);
+  setEl('stSGT',fmtSGT(bal));
+  setEl('sgtBalBig',bal.toLocaleString('id-ID')+' SGT');
+  setEl('sgtEarned',fmtSGT(earned));
+  setEl('sgtSpent',fmtSGT(spent));
+  setEl('sgtTxCount',txs.length.toString());
   renderMissions();
-  renderTxList(transactions);
+  renderTxList(txs,bal);
 }
 
-// ── Render daftar misi ───────────────────────────────────────────
-function renderMissions() {
-  const el = document.getElementById('missionList'); if (!el) return;
-  el.innerHTML = MISSIONS.map(m => {
-    const done = _isMissionDoneToday(m.id);
-    return `
-    <div class="mission-item ${done ? 'done' : ''}" onclick="${done ? '' : `claimMission('${m.id}',${m.reward})`}">
+function renderMissions(){
+  const el=document.getElementById('missionList');if(!el)return;
+  el.innerHTML=MISSIONS.map(m=>`
+    <div class="mission-item ${m.done?'done':''}" onclick="${m.done?'':` claimMission('${m.id}',${m.reward})`}">
       <div class="m-ico" style="background:${m.bg};color:${m.clr}"><i class="fas ${m.ico}"></i></div>
       <div class="m-info"><h5>${m.title}</h5><p>${m.desc}</p></div>
-      <span class="m-reward">${done ? '✅' : '+'} ${m.reward} SGT</span>
-      <div class="m-check">${done ? '<i class="fas fa-check" style="font-size:10px"></i>' : ''}</div>
-    </div>`;
-  }).join('');
+      <span class="m-reward">${m.done?'✅':'+'} ${m.reward} SGT</span>
+      <div class="m-check">${m.done?'<i class="fas fa-check" style="font-size:10px"></i>':''}</div>
+    </div>`).join('');
 }
 
-// ── Klaim misi ───────────────────────────────────────────────────
-window.claimMission = async (id, reward) => {
-  const m = MISSIONS.find(x => x.id === id);
-  if (!m || _isMissionDoneToday(id)) return;
-  if (!_sgtData) return;
-
-  // Update state lokal dulu agar UI responsif
-  _sgtData.saldo = (_sgtData.saldo || 0) + reward;
-  _sgtData.missionsClaimedToday = _sgtData.missionsClaimedToday || {};
-  _sgtData.missionsClaimedToday[id] = _today();
-  _sgtData.transactions = _sgtData.transactions || [];
-  _sgtData.transactions.unshift({
-    type: 'earn',
-    amount: reward,
-    desc: m.title,
-    date: new Date().toISOString(),
-  });
-  // Batasi histori 100 transaksi
-  if (_sgtData.transactions.length > 100) _sgtData.transactions = _sgtData.transactions.slice(0, 100);
-
-  _renderSGTUI();
-  showToast('success', 'SGT Didapat!', `+${reward} SGT dari misi: ${m.title}`);
-
-  // Simpan ke Firestore (async, tidak block UI)
-  await _saveSGT();
+window.claimMission=(id,reward)=>{
+  const m=MISSIONS.find(x=>x.id===id);if(!m||m.done)return;
+  m.done=true;
+  const uid=currentUid||'demo';
+  const bal=parseInt(localStorage.getItem('sgt_bal_'+uid)||'0')+reward;
+  localStorage.setItem('sgt_bal_'+uid,bal.toString());
+  const txs=JSON.parse(localStorage.getItem('sgt_transactions_'+uid)||'[]');
+  txs.unshift({type:'earn',amount:reward,desc:m.title,date:new Date().toISOString()});
+  localStorage.setItem('sgt_transactions_'+uid,JSON.stringify(txs.slice(0,50)));
+  showToast('success','SGT Didapat!',`+${reward} SGT dari misi: ${m.title}`);
+  loadSGT();
 };
 
-// ── Tambah SGT dari aktivitas lain (bisa dipanggil dari modul lain) ──
-window.addSGT = async (amount, description) => {
-  if (!_sgtData || !currentUid) return;
-  _sgtData.saldo = (_sgtData.saldo || 0) + amount;
-  _sgtData.transactions = _sgtData.transactions || [];
-  _sgtData.transactions.unshift({
-    type: 'earn', amount, desc: description,
-    date: new Date().toISOString(),
-  });
-  if (_sgtData.transactions.length > 100) _sgtData.transactions = _sgtData.transactions.slice(0, 100);
-  _renderSGTUI();
-  await _saveSGT();
-};
-
-// ── Kurangi SGT (untuk pembelian di Mart) ────────────────────────
-window.spendSGT = async (amount, description) => {
-  if (!_sgtData || !currentUid) return false;
-  if ((_sgtData.saldo || 0) < amount) {
-    showToast('error', 'SGT Tidak Cukup', `Saldo kamu: ${_sgtData.saldo} SGT, dibutuhkan: ${amount} SGT`);
-    return false;
-  }
-  _sgtData.saldo -= amount;
-  _sgtData.transactions = _sgtData.transactions || [];
-  _sgtData.transactions.unshift({
-    type: 'spend', amount, desc: description,
-    date: new Date().toISOString(),
-  });
-  if (_sgtData.transactions.length > 100) _sgtData.transactions = _sgtData.transactions.slice(0, 100);
-  _renderSGTUI();
-  await _saveSGT();
-  return true;
-};
-
-// ── Render riwayat transaksi ─────────────────────────────────────
-function renderTxList(transactions) {
-  const el = document.getElementById('txList'); if (!el) return;
-  const txs = transactions || [];
-  if (!txs.length) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400)">Belum ada transaksi</div>';
-    return;
-  }
-  const icons = { earn: 'fa-plus-circle', spend: 'fa-minus-circle' };
-  const bg    = { earn: 'var(--gl)', spend: 'var(--rl)' };
-  el.innerHTML = txs.slice(0, 10).map(t => `
+function renderTxList(txs,bal){
+  const el=document.getElementById('txList');if(!el)return;
+  const DEMO_TXS=[
+    {type:'earn',amount:50,desc:'Setoran Hafalan',date:'2025-05-02'},
+    {type:'earn',amount:30,desc:'Kehadiran Penuh',date:'2025-05-01'},
+    {type:'spend',amount:100,desc:'Beli Produk Mart',date:'2025-04-28'},
+  ];
+  const all=[...txs,...(txs.length?[]:DEMO_TXS)];
+  if(!all.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--g400)">Belum ada transaksi</div>';return;}
+  const icons={earn:'fa-plus-circle',spend:'fa-minus-circle'};
+  const bg={earn:'var(--gl)',spend:'var(--rl)'};
+  el.innerHTML=all.slice(0,8).map(t=>`
     <div class="tx-item">
-      <div class="tx-ico" style="background:${bg[t.type]||bg.earn};color:${t.type==='earn'?'var(--g)':'var(--r)'}">
-        <i class="fas ${icons[t.type]||icons.earn}"></i>
-      </div>
-      <div class="tx-info">
-        <h5>${t.desc || 'Transaksi SGT'}</h5>
-        <p>${t.date?.split('T')[0] || '—'}</p>
-      </div>
-      <span class="tx-amt ${t.type}">${t.type==='earn' ? '+' : '-'}${(t.amount||0).toLocaleString()} SGT</span>
+      <div class="tx-ico" style="background:${bg[t.type]||bg.earn};color:${t.type==='earn'?'var(--g)':'var(--r)'}"><i class="fas ${icons[t.type]||icons.earn}"></i></div>
+      <div class="tx-info"><h5>${t.desc||'Transaksi SGT'}</h5><p>${t.date?.split('T')[0]||'—'}</p></div>
+      <span class="tx-amt ${t.type}">${t.type==='earn'?'+':'-'}${(t.amount||0).toLocaleString()} SGT</span>
     </div>`).join('');
 }
 
