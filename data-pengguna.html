@@ -280,7 +280,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
         <div class="tbl-head">
           <div class="tbl-title"><h4>Daftar Santri</h4><p>Semua santri terdaftar</p></div>
           <div class="tbl-acts">
-            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchSantri" autocomplete="off" placeholder="Cari nama / NIS..." oninput="filterData('santri',this.value)"></div>
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Cari nama / NIS..." oninput="filterData('santri',this.value)"></div>
             <select class="filter-sel" onchange="filterKelas(this.value)">
               <option value="">Semua Kelas</option>
               <option>Kelas A</option><option>Kelas B</option><option>Kelas C</option><option>Kelas D</option><option>Kelas E</option>
@@ -302,7 +302,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
         <div class="tbl-head">
           <div class="tbl-title"><h4>Daftar Ustadz</h4><p>Tenaga pengajar pesantren</p></div>
           <div class="tbl-acts">
-            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchUstadz" autocomplete="off" placeholder="Cari nama / bidang..." oninput="filterData('ustadz',this.value)"></div>
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Cari nama / bidang..." oninput="filterData('ustadz',this.value)"></div>
           </div>
         </div>
         <div class="tbl-wrap">
@@ -320,7 +320,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
         <div class="tbl-head">
           <div class="tbl-title"><h4>Daftar Wali Santri</h4><p>Orang tua / wali terdaftar</p></div>
           <div class="tbl-acts">
-            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchWali" autocomplete="off" placeholder="Cari nama / no. HP..." oninput="filterData('wali',this.value)"></div>
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Cari nama / no. HP..." oninput="filterData('wali',this.value)"></div>
           </div>
         </div>
         <div class="tbl-wrap">
@@ -354,8 +354,8 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
           </select>
         </div>
       </div>
-      <div class="field-grp"><label>Email *</label><input type="email" id="fEmail" autocomplete="off" placeholder="email@contoh.com"></div>
-      <div class="field-grp"><label>Password *</label><input type="password" id="fPass" autocomplete="new-password" placeholder="Minimal 6 karakter"></div>
+      <div class="field-grp"><label>Email *</label><input type="email" id="fEmail" placeholder="email@contoh.com"></div>
+      <div class="field-grp"><label>Password *</label><input type="password" id="fPass" placeholder="Minimal 6 karakter"></div>
       <div id="xSantri" style="display:none">
         <div class="field-row">
           <div class="field-grp"><label>NIS</label><input type="text" id="fNIS" placeholder="Nomor Induk Santri"></div>
@@ -390,41 +390,101 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 
 <script>
 // Firebase auth & db sudah tersedia via auth.js
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 
-var dataSantri=[], dataUstadz=[], dataWali=[];
-var editingId = null;
+let dataSantri=[], dataUstadz=[], dataWali=[];
+let editingId = null;
 
-document.addEventListener('DOMContentLoaded', () => {
+// ════ AUTH GUARD ════
+// ════ TOKEN HELPER ════
+async function ensureFreshToken() {
+  try { const u = auth.currentUser; if (u) await u.getIdToken(true); }
+  catch(e) { console.warn('Token refresh:', e.message); }
+}
+
+// ════ AUTH GUARD ════
+let dashboardReady     = false;
+let currentUidVerified = null;
+
+function bootDashboard(user, data) {
+  if (dashboardReady) return;
+  dashboardReady = true; currentUidVerified = user.uid;
+  document.body.style.visibility = '';
+  const name = data?.namaLengkap || data?.displayName || data?.name || user.email;
+  document.getElementById('uName').textContent = name;
+  document.getElementById('uAv').textContent   = name[0]?.toUpperCase() || 'A';
+  loadAll();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
   updateDate();
+  document.body.style.visibility = 'hidden';
 
   if (typeof HA !== 'undefined') {
-    HA.requireAuth('admin', (user, data) => {
-      const name = data?.namaLengkap || data?.displayName || data?.name || user.email;
-      document.getElementById('uName').textContent = name;
-      document.getElementById('uAv').textContent   = (name[0]||'A').toUpperCase();
-      loadAll();
-    });
-  } else {
-    auth.onAuthStateChanged(async user => {
-      if (!user) { window.location.href = 'login.html'; return; }
-      try {
-        const doc = await db.collection('users').doc(user.uid).get();
-        if (!doc.exists || doc.data().role !== 'admin') {
-          await auth.signOut(); window.location.href = 'login.html'; return;
-        }
-        const name = doc.data().displayName || user.email;
-        document.getElementById('uName').textContent = name;
-        document.getElementById('uAv').textContent   = (name[0]||'A').toUpperCase();
-        loadAll();
-      } catch(e) {
-        // Jika Firestore error tapi sudah login, tetap lanjut
-        console.warn('Auth verify:', e.message);
-        document.getElementById('uName').textContent = user.email;
-        document.getElementById('uAv').textContent   = (user.email[0]||'A').toUpperCase();
-        loadAll();
-      }
-    });
+    HA.requireAuth('admin', (user, data) => { bootDashboard(user, data); });
+    return;
   }
+
+  // Beri waktu Firebase Auth restore session dari IndexedDB persistence
+  await new Promise(r => setTimeout(r, 600));
+
+  auth.onAuthStateChanged(async user => {
+    if (user) {
+      if (dashboardReady && user.uid === currentUidVerified) return;
+
+      // Cek localStorage dulu (hindari round-trip Firestore)
+      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+      if (raw) {
+        try {
+          const sess = JSON.parse(raw);
+          if (sess.role === 'admin' && sess.uid === user.uid && Date.now() - (sess.ts||0) < 8*3600*1000) {
+            bootDashboard(user, null); return;
+          }
+        } catch(e) {}
+      }
+
+      // Verifikasi Firestore
+      try {
+        await ensureFreshToken();
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (doc.exists && doc.data().role === 'admin') {
+          localStorage.setItem('currentUser', JSON.stringify({uid:user.uid,role:'admin',ts:Date.now()}));
+          bootDashboard(user, doc.data());
+        } else {
+          await auth.signOut();
+          localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
+          document.body.style.visibility = '';
+          location.href = 'login.html';
+        }
+      } catch(e) {
+        console.warn('Firestore verify:', e.code, e.message);
+        bootDashboard(user, null); // permission-denied atau network → tetap lanjut
+      }
+      return;
+    }
+
+    // user null
+    if (dashboardReady) {
+      await new Promise(r => setTimeout(r, 800));
+      if (auth.currentUser) return;
+    } else {
+      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+      if (raw) {
+        try {
+          const sess = JSON.parse(raw);
+          if (sess.role === 'admin' && Date.now() - (sess.ts||0) < 8*3600*1000) {
+            await new Promise(r => setTimeout(r, 1200));
+            if (auth.currentUser) return;
+          }
+        } catch(e) {}
+      }
+    }
+    if (!auth.currentUser) {
+      localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
+      document.body.style.visibility = '';
+      location.href = 'login.html';
+    }
+  });
 });
 
 function updateDate() {
@@ -448,11 +508,6 @@ async function loadAll() {
   document.getElementById('tc-santri').textContent = dataSantri.length;
   document.getElementById('tc-ustadz').textContent = dataUstadz.length;
   document.getElementById('tc-wali').textContent = dataWali.length;
-  // Reset search box — cegah filter aktif saat data baru masuk
-  ['searchSantri','searchUstadz','searchWali'].forEach(function(id){
-    var el = document.getElementById(id); if(el) el.value='';
-  });
-  var kel = document.querySelector('.filter-sel'); if(kel) kel.value='';
   renderSantri(dataSantri);
   renderUstadz(dataUstadz);
   renderWali(dataWali);
