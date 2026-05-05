@@ -1128,13 +1128,19 @@ async function doForgot(e) {
 // ════════════════════════════════════════
 // SESSION CHECK
 // ════════════════════════════════════════
+let _sessionChecked = false; // cegah double-fire onAuthStateChanged
+
 async function checkSession() {
   showLoader('Memeriksa sesi...');
 
   // Beri waktu Firebase Auth restore session dari IndexedDB (persistence)
   await new Promise(resolve => setTimeout(resolve, 300));
 
-  auth.onAuthStateChanged(async user => {
+  const unsubscribe = auth.onAuthStateChanged(async user => {
+    if (_sessionChecked) return; // sudah ditangani, abaikan event berikutnya
+    _sessionChecked = true;
+    unsubscribe(); // batalkan listener setelah pertama kali fire
+
     if (!user) { hideLoader(); return; }
 
     // Cek localStorage dulu (lebih andal dari sessionStorage)
@@ -1146,8 +1152,11 @@ async function checkSession() {
         const age = Date.now() - (sess.ts || 0);
         const maxAge = 8 * 60 * 60 * 1000;
         if (sess.role && ROLES[sess.role] && sess.uid === user.uid && age < maxAge) {
-          const v = await verifyRole(user.uid, sess.role);
-          if (v.ok) { hideLoader(); goTo(sess.role); return; }
+          // Perbarui ts agar dashboard tidak menganggap sesi expired
+          saveSession(sess.uid, sess.role, sess.authMethod || 'email', sess.email || '');
+          hideLoader();
+          goTo(sess.role);
+          return;
         }
       } catch(e) { console.warn('Session parse error:', e); }
     }
@@ -1207,6 +1216,7 @@ async function verifyRole(uid, role) {
 // HELPERS
 // ════════════════════════════════════════
 function goTo(role) {
+  _sessionChecked = true; // cegah onAuthStateChanged checkSession bereaksi setelah redirect
   window.location.href = ROLES[role].page;
 }
 
