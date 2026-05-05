@@ -390,111 +390,41 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 
 <script>
 // Firebase auth & db sudah tersedia via auth.js
-// enablePersistence sudah dipanggil di auth.js — jangan panggil lagi di sini
 
 var dataSantri=[], dataUstadz=[], dataWali=[];
 var editingId = null;
 
-// ════ AUTH GUARD ════
-// ════ TOKEN HELPER ════
-async function ensureFreshToken() {
-  try { const u = auth.currentUser; if (u) await u.getIdToken(true); }
-  catch(e) { console.warn('Token refresh:', e.message); }
-}
-
-// ════ AUTH GUARD ════
-let dashboardReady     = false;
-let currentUidVerified = null;
-
-function bootDashboard(user, data) {
-  if (dashboardReady) return;
-  dashboardReady = true; currentUidVerified = user.uid;
-  document.body.style.visibility = '';
-  const name = data?.namaLengkap || data?.displayName || data?.name || user.email;
-  document.getElementById('uName').textContent = name;
-  document.getElementById('uAv').textContent   = name[0]?.toUpperCase() || 'A';
-  loadAll();
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   updateDate();
-  // Paksa kosongkan search box berkali-kali — browser autofill bisa datang telat
-  function clearSearchBoxes() {
-    ['searchSantri','searchUstadz','searchWali'].forEach(function(id){
-      var el = document.getElementById(id); if(el) el.value='';
-    });
-  }
-  clearSearchBoxes();
-  setTimeout(clearSearchBoxes, 200);
-  setTimeout(clearSearchBoxes, 600);
-  setTimeout(clearSearchBoxes, 1200);
-  document.body.style.visibility = 'hidden';
 
   if (typeof HA !== 'undefined') {
-    HA.requireAuth('admin', (user, data) => { bootDashboard(user, data); });
-    return;
-  }
-
-  // Beri waktu Firebase Auth restore session dari IndexedDB persistence
-  await new Promise(r => setTimeout(r, 600));
-
-  auth.onAuthStateChanged(async user => {
-    if (user) {
-      if (dashboardReady && user.uid === currentUidVerified) return;
-
-      // Cek localStorage dulu (hindari round-trip Firestore)
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          if (sess.role === 'admin' && sess.uid === user.uid && Date.now() - (sess.ts||0) < 8*3600*1000) {
-            bootDashboard(user, null); return;
-          }
-        } catch(e) {}
-      }
-
-      // Verifikasi Firestore
+    HA.requireAuth('admin', (user, data) => {
+      const name = data?.namaLengkap || data?.displayName || data?.name || user.email;
+      document.getElementById('uName').textContent = name;
+      document.getElementById('uAv').textContent   = (name[0]||'A').toUpperCase();
+      loadAll();
+    });
+  } else {
+    auth.onAuthStateChanged(async user => {
+      if (!user) { window.location.href = 'login.html'; return; }
       try {
-        await ensureFreshToken();
         const doc = await db.collection('users').doc(user.uid).get();
-        if (doc.exists && doc.data().role === 'admin') {
-          localStorage.setItem('currentUser', JSON.stringify({uid:user.uid,role:'admin',ts:Date.now()}));
-          bootDashboard(user, doc.data());
-        } else {
-          await auth.signOut();
-          localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
-          document.body.style.visibility = '';
-          location.href = 'login.html';
+        if (!doc.exists || doc.data().role !== 'admin') {
+          await auth.signOut(); window.location.href = 'login.html'; return;
         }
+        const name = doc.data().displayName || user.email;
+        document.getElementById('uName').textContent = name;
+        document.getElementById('uAv').textContent   = (name[0]||'A').toUpperCase();
+        loadAll();
       } catch(e) {
-        console.warn('Firestore verify:', e.code, e.message);
-        bootDashboard(user, null); // permission-denied atau network → tetap lanjut
+        // Jika Firestore error tapi sudah login, tetap lanjut
+        console.warn('Auth verify:', e.message);
+        document.getElementById('uName').textContent = user.email;
+        document.getElementById('uAv').textContent   = (user.email[0]||'A').toUpperCase();
+        loadAll();
       }
-      return;
-    }
-
-    // user null
-    if (dashboardReady) {
-      await new Promise(r => setTimeout(r, 800));
-      if (auth.currentUser) return;
-    } else {
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          if (sess.role === 'admin' && Date.now() - (sess.ts||0) < 8*3600*1000) {
-            await new Promise(r => setTimeout(r, 1200));
-            if (auth.currentUser) return;
-          }
-        } catch(e) {}
-      }
-    }
-    if (!auth.currentUser) {
-      localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
-      document.body.style.visibility = '';
-      location.href = 'login.html';
-    }
-  });
+    });
+  }
 });
 
 function updateDate() {
