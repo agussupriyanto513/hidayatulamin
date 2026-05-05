@@ -1074,8 +1074,11 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
 
   const btn = document.getElementById('loginBtn');
   btn.disabled = true; btn.classList.add('loading');
-  document.getElementById('loginBtnText').textContent = 'Memproses...';
-  document.getElementById('loginIcon').className = 'fas fa-spinner spin';
+  const btnTextEl = document.getElementById('loginBtnText');
+  const btnIconEl = document.getElementById('loginIcon');
+  if (btnTextEl) btnTextEl.textContent = 'Memproses...';
+  if (btnIconEl) btnIconEl.className = 'fas fa-spinner spin';
+  else btn.innerHTML = `<i class="fas fa-spinner spin" id="loginIcon"></i><span id="loginBtnText">Memproses...</span>`;
   clearAlerts();
 
   try {
@@ -1107,10 +1110,15 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
 });
 
 function resetLoginBtn() {
-  const btn = document.getElementById('loginBtn');
-  btn.disabled = false; btn.classList.remove('loading');
-  const cfg = ROLES[activeRole];
-  btn.innerHTML = `<i class="fas ${cfg.icon}"></i><span id="loginBtnText">Masuk sebagai ${cfg.label}</span>`;
+  const btn = document.getElementById("loginBtn");
+  if (!btn) return;
+  btn.disabled = false; btn.classList.remove("loading");
+  const cfg = activeRole && ROLES[activeRole] ? ROLES[activeRole] : null;
+  if (cfg) {
+    btn.innerHTML = `<i class="fas ${cfg.icon}" id="loginIcon"></i><span id="loginBtnText">Masuk sebagai ${cfg.label}</span>`;
+  } else {
+    btn.innerHTML = `<i class="fas fa-sign-in-alt" id="loginIcon"></i><span id="loginBtnText">Masuk ke Sistem</span>`;
+  }
 }
 
 // ════════════════════════════════════════
@@ -1274,7 +1282,8 @@ function errMsg(code) {
     'auth/invalid-email':          'Format email tidak valid',
     'auth/user-disabled':          'Akun dinonaktifkan. Hubungi admin.',
     'auth/too-many-requests':      'Terlalu banyak percobaan. Coba lagi nanti.',
-    'auth/invalid-credential':     'Email atau password salah',
+    'auth/invalid-credential':          'Email atau password salah',
+    'auth/invalid-login-credentials':  'Email atau password salah. Pastikan akun sudah terdaftar.',
     'auth/network-request-failed': 'Koneksi internet bermasalah',
     'permission-denied':           'Akses ditolak. Hubungi administrator.'
   };
