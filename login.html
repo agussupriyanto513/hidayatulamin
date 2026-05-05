@@ -857,20 +857,7 @@ body.role-santri .btn-login:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(2
 </div>
 
 <script>
-// ════════════════════════════════════════
-// Firebase sudah diinisialisasi via auth.js
-// Panggil enablePersistence hanya jika belum dipanggil di auth.js
-// Gunakan flag global untuk mencegah double-call
-if (!window.__firestorePersistenceEnabled) {
-  window.__firestorePersistenceEnabled = true;
-  db.enablePersistence({ synchronizeTabs: true }).catch(e => {
-    if (e.code === 'failed-precondition') {
-      console.warn('Persistence: multiple tabs, only one tab can use persistence');
-    } else if (e.code === 'unimplemented') {
-      console.warn('Persistence: browser tidak mendukung IndexedDB');
-    }
-  });
-}
+// Firebase sudah diinisialisasi & persistence sudah diaktifkan via auth.js
 
 // ════════════════════════════════════════
 // CONSTANTS

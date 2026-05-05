@@ -395,7 +395,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 
 <script>
 // Firebase auth & db sudah tersedia via auth.js
-db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+// (enablePersistence sudah dipanggil di auth.js — tidak perlu dipanggil lagi)
 
 let dataSantri=[], dataUstadz=[], dataWali=[];
 let editingId = null;
@@ -614,7 +614,7 @@ function onRoleChange() {
 }
 
 async function saveUser() {
-  const name = document.getElementById('fName').value.trim();
+  const name  = document.getElementById('fName').value.trim();
   const email = document.getElementById('fEmail').value.trim();
   const pass  = document.getElementById('fPass').value;
   const role  = document.getElementById('fRole').value;
@@ -623,26 +623,67 @@ async function saveUser() {
   const btn = document.getElementById('saveBtn');
   btn.disabled=true; document.getElementById('saveTxt').textContent='Menyimpan...';
 
+  // Simpan referensi admin yang sedang login sebelum apapun terjadi
+  const adminUser = auth.currentUser;
+
   try {
     let uid;
     if (!editingId) {
-      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      // ── Pakai secondary Firebase App agar admin TIDAK ter-logout ──────────
+      // Buat secondary app (reuse jika sudah ada)
+      const SEC = '__secondary__';
+      const secondaryApp  = firebase.apps.find(a => a.name === SEC)
+                          || firebase.initializeApp(firebase.app().options, SEC);
+      const secondaryAuth = secondaryApp.auth();
+
+      const cred = await secondaryAuth.createUserWithEmailAndPassword(email, pass);
       uid = cred.user.uid;
-    } else { uid = editingId; }
 
-    const payload = { displayName:name, email, role, isActive:true,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
-    if (!editingId) { payload.createdAt = firebase.firestore.FieldValue.serverTimestamp(); payload.sgtBalance=0; }
-    if (role==='santri') { payload.nis=document.getElementById('fNIS').value; payload.kelas=document.getElementById('fKelas').value; }
-    if (role==='ustadz') { payload.bidang=document.getElementById('fBidang').value; payload.kelasAmpu=document.getElementById('fKelasAmpu').value; }
-    if (role==='wali')   { payload.phone=document.getElementById('fPhone').value; payload.hubungan=document.getElementById('fHubungan').value; }
+      // Sign-out dari secondary app — tidak mempengaruhi auth utama
+      await secondaryAuth.signOut().catch(()=>{});
+    } else {
+      uid = editingId;
+    }
 
-    await db.collection('users').doc(uid).set(payload, {merge:true});
-    toast('s', editingId ? 'Data berhasil diperbarui' : 'Pengguna berhasil dibuat');
+    // Pastikan admin masih login (sanity check)
+    if (!auth.currentUser && adminUser) {
+      // Re-autentikasi tidak mungkin di sini, tapi session localStorage masih valid
+      console.warn('[saveUser] auth.currentUser hilang sementara, lanjut dengan uid admin tersimpan');
+    }
+
+    const colMap = { admin:'admins', ustadz:'ustadz', santri:'santri', wali:'wali_santri' };
+    const payload = {
+      uid, displayName: name, email, role, isActive: true,
+      authMethod: 'email',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (!editingId) {
+      payload.createdAt  = firebase.firestore.FieldValue.serverTimestamp();
+      payload.sgtBalance = 0;
+    }
+    if (role==='santri') { payload.nis=document.getElementById('fNIS').value.trim(); payload.kelas=document.getElementById('fKelas').value; }
+    if (role==='ustadz') { payload.bidang=document.getElementById('fBidang').value.trim(); payload.kelasAmpu=document.getElementById('fKelasAmpu').value; }
+    if (role==='wali')   { payload.phone=document.getElementById('fPhone').value.trim(); payload.hubungan=document.getElementById('fHubungan').value; }
+
+    // Tulis ke koleksi 'users' (dipakai semua query di halaman ini)
+    // DAN ke koleksi role-spesifik (untuk konsistensi dengan dashboard-admin)
+    const batch = db.batch();
+    batch.set(db.collection('users').doc(uid), payload, {merge:true});
+    if (!editingId && colMap[role]) {
+      batch.set(db.collection(colMap[role]).doc(uid), payload);
+    }
+    await batch.commit();
+
+    toast('s', editingId ? 'Data berhasil diperbarui' : `Pengguna berhasil dibuat sebagai ${role}`);
     closeModal();
     loadAll();
   } catch(e) {
-    toast('e', e.message||'Gagal menyimpan data');
+    const errMap = {
+      'auth/email-already-in-use': 'Email sudah terdaftar',
+      'auth/weak-password':        'Password minimal 6 karakter',
+      'auth/invalid-email':        'Format email tidak valid',
+    };
+    toast('e', errMap[e.code] || e.message || 'Gagal menyimpan data');
   } finally {
     btn.disabled=false; document.getElementById('saveTxt').textContent='Simpan';
   }
@@ -697,6 +738,8 @@ function closeSb() {
 async function handleLogout() {
   await auth.signOut().catch(()=>{});
   sessionStorage.removeItem('currentUser');
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('piAuthUser');
   location.href='login.html';
 }
 </script>

@@ -510,7 +510,7 @@ tr:hover td{background:var(--g50)}
 <script>
 // ════ FIREBASE ════
 // Firebase auth & db sudah tersedia via auth.js
-if (!window.__fspe) { window.__fspe = true; db.enablePersistence({synchronizeTabs:true}).catch(e => { if(e.code==='failed-precondition') console.warn('Persistence: multiple tabs'); }); }
+// (enablePersistence sudah dipanggil di auth.js)
 
 // ════ STATE ════
 let currentUid = null;

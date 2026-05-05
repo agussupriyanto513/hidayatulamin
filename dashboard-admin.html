@@ -517,14 +517,7 @@ tr:hover td{background:var(--g50)}
 <script>
 // ════ FIREBASE ════
 // Firebase auth & db sudah tersedia via auth.js
-// enablePersistence dipanggil satu kali saja, tidak blocking
-db.enablePersistence({synchronizeTabs:true}).catch(e => {
-  if (e.code === 'failed-precondition') {
-    console.warn('Persistence: multiple tabs open, persistence enabled in one tab only');
-  } else if (e.code === 'unimplemented') {
-    console.warn('Persistence: browser tidak support IndexedDB');
-  }
-});
+// (enablePersistence sudah dipanggil di auth.js — tidak perlu dipanggil lagi)
 
 // ════ STATE ════
 let allUsers = [];
