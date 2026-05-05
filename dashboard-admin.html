@@ -520,7 +520,7 @@ tr:hover td{background:var(--g50)}
       <div class="card" style="margin-bottom:14px">
         <div class="card-head"><h4>Distribusi SGT ke Member</h4></div>
         <div class="field-row">
-          <div class="field-grp"><label>Username Penerima</label><input type="text" id="distTarget" placeholder="Username Pi"></div>
+          <div class="field-grp"><label>Email Penerima</label><input type="email" id="distTarget" placeholder="email@hidayatulamin.pi"></div>
           <div class="field-grp"><label>Jumlah SGT</label><input type="number" id="distAmount" placeholder="0" min="1"></div>
         </div>
         <div class="field-grp" style="margin-bottom:12px"><label>Keterangan</label><input type="text" id="distNote" placeholder="Alasan distribusi..."></div>
@@ -1164,23 +1164,64 @@ function saveAlloc() {
   showToast('success','Tersimpan','Alokasi SGT berhasil disimpan!');
 }
 
-function doDistribute() {
+async function doDistribute() {
   const target = document.getElementById('distTarget')?.value.trim();
   const amount = parseInt(document.getElementById('distAmount')?.value||'0');
   const note   = document.getElementById('distNote')?.value.trim()||'-';
-  if (!target) { showToast('warn','Input Kosong','Masukkan username penerima'); return; }
+  if (!target) { showToast('warn','Input Kosong','Masukkan email penerima'); return; }
   if (!amount || amount <= 0) { showToast('warn','Jumlah Salah','Masukkan jumlah SGT yang valid'); return; }
-  const issued = parseInt(localStorage.getItem('sgt_issued')||'0');
-  if (issued + amount > SGT_SUPPLY) { showToast('error','Melebihi Supply','Total melebihi 1 Miliar SGT!'); return; }
-  localStorage.setItem('sgt_issued', (issued+amount).toString());
-  const bal = parseInt(localStorage.getItem('sgt_bal_'+target)||'0');
-  localStorage.setItem('sgt_bal_'+target, (bal+amount).toString());
-  const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
-  log.unshift({target,amount,note,date:new Date().toISOString()});
-  localStorage.setItem('sgt_log', JSON.stringify(log.slice(0,100)));
-  document.getElementById('distTarget').value=''; document.getElementById('distAmount').value=''; document.getElementById('distNote').value='';
-  renderAllocGrid(); renderDistLog();
-  showToast('success','SGT Dikirim!',`${amount.toLocaleString()} SGT dikirim ke @${target}`);
+
+  const btn = document.querySelector('[onclick="doDistribute()"]');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...'; }
+
+  try {
+    // Cari user berdasarkan email di Firestore
+    const snap = await db.collection('users').where('email','==',target).limit(1).get();
+    if (snap.empty) {
+      showToast('error','User Tidak Ditemukan',`Tidak ada akun dengan email: ${target}`);
+      return;
+    }
+    const userDoc = snap.docs[0];
+    const userData = userDoc.data();
+    const uid = userDoc.id;
+    const currentBal = userData.sgtBalance || 0;
+
+    // Update sgtBalance di Firestore
+    await db.collection('users').doc(uid).update({
+      sgtBalance: currentBal + amount,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Simpan ke log transaksi SGT
+    await db.collection('sgt_transactions').add({
+      type: 'distribute',
+      fromUid: currentAdminUid || 'admin',
+      toUid: uid,
+      toEmail: target,
+      toName: userData.displayName || target,
+      toRole: userData.role || '—',
+      amount,
+      note,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Update localStorage supply counter
+    const issued = parseInt(localStorage.getItem('sgt_issued')||'0');
+    localStorage.setItem('sgt_issued', (issued+amount).toString());
+    const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
+    log.unshift({target, toName: userData.displayName||target, amount, note, date:new Date().toISOString()});
+    localStorage.setItem('sgt_log', JSON.stringify(log.slice(0,100)));
+
+    document.getElementById('distTarget').value='';
+    document.getElementById('distAmount').value='';
+    document.getElementById('distNote').value='';
+    renderAllocGrid(); renderDistLog();
+    showToast('success','SGT Terkirim!',`${amount.toLocaleString()} SGT dikirim ke ${userData.displayName||target}`);
+  } catch(e) {
+    showToast('error','Gagal',e.message||'Gagal mendistribusikan SGT');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-coins"></i> Distribusikan SGT'; }
+  }
 }
 
 function renderDistLog() {
@@ -1189,7 +1230,7 @@ function renderDistLog() {
   if (!tbody) return;
   if (!log.length) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--g400)">Belum ada distribusi</td></tr>'; return; }
   tbody.innerHTML = log.slice(0,10).map(l => `<tr>
-    <td><strong>@${l.target}</strong></td>
+    <td><strong>${l.toName||l.target}</strong><br><span style="font-size:11px;color:var(--g500)">${l.target}</span></td>
     <td><span style="font-weight:700;color:var(--sgtd)">${l.amount?.toLocaleString()||0} SGT</span></td>
     <td style="color:var(--g500)">${l.note}</td>
     <td style="font-size:11px;color:var(--g400)">${new Date(l.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</td>
