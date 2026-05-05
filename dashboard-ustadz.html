@@ -276,6 +276,10 @@ tr:hover td{background:var(--g50)}
     <a class="ni" onclick="go('sgt',this)" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)"><span style="font-size:14px;font-weight:900;color:#d97706;width:16px;text-align:center">₴</span><span style="color:#d97706;font-weight:700">Saldo SGT</span></a>
   </nav>
   <div class="sb-foot">
+    <a onclick="goBackToAdmin()" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;margin-bottom:8px;text-decoration:none;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">
+      <i class="fas fa-arrow-left" style="color:rgba(255,255,255,.4);font-size:12px;width:16px;text-align:center"></i>
+      <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5)">Kembali ke Admin</span>
+    </a>
     <div class="u-tile" onclick="handleLogout()">
       <div class="u-av" id="uAv">U</div>
       <div style="flex:1;min-width:0"><div class="u-nm" id="uName">Ustadz</div><div class="u-rl">Klik untuk logout</div></div>
@@ -506,7 +510,7 @@ tr:hover td{background:var(--g50)}
 <script>
 // ════ FIREBASE ════
 // Firebase auth & db sudah tersedia via auth.js
-db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+if (!window.__fspe) { window.__fspe = true; db.enablePersistence({synchronizeTabs:true}).catch(e => { if(e.code==='failed-precondition') console.warn('Persistence: multiple tabs'); }); }
 
 // ════ STATE ════
 let currentUid = null;
@@ -524,31 +528,86 @@ const DEMO_SANTRI = [
 ];
 
 // ════ AUTH ════
-document.addEventListener('DOMContentLoaded', () => {
+async function ensureFreshToken() {
+  try { const u = auth.currentUser; if (u) await u.getIdToken(true); }
+  catch(e) { console.warn('Token refresh:', e.message); }
+}
+
+let dashboardReady     = false;
+let currentUidVerified = null;
+
+function bootDashboard(user, data) {
+  if (dashboardReady) return;
+  dashboardReady = true; currentUidVerified = user.uid;
+  document.body.style.visibility = '';
+  currentUid = user.uid;
+  const nm = data?.namaLengkap || data?.displayName || data?.name || user.email;
+  setEl('greetName', nm); setEl('uName', nm); setEl('uAv', (nm[0]||'U').toUpperCase());
+  loadData(user.uid);
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
   updateDate();
   document.getElementById('absDate').value = new Date().toISOString().split('T')[0];
   document.getElementById('hfDate').value  = new Date().toISOString().split('T')[0];
+  document.body.style.visibility = 'hidden';
 
   if (typeof HA !== 'undefined') {
-    HA.requireAuth('ustadz', (user, data) => {
-      currentUid = user.uid;
-      const nm = data?.namaLengkap || data?.name || user.email;
-      setEl('greetName', nm); setEl('uName', nm); setEl('uAv', nm[0]?.toUpperCase()||'U');
-      loadData(user.uid);
-    });
-  } else {
-    auth.onAuthStateChanged(async user => {
-      if (!user) { window.location.href='login.html'; return; }
-      try {
-        const doc = await db.collection('users').doc(user.uid).get();
-        if (!doc.exists || doc.data().role !== 'ustadz') { await auth.signOut(); window.location.href='login.html'; return; }
-        currentUid = user.uid;
-        const nm = doc.data().displayName || user.email;
-        setEl('greetName', nm); setEl('uName', nm); setEl('uAv', nm[0]?.toUpperCase()||'U');
-        loadData(user.uid);
-      } catch(e) { console.error(e); }
-    });
+    HA.requireAuth('ustadz', (user, data) => { bootDashboard(user, data); });
+    return;
   }
+
+  await new Promise(r => setTimeout(r, 600));
+
+  auth.onAuthStateChanged(async user => {
+    if (user) {
+      if (dashboardReady && user.uid === currentUidVerified) return;
+      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+      if (raw) {
+        try {
+          const sess = JSON.parse(raw);
+          if (sess.role === 'ustadz' && sess.uid === user.uid && Date.now() - (sess.ts||0) < 8*3600*1000) {
+            bootDashboard(user, null); return;
+          }
+        } catch(e) {}
+      }
+      try {
+        await ensureFreshToken();
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (doc.exists && doc.data().role === 'ustadz') {
+          localStorage.setItem('currentUser', JSON.stringify({uid:user.uid,role:'ustadz',ts:Date.now()}));
+          bootDashboard(user, doc.data());
+        } else {
+          await auth.signOut();
+          localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
+          document.body.style.visibility = ''; window.location.href = 'login.html';
+        }
+      } catch(e) {
+        console.warn('Firestore verify:', e.code, e.message);
+        bootDashboard(user, null);
+      }
+      return;
+    }
+    if (dashboardReady) {
+      await new Promise(r => setTimeout(r, 800));
+      if (auth.currentUser) return;
+    } else {
+      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+      if (raw) {
+        try {
+          const sess = JSON.parse(raw);
+          if (sess.role === 'ustadz' && Date.now() - (sess.ts||0) < 8*3600*1000) {
+            await new Promise(r => setTimeout(r, 1200));
+            if (auth.currentUser) return;
+          }
+        } catch(e) {}
+      }
+    }
+    if (!auth.currentUser) {
+      localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
+      document.body.style.visibility = ''; window.location.href = 'login.html';
+    }
+  });
 });
 
 // ════ LOAD DATA ════
@@ -882,7 +941,13 @@ function updateDate(){
 }
 
 // ════ LOGOUT ════
-async function handleLogout(){if(!confirm('Yakin logout?'))return;await auth.signOut().catch(()=>{});sessionStorage.removeItem('currentUser');window.location.href='login.html'}
+async function handleLogout() {
+  if (!confirm('Yakin logout?')) return;
+  await auth.signOut().catch(() => {});
+  localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser'); localStorage.removeItem('piAuthUser');
+  window.location.href = 'login.html';
+}
+function goBackToAdmin() { window.location.href = 'dashboard-admin.html'; }
 
 // ════ TOAST ════
 function showToast(type,title,msg){
