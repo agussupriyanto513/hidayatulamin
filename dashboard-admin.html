@@ -58,7 +58,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .u-role{font-size:10px;color:rgba(255,255,255,.35)}
 
 /* ═══ OVERLAY (mobile) ═══ */
-.sb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;display:none}
+.sb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;display:none;cursor:pointer}
 .sb-overlay.show{display:block}
 
 /* ═══ MAIN ═══ */
@@ -1131,8 +1131,21 @@ function closeModalOutside(e) { if(e.target === document.getElementById('modalBg
 function resetModal() { ['fName','fEmail','fPass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); document.getElementById('fRole').value=''; document.getElementById('xSantri').style.display='none'; document.getElementById('xWali').style.display='none'; }
 
 // ════ SIDEBAR ════
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden-mobile'); document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sbOverlay').classList.toggle('show'); }
-function closeSidebar() { if(window.innerWidth<=900){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar').classList.add('hidden-mobile');document.getElementById('sbOverlay').classList.remove('show');} }
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sbOverlay');
+  const isHidden = sb.classList.contains('hidden-mobile');
+  if (isHidden) {
+    sb.classList.remove('hidden-mobile'); sb.classList.add('open'); ov.classList.add('show');
+  } else {
+    sb.classList.add('hidden-mobile'); sb.classList.remove('open'); ov.classList.remove('show');
+  }
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar').classList.add('hidden-mobile');
+  document.getElementById('sbOverlay').classList.remove('show');
+}
 
 // ════ DATE ════
 function updateDate() {
@@ -1599,11 +1612,25 @@ function animNum(id, target) {
 
 // Responsive sidebar on resize
 window.addEventListener('resize', () => {
-  if (window.innerWidth > 900) { document.getElementById('sidebar').classList.remove('hidden-mobile','open'); document.getElementById('sbOverlay').classList.remove('show'); }
-  else { if(!document.getElementById('sidebar').classList.contains('open')) document.getElementById('sidebar').classList.add('hidden-mobile'); }
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sbOverlay');
+  if (window.innerWidth > 900) {
+    // Desktop: kalau sidebar sedang open via toggle, biarkan; kalau hidden paksa, tapi jangan paksa buka
+    ov.classList.remove('show');
+  } else {
+    if (!sb.classList.contains('open')) {
+      sb.classList.add('hidden-mobile');
+      ov.classList.remove('show');
+    }
+  }
 });
-if (window.innerWidth <= 900) document.getElementById('sidebar').classList.add('hidden-mobile');
-else document.getElementById('sidebar').classList.remove('hidden-mobile');
+// State awal
+if (window.innerWidth <= 900) {
+  document.getElementById('sidebar').classList.add('hidden-mobile');
+} else {
+  document.getElementById('sidebar').classList.remove('hidden-mobile');
+  document.getElementById('sbOverlay').classList.remove('show');
+}
 </script>
 </body>
 </html>
