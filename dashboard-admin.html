@@ -338,8 +338,13 @@ tr:hover td{background:var(--g50)}
   .alloc-grid{grid-template-columns:1fr}
   .sgt-stats{grid-template-columns:1fr 1fr}
 }
+/* ═══ PI DONATIONS PANEL ═══ */
+.pi-prog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.pi-prog-name{font-size:12px;font-weight:600;color:var(--g700)}
+.pi-prog-val{font-size:12px;font-weight:700;color:#8b5cf6}
+.pi-prog-bar{height:6px;background:var(--g100);border-radius:20px;overflow:hidden;margin-bottom:12px}
+.pi-prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#8b5cf6,#6d28d9)}
 </style>
-</head>
 <body>
 
 <!-- SIDEBAR OVERLAY -->
@@ -369,6 +374,7 @@ tr:hover td{background:var(--g50)}
     <a class="nav-item" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)" onclick="switchSection('sgt',this)"><span style="font-size:14px;font-weight:900;color:#d97706;width:16px;text-align:center">₴</span><span style="color:#d97706;font-weight:700">Kelola SGT</span></a>
     <a class="nav-item" id="navPencairan" onclick="switchSection('pencairan',this)"><i class="fas fa-hand-holding-usd" style="color:#d97706"></i><span style="color:#d97706;font-weight:700">Pencairan SGT</span><span class="nav-badge" id="pendingBadge" style="display:none;background:#f59e0b">0</span></a>
     <a class="nav-item" id="navEarnReq" onclick="switchSection('earnreq',this)"><i class="fas fa-paper-plane" style="color:#8b5cf6"></i><span style="color:#8b5cf6;font-weight:700">Pengajuan Reward</span><span class="nav-badge" id="earnBadge" style="display:none;background:#8b5cf6">0</span></a>
+    <a class="nav-item" id="navPiDon" onclick="switchSection('pi-donations',this)" style="background:rgba(109,40,217,.1);border-color:rgba(109,40,217,.2)"><span style="font-size:14px;font-weight:900;color:#8b5cf6;width:16px;text-align:center">π</span><span style="color:#8b5cf6;font-weight:700">Donasi Pi</span><span class="nav-badge" id="piDonBadge" style="display:none;background:#8b5cf6">0</span></a>
     <a href="https://sagatama-mart.vercel.app" target="_blank" class="nav-item" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)"><i class="fas fa-shopping-bag" style="color:var(--acc)"></i><span style="color:var(--acc);font-weight:700">Sagatama Mart</span><i class="fas fa-external-link-alt" style="font-size:9px;color:var(--acc);margin-left:auto"></i></a>
   </nav>
   <div class="sb-foot">
@@ -708,6 +714,79 @@ tr:hover td{background:var(--g50)}
     </div>
 
 
+    <!-- ════ PI DONATIONS MANAGEMENT SECTION ════ -->
+    <div class="section" id="sec-pi-donations">
+      <div class="sec-hd">
+        <div><h3>Manajemen Donasi Pi</h3><p>Riwayat dan monitoring donasi Pi Network dari publik</p></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <a href="pi-donasi.html" target="_blank" class="btn-p" style="text-decoration:none;background:linear-gradient(135deg,#7c3aed,#5b21b6)"><span style="font-size:14px;font-weight:900">π</span> Halaman Donasi</a>
+          <button class="btn-p" onclick="loadPiDonations()"><i class="fas fa-sync-alt" id="piDonRefIco"></i> Refresh</button>
+        </div>
+      </div>
+
+      <!-- PI STATS -->
+      <div class="stats-row" style="margin-bottom:14px">
+        <div class="stat-card v">
+          <div class="sc-top"><div class="sc-ico v"><span style="font-size:16px;font-weight:900">π</span></div></div>
+          <div class="sc-val" id="piDonTotal" style="font-size:22px">—</div>
+          <div class="sc-lbl">Total Pi Terkumpul</div>
+          <div class="sc-sub">Semua transaksi selesai</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-top"><div class="sc-ico g"><i class="fas fa-check-circle"></i></div></div>
+          <div class="sc-val" id="piDonCompleted">—</div>
+          <div class="sc-lbl">Donasi Selesai</div>
+        </div>
+        <div class="stat-card b">
+          <div class="sc-top"><div class="sc-ico b"><i class="fas fa-clock"></i></div></div>
+          <div class="sc-val" id="piDonPending">—</div>
+          <div class="sc-lbl">Menunggu</div>
+        </div>
+        <div class="stat-card o">
+          <div class="sc-top"><div class="sc-ico o"><i class="fas fa-users"></i></div></div>
+          <div class="sc-val" id="piDonDonors">—</div>
+          <div class="sc-lbl">Donatur Unik</div>
+        </div>
+      </div>
+
+      <!-- PROGRAM BREAKDOWN -->
+      <div class="two-col" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-head"><h4>Pi per Program</h4></div>
+          <div class="prog-list" id="piDonByProg">
+            <div style="text-align:center;padding:20px;color:var(--g400)"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h4>10 Donatur Terbesar</h4></div>
+          <div id="piTopDonors" style="display:flex;flex-direction:column;gap:8px">
+            <div style="text-align:center;padding:20px;color:var(--g400)"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS TABLE -->
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Semua Transaksi Donasi Pi</h4><p id="piDonSubtitle">Memuat data...</p></div>
+          <div class="tbl-acts">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="piDonSearch" placeholder="Cari username Pi..." oninput="renderPiDonTable()"></div>
+            <select id="piDonFilter" onchange="renderPiDonTable()" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit">
+              <option value="">Semua Status</option>
+              <option value="completed">Selesai</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Donatur Pi</th><th>Program</th><th>Jumlah</th><th>Status</th><th>TxID</th><th>Waktu</th></tr></thead>
+            <tbody id="piDonTable"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /pi-donations -->
+
     <!-- MODAL DETAIL PENCAIRAN -->
     <div class="modal-bg" id="wdDetailModal" onclick="closeWdModal(event)">
       <div class="modal" style="max-width:480px">
@@ -917,9 +996,11 @@ function switchSection(name, el) {
   document.getElementById('sec-' + name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
-  setEl('pgTitle', {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token'}[name] || 'Dashboard');
+  const titles = {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token',pencairan:'Pencairan SGT',earnreq:'Pengajuan Reward SGT','pi-donations':'Manajemen Donasi Pi'};
+  setEl('pgTitle', titles[name] || 'Dashboard');
   if (name === 'users') loadAllUsers();
   if (name === 'sgt') { renderAllocGrid(); loadMartStats(); renderDistLog(); }
+  if (name === 'pi-donations') loadPiDonations();
   closeSidebar();
 }
 
@@ -2032,8 +2113,124 @@ async function confirmEarnApprove(id) {
   }
 }
 
-// ── Open Reject Modal ──
-function openEarnReject(id) {
+// ════ PI DONATIONS MANAGEMENT ════
+let piDonAllData = [];
+
+async function loadPiDonations() {
+  const ico = document.getElementById('piDonRefIco');
+  if (ico) { ico.classList.add('fa-spin'); }
+  try {
+    const snap = await db.collection('pi_donations').orderBy('createdAt','desc').limit(200).get();
+    piDonAllData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    updatePiDonStats();
+    renderPiDonByProg();
+    renderPiTopDonors();
+    renderPiDonTable();
+    document.getElementById('piDonSubtitle').textContent = piDonAllData.length + ' transaksi ditemukan';
+    // Update badge
+    const pending = piDonAllData.filter(x => x.status === 'pending').length;
+    const badge = document.getElementById('piDonBadge');
+    if (badge) { badge.style.display = pending > 0 ? '' : 'none'; badge.textContent = pending; }
+  } catch(e) {
+    showToast('error','Gagal memuat Pi Donations', e.message);
+  }
+  if (ico) { ico.classList.remove('fa-spin'); }
+}
+
+function updatePiDonStats() {
+  const completed = piDonAllData.filter(x => x.status === 'completed');
+  const pending   = piDonAllData.filter(x => x.status === 'pending');
+  const total     = completed.reduce((s, x) => s + (parseFloat(x.amount)||0), 0);
+  const donors    = new Set(completed.map(x => x.donorPiUid)).size;
+  setEl('piDonTotal',     total.toFixed(2) + ' π');
+  setEl('piDonCompleted', completed.length);
+  setEl('piDonPending',   pending.length);
+  setEl('piDonDonors',    donors);
+}
+
+function renderPiDonByProg() {
+  const el = document.getElementById('piDonByProg');
+  const completed = piDonAllData.filter(x => x.status === 'completed');
+  const totalPi   = completed.reduce((s, x) => s + (parseFloat(x.amount)||0), 0);
+  const byProg = {};
+  completed.forEach(x => {
+    const k = x.progLabel || x.program || 'Umum';
+    byProg[k] = (byProg[k] || 0) + (parseFloat(x.amount)||0);
+  });
+  if (!Object.keys(byProg).length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Belum ada donasi selesai</div>';
+    return;
+  }
+  el.innerHTML = Object.entries(byProg).sort((a,b) => b[1]-a[1]).map(([k,v]) => {
+    const pct = totalPi > 0 ? Math.round(v/totalPi*100) : 0;
+    return `<div>
+      <div class="pi-prog-row"><span class="pi-prog-name">${escHtml(k)}</span><span class="pi-prog-val">${v.toFixed(2)} π (${pct}%)</span></div>
+      <div class="pi-prog-bar"><div class="pi-prog-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderPiTopDonors() {
+  const el = document.getElementById('piTopDonors');
+  const completed = piDonAllData.filter(x => x.status === 'completed');
+  const byUser = {};
+  completed.forEach(x => {
+    const k = x.donorUsername || 'anonymous';
+    byUser[k] = (byUser[k] || 0) + (parseFloat(x.amount)||0);
+  });
+  const sorted = Object.entries(byUser).sort((a,b) => b[1]-a[1]).slice(0,10);
+  if (!sorted.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Belum ada donatur</div>';
+    return;
+  }
+  el.innerHTML = sorted.map(([name, total], i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px;background:var(--g50);border-radius:8px">
+      <span style="width:20px;font-size:11px;font-weight:700;color:var(--g400);flex-shrink:0">#${i+1}</span>
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">${name[0].toUpperCase()}</div>
+      <span style="flex:1;font-size:12px;font-weight:600;color:var(--ink2)">@${escHtml(name)}</span>
+      <span style="font-size:12px;font-weight:800;color:#8b5cf6">${total.toFixed(2)} π</span>
+    </div>`).join('');
+}
+
+function renderPiDonTable() {
+  const tbody  = document.getElementById('piDonTable');
+  const q      = (document.getElementById('piDonSearch')?.value||'').toLowerCase();
+  const filter = document.getElementById('piDonFilter')?.value || '';
+  let data = piDonAllData.filter(x => {
+    if (filter && x.status !== filter) return false;
+    if (q && !(x.donorUsername||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--g400)">Tidak ada data</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(x => {
+    const status = x.status === 'completed'
+      ? '<span class="chip chip-aktif">✅ Selesai</span>'
+      : '<span class="chip" style="background:var(--wl);color:var(--w)">⏳ Pending</span>';
+    const txid   = x.txid ? `<span style="font-size:10px;font-family:monospace;color:var(--g400)" title="${x.txid}">${x.txid.slice(0,10)}...</span>` : '—';
+    const time   = x.completedAt ? new Date(x.completedAt.toDate()).toLocaleString('id-ID') : (x.createdAt ? new Date(x.createdAt.toDate()).toLocaleString('id-ID') : '—');
+    return `<tr>
+      <td><div class="u-cell"><div class="u-av-sm" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff">${(x.donorUsername||'?')[0].toUpperCase()}</div><div class="u-det"><div class="u-nm">@${escHtml(x.donorUsername||'anonymous')}</div></div></div></td>
+      <td>${escHtml(x.progLabel||x.program||'—')}</td>
+      <td><b style="color:#8b5cf6">${(parseFloat(x.amount)||0)} π</b></td>
+      <td>${status}</td>
+      <td>${txid}</td>
+      <td style="font-size:11px;color:var(--g500)">${time}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Patch switchSection to load Pi Donations data when navigating to it
+const _origSwitchSection = typeof switchSection === 'function' ? switchSection : null;
+
+// ════ END PI DONATIONS ════
+
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
   const r = earnAllData.find(x => x.id === id);
   if (!r) return;
   const typeLabel = EARN_TYPE_LABEL[r.type] || r.type;

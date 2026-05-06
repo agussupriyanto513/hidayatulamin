@@ -36,7 +36,7 @@ const ROLE_DASHBOARD = {
 };
 
 // Halaman yang boleh diakses tanpa login
-const PUBLIC_PAGES = ['login.html', 'transparansi.html', 'donasi.html'];
+const PUBLIC_PAGES = ['login.html', 'transparansi.html', 'donasi.html', 'pi-donasi.html'];
 
 // ██████████████████████████████████████████
 // 3. CLASS UTAMA

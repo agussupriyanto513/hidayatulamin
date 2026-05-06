@@ -6,6 +6,8 @@
 <title>Dashboard Wali | Hidayatullah Amin</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<!-- Pi SDK (wajib sebelum Firebase) -->
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -352,6 +354,22 @@ tr:hover td{background:var(--g50)}
     <!-- ════ PEMBAYARAN ════ -->
     <div class="section" id="sec-pembayaran">
       <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Pembayaran</h3><p style="font-size:12px;color:var(--g500)">Status pembayaran SPP dan lainnya</p></div>
+
+      <!-- PI PAYMENT BANNER -->
+      <div style="background:linear-gradient(135deg,#1a0040,#3d0099,#6d28d9);border-radius:var(--rd);padding:18px;margin-bottom:16px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-20px;right:-20px;font-size:80px;font-weight:900;color:rgba(255,255,255,.05);pointer-events:none;line-height:1">π</div>
+        <div style="position:relative;z-index:1;display:flex;align-items:center;gap:14px">
+          <div style="width:46px;height:46px;background:rgba(255,255,255,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0">π</div>
+          <div style="flex:1">
+            <p style="font-size:14px;font-weight:800;color:#fff;margin-bottom:2px">Bayar SPP dengan Pi Network</p>
+            <p style="font-size:11px;color:rgba(255,255,255,.6)">Gunakan Pi Coin langsung dari Pi Browser · Testnet</p>
+          </div>
+          <button id="btnPiPaySPP" onclick="openPiPayModal()" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.3);border-radius:10px;padding:10px 14px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">
+            <span style="font-size:16px;font-weight:900">π</span> Bayar Pi
+          </button>
+        </div>
+      </div>
+
       <div class="two-col">
         <div class="card">
           <div class="card-hd"><h4>Status Pembayaran</h4></div>
@@ -364,15 +382,24 @@ tr:hover td{background:var(--g50)}
               <div style="width:40px;height:40px;background:var(--pl);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--p);font-size:18px"><i class="fas fa-university"></i></div>
               <div><p style="font-weight:700;color:var(--ink2);font-size:13px">Transfer Bank</p><p style="font-size:11px;color:var(--g500)">BRI · 1234-5678-9012</p></div>
             </a>
-            <a href="#" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--rdm);border:2px solid var(--g200);text-decoration:none;transition:var(--tr)" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--g200)'">
+            <a onclick="openPiPayModal()" href="#" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--rdm);border:2px solid var(--acc);background:rgba(139,92,246,.04);text-decoration:none;transition:var(--tr)">
               <div style="width:40px;height:40px;background:var(--acl);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:18px"><span style="font-size:16px;font-weight:900">π</span></div>
-              <div><p style="font-weight:700;color:var(--ink2);font-size:13px">Bayar dengan Pi</p><p style="font-size:11px;color:var(--g500)">Gunakan Pi Browser</p></div>
+              <div><p style="font-weight:700;color:var(--ink2);font-size:13px">Bayar dengan Pi ✓</p><p style="font-size:11px;color:var(--acc)">Klik untuk bayar SPP / donasi via Pi Browser</p></div>
+              <i class="fas fa-chevron-right" style="margin-left:auto;color:var(--acc);font-size:12px"></i>
             </a>
             <a href="#" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--rdm);border:2px solid var(--g200);text-decoration:none;transition:var(--tr)" onmouseover="this.style.borderColor='var(--g)'" onmouseout="this.style.borderColor='var(--g200)'">
               <div style="width:40px;height:40px;background:var(--pl);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--p);font-size:16px"><i class="fas fa-qrcode"></i></div>
               <div><p style="font-weight:700;color:var(--ink2);font-size:13px">QRIS</p><p style="font-size:11px;color:var(--g500)">Scan QR di kantor pesantren</p></div>
             </a>
           </div>
+        </div>
+      </div>
+
+      <!-- RIWAYAT PEMBAYARAN PI -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-hd"><h4>Riwayat Bayar Pi</h4><span style="font-size:11px;color:var(--g400)" id="piPayCount">—</span></div>
+        <div id="piPayHistory">
+          <div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
         </div>
       </div>
     </div>
@@ -674,6 +701,63 @@ tr:hover td{background:var(--g50)}
 
   </div><!-- /content -->
 </div><!-- /main -->
+
+<!-- MODAL BAYAR PI -->
+<div class="modal-bg" id="mdlPiPay" onclick="if(event.target===this)closeModal('mdlPiPay')">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-hd">
+      <h3><span style="font-size:16px;font-weight:900;color:#8b5cf6">π</span> Bayar dengan Pi Network</h3>
+      <button class="modal-close" onclick="closeModal('mdlPiPay')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <!-- Sandbox notice -->
+      <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start">
+        <i class="fas fa-flask" style="color:#d97706;margin-top:2px;flex-shrink:0"></i>
+        <p style="font-size:11px;color:#92400e;line-height:1.6"><b>Mode Testnet</b> — Pembayaran ini menggunakan Pi testnet. Tidak ada Pi asli yang digunakan.</p>
+      </div>
+      <!-- Pi Login Area -->
+      <div id="piPayLoginArea">
+        <p style="font-size:12px;color:var(--g500);margin-bottom:10px;text-align:center">Login dengan Pi Network untuk melanjutkan pembayaran</p>
+        <button id="btnPiLoginWali" onclick="waliPiLogin()" style="width:100%;padding:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+          <span style="font-size:16px;font-weight:900">π</span> Login dengan Pi Network
+        </button>
+      </div>
+      <!-- Pi User Area -->
+      <div id="piPayUserArea" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;background:rgba(13,184,122,.08);border:1px solid rgba(13,184,122,.2);border-radius:10px;padding:10px;margin-bottom:14px">
+          <div id="piPayAvatar" style="width:32px;height:32px;background:linear-gradient(135deg,var(--p),var(--pd));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff">?</div>
+          <div style="flex:1"><p id="piPayUsername" style="font-size:13px;font-weight:700;color:var(--ink2)">—</p><p style="font-size:10px;color:var(--g400)">Pioneer Pi Network ✓</p></div>
+          <button onclick="waliPiLogout()" style="background:none;border:none;font-size:11px;color:var(--g400);cursor:pointer">Ganti</button>
+        </div>
+        <!-- Jenis Pembayaran -->
+        <div class="field-grp" style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:5px">JENIS PEMBAYARAN</label>
+          <select id="piPayType" onchange="updatePiPayAmount()" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:13px;font-family:inherit">
+            <option value="spp_bulan" data-amt="15">SPP Bulanan (15 π)</option>
+            <option value="spp_tahun" data-amt="150">SPP Tahunan (150 π)</option>
+            <option value="uang_makan" data-amt="30">Uang Makan Bulanan (30 π)</option>
+            <option value="seragam" data-amt="10">Seragam (10 π)</option>
+            <option value="donasi_umum" data-amt="0">Donasi Umum (jumlah bebas)</option>
+          </select>
+        </div>
+        <div class="field-grp" style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:5px">JUMLAH (π)</label>
+          <input type="number" id="piPayAmount" value="15" min="0.01" step="0.01" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:16px;font-weight:700;font-family:inherit">
+        </div>
+        <div class="field-grp" style="margin-bottom:0">
+          <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:5px">CATATAN (opsional)</label>
+          <input type="text" id="piPayNote" placeholder="Misal: SPP atas nama Ahmad" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:13px;font-family:inherit">
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-sec" onclick="closeModal('mdlPiPay')">Batal</button>
+      <button id="btnDoPiPay" onclick="submitPiPay()" style="padding:10px 18px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px" disabled>
+        <span style="font-size:14px;font-weight:900">π</span> Bayar dengan Pi
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL DETAIL SANTRI -->
 <div class="modal-bg" id="mdlSantri" onclick="closeModalOut(event,'mdlSantri')">
@@ -1194,8 +1278,189 @@ function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 function closeModalOut(e,id){if(e.target===document.getElementById(id))closeModal(id)}
 
-// ════ SIDEBAR ════
-function toggleSb(){document.getElementById('sidebar').classList.toggle('off');document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOv').classList.toggle('show')}
+// ════ PI PAYMENT (WALI) ════
+let waliPiSDKReady = false;
+let waliPiUser = null;
+
+function initWaliPiSDK() {
+  if (!window.Pi) { showToast('warn','Pi SDK','Buka halaman ini di Pi Browser'); return false; }
+  try {
+    const isSandbox = !window.location.hostname.includes('hidayatulamin.com');
+    window.Pi.init({ version: '2.0', sandbox: isSandbox });
+    waliPiSDKReady = true;
+    return true;
+  } catch(e) {
+    showToast('error','Pi SDK Gagal', e.message);
+    return false;
+  }
+}
+
+function openPiPayModal() {
+  if (!waliPiSDKReady) initWaliPiSDK();
+  openModal('mdlPiPay');
+  if (waliPiUser) {
+    showWaliPiUser();
+  }
+}
+
+async function waliPiLogin() {
+  if (!waliPiSDKReady && !initWaliPiSDK()) return;
+  const btn = document.getElementById('btnPiLoginWali');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghubungkan...';
+  try {
+    const scopes = ['username', 'payments', 'wallet_address'];
+    const result = await window.Pi.authenticate(scopes, (payment) => {
+      // Incomplete payment handler
+      try { window.Pi.completePayment(payment.identifier); } catch(e) {}
+    });
+    waliPiUser = { uid: result.user.uid, username: result.user.username };
+    showWaliPiUser();
+  } catch(e) {
+    showToast('error','Login Pi Gagal', e.message || 'Coba lagi');
+    btn.disabled = false;
+    btn.innerHTML = '<span style="font-size:16px;font-weight:900">π</span> Login dengan Pi Network';
+  }
+}
+
+function showWaliPiUser() {
+  document.getElementById('piPayLoginArea').style.display = 'none';
+  document.getElementById('piPayUserArea').style.display  = 'block';
+  document.getElementById('piPayUsername').textContent    = '@' + waliPiUser.username;
+  document.getElementById('piPayAvatar').textContent      = waliPiUser.username[0].toUpperCase();
+  document.getElementById('btnDoPiPay').disabled = false;
+}
+
+function waliPiLogout() {
+  waliPiUser = null;
+  document.getElementById('piPayLoginArea').style.display = 'block';
+  document.getElementById('piPayUserArea').style.display  = 'none';
+  document.getElementById('btnDoPiPay').disabled = true;
+  const btn = document.getElementById('btnPiLoginWali');
+  btn.disabled = false;
+  btn.innerHTML = '<span style="font-size:16px;font-weight:900">π</span> Login dengan Pi Network';
+}
+
+function updatePiPayAmount() {
+  const sel = document.getElementById('piPayType');
+  const opt = sel.options[sel.selectedIndex];
+  const amt = parseFloat(opt.getAttribute('data-amt'));
+  const input = document.getElementById('piPayAmount');
+  if (amt > 0) { input.value = amt; input.readOnly = true; }
+  else { input.value = ''; input.readOnly = false; }
+}
+
+async function submitPiPay() {
+  if (!waliPiUser) { showToast('warn','Login Dulu','Login dengan Pi Network dulu'); return; }
+  const amt  = parseFloat(document.getElementById('piPayAmount').value);
+  const note = document.getElementById('piPayNote').value.trim();
+  const type = document.getElementById('piPayType');
+  const typeLabel = type.options[type.selectedIndex].text;
+  if (!amt || amt < 0.01) { showToast('warn','Jumlah','Masukkan jumlah yang valid'); return; }
+
+  const btn = document.getElementById('btnDoPiPay');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+  const memo = `${typeLabel} — Yayasan Hidayatulamin`;
+
+  try {
+    await new Promise((resolve, reject) => {
+      window.Pi.createPayment(
+        { amount: amt, memo, metadata: { type: type.value, note, donorPiUid: waliPiUser.uid } },
+        {
+          onReadyForServerApproval: async (paymentId) => {
+            try {
+              await db.collection('pi_donations').add({
+                paymentId,
+                donorPiUid:    waliPiUser.uid,
+                donorUsername: waliPiUser.username,
+                amount:        amt,
+                memo,
+                program:       type.value,
+                progLabel:     typeLabel,
+                note,
+                paidByRole:    'wali',
+                status:        'pending',
+                createdAt:     firebase.firestore.FieldValue.serverTimestamp()
+              });
+            } catch(e) { console.error(e); }
+          },
+          onReadyForServerCompletion: async (paymentId, txid) => {
+            try {
+              const snap = await db.collection('pi_donations')
+                .where('paymentId','==',paymentId).limit(1).get();
+              if (!snap.empty) {
+                await snap.docs[0].ref.update({
+                  status:'completed', txid,
+                  completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+              }
+              resolve({ txid });
+            } catch(e) { reject(e); }
+          },
+          onCancel: () => reject(new Error('Pembayaran dibatalkan')),
+          onError: (e) => reject(e)
+        }
+      );
+    });
+
+    closeModal('mdlPiPay');
+    showToast('success','Pembayaran Berhasil', `${amt} π untuk ${typeLabel} telah diterima`);
+    setTimeout(() => loadPiPayHistory(), 500);
+  } catch(e) {
+    showToast('error','Pembayaran Gagal', e.message || 'Coba lagi');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span style="font-size:14px;font-weight:900">π</span> Bayar dengan Pi';
+}
+
+async function loadPiPayHistory() {
+  const el = document.getElementById('piPayHistory');
+  if (!el) return;
+  if (!currentUid) return;
+  try {
+    const snap = await db.collection('pi_donations')
+      .where('donorPiUid','==', waliPiUser?.uid || 'none')
+      .orderBy('createdAt','desc').limit(10).get();
+    document.getElementById('piPayCount').textContent = snap.size + ' transaksi';
+    if (snap.empty) {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-receipt"></i><br>Belum ada riwayat pembayaran Pi</div>';
+      return;
+    }
+    el.innerHTML = snap.docs.map(d => {
+      const x = d.data();
+      const status = x.status === 'completed'
+        ? '<span style="font-size:10px;font-weight:700;background:var(--pl);color:var(--p);padding:2px 8px;border-radius:20px">✅ Selesai</span>'
+        : '<span style="font-size:10px;font-weight:700;background:var(--wl);color:var(--w);padding:2px 8px;border-radius:20px">⏳ Pending</span>';
+      const time = x.createdAt ? new Date(x.createdAt.toDate()).toLocaleDateString('id-ID') : '—';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--g50);border-radius:10px;margin-bottom:8px;border:1px solid var(--g200)">
+        <div style="width:34px;height:34px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;flex-shrink:0">π</div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:12px;font-weight:700;color:var(--ink2)">${x.progLabel||x.program||'—'}</p>
+          <p style="font-size:10px;color:var(--g400)">${time}</p>
+        </div>
+        <div style="text-align:right">
+          <p style="font-size:13px;font-weight:800;color:#8b5cf6">${x.amount} π</p>
+          ${status}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Gagal memuat</div>';
+  }
+}
+
+// Patch go() to load pi history when navigating to pembayaran
+const _origGo = go;
+function go(name, navEl) {
+  _origGo(name, navEl);
+  if (name === 'pembayaran' && waliPiUser) loadPiPayHistory();
+}
+// ════ END PI PAYMENT ════
+
+document.getElementById('sidebar').classList.toggle('off');document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOv').classList.toggle('show')}
 function closeSb(){if(window.innerWidth<=900){document.getElementById('sidebar').classList.add('off');document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOv').classList.remove('show')}}
 
 // ════ DATE ════
