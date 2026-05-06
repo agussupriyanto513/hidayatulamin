@@ -811,28 +811,32 @@ const DEMO_NOTIF=[
 ];
 
 // ════ AUTH ════
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded', () => {
   updateDate();
-  if(typeof HA!=='undefined'){
-    HA.requireAuth('wali',(user,data)=>{
-      currentUid=user.uid; waliData=data;
-      const nm=data?.namaLengkap||data?.nama||data?.name||user.email;
-      setEl('greetName',nm);setEl('uName',nm);setEl('uAv',nm[0]?.toUpperCase()||'W');
-      loadWaliData(user.uid);
-    });
-  } else {
-    auth.onAuthStateChanged(async user=>{
-      if(!user){window.location.href='login.html';return;}
-      try{
-        const doc=await db.collection('users').doc(user.uid).get();
-        if(!doc.exists||doc.data().role!=='wali'){await auth.signOut();window.location.href='login.html';return;}
-        currentUid=user.uid;waliData=doc.data();
-        const nm=doc.data().displayName||user.email;
-        setEl('greetName',nm);setEl('uName',nm);setEl('uAv',nm[0]?.toUpperCase()||'W');
-        loadWaliData(user.uid);
-      }catch(e){console.error(e);}
-    });
-  }
+
+  // Tunggu event authReady dari auth.js
+  window.addEventListener('authReady', async ({ detail }) => {
+    const user = detail.user;
+    const data = detail.data;
+
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+    if (data?.role !== 'wali') {
+      await firebase.auth().signOut().catch(() => {});
+      window.location.href = 'login.html';
+      return;
+    }
+
+    currentUid = user.uid;
+    waliData = data;
+    const nm = data?.namaLengkap || data?.nama || data?.displayName || user.email;
+    setEl('greetName', nm);
+    setEl('uName', nm);
+    setEl('uAv', nm[0]?.toUpperCase() || 'W');
+    loadWaliData(user.uid);
+  });
 });
 
 // ════ LOAD DATA ════
@@ -1474,7 +1478,7 @@ function updateDate(){
 }
 
 // ════ LOGOUT ════
-async function handleLogout(){if(!confirm('Yakin logout?'))return;await auth.signOut().catch(()=>{});sessionStorage.removeItem('currentUser');window.location.href='login.html'}
+async function handleLogout(){if(!confirm('Yakin logout?'))return;await firebase.auth().signOut().catch(()=>{});sessionStorage.removeItem('currentUser');window.location.href='login.html'}
 
 // ════ TOAST ════
 function showToast(type,title,msg){
