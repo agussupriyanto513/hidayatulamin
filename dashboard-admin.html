@@ -721,17 +721,7 @@ tr:hover td{background:var(--g50)}
         <div style="display:flex;gap:8px;align-items:center">
           <a href="pi-donasi.html" target="_blank" class="btn-p" style="text-decoration:none;background:linear-gradient(135deg,#7c3aed,#5b21b6)"><span style="font-size:14px;font-weight:900">π</span> Halaman Donasi</a>
           <button class="btn-p" onclick="loadPiDonations()"><i class="fas fa-sync-alt" id="piDonRefIco"></i> Refresh</button>
-          <button class="btn-sec" onclick="toggleDebugPanel()" style="font-size:11px"><i class="fas fa-bug"></i> Debug</button>
         </div>
-      </div>
-
-      <!-- DEBUG PANEL (hidden by default, toggle via tombol Debug) -->
-      <div id="piDebugPanel" style="display:none;background:#0f172a;color:#4ade80;font-family:monospace;font-size:11px;padding:14px;border-radius:10px;margin-bottom:14px;white-space:pre-wrap;max-height:220px;overflow-y:auto;border:1px solid #1e293b;line-height:1.7">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1e293b">
-          <span style="color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:1px">DEBUG CONSOLE — PI DONATIONS</span>
-          <span onclick="clearDebugPanel()" style="color:#ef4444;cursor:pointer;font-size:10px">✕ Clear</span>
-        </div>
-        <div id="piDebugLog">Klik Refresh untuk mulai debug...</div>
       </div>
 
       <!-- PI STATS -->
@@ -952,7 +942,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch(e) {
         // permission-denied atau network error → jangan redirect,
         // percayai Firebase Auth yang sudah valid
-        console.warn('Firestore verify error:', e.code, e.message);
         bootDashboard(user, user.displayName || user.email);
       }
       return;
@@ -1022,7 +1011,7 @@ async function ensureFreshToken() {
   try {
     const user = auth.currentUser;
     if (user) await user.getIdToken(true);
-  } catch(e) { console.warn('Token refresh failed:', e.message); }
+  } catch(e) { }
 }
 
 async function loadDashboardData() {
@@ -1037,7 +1026,7 @@ async function loadDashboardData() {
     // Load recent users for welcome screen
     const recentSnap = await db.collection('users').limit(10).get();
     allUsers = recentSnap.docs.map(d => ({id:d.id,...d.data()}));
-  } catch(e) { console.error('loadData:', e); }
+  } catch(e) { }
   initChart();
   renderAllocGrid();
   loadMartStats();
@@ -1330,7 +1319,7 @@ async function doDistribute() {
   } catch(e) {
     if (e.code === 'permission-denied') {
       showToast('error','Permission Denied','Update Firestore Rules di Firebase Console (lihat console)');
-      console.error('%c[SGT Fix] Tambahkan rule /sgt/{userId} allow write: if isAdmin()', 'color:orange;font-weight:bold');
+
     } else {
       showToast('error','Gagal', e.message||'Gagal mendistribusikan SGT');
     }
@@ -1499,7 +1488,6 @@ async function loadWithdrawals() {
     updatePendingBadge();
     setEl('wdLastUpdate', 'Update: ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
   } catch(e) {
-    console.error('loadWithdrawals:', e);
     showToast('error','Gagal Memuat','Tidak bisa load data pencairan: ' + e.message);
   } finally {
     if (ico) ico.classList.remove('fa-spin');
@@ -1623,7 +1611,7 @@ async function approveWd(wdId) {
             await db.collection('users').doc(wd.uid).update({ walletHistory: hist });
           }
         }
-      } catch(e) { console.warn('update walletHistory:', e.message); }
+      } catch(e) { }
     }
 
     // Update local
@@ -1699,7 +1687,7 @@ async function confirmReject(wdId) {
           const currentSgt = userDoc.data().sgt || 0;
           await db.collection('users').doc(wd.uid).update({ sgt: currentSgt + (wd.sgtUsed||0) });
         }
-      } catch(e) { console.warn('reject update user:', e.message); }
+      } catch(e) { }
     }
 
     const local = wdAllData.find(w => w.id === wdId);
@@ -1843,7 +1831,7 @@ async function sendWaToSantri(wd, status, reason) {
       ? `✅ *Pencairan SGT Disetujui*\n\nHai ${wd.santriName||'Santri'}, pencairan kamu telah disetujui!\n\n💰 ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}\n📍 Ke: ${wd.dest||'—'}\n\nProses transfer akan dilakukan segera. Terima kasih!\n\n_Hidayatullah Amin_`
       : `❌ *Pencairan SGT Ditolak*\n\nHai ${wd.santriName||'Santri'}, pencairan kamu ditolak.\n\n💰 ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}\n📝 Alasan: ${reason||'—'}\n\nSaldo SGT kamu telah dikembalikan. Hubungi admin untuk info lebih lanjut.\n\n_Hidayatullah Amin_`;
     await sendFonnteWA(phone, msg);
-  } catch(e) { console.warn('sendWaToSantri:', e.message); }
+  } catch(e) { }
 }
 
 // Fungsi dipanggil dari dashboard-santri setelah submit pencairan (inject ke Firestore withdrawals)
@@ -1859,7 +1847,6 @@ window.submitWithdrawalRequest = async function(uid, santriName, santriNis, txRe
     await sendWaAdminNewRequest({uid, santriName, santriNis, ...txRecord});
     return docRef.id;
   } catch(e) {
-    console.warn('submitWithdrawalRequest:', e.message);
     return null;
   }
 };
@@ -1927,7 +1914,6 @@ async function loadEarnRequests() {
     updateEarnBadge();
     setEl('earnLastUpdate', 'Update: ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
   } catch(e) {
-    console.error('loadEarnRequests:', e);
     showToast('error','Gagal Memuat','Tidak bisa load pengajuan reward: ' + e.message);
   } finally {
     if (ico) ico.classList.remove('fa-spin');
@@ -2117,7 +2103,6 @@ async function confirmEarnApprove(id) {
     renderEarnRequests(); updateEarnStats(); updateEarnBadge();
     showToast('success','✅ SGT Dikreditkan',`${sgtAmt.toLocaleString('id-ID')} SGT berhasil dikirim ke wallet ${r.userName||'user'}`);
   } catch(e) {
-    console.error('confirmEarnApprove:', e);
     showToast('error','Gagal', e.message);
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-coins"></i> Kreditkan SGT'; }
   }
@@ -2126,74 +2111,20 @@ async function confirmEarnApprove(id) {
 // ════ PI DONATIONS MANAGEMENT ════
 let piDonAllData = [];
 
-// ── Debug helpers ──
-function piDebug(msg, color) {
-  const log = document.getElementById('piDebugLog');
-  if (!log) return;
-  const panel = document.getElementById('piDebugPanel');
-  if (panel) panel.style.display = 'block';
-  const time = new Date().toLocaleTimeString('id-ID');
-  const clr = color || '#4ade80';
-  log.innerHTML += `<span style="color:#64748b">[${time}]</span> <span style="color:${clr}">${msg}</span>\n`;
-  log.parentElement.scrollTop = log.parentElement.scrollHeight;
-}
-function toggleDebugPanel() {
-  const p = document.getElementById('piDebugPanel');
-  if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
-}
-function clearDebugPanel() {
-  const log = document.getElementById('piDebugLog');
-  if (log) log.innerHTML = '';
-}
-
 async function loadPiDonations() {
   const ico = document.getElementById('piDonRefIco');
-  if (ico) { ico.classList.add('fa-spin'); }
+  if (ico) ico.classList.add('fa-spin');
 
-  piDebug('▶ loadPiDonations() dipanggil');
-
-  // 1. Cek auth
-  const user = auth.currentUser;
+  const user = firebase.auth().currentUser;
   if (!user) {
-    piDebug('❌ auth.currentUser = NULL — user belum login!', '#f87171');
     showToast('error', 'Tidak Login', 'Session habis, silakan login ulang');
     if (ico) ico.classList.remove('fa-spin');
     return;
   }
-  piDebug(`✅ auth.currentUser.uid = ${user.uid}`);
-  piDebug(`   email = ${user.email || '(kosong)'}`);
 
   try {
-    // 2. Refresh token
-    piDebug('⏳ ensureFreshToken()...');
     await ensureFreshToken();
-    piDebug('✅ Token berhasil direfresh');
-
-    // 3. Cek role user dari Firestore
-    piDebug('⏳ Cek role dari /users/' + user.uid + '...');
-    try {
-      const userDoc = await db.collection('users').doc(user.uid).get();
-      if (!userDoc.exists) {
-        piDebug('⚠️ Dokumen user tidak ditemukan di Firestore!', '#fbbf24');
-      } else {
-        const role = userDoc.data().role;
-        piDebug(`✅ Role = "${role}"` + (role === 'admin' ? ' ✓ Admin' : ' ✗ BUKAN ADMIN!'), role === 'admin' ? '#4ade80' : '#f87171');
-      }
-    } catch(re) {
-      piDebug(`⚠️ Gagal baca role: ${re.code} — ${re.message}`, '#fbbf24');
-    }
-
-    // 4. Query pi_donations
-    piDebug('⏳ Query Firestore: pi_donations (limit 200)...');
     const snap = await db.collection('pi_donations').orderBy('createdAt','desc').limit(200).get();
-    piDebug(`✅ Query berhasil — ${snap.size} dokumen ditemukan`);
-    if (snap.empty) {
-      piDebug('ℹ️ Koleksi pi_donations kosong (belum ada data)', '#94a3b8');
-    } else {
-      // Sample dokumen pertama untuk verifikasi struktur
-      const sample = snap.docs[0].data();
-      piDebug(`   Sample doc[0] keys: ${Object.keys(sample).join(', ')}`, '#94a3b8');
-    }
 
     piDonAllData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     updatePiDonStats();
@@ -2206,20 +2137,16 @@ async function loadPiDonations() {
     const badge = document.getElementById('piDonBadge');
     if (badge) { badge.style.display = pending > 0 ? '' : 'none'; badge.textContent = pending; }
 
-    piDebug(`✅ Render selesai — ${pending} pending, ${piDonAllData.length - pending} selesai`);
-
   } catch(e) {
-    piDebug(`❌ ERROR: ${e.code || 'unknown'}`, '#f87171');
-    piDebug(`   ${e.message}`, '#f87171');
     if (e.code === 'permission-denied') {
-      piDebug('👉 Cek Firestore Rules — koleksi pi_donations belum diizinkan untuk admin', '#fbbf24');
+      showToast('error', 'Akses Ditolak', 'Pastikan Firestore Rules mengizinkan admin membaca pi_donations');
     } else if (e.code === 'failed-precondition') {
-      piDebug('👉 Index Firestore belum dibuat untuk query ini', '#fbbf24');
+      showToast('error', 'Index Belum Dibuat', 'Buat index Firestore untuk koleksi pi_donations');
+    } else {
+      showToast('error', 'Gagal memuat Pi Donations', e.message);
     }
-    showToast('error', 'Gagal memuat Pi Donations', e.message);
   } finally {
     if (ico) ico.classList.remove('fa-spin');
-    piDebug('■ loadPiDonations() selesai');
   }
 }
 
