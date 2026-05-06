@@ -99,6 +99,13 @@ class HidayatulaminAuth {
 
   _redirectIfPrivate() {
     const page = window.location.pathname.split('/').pop() || '';
+    // Dashboard pages handle their own auth guard — jangan redirect dari sini
+    // supaya tidak konflik dengan onAuthStateChanged di masing-masing dashboard
+    const DASHBOARD_PAGES = [
+      'dashboard-admin.html', 'dashboard-ustadz.html',
+      'dashboard-santri.html', 'dashboard-wali.html'
+    ];
+    if (DASHBOARD_PAGES.includes(page)) return;
     if (!PUBLIC_PAGES.includes(page) && page !== 'login.html') {
       window.location.href = 'login.html';
     }
