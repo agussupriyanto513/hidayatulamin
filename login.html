@@ -750,13 +750,6 @@ body.role-santri .btn-login:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(2
     <i class="fas fa-arrow-left"></i> Beranda
   </a>
 
-  <!-- Testnet Indicator -->
-  <div style="position:absolute;top:28px;right:28px;display:flex;align-items:center;gap:6px;background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.3);color:#d4a843;border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:700;letter-spacing:.05em">
-    <span style="width:6px;height:6px;background:#d4a843;border-radius:50%;animation:blink 2s ease infinite"></span>
-    PI TESTNET
-  </div>
-  <style>@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}</style>
-
   <div class="form-head">
     <div class="eyebrow"><i class="fas fa-mosque"></i> Portal Santri</div>
     <h2>Selamat Datang<br>Kembali</h2>
@@ -833,11 +826,12 @@ body.role-santri .btn-login:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(2
 
   <div class="divider"><span>atau masuk dengan</span></div>
 
+  <!-- Pi Network -->
   <div class="pi-box">
     <div class="pi-header">
       <div class="pi-logo-badge">π</div>
       <div class="pi-header-text">
-        <h4>Pi Network <span style="background:rgba(212,168,67,.2);color:#d4a843;font-size:.65rem;padding:2px 7px;border-radius:10px;vertical-align:middle;margin-left:4px;font-weight:700">TESTNET</span></h4>
+        <h4>Pi Network</h4>
         <p>Login via Pi Browser wallet</p>
       </div>
     </div>
@@ -858,14 +852,6 @@ body.role-santri .btn-login:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(2
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Donasi Publik Link -->
-  <div style="margin-top:20px;text-align:center;padding:16px;background:linear-gradient(135deg,rgba(212,168,67,.06),rgba(212,168,67,.02));border:1px dashed rgba(212,168,67,.25);border-radius:12px">
-    <p style="font-size:.78rem;color:var(--gray-400);margin-bottom:8px">Ingin berdonasi tanpa login admin?</p>
-    <a href="pi-donasi.html" style="display:inline-flex;align-items:center;gap:6px;color:#c9a84c;font-size:.85rem;font-weight:700;text-decoration:none;padding:8px 16px;background:rgba(212,168,67,.1);border-radius:8px;border:1px solid rgba(212,168,67,.2);transition:all .2s" onmouseover="this.style.background='rgba(212,168,67,.18)'" onmouseout="this.style.background='rgba(212,168,67,.1)'">
-      <i class="fas fa-heart"></i> Halaman Donasi Pi
-    </a>
   </div>
 
 </div>
@@ -954,17 +940,8 @@ function detectPi() {
   }
 
   try {
-    // FIX: sandbox otomatis sesuai environment
-    // - localhost/vercel.app → sandbox: true (testnet)
-    // - domain custom (hidayatulamin.id) → sandbox: false (mainnet)
-    const sandbox = (
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1' ||
-      window.location.hostname.includes('vercel.app')
-    );
-    window.Pi.init({ version: '2.0', sandbox });
+    window.Pi.init({ version: '2.0', sandbox: false });
     piReady = true;
-    console.log('Pi SDK init OK | sandbox:', sandbox);
   } catch(e) {
     console.warn('Pi SDK init failed:', e);
   }
