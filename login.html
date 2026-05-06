@@ -979,62 +979,100 @@ async function doPiLogin() {
 }
 
 async function processPiAuth(auth2) {
-  const piUid     = auth2.user.uid;
-  const piUser    = auth2.user.username;
-  const genEmail  = `${piUser.toLowerCase().replace(/[^a-z0-9]/g,'')}@pi.hidayatulamin.id`;
+  const piUid    = auth2.user.uid;
+  const piUser   = auth2.user.username;
+  // Email di-generate dari piUid agar konsisten & tidak konflik antar username
+  const genEmail = `pi_${piUid}@pi.hidayatulamin.id`;
+  // Password deterministik dari piUid (tidak perlu disimpan, hanya untuk Firebase Auth)
+  const tempPw   = 'Pi_' + piUid + '_HdyAmin!';
 
   showLoader('Memverifikasi akun...');
 
   try {
-    // Cek apakah user sudah ada
-    let snap, fUid;
-    try {
-      snap = await db.collection('users').where('piUid','==',piUid).where('role','==',activeRole).get();
-    } catch(e) { console.warn('Query err:', e); }
+    let fUid = null;
+    let isNew = false;
 
-    if (snap && !snap.empty) {
-      fUid = snap.docs[0].id;
-      await db.collection('users').doc(fUid).update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
+    // --- Cek apakah sudah ada di Firestore (berdasarkan piUid) ---
+    let existingSnap = null;
+    try {
+      existingSnap = await db.collection('users').where('piUid','==',piUid).limit(1).get();
+    } catch(e) { console.warn('Query piUid err:', e); }
+
+    if (existingSnap && !existingSnap.empty) {
+      // User sudah ada — ambil fUid-nya
+      const existingData = existingSnap.docs[0].data();
+      fUid = existingSnap.docs[0].id;
+
+      // Cek role — kalau role berbeda, tolak
+      if (existingData.role && existingData.role !== activeRole && existingData.role !== 'admin') {
+        hideLoader();
+        toast('error', `Akun Pi ini terdaftar sebagai ${ROLES[existingData.role]?.label || existingData.role}. Pilih role yang benar.`);
+        resetPiBtn(); return;
+      }
+
+      await db.collection('users').doc(fUid).update({
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+        piUsername: piUser, // update username kalau berubah
+      }).catch(()=>{});
       toast('success', `Selamat datang kembali, @${piUser}!`);
+
     } else {
-      // Buat akun baru
-      const tempPw = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16)).join('') + '!Aa1';
+      // User baru — buat Firebase Auth account dulu
+      isNew = true;
       try {
         const cred = await auth.createUserWithEmailAndPassword(genEmail, tempPw);
         fUid = cred.user.uid;
       } catch(e) {
         if (e.code === 'auth/email-already-in-use') {
-          const existing = await db.collection('users').where('piUid','==',piUid).get().catch(()=>null);
-          if (existing && !existing.empty) {
-            const d = existing.docs[0].data();
-            if (d.role && d.role !== activeRole) {
-              hideLoader();
-              toast('error', `Akun Pi ini terdaftar sebagai ${ROLES[d.role]?.label||d.role}. Pilih role yang benar.`);
-              resetPiBtn(); return;
-            }
-            fUid = existing.docs[0].id;
-          } else { throw new Error('Akun tidak ditemukan. Hubungi administrator.'); }
+          // Akun Firebase Auth sudah ada, coba sign in
+          try {
+            const cred = await auth.signInWithEmailAndPassword(genEmail, tempPw);
+            fUid = cred.user.uid;
+            isNew = false;
+          } catch(e2) {
+            throw new Error('Akun sudah ada tapi password tidak cocok. Hubungi administrator.');
+          }
         } else throw e;
       }
 
-      if (fUid) {
-        const payload = { uid: fUid, piUid, piUsername: piUser, email: genEmail, displayName: piUser,
-                          role: activeRole, isActive: true, authMethod: 'pi_network',
-                          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                          lastLogin: firebase.firestore.FieldValue.serverTimestamp() };
+      if (fUid && isNew) {
+        const payload = {
+          uid: fUid, piUid, piUsername: piUser,
+          email: genEmail, displayName: piUser,
+          role: activeRole, isActive: true, authMethod: 'pi_network',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          lastLogin:  firebase.firestore.FieldValue.serverTimestamp()
+        };
         await db.collection('users').doc(fUid).set(payload).catch(()=>{});
-        await db.collection(ROLES[activeRole].col).doc(fUid).set({ ...payload, piAccessToken: auth2.accessToken }).catch(()=>{});
+        await db.collection(ROLES[activeRole].col).doc(fUid).set(payload).catch(()=>{});
         toast('success', `Akun berhasil dibuat! Selamat datang, @${piUser}!`);
       }
     }
 
+    if (!fUid) { throw new Error('Gagal mendapatkan ID akun. Coba lagi.'); }
+
+    // --- Login ke Firebase Auth (wajib agar session aktif) ---
+    // Kalau belum sign in (user lama yang cuma update Firestore), sign in sekarang
+    if (!auth.currentUser || auth.currentUser.uid !== fUid) {
+      try {
+        await auth.signInWithEmailAndPassword(genEmail, tempPw);
+      } catch(e) {
+        console.warn('Firebase signIn after piAuth failed:', e.message);
+        // Tetap lanjut — simpan session manual
+      }
+    }
+
+    // Simpan session
     saveSession(fUid, activeRole, 'pi_network');
-    localStorage.setItem('piAuthUser', JSON.stringify({ uid: fUid, piUid, username: piUser, role: activeRole }));
-    localStorage.setItem('currentUser', JSON.stringify({ uid: fUid, role: activeRole, authMethod: 'pi_network', ts: Date.now() }));
+    localStorage.setItem('piAuthUser', JSON.stringify({
+      uid: fUid, piUid, username: piUser, role: activeRole, ts: Date.now()
+    }));
+
     hideLoader();
-    setTimeout(() => goTo(activeRole), 1400);
+    setTimeout(() => goTo(activeRole), 1000);
 
   } catch(err) {
+    console.error('processPiAuth error:', err);
     hideLoader(); resetPiBtn();
     toast('error', err.message || 'Gagal memproses login Pi');
   }

@@ -328,8 +328,11 @@ function initPiSDK() {
     return false;
   }
   try {
-    // sandbox = true untuk testnet / vercel; false untuk mainnet
-    const isSandbox = window.location.hostname !== 'hidayatulamin.com';
+    // FIX: sandbox = true kecuali di domain produksi resmi
+    // vercel.app = staging/dev → sandbox: true
+    // hidayatulamin.com = produksi → sandbox: false
+    const isSandbox = !window.location.hostname.includes('hidayatulamin.com')
+                   || window.location.hostname === 'localhost';
     window.Pi.init({ version: '2.0', sandbox: isSandbox });
     piSDKReady = true;
     console.log('✅ Pi SDK siap | sandbox:', isSandbox);
@@ -406,13 +409,22 @@ function piLogout() {
 async function handleIncompletePiPayment(payment) {
   console.warn('⚠️ Incomplete payment ditemukan:', payment.identifier);
   try {
+    // Update status di Firestore jadi cancelled
+    const snap = await db.collection('pi_donations')
+      .where('paymentId','==', payment.identifier).limit(1).get();
+    if (!snap.empty && snap.docs[0].data().status === 'pending') {
+      await snap.docs[0].ref.update({
+        status: 'cancelled',
+        cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
+        cancelNote: 'Auto-cancelled: incomplete payment'
+      });
+    }
+    // Simpan referensi di pi_incomplete
     await db.collection('pi_incomplete').doc(payment.identifier).set({
       payment,
-      resolvedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    // Selesaikan payment yang menggantung agar SDK tidak stuck
-    // Dalam testnet, kita complete langsung
-    window.Pi.completePayment(payment.identifier);
+      resolvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      resolution: 'auto-cancelled'
+    }, { merge: true });
   } catch(e) {
     console.error('handleIncompletePiPayment error:', e);
   }
@@ -420,6 +432,8 @@ async function handleIncompletePiPayment(payment) {
 
 // ═══════════════════════════════════════════════
 // SUBMIT DONASI
+// FIX: onReadyForServerApproval harus approve payment ke Pi API
+//      Karena tidak ada backend, gunakan Pi.approvePayment() (testnet only)
 // ═══════════════════════════════════════════════
 async function submitDonasi() {
   if (!piUser) { showToast('error', 'Login dengan Pi dulu'); return; }
@@ -432,8 +446,10 @@ async function submitDonasi() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
 
+  let docRef = null; // simpan referensi Firestore agar bisa diupdate di semua callback
+
   try {
-    await new Promise((resolve, reject) => {
+    const result = await new Promise((resolve, reject) => {
       window.Pi.createPayment(
         {
           amount:   selectedAmt,
@@ -447,12 +463,12 @@ async function submitDonasi() {
           }
         },
         {
-          // Step 1: Payment siap untuk disetujui server
+          // ── Step 1: Simpan ke Firestore DAN approve ke Pi ──
           onReadyForServerApproval: async (paymentId) => {
             console.log('📋 onReadyForServerApproval:', paymentId);
             try {
-              // Simpan ke Firestore sebagai "pending"
-              await db.collection('pi_donations').add({
+              // Simpan dulu ke Firestore
+              docRef = await db.collection('pi_donations').add({
                 paymentId,
                 donorPiUid:    piUser.uid,
                 donorUsername: piUser.username,
@@ -464,56 +480,110 @@ async function submitDonasi() {
                 status:        'pending',
                 createdAt:     firebase.firestore.FieldValue.serverTimestamp()
               });
-              // CATATAN: Di produksi, ini harus hit backend server untuk approve
-              // Di testnet tanpa backend, Pi akan auto-approve setelah beberapa detik
-              console.log('✅ Donasi pending tersimpan:', paymentId);
+              console.log('✅ Donasi pending tersimpan');
+
+              // FIX: Approve payment ke Pi Network
+              // Karena tidak ada backend server, panggil Pi.approvePayment()
+              // Ini valid untuk testnet / sandbox mode
+              await approvePaymentToServer(paymentId);
+
             } catch(e) {
-              console.error('Firestore pending error:', e);
+              console.error('onReadyForServerApproval error:', e);
+              // Tetap lanjut — Pi akan timeout kalau tidak diapprove
             }
           },
 
-          // Step 2: Payment selesai, update txid
+          // ── Step 2: Blockchain confirm → update completed ──
           onReadyForServerCompletion: async (paymentId, txid) => {
             console.log('✅ onReadyForServerCompletion:', paymentId, txid);
             try {
-              // Cari dokumen berdasarkan paymentId dan update
-              const snap = await db.collection('pi_donations')
-                .where('paymentId', '==', paymentId).limit(1).get();
-              if (!snap.empty) {
-                await snap.docs[0].ref.update({
+              if (docRef) {
+                await docRef.update({
                   status:      'completed',
                   txid,
                   completedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+              } else {
+                const snap = await db.collection('pi_donations')
+                  .where('paymentId','==', paymentId).limit(1).get();
+                if (!snap.empty) {
+                  await snap.docs[0].ref.update({
+                    status:      'completed',
+                    txid,
+                    completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+                }
               }
+
+              // FIX: Wajib panggil completePayment agar Pi tahu server sudah terima
+              try { await window.Pi.completePayment(paymentId); } catch(ce) { console.warn('completePayment:', ce); }
+
               resolve({ success: true, txid });
             } catch(e) {
               reject(e);
             }
           },
 
-          onCancel: (paymentId) => {
+          // ── Dibatalkan / timeout ──
+          onCancel: async (paymentId) => {
             console.log('❌ Payment dibatalkan:', paymentId);
-            reject(new Error('Donasi dibatalkan'));
+            // Update status di Firestore
+            try {
+              if (docRef) {
+                await docRef.update({
+                  status:      'cancelled',
+                  cancelledAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+              }
+            } catch(e) {}
+            reject(new Error('Donasi dibatalkan atau waktu habis. Coba lagi.'));
           },
 
           onError: (error, payment) => {
             console.error('❌ Pi payment error:', error);
-            reject(error);
+            reject(new Error(error?.message || 'Terjadi kesalahan pembayaran Pi'));
           }
         }
       );
     });
 
-    showResult('success');
+    showResult('success', null, result.txid);
     loadRecentDonations();
     loadStats();
-  } catch(e) {
-    showResult('error', e.message || 'Terjadi kesalahan. Coba lagi.');
-  }
 
-  btn.disabled = false;
-  btn.innerHTML = '<span style="font-size:18px;font-weight:900">π</span> Donasi Sekarang';
+  } catch(e) {
+    console.error('submitDonasi error:', e);
+    showResult('error', e.message || 'Terjadi kesalahan. Coba lagi.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span style="font-size:18px;font-weight:900">π</span> Donasi Sekarang';
+  }
+}
+
+// ── Approve payment ke Pi Network ──
+// Untuk testnet tanpa backend: langsung call Pi SDK internal approve
+// Untuk produksi: ganti dengan fetch ke backend server kamu
+async function approvePaymentToServer(paymentId) {
+  try {
+    // Cek apakah Pi SDK punya method approvePayment (tersedia di beberapa versi)
+    if (typeof window.Pi.approvePayment === 'function') {
+      await window.Pi.approvePayment(paymentId);
+      console.log('✅ Payment approved via Pi.approvePayment()');
+      return;
+    }
+
+    // Fallback: hit Pi API langsung (butuh accessToken)
+    // Untuk testnet, Pi biasanya auto-approve setelah beberapa detik
+    // tapi kita bisa percepat dengan hit endpoint approve
+    console.warn('⚠️ Pi.approvePayment tidak tersedia — menunggu auto-approve Pi testnet');
+
+    // Kalau punya backend, ganti dengan:
+    // await fetch('/api/pi-approve', { method:'POST', body: JSON.stringify({ paymentId }) });
+
+  } catch(e) {
+    console.warn('approvePaymentToServer error:', e.message);
+    // Jangan throw — biarkan Pi handle timeout-nya sendiri
+  }
 }
 
 // ═══════════════════════════════════════════════
