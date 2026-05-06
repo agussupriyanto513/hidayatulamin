@@ -311,6 +311,12 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // ═══════════════════════════════════════════════
+// CONFIG — Ganti dengan domain Vercel kamu
+// ═══════════════════════════════════════════════
+const API_BASE = 'https://hidayatulamin.vercel.app';
+// Untuk test lokal: const API_BASE = 'http://localhost:3000';
+
+// ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
 let selectedProg      = 'beasiswa';
@@ -463,11 +469,11 @@ async function submitDonasi() {
           }
         },
         {
-          // ── Step 1: Simpan ke Firestore DAN approve ke Pi ──
+          // ── Step 1: Simpan ke Firestore → approve via Vercel API ──
           onReadyForServerApproval: async (paymentId) => {
             console.log('📋 onReadyForServerApproval:', paymentId);
             try {
-              // Simpan dulu ke Firestore
+              // Simpan ke Firestore dulu (status: pending)
               docRef = await db.collection('pi_donations').add({
                 paymentId,
                 donorPiUid:    piUser.uid,
@@ -480,62 +486,88 @@ async function submitDonasi() {
                 status:        'pending',
                 createdAt:     firebase.firestore.FieldValue.serverTimestamp()
               });
-              console.log('✅ Donasi pending tersimpan');
+              console.log('✅ Donasi pending tersimpan, docId:', docRef.id);
 
-              // FIX: Approve payment ke Pi Network
-              // Karena tidak ada backend server, panggil Pi.approvePayment()
-              // Ini valid untuk testnet / sandbox mode
-              await approvePaymentToServer(paymentId);
+              // Hit Vercel API → approve ke Pi Network
+              const res = await fetch(`${API_BASE}/api/payments/approve`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ paymentId }),
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || 'Approve gagal');
+              console.log('✅ Approve sukses:', data);
 
             } catch(e) {
-              console.error('onReadyForServerApproval error:', e);
-              // Tetap lanjut — Pi akan timeout kalau tidak diapprove
+              console.error('❌ onReadyForServerApproval error:', e.message);
+              if (docRef) {
+                await docRef.update({
+                  status:   'error',
+                  errorMsg: e.message,
+                  errorAt:  firebase.firestore.FieldValue.serverTimestamp(),
+                }).catch(() => {});
+              }
+              throw e; // lempar ke Pi SDK agar tahu approve gagal
             }
           },
 
-          // ── Step 2: Blockchain confirm → update completed ──
+          // ── Step 2: Blockchain confirm → complete via Vercel API ──
           onReadyForServerCompletion: async (paymentId, txid) => {
             console.log('✅ onReadyForServerCompletion:', paymentId, txid);
             try {
+              // Hit Vercel API → complete ke Pi Network + update Firestore
+              const res = await fetch(`${API_BASE}/api/payments/complete`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ paymentId, txid }),
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || 'Complete gagal');
+              console.log('✅ Complete sukses:', data);
+
+              // Fallback update Firestore lokal (jika server sudah update, ini no-op)
               if (docRef) {
                 await docRef.update({
                   status:      'completed',
                   txid,
-                  completedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-              } else {
-                const snap = await db.collection('pi_donations')
-                  .where('paymentId','==', paymentId).limit(1).get();
-                if (!snap.empty) {
-                  await snap.docs[0].ref.update({
-                    status:      'completed',
-                    txid,
-                    completedAt: firebase.firestore.FieldValue.serverTimestamp()
-                  });
-                }
+                  completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                }).catch(() => {});
               }
-
-              // FIX: Wajib panggil completePayment agar Pi tahu server sudah terima
-              try { await window.Pi.completePayment(paymentId); } catch(ce) { console.warn('completePayment:', ce); }
 
               resolve({ success: true, txid });
             } catch(e) {
-              reject(e);
+              console.error('❌ onReadyForServerCompletion error:', e.message);
+              // TX sudah confirmed di blockchain — simpan lokal meski server gagal
+              if (docRef) {
+                await docRef.update({
+                  status:        'completed_local',
+                  txid,
+                  completedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+                  completionNote: 'Vercel API gagal: ' + e.message,
+                }).catch(() => {});
+              }
+              resolve({ success: true, txid, warning: e.message });
             }
           },
 
-          // ── Dibatalkan / timeout ──
+          // ── Dibatalkan user → cancel via Vercel API ──
           onCancel: async (paymentId) => {
             console.log('❌ Payment dibatalkan:', paymentId);
-            // Update status di Firestore
             try {
+              await fetch(`${API_BASE}/api/payments/cancel`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ paymentId }),
+              });
+            } catch(e) {
+              // Fallback update Firestore langsung
               if (docRef) {
                 await docRef.update({
                   status:      'cancelled',
-                  cancelledAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                  cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
+                }).catch(() => {});
               }
-            } catch(e) {}
+            }
             reject(new Error('Donasi dibatalkan atau waktu habis. Coba lagi.'));
           },
 
@@ -557,32 +589,6 @@ async function submitDonasi() {
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span style="font-size:18px;font-weight:900">π</span> Donasi Sekarang';
-  }
-}
-
-// ── Approve payment ke Pi Network ──
-// Untuk testnet tanpa backend: langsung call Pi SDK internal approve
-// Untuk produksi: ganti dengan fetch ke backend server kamu
-async function approvePaymentToServer(paymentId) {
-  try {
-    // Cek apakah Pi SDK punya method approvePayment (tersedia di beberapa versi)
-    if (typeof window.Pi.approvePayment === 'function') {
-      await window.Pi.approvePayment(paymentId);
-      console.log('✅ Payment approved via Pi.approvePayment()');
-      return;
-    }
-
-    // Fallback: hit Pi API langsung (butuh accessToken)
-    // Untuk testnet, Pi biasanya auto-approve setelah beberapa detik
-    // tapi kita bisa percepat dengan hit endpoint approve
-    console.warn('⚠️ Pi.approvePayment tidak tersedia — menunggu auto-approve Pi testnet');
-
-    // Kalau punya backend, ganti dengan:
-    // await fetch('/api/pi-approve', { method:'POST', body: JSON.stringify({ paymentId }) });
-
-  } catch(e) {
-    console.warn('approvePaymentToServer error:', e.message);
-    // Jangan throw — biarkan Pi handle timeout-nya sendiri
   }
 }
 
