@@ -597,62 +597,6 @@ tr:hover td{background:var(--g50)}
         </div>
       </div>
     </div>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;z-index:1">
-          <div class="sgt-coin">₴</div>
-          <div style="flex:1">
-            <p style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px">Saldo SGT Anda</p>
-            <p style="font-size:28px;font-weight:900;color:#fcd34d;line-height:1.2" id="sgtBal">— SGT</p>
-          </div>
-          <button onclick="loadSGT(currentUid)" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:7px 10px;color:#fff;cursor:pointer;font-size:12px"><i class="fas fa-sync-alt" id="sgtRefIco"></i></button>
-        </div>
-        <div class="sgt-grid">
-          <div class="sgt-stat"><div class="sv" id="sgtEarned">0</div><div class="sl">Total Didapat</div></div>
-          <div class="sgt-stat"><div class="sv" id="sgtSpent">0</div><div class="sl">Digunakan</div></div>
-          <div class="sgt-stat"><div class="sv" id="sgtTx">0</div><div class="sl">Transaksi</div></div>
-        </div>
-      </div>
-
-      <!-- Aksi Cepat -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <button onclick="openModal('mdlCairIdr')" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#065f46,#0db87a);border:none;border-radius:var(--rd);padding:14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700">
-          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px"><i class="fas fa-money-bill-wave"></i></div>
-          <div style="text-align:left"><div>Cairkan ke</div><div style="font-size:11px;font-weight:600;opacity:.85">Rupiah (IDR)</div></div>
-        </button>
-        <button onclick="openModal('mdlCairPi')" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1e3a8a,#2d7ef5);border:none;border-radius:var(--rd);padding:14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700">
-          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px">π</div>
-          <div style="text-align:left"><div>Cairkan ke</div><div style="font-size:11px;font-weight:600;opacity:.85">Pi Coin</div></div>
-        </button>
-      </div>
-
-      <!-- Sagatama Mart -->
-      <a href="https://sagatama-mart.vercel.app" target="_blank" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:2px solid var(--acc);border-radius:var(--rd);padding:14px;text-decoration:none;transition:var(--tr);margin-bottom:14px" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-        <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--acc),#7c3aed);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px"><i class="fas fa-shopping-bag"></i></div>
-        <div style="flex:1"><p style="font-weight:800;color:var(--ink2);font-size:13px">Belanja di Sagatama Mart</p><p style="font-size:11px;color:var(--g500)">Tukarkan SGT untuk reward menarik</p></div>
-        <i class="fas fa-chevron-right" style="color:var(--acc)"></i>
-      </a>
-
-      <!-- Riwayat Transaksi -->
-      <div style="background:#fff;border-radius:var(--rd);border:1px solid var(--g100);overflow:hidden;box-shadow:var(--sh-sm)">
-        <div style="padding:14px 16px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between">
-          <div><h4 style="font-size:14px;font-weight:700">Riwayat Transaksi</h4><p style="font-size:11px;color:var(--g500)" id="sgtTxSub">—</p></div>
-        </div>
-        <div id="sgtTxList" style="padding:8px 0;min-height:60px">
-          <div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
-        </div>
-      </div>
-
-      <!-- Riwayat Pencairan -->
-      <div style="background:#fff;border-radius:var(--rd);border:1px solid var(--g100);overflow:hidden;box-shadow:var(--sh-sm);margin-top:14px">
-        <div style="padding:14px 16px;border-bottom:1px solid var(--g100)">
-          <h4 style="font-size:14px;font-weight:700">Riwayat Pencairan</h4>
-          <p style="font-size:11px;color:var(--g500)">Status permintaan pencairan SGT</p>
-        </div>
-        <div id="sgtWdList" style="padding:8px 0;min-height:60px">
-          <div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
-        </div>
-      </div>
-    </div>
-
     <!-- MODAL CAIRKAN IDR -->
     <div class="modal-bg" id="mdlCairIdr" onclick="closeModalOut(event,'mdlCairIdr')">
       <div class="modal">
