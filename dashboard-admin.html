@@ -721,7 +721,17 @@ tr:hover td{background:var(--g50)}
         <div style="display:flex;gap:8px;align-items:center">
           <a href="pi-donasi.html" target="_blank" class="btn-p" style="text-decoration:none;background:linear-gradient(135deg,#7c3aed,#5b21b6)"><span style="font-size:14px;font-weight:900">π</span> Halaman Donasi</a>
           <button class="btn-p" onclick="loadPiDonations()"><i class="fas fa-sync-alt" id="piDonRefIco"></i> Refresh</button>
+          <button class="btn-sec" onclick="toggleDebugPanel()" style="font-size:11px"><i class="fas fa-bug"></i> Debug</button>
         </div>
+      </div>
+
+      <!-- DEBUG PANEL (hidden by default, toggle via tombol Debug) -->
+      <div id="piDebugPanel" style="display:none;background:#0f172a;color:#4ade80;font-family:monospace;font-size:11px;padding:14px;border-radius:10px;margin-bottom:14px;white-space:pre-wrap;max-height:220px;overflow-y:auto;border:1px solid #1e293b;line-height:1.7">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1e293b">
+          <span style="color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:1px">DEBUG CONSOLE — PI DONATIONS</span>
+          <span onclick="clearDebugPanel()" style="color:#ef4444;cursor:pointer;font-size:10px">✕ Clear</span>
+        </div>
+        <div id="piDebugLog">Klik Refresh untuk mulai debug...</div>
       </div>
 
       <!-- PI STATS -->
@@ -2116,25 +2126,101 @@ async function confirmEarnApprove(id) {
 // ════ PI DONATIONS MANAGEMENT ════
 let piDonAllData = [];
 
+// ── Debug helpers ──
+function piDebug(msg, color) {
+  const log = document.getElementById('piDebugLog');
+  if (!log) return;
+  const panel = document.getElementById('piDebugPanel');
+  if (panel) panel.style.display = 'block';
+  const time = new Date().toLocaleTimeString('id-ID');
+  const clr = color || '#4ade80';
+  log.innerHTML += `<span style="color:#64748b">[${time}]</span> <span style="color:${clr}">${msg}</span>\n`;
+  log.parentElement.scrollTop = log.parentElement.scrollHeight;
+}
+function toggleDebugPanel() {
+  const p = document.getElementById('piDebugPanel');
+  if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+function clearDebugPanel() {
+  const log = document.getElementById('piDebugLog');
+  if (log) log.innerHTML = '';
+}
+
 async function loadPiDonations() {
   const ico = document.getElementById('piDonRefIco');
   if (ico) { ico.classList.add('fa-spin'); }
+
+  piDebug('▶ loadPiDonations() dipanggil');
+
+  // 1. Cek auth
+  const user = auth.currentUser;
+  if (!user) {
+    piDebug('❌ auth.currentUser = NULL — user belum login!', '#f87171');
+    showToast('error', 'Tidak Login', 'Session habis, silakan login ulang');
+    if (ico) ico.classList.remove('fa-spin');
+    return;
+  }
+  piDebug(`✅ auth.currentUser.uid = ${user.uid}`);
+  piDebug(`   email = ${user.email || '(kosong)'}`);
+
   try {
+    // 2. Refresh token
+    piDebug('⏳ ensureFreshToken()...');
+    await ensureFreshToken();
+    piDebug('✅ Token berhasil direfresh');
+
+    // 3. Cek role user dari Firestore
+    piDebug('⏳ Cek role dari /users/' + user.uid + '...');
+    try {
+      const userDoc = await db.collection('users').doc(user.uid).get();
+      if (!userDoc.exists) {
+        piDebug('⚠️ Dokumen user tidak ditemukan di Firestore!', '#fbbf24');
+      } else {
+        const role = userDoc.data().role;
+        piDebug(`✅ Role = "${role}"` + (role === 'admin' ? ' ✓ Admin' : ' ✗ BUKAN ADMIN!'), role === 'admin' ? '#4ade80' : '#f87171');
+      }
+    } catch(re) {
+      piDebug(`⚠️ Gagal baca role: ${re.code} — ${re.message}`, '#fbbf24');
+    }
+
+    // 4. Query pi_donations
+    piDebug('⏳ Query Firestore: pi_donations (limit 200)...');
     const snap = await db.collection('pi_donations').orderBy('createdAt','desc').limit(200).get();
+    piDebug(`✅ Query berhasil — ${snap.size} dokumen ditemukan`);
+    if (snap.empty) {
+      piDebug('ℹ️ Koleksi pi_donations kosong (belum ada data)', '#94a3b8');
+    } else {
+      // Sample dokumen pertama untuk verifikasi struktur
+      const sample = snap.docs[0].data();
+      piDebug(`   Sample doc[0] keys: ${Object.keys(sample).join(', ')}`, '#94a3b8');
+    }
+
     piDonAllData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     updatePiDonStats();
     renderPiDonByProg();
     renderPiTopDonors();
     renderPiDonTable();
     document.getElementById('piDonSubtitle').textContent = piDonAllData.length + ' transaksi ditemukan';
-    // Update badge
+
     const pending = piDonAllData.filter(x => x.status === 'pending').length;
     const badge = document.getElementById('piDonBadge');
     if (badge) { badge.style.display = pending > 0 ? '' : 'none'; badge.textContent = pending; }
+
+    piDebug(`✅ Render selesai — ${pending} pending, ${piDonAllData.length - pending} selesai`);
+
   } catch(e) {
-    showToast('error','Gagal memuat Pi Donations', e.message);
+    piDebug(`❌ ERROR: ${e.code || 'unknown'}`, '#f87171');
+    piDebug(`   ${e.message}`, '#f87171');
+    if (e.code === 'permission-denied') {
+      piDebug('👉 Cek Firestore Rules — koleksi pi_donations belum diizinkan untuk admin', '#fbbf24');
+    } else if (e.code === 'failed-precondition') {
+      piDebug('👉 Index Firestore belum dibuat untuk query ini', '#fbbf24');
+    }
+    showToast('error', 'Gagal memuat Pi Donations', e.message);
+  } finally {
+    if (ico) ico.classList.remove('fa-spin');
+    piDebug('■ loadPiDonations() selesai');
   }
-  if (ico) { ico.classList.remove('fa-spin'); }
 }
 
 function updatePiDonStats() {
