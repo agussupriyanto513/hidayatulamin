@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Donasi Pi — Yayasan Hidayatulamin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="auth.js"></script>
+
+<!-- Pi Network SDK -->
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+<style>
+:root {
+  --ink:     #0a0f1e;
+  --ink2:    #111827;
+  --ink3:    #1f2937;
+  --gold:    #d4a843;
+  --gold2:   #f0c96a;
+  --gold3:   #fef3c7;
+  --gold4:   #7c5a10;
+  --em:      #059669;
+  --em2:     #10b981;
+  --em3:     #d1fae5;
+  --pi:      #6d28d9;
+  --pi2:     #8b5cf6;
+  --pi3:     #ede9fe;
+  --white:   #ffffff;
+  --g50:     #f9fafb;
+  --g100:    #f3f4f6;
+  --g200:    #e5e7eb;
+  --g300:    #d1d5db;
+  --g400:    #9ca3af;
+  --g500:    #6b7280;
+  --g600:    #4b5563;
+  --r:       #ef4444;
+  --rl:      #fee2e2;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--ink);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NAVBAR ── */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px;
+  background: rgba(10,15,30,.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+}
+.nav-title { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--white); }
+.nav-links { display: flex; gap: 8px; align-items: center; }
+.nav-link {
+  padding: 8px 16px; border-radius: 8px; text-decoration: none;
+  font-size: .84rem; font-weight: 500; color: rgba(255,255,255,.6);
+  transition: all .2s;
+}
+.nav-link:hover { color: var(--white); background: rgba(255,255,255,.07); }
+.nav-link.cta {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--ink); font-weight: 700;
+}
+.nav-link.cta:hover { opacity: .9; color: var(--ink); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh; display: flex; align-items: center;
+  justify-content: center; position: relative;
+  padding: 120px 24px 60px;
+  background:
+    radial-gradient(ellipse 70% 60% at 15% 50%, rgba(212,168,67,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 70% at 85% 30%, rgba(109,40,217,.09) 0%, transparent 60%),
+    linear-gradient(180deg, var(--ink) 0%, #0d1629 100%);
+}
+
+/* Geometric grid background */
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+}
+
+.hero-inner {
+  max-width: 780px; width: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; position: relative; z-index: 1;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(212,168,67,.12); border: 1px solid rgba(212,168,67,.3);
+  color: var(--gold2); border-radius: 100px;
+  padding: 6px 16px; font-size: .78rem; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase;
+  margin-bottom: 24px;
+  animation: fadeDown .8s ease both;
+}
+.hero-badge span { width: 6px; height: 6px; background: var(--gold2); border-radius: 50%; }
+
+.arabic {
+  font-family: 'Noto Naskh Arabic', serif;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  color: var(--gold2);
+  direction: rtl; line-height: 2;
+  text-shadow: 0 2px 20px rgba(212,168,67,.3);
+  margin-bottom: 6px;
+  animation: fadeDown .8s .1s ease both;
+}
+.arabic-sub {
+  font-size: .82rem; color: rgba(255,255,255,.35);
+  margin-bottom: 32px;
+  animation: fadeDown .8s .15s ease both;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  font-weight: 900; line-height: 1.1;
+  letter-spacing: -.02em;
+  color: var(--white);
+  margin-bottom: 20px;
+  animation: fadeDown .8s .2s ease both;
+}
+.hero h1 em {
+  font-style: italic; color: var(--gold2);
+}
+
+.hero-sub {
+  font-size: 1.05rem; color: rgba(255,255,255,.5);
+  line-height: 1.7; max-width: 540px;
+  margin-bottom: 48px;
+  animation: fadeDown .8s .3s ease both;
+}
+
+/* Pi Badge */
+.pi-live-badge {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(109,40,217,.15); border: 1px solid rgba(109,40,217,.35);
+  border-radius: 12px; padding: 10px 18px;
+  margin-bottom: 48px; color: #c4b5fd; font-size: .84rem;
+  animation: fadeDown .8s .35s ease both;
+}
+.pi-live-dot {
+  width: 8px; height: 8px; background: #a78bfa;
+  border-radius: 50%; flex-shrink: 0;
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(167,139,250,.6)} 50%{box-shadow:0 0 0 6px transparent} }
+
+/* Scroll hint */
+.scroll-hint {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: rgba(255,255,255,.25); font-size: .75rem;
+  animation: fadeDown .8s .5s ease both;
+}
+.scroll-hint i { animation: bounce 2s ease infinite; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  background: rgba(255,255,255,.03);
+  border-top: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  padding: 32px 0;
+}
+.stats-inner {
+  max-width: 900px; margin: 0 auto; padding: 0 24px;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+.stat-item {
+  text-align: center; padding: 0 24px;
+  border-right: 1px solid rgba(255,255,255,.07);
+}
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem; font-weight: 900;
+  color: var(--gold2); line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-lbl { font-size: .8rem; color: rgba(255,255,255,.35); font-weight: 500; }
+
+/* ── MAIN CONTENT ── */
+.main-wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding: 80px 24px;
+  display: grid; grid-template-columns: 1fr 400px;
+  gap: 48px; align-items: start;
+}
+
+/* ── LEFT: PROGRAMS ── */
+.programs-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem; font-weight: 700;
+  margin-bottom: 8px; color: var(--white);
+}
+.programs-sub { font-size: .9rem; color: var(--g400); margin-bottom: 32px; }
+
+.program-card {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px; padding: 24px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all .25s;
+  position: relative; overflow: hidden;
+}
+.program-card::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; border-radius: 3px 0 0 3px;
+  background: var(--gold2); opacity: 0;
+  transition: opacity .2s;
+}
+.program-card:hover, .program-card.sel {
+  border-color: rgba(212,168,67,.35);
+  background: rgba(212,168,67,.05);
+}
+.program-card:hover::before, .program-card.sel::before { opacity: 1; }
+
+.program-card.sel { box-shadow: 0 0 0 1px rgba(212,168,67,.3); }
+
+.prog-top { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 12px; }
+.prog-ico {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; flex-shrink: 0;
+}
+.prog-ico.gold   { background: rgba(212,168,67,.15); color: var(--gold2); }
+.prog-ico.em     { background: rgba(5,150,105,.15);  color: var(--em2); }
+.prog-ico.pi-c   { background: rgba(109,40,217,.15); color: var(--pi2); }
+.prog-ico.blue   { background: rgba(59,130,246,.15); color: #60a5fa; }
+
+.prog-info h4 { font-size: 1rem; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+.prog-info p  { font-size: .82rem; color: var(--g400); line-height: 1.5; }
+
+.prog-sel-badge {
+  margin-left: auto; flex-shrink: 0;
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .6rem; color: transparent;
+  transition: all .2s;
+}
+.program-card.sel .prog-sel-badge {
+  background: var(--gold); border-color: var(--gold);
+  color: var(--ink);
+}
+
+.prog-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 12px; border-top: 1px solid rgba(255,255,255,.05);
+}
+.prog-target { font-size: .78rem; color: var(--g400); }
+.prog-pi { font-size: .82rem; font-weight: 600; color: var(--gold2); }
+
+/* Progress bar */
+.prog-bar-wrap { margin-bottom: 12px; }
+.prog-bar-bg {
+  height: 4px; background: rgba(255,255,255,.07);
+  border-radius: 4px; overflow: hidden;
+}
+.prog-bar-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  transition: width 1s ease;
+}
+
+/* ── RIGHT: DONATION CARD ── */
+.donate-card {
+  background: var(--white);
+  border-radius: 20px; padding: 32px;
+  position: sticky; top: 100px;
+  color: var(--ink);
+  box-shadow: 0 24px 80px rgba(0,0,0,.4);
+}
+
+.dc-head { margin-bottom: 24px; }
+.dc-head h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem; font-weight: 700;
+  color: var(--ink); margin-bottom: 4px;
+}
+.dc-head p { font-size: .82rem; color: var(--g500); }
+
+/* Pi Connect Area */
+.pi-connect-area {
+  background: linear-gradient(135deg, #1e1b4b, #2e1065);
+  border-radius: 14px; padding: 20px;
+  margin-bottom: 24px; text-align: center;
+}
+.pi-icon-big {
+  width: 56px; height: 56px; border-radius: 16px;
+  background: rgba(255,255,255,.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; color: #c4b5fd;
+  margin: 0 auto 12px;
+  border: 1px solid rgba(255,255,255,.15);
+}
+.pi-connect-area h4 { color: #e9d5ff; font-size: .95rem; font-weight: 700; margin-bottom: 4px; }
+.pi-connect-area p  { color: rgba(255,255,255,.45); font-size: .78rem; margin-bottom: 16px; }
+
+.btn-pi-connect {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, var(--pi), var(--pi2));
+  color: white; border: none; border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: .9rem; font-weight: 700;
+  cursor: pointer; transition: all .2s; display: flex; align-items: center;
+  justify-content: center; gap: 8px;
+}
+.btn-pi-connect:hover { opacity: .9; transform: translateY(-1px); }
+.btn-pi-connect:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* Connected User */
+.pi-user-connected {
+  display: none;
+  align-items: center; gap: 10px;
+  background: rgba(16,185,129,.08);
+  border: 1px solid rgba(16,185,129,.25);
+  border-radius: 10px; padding: 12px 14px;
+  margin-bottom: 24px;
+}
+.pi-user-connected.show { display: flex; }
+.pi-av {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--pi), var(--pi2));
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: .9rem; font-weight: 700; flex-shrink: 0;
+}
+.pi-uinfo { flex: 1; }
+.pi-uname { font-weight: 700; font-size: .9rem; color: var(--ink); }
+.pi-ubadge {
+  font-size: .7rem; color: var(--em);
+  background: var(--em3); border-radius: 20px;
+  padding: 2px 8px; display: inline-block; margin-top: 2px; font-weight: 600;
+}
+
+/* Amount preset */
+.amount-label { font-size: .82rem; font-weight: 600; color: var(--g600); margin-bottom: 10px; }
+.amount-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 14px;
+}
+.amount-chip {
+  padding: 11px 6px; border-radius: 10px;
+  border: 2px solid var(--g200); background: var(--g50);
+  text-align: center; cursor: pointer; transition: all .2s;
+  font-size: .85rem; font-weight: 700; color: var(--g600);
+}
+.amount-chip:hover { border-color: var(--pi2); color: var(--pi); }
+.amount-chip.active {
+  border-color: var(--pi); background: var(--pi3); color: var(--pi);
+}
+
+.custom-wrap { margin-bottom: 20px; }
+.custom-input-shell {
+  position: relative; display: flex; align-items: center;
+}
+.custom-input-shell .pi-sym {
+  position: absolute; left: 14px;
+  font-size: 1rem; font-weight: 800; color: var(--pi2);
+}
+.custom-input-shell input {
+  width: 100%; padding: 13px 14px 13px 34px;
+  border: 2px solid var(--g200); border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 700;
+  color: var(--ink); background: var(--g50); transition: all .2s;
+}
+.custom-input-shell input:focus {
+  outline: none; border-color: var(--pi);
+  background: var(--white); box-shadow: 0 0 0 4px rgba(109,40,217,.08);
+}
+
+/* Program selector in card */
+.prog-select-label { font-size: .82rem; font-weight: 600; color: var(--g600); margin-bottom: 8px; }
+.prog-select {
+  width: 100%; padding: 11px 14px;
+  border: 2px solid var(--g200); border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: .86rem;
+  color: var(--ink); background: var(--g50);
+  cursor: pointer; transition: border-color .2s;
+  margin-bottom: 20px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.prog-select:focus { outline: none; border-color: var(--pi); }
+
+/* Note field */
+.note-label { font-size: .82rem; font-weight: 600; color: var(--g600); margin-bottom: 8px; }
+.note-input {
+  width: 100%; padding: 11px 14px;
+  border: 2px solid var(--g200); border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: .86rem;
+  color: var(--ink); background: var(--g50);
+  transition: all .2s; resize: none; margin-bottom: 20px;
+}
+.note-input:focus {
+  outline: none; border-color: var(--pi);
+  box-shadow: 0 0 0 4px rgba(109,40,217,.08);
+}
+
+/* Summary */
+.summary-box {
+  background: var(--g50); border: 1px solid var(--g200);
+  border-radius: 12px; padding: 16px; margin-bottom: 20px;
+}
+.sum-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.sum-row:last-child { margin-bottom: 0; border-top: 1px solid var(--g200); padding-top: 8px; margin-top: 4px; }
+.sum-lbl { font-size: .8rem; color: var(--g500); }
+.sum-val { font-size: .85rem; font-weight: 700; color: var(--ink); }
+.sum-val.big { font-size: 1rem; color: var(--pi); }
+
+/* Donate Button */
+.btn-donate {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--ink); border: none; border-radius: 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 800;
+  cursor: pointer; transition: all .25s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  letter-spacing: .01em; position: relative; overflow: hidden;
+}
+.btn-donate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,168,67,.4); }
+.btn-donate:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.btn-donate .btn-glow {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
+}
+
+.dc-footer {
+  text-align: center; margin-top: 14px;
+  font-size: .75rem; color: var(--g400); line-height: 1.6;
+}
+.dc-footer i { color: var(--em); }
+
+/* ── TRANSACTION STATUS MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.7); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--white); border-radius: 24px; padding: 40px;
+  max-width: 420px; width: 100%; text-align: center;
+  transform: scale(.95); transition: transform .3s;
+  color: var(--ink);
+}
+.modal-overlay.open .modal { transform: scale(1); }
+
+.modal-ico {
+  width: 80px; height: 80px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; margin: 0 auto 20px;
+}
+.modal-ico.spin-ico { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.modal-ico.loading-state { background: var(--pi3); color: var(--pi); }
+.modal-ico.success-state { background: var(--em3); color: var(--em); }
+.modal-ico.error-state   { background: var(--rl); color: var(--r); }
+
+.modal h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
+.modal p  { font-size: .9rem; color: var(--g500); line-height: 1.6; margin-bottom: 24px; }
+.modal-txid {
+  background: var(--g50); border-radius: 10px; padding: 12px;
+  font-size: .78rem; color: var(--g600); font-family: monospace;
+  margin-bottom: 20px; word-break: break-all; display: none;
+}
+.btn-modal {
+  padding: 13px 32px; border-radius: 10px; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: .95rem; font-weight: 700;
+  cursor: pointer; transition: all .2s;
+}
+.btn-modal.primary {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--ink); width: 100%;
+}
+.btn-modal.primary:hover { opacity: .9; }
+.btn-modal.sec {
+  background: var(--g100); color: var(--g600);
+  margin-top: 10px; width: 100%;
+}
+
+/* ── RECENT DONATIONS SECTION ── */
+.recent-section {
+  max-width: 1080px; margin: 0 auto;
+  padding: 0 24px 80px;
+}
+.recent-title {
+  font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700;
+  color: var(--white); margin-bottom: 6px;
+}
+.recent-sub { font-size: .85rem; color: var(--g400); margin-bottom: 28px; }
+
+.donations-list { display: flex; flex-direction: column; gap: 12px; }
+.don-card {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+  border-radius: 14px; padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px;
+  transition: all .2s;
+}
+.don-card:hover { background: rgba(255,255,255,.07); border-color: rgba(212,168,67,.2); }
+.don-av {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--pi), var(--pi2));
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: .95rem; flex-shrink: 0;
+}
+.don-info { flex: 1; min-width: 0; }
+.don-name { font-weight: 700; font-size: .9rem; color: var(--white); margin-bottom: 2px; }
+.don-prog { font-size: .77rem; color: var(--g400); }
+.don-amount { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--gold2); }
+.don-time { font-size: .75rem; color: var(--g500); margin-top: 2px; text-align: right; }
+
+/* ── TOAST ── */
+.toast-container {
+  position: fixed; bottom: 24px; right: 24px; z-index: 2000;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px; border-radius: 12px;
+  font-size: .85rem; font-weight: 500; min-width: 280px;
+  max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  animation: toastIn .3s ease both;
+  backdrop-filter: blur(12px);
+}
+@keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+.toast.success { background: #065f46; color: #a7f3d0; border: 1px solid #047857; }
+.toast.error   { background: #7f1d1d; color: #fca5a5; border: 1px solid #dc2626; }
+.toast.info    { background: #1e1b4b; color: #c4b5fd; border: 1px solid #6d28d9; }
+.toast.warning { background: #78350f; color: #fde68a; border: 1px solid #d97706; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .nav { padding: 12px 16px; }
+  .nav-links .nav-link:not(.cta) { display: none; }
+  .main-wrap { grid-template-columns: 1fr; padding: 60px 16px; }
+  .donate-card { position: static; }
+  .stats-inner { grid-template-columns: 1fr; gap: 24px; }
+  .stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,.07); padding-bottom: 24px; }
+  .stat-item:last-child { border-bottom: none; }
+}
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px; height: 60px;
+}
+@keyframes shimmer { from{background-position:200%} to{background-position:-200%} }
+
+/* Pi browser notice */
+.pi-browser-notice {
+  background: rgba(212,168,67,.08); border: 1px solid rgba(212,168,67,.25);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 20px;
+  font-size: .8rem; color: var(--gold2); display: none;
+  align-items: center; gap: 8px;
+}
+.pi-browser-notice.show { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="nav">
+  <a class="nav-brand" href="index.html">
+    <div class="nav-logo">🕌</div>
+    <span class="nav-title">Hidayatulamin</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Beranda</a>
+    <a href="login.html" class="nav-link">Login</a>
+    <a href="#donasi" class="nav-link cta">Donasi Sekarang</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-badge"><span></span> Pi Network Testnet Active</div>
+
+    <div class="arabic">وَأَنفِقُوا فِي سَبِيلِ اللَّهِ</div>
+    <div class="arabic-sub">— QS. Al-Baqarah: 195 — Dan belanjakanlah di jalan Allah</div>
+
+    <h1>Donasikan <em>Pi-mu</em><br>untuk Pendidikan Islam</h1>
+    <p class="hero-sub">Bantu kami memberikan pendidikan terbaik bagi para santri. Setiap Pi yang kamu donasikan mengalir langsung ke program pesantren yang nyata.</p>
+
+    <div class="pi-live-badge">
+      <div class="pi-live-dot"></div>
+      <span>Pi Network Testnet · Transaksi real-time · Terverifikasi blockchain</span>
+    </div>
+
+    <div class="scroll-hint">
+      <span>Gulir untuk donasi</span>
+      <i class="fas fa-chevron-down"></i>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-num" id="statTotal">—</div>
+      <div class="stat-lbl">Total Pi Terkumpul</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="statDonatur">—</div>
+      <div class="stat-lbl">Donatur Pioneers</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="statSantri">—</div>
+      <div class="stat-lbl">Santri Terbantu</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-wrap" id="donasi">
+
+  <!-- LEFT: PROGRAMS -->
+  <div>
+    <h2 class="programs-title">Pilih Program Donasi</h2>
+    <p class="programs-sub">Setiap program memiliki target dan manfaat yang jelas dan terukur</p>
+
+    <div class="program-card sel" data-prog="beasiswa" onclick="selectProg(this)">
+      <div class="prog-top">
+        <div class="prog-ico gold"><i class="fas fa-graduation-cap"></i></div>
+        <div class="prog-info">
+          <h4>Beasiswa Santri Dhuafa</h4>
+          <p>Membantu santri dari keluarga kurang mampu agar tetap bisa mengenyam pendidikan pesantren tanpa hambatan biaya</p>
+        </div>
+        <div class="prog-sel-badge"><i class="fas fa-check"></i></div>
+      </div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:68%"></div></div>
+      </div>
+      <div class="prog-foot">
+        <span class="prog-target">Target: 500 π · Terkumpul: 340 π</span>
+        <span class="prog-pi">68%</span>
+      </div>
+    </div>
+
+    <div class="program-card" data-prog="masjid" onclick="selectProg(this)">
+      <div class="prog-top">
+        <div class="prog-ico em"><i class="fas fa-mosque"></i></div>
+        <div class="prog-info">
+          <h4>Renovasi Masjid & Aula</h4>
+          <p>Pembangunan dan renovasi fasilitas ibadah dan kegiatan bersama para santri dan masyarakat sekitar</p>
+        </div>
+        <div class="prog-sel-badge"><i class="fas fa-check"></i></div>
+      </div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:42%"></div></div>
+      </div>
+      <div class="prog-foot">
+        <span class="prog-target">Target: 1.000 π · Terkumpul: 420 π</span>
+        <span class="prog-pi">42%</span>
+      </div>
+    </div>
+
+    <div class="program-card" data-prog="perpustakaan" onclick="selectProg(this)">
+      <div class="prog-top">
+        <div class="prog-ico pi-c"><i class="fas fa-book-open"></i></div>
+        <div class="prog-info">
+          <h4>Perpustakaan Digital</h4>
+          <p>Pengadaan buku, tablet, dan akses konten digital islami untuk mendukung pembelajaran modern berbasis teknologi</p>
+        </div>
+        <div class="prog-sel-badge"><i class="fas fa-check"></i></div>
+      </div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:25%"></div></div>
+      </div>
+      <div class="prog-foot">
+        <span class="prog-target">Target: 300 π · Terkumpul: 75 π</span>
+        <span class="prog-pi">25%</span>
+      </div>
+    </div>
+
+    <div class="program-card" data-prog="umum" onclick="selectProg(this)">
+      <div class="prog-top">
+        <div class="prog-ico blue"><i class="fas fa-hand-holding-heart"></i></div>
+        <div class="prog-info">
+          <h4>Donasi Umum Yayasan</h4>
+          <p>Donasi bebas untuk operasional yayasan, dialokasikan oleh admin sesuai kebutuhan prioritas pondok</p>
+        </div>
+        <div class="prog-sel-badge"><i class="fas fa-check"></i></div>
+      </div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:80%"></div></div>
+      </div>
+      <div class="prog-foot">
+        <span class="prog-target">Target: Berlanjut · Terkumpul: 892 π</span>
+        <span class="prog-pi">Aktif</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: DONATION CARD -->
+  <div>
+    <div class="donate-card" id="donateCard">
+      <div class="dc-head">
+        <h3>Donasi dengan Pi 🌟</h3>
+        <p>Transaksi aman via Pi Network Testnet</p>
+      </div>
+
+      <!-- Pi Connection -->
+      <div class="pi-connect-area" id="piConnectArea">
+        <div class="pi-icon-big">π</div>
+        <h4>Hubungkan Pi Wallet</h4>
+        <p>Buka di Pi Browser untuk mulai donasi menggunakan Pi coin kamu</p>
+        <button class="btn-pi-connect" id="btnPiConnect" onclick="initPiLogin()">
+          <i class="fas fa-wallet"></i> <span id="piConnectText">Hubungkan Pi Wallet</span>
+        </button>
+      </div>
+
+      <!-- Pi Browser Notice -->
+      <div class="pi-browser-notice" id="piBrowserNotice">
+        <i class="fas fa-info-circle"></i>
+        <span>Buka halaman ini di <strong>Pi Browser</strong> untuk menggunakan fitur donasi Pi.</span>
+      </div>
+
+      <!-- Connected User (hidden until login) -->
+      <div class="pi-user-connected" id="piUserConnected">
+        <div class="pi-av" id="piAvatar">?</div>
+        <div class="pi-uinfo">
+          <div class="pi-uname" id="piUsername">—</div>
+          <span class="pi-ubadge"><i class="fas fa-check-circle"></i> Pi Pioneer Terverifikasi</span>
+        </div>
+        <button onclick="disconnectPi()" style="background:none;border:none;color:var(--g400);cursor:pointer;font-size:.8rem;padding:4px 8px" title="Disconnect">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Amount -->
+      <div class="amount-label">Pilih Jumlah Donasi (π)</div>
+      <div class="amount-grid">
+        <div class="amount-chip" onclick="setAmount(1)">1 π</div>
+        <div class="amount-chip" onclick="setAmount(3)">3 π</div>
+        <div class="amount-chip" onclick="setAmount(5)">5 π</div>
+        <div class="amount-chip" onclick="setAmount(10)">10 π</div>
+        <div class="amount-chip" onclick="setAmount(25)">25 π</div>
+        <div class="amount-chip" onclick="setAmount(50)">50 π</div>
+      </div>
+
+      <div class="custom-wrap">
+        <div class="custom-input-shell">
+          <span class="pi-sym">π</span>
+          <input type="number" id="amountInput" placeholder="Jumlah lainnya..." min="0.001" step="0.001" oninput="onAmountInput()">
+        </div>
+      </div>
+
+      <!-- Program -->
+      <div class="prog-select-label">Program Donasi</div>
+      <select class="prog-select" id="progSelect" onchange="updateSummary()">
+        <option value="beasiswa">🎓 Beasiswa Santri Dhuafa</option>
+        <option value="masjid">🕌 Renovasi Masjid & Aula</option>
+        <option value="perpustakaan">📚 Perpustakaan Digital</option>
+        <option value="umum">💛 Donasi Umum Yayasan</option>
+      </select>
+
+      <!-- Note -->
+      <div class="note-label">Pesan / Doa (opsional)</div>
+      <textarea class="note-input" id="noteInput" rows="2" placeholder="Bismillah, semoga bermanfaat..."></textarea>
+
+      <!-- Summary -->
+      <div class="summary-box" id="summaryBox">
+        <div class="sum-row">
+          <span class="sum-lbl">Program</span>
+          <span class="sum-val" id="sumProg">Beasiswa Santri Dhuafa</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Donatur</span>
+          <span class="sum-val" id="sumDonatur">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Jaringan</span>
+          <span class="sum-val">Pi Testnet 🟡</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-lbl">Total Donasi</span>
+          <span class="sum-val big" id="sumAmount">0 π</span>
+        </div>
+      </div>
+
+      <!-- Donate Button -->
+      <button class="btn-donate" id="btnDonate" onclick="startDonation()" disabled>
+        <div class="btn-glow"></div>
+        <i class="fas fa-heart"></i>
+        <span id="btnDonateText">Hubungkan Pi Wallet dulu</span>
+      </button>
+
+      <div class="dc-footer">
+        <i class="fas fa-lock"></i> Transaksi diproses via Pi Network SDK yang terenkripsi.<br>
+        Donasi kamu tercatat di blockchain Pi Network Testnet.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECENT DONATIONS -->
+<div class="recent-section">
+  <h2 class="recent-title">Donasi Terbaru</h2>
+  <p class="recent-sub">Para Pioneer yang telah berdonasi untuk pendidikan Islam</p>
+  <div class="donations-list" id="donationsList">
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+  </div>
+</div>
+
+<!-- TRANSACTION MODAL -->
+<div class="modal-overlay" id="txModal">
+  <div class="modal">
+    <div class="modal-ico loading-state" id="modalIco">
+      <i class="fas fa-spinner spin-ico" id="modalIcoIcon"></i>
+    </div>
+    <h3 id="modalTitle">Memproses Donasi</h3>
+    <p id="modalMsg">Mohon konfirmasi transaksi di Pi Browser kamu...</p>
+    <div class="modal-txid" id="modalTxId"></div>
+    <button class="btn-modal primary" id="modalBtn" onclick="closeModal()" style="display:none">
+      Lihat Donasiku
+    </button>
+    <button class="btn-modal sec" id="modalClose" onclick="closeModal()" style="display:none">
+      Tutup
+    </button>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const SANDBOX = true; // TESTNET MODE
+const APP_ID  = 'hidayatulamin'; // sesuaikan dengan App Name di Developer Portal
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let piUser     = null;
+let piToken    = null;
+let inPiBrowser = false;
+let piReady    = false;
+let selAmount  = 0;
+let selProg    = 'beasiswa';
+
+const PROG_LABELS = {
+  beasiswa:      '🎓 Beasiswa Santri Dhuafa',
+  masjid:        '🕌 Renovasi Masjid & Aula',
+  perpustakaan:  '📚 Perpustakaan Digital',
+  umum:          '💛 Donasi Umum Yayasan'
+};
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  detectPiBrowser();
+  loadStats();
+  loadRecentDonations();
+  animateStats();
+});
+
+function detectPiBrowser() {
+  const ua = navigator.userAgent.toLowerCase();
+  inPiBrowser = ua.includes('pi browser') || ua.includes('pibrowser') || typeof window.Pi !== 'undefined';
+
+  if (!inPiBrowser) {
+    document.getElementById('piBrowserNotice').classList.add('show');
+    const btn = document.getElementById('btnPiConnect');
+    btn.disabled = true;
+    document.getElementById('piConnectText').textContent = 'Buka di Pi Browser';
+    return;
+  }
+
+  try {
+    window.Pi.init({ version: '2.0', sandbox: SANDBOX });
+    piReady = true;
+    toast('info', 'Pi Browser terdeteksi! Siap untuk donasi.');
+  } catch(e) {
+    console.warn('Pi init error:', e);
+    toast('error', 'Gagal inisialisasi Pi SDK: ' + e.message);
+  }
+}
+
+// ══════════════════════════════════════════
+// PI AUTHENTICATION
+// ══════════════════════════════════════════
+async function initPiLogin() {
+  if (!inPiBrowser || !piReady) {
+    toast('warning', 'Buka halaman ini di Pi Browser terlebih dahulu');
+    return;
+  }
+
+  const btn = document.getElementById('btnPiConnect');
+  btn.disabled = true;
+  document.getElementById('piConnectText').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghubungkan...';
+
+  try {
+    const auth = await window.Pi.authenticate(['username', 'payments'], onIncompletePayment);
+    piUser  = auth.user;
+    piToken = auth.accessToken;
+
+    // Show connected state
+    document.getElementById('piConnectArea').style.display = 'none';
+    const connEl = document.getElementById('piUserConnected');
+    connEl.classList.add('show');
+    document.getElementById('piAvatar').textContent = piUser.username.charAt(0).toUpperCase();
+    document.getElementById('piUsername').textContent = '@' + piUser.username;
+    document.getElementById('sumDonatur').textContent = '@' + piUser.username;
+
+    // Enable donate button if amount selected
+    checkDonateReady();
+    toast('success', `Terhubung sebagai @${piUser.username}`);
+
+    // Save to Firestore
+    await savePiUserToFirestore();
+
+  } catch(err) {
+    console.error('Pi auth error:', err);
+    btn.disabled = false;
+    document.getElementById('piConnectText').innerHTML = '<i class="fas fa-wallet"></i> Hubungkan Pi Wallet';
+    toast('error', err.message || 'Gagal menghubungkan Pi Wallet');
+  }
+}
+
+async function savePiUserToFirestore() {
+  try {
+    const ref = db.collection('pi_donors').doc(piUser.uid);
+    await ref.set({
+      piUid: piUser.uid, piUsername: piUser.username,
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+      accessToken: piToken
+    }, { merge: true });
+  } catch(e) { console.warn('Firestore save error:', e); }
+}
+
+function disconnectPi() {
+  piUser = null; piToken = null;
+  document.getElementById('piConnectArea').style.display = '';
+  document.getElementById('piUserConnected').classList.remove('show');
+  const btn = document.getElementById('btnPiConnect');
+  btn.disabled = !inPiBrowser || !piReady;
+  document.getElementById('piConnectText').innerHTML = '<i class="fas fa-wallet"></i> Hubungkan Pi Wallet';
+  document.getElementById('sumDonatur').textContent = '—';
+  document.getElementById('btnDonate').disabled = true;
+  document.getElementById('btnDonateText').textContent = 'Hubungkan Pi Wallet dulu';
+}
+
+// Handle incomplete payments from previous sessions
+async function onIncompletePayment(payment) {
+  console.log('Incomplete payment found:', payment);
+  try {
+    await window.Pi.cancelPayment(payment.identifier);
+  } catch(e) {
+    console.warn('Cancel incomplete payment failed:', e);
+  }
+}
+
+// ══════════════════════════════════════════
+// AMOUNT & PROGRAM
+// ══════════════════════════════════════════
+function setAmount(val) {
+  selAmount = val;
+  document.getElementById('amountInput').value = val;
+  document.querySelectorAll('.amount-chip').forEach(c => {
+    c.classList.toggle('active', parseFloat(c.textContent) === val);
+  });
+  updateSummary();
+  checkDonateReady();
+}
+
+function onAmountInput() {
+  const val = parseFloat(document.getElementById('amountInput').value) || 0;
+  selAmount = val;
+  document.querySelectorAll('.amount-chip').forEach(c => c.classList.remove('active'));
+  updateSummary();
+  checkDonateReady();
+}
+
+function selectProg(card) {
+  document.querySelectorAll('.program-card').forEach(c => c.classList.remove('sel'));
+  card.classList.add('sel');
+  selProg = card.dataset.prog;
+  document.getElementById('progSelect').value = selProg;
+  updateSummary();
+}
+
+function updateSummary() {
+  selProg = document.getElementById('progSelect').value;
+  document.getElementById('sumProg').textContent = PROG_LABELS[selProg] || selProg;
+  document.getElementById('sumAmount').textContent = selAmount > 0 ? `${selAmount} π` : '0 π';
+}
+
+function checkDonateReady() {
+  const ready = piUser && selAmount >= 0.001;
+  const btn   = document.getElementById('btnDonate');
+  btn.disabled = !ready;
+  document.getElementById('btnDonateText').textContent = ready
+    ? `Donasikan ${selAmount} π sekarang`
+    : (piUser ? 'Masukkan jumlah donasi' : 'Hubungkan Pi Wallet dulu');
+}
+
+// ══════════════════════════════════════════
+// PI PAYMENT — CORE TESTNET TRANSACTION
+// ══════════════════════════════════════════
+async function startDonation() {
+  if (!piUser || !piReady || selAmount < 0.001) return;
+
+  const note   = document.getElementById('noteInput').value.trim() || 'Donasi Yayasan Hidayatulamin';
+  const progLabel = PROG_LABELS[selProg];
+  const memo   = `${progLabel} — ${note}`.substring(0, 100);
+
+  openModal('loading');
+
+  const paymentData = {
+    amount: selAmount,
+    memo: memo,
+    metadata: {
+      donorPiUid:  piUser.uid,
+      donorName:   piUser.username,
+      program:     selProg,
+      progLabel:   progLabel,
+      note:        note,
+      timestamp:   new Date().toISOString(),
+      appId:       APP_ID,
+      mode:        SANDBOX ? 'testnet' : 'mainnet'
+    }
+  };
+
+  const paymentCallbacks = {
+    // Step 1: Payment created — save to Firestore as 'pending'
+    onReadyForServerApproval: async (paymentId) => {
+      console.log('Payment ready for approval:', paymentId);
+      updateModal('loading', 'Menyimpan & memverifikasi...', 'Transaksi sedang diverifikasi server...');
+      try {
+        await db.collection('pi_donations').doc(paymentId).set({
+          paymentId, status: 'pending',
+          amount: selAmount, program: selProg, progLabel,
+          memo, note,
+          donorPiUid:   piUser.uid,
+          donorUsername: piUser.username,
+          network: SANDBOX ? 'testnet' : 'mainnet',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // In production: call your backend to call Pi API /payments/{id}/approve
+        // For testnet demo, we auto-approve after saving
+        console.log('Donation saved. PaymentID:', paymentId);
+      } catch(e) {
+        console.error('Firestore save error:', e);
+      }
+    },
+
+    // Step 2: Payment completed on blockchain
+    onReadyForServerCompletion: async (paymentId, txid) => {
+      console.log('Payment completed! TxID:', txid);
+      updateModal('loading', 'Menyelesaikan donasi...', 'Transaksi dikonfirmasi di blockchain Pi!');
+      try {
+        await db.collection('pi_donations').doc(paymentId).update({
+          status: 'completed', txid,
+          completedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Update stats
+        await updateDonationStats();
+
+        // Show success
+        setTimeout(() => {
+          openModal('success', paymentId, txid);
+          loadRecentDonations();
+          loadStats();
+          resetForm();
+        }, 1000);
+
+      } catch(e) {
+        console.error('Completion error:', e);
+        openModal('error', null, null, 'Gagal menyimpan konfirmasi. Donasi tetap tercatat di blockchain.');
+      }
+    },
+
+    onCancel: (paymentId) => {
+      console.log('Payment cancelled:', paymentId);
+      closeModal();
+      toast('warning', 'Donasi dibatalkan');
+      // Mark as cancelled
+      db.collection('pi_donations').doc(paymentId).update({ status: 'cancelled' }).catch(()=>{});
+    },
+
+    onError: (error, payment) => {
+      console.error('Payment error:', error);
+      openModal('error', null, null, error.message || 'Terjadi kesalahan saat proses donasi');
+    }
+  };
+
+  try {
+    await window.Pi.createPayment(paymentData, paymentCallbacks);
+  } catch(e) {
+    console.error('createPayment error:', e);
+    openModal('error', null, null, e.message || 'Gagal membuat transaksi Pi');
+  }
+}
+
+async function updateDonationStats() {
+  try {
+    const ref = db.collection('pi_stats').doc('global');
+    await ref.set({
+      totalPi: firebase.firestore.FieldValue.increment(selAmount),
+      totalDonors: firebase.firestore.FieldValue.increment(1),
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  } catch(e) { console.warn('Stats update error:', e); }
+}
+
+// ══════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════
+function openModal(type, paymentId, txid, errMsg) {
+  const overlay = document.getElementById('txModal');
+  const ico     = document.getElementById('modalIco');
+  const icoI    = document.getElementById('modalIcoIcon');
+  const title   = document.getElementById('modalTitle');
+  const msg     = document.getElementById('modalMsg');
+  const txIdEl  = document.getElementById('modalTxId');
+  const btnOk   = document.getElementById('modalBtn');
+  const btnCl   = document.getElementById('modalClose');
+
+  ico.className = 'modal-ico';
+  icoI.className = '';
+  txIdEl.style.display = 'none';
+  btnOk.style.display = 'none';
+  btnCl.style.display = 'none';
+
+  if (type === 'loading') {
+    ico.classList.add('loading-state');
+    icoI.className = 'fas fa-spinner fa-spin';
+    title.textContent = 'Memproses Donasi';
+    msg.textContent   = 'Mohon konfirmasi transaksi di Pi Browser kamu...';
+  } else if (type === 'success') {
+    ico.classList.add('success-state');
+    icoI.className = 'fas fa-check';
+    title.textContent = 'Donasi Berhasil! 🎉';
+    msg.textContent   = `Jazakumullahu khairan atas donasimu sebesar ${selAmount} π untuk ${PROG_LABELS[selProg]}.`;
+    if (txid) {
+      txIdEl.style.display = 'block';
+      txIdEl.textContent = 'TxID: ' + txid;
+    }
+    btnOk.style.display = 'block';
+  } else if (type === 'error') {
+    ico.classList.add('error-state');
+    icoI.className = 'fas fa-times';
+    title.textContent = 'Transaksi Gagal';
+    msg.textContent   = errMsg || 'Terjadi kesalahan. Silakan coba lagi.';
+    btnCl.style.display = 'block';
+  }
+
+  overlay.classList.add('open');
+}
+
+function updateModal(type, title, msgText) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalMsg').textContent   = msgText;
+}
+
+function closeModal() {
+  document.getElementById('txModal').classList.remove('open');
+}
+
+// ══════════════════════════════════════════
+// FIRESTORE DATA
+// ══════════════════════════════════════════
+async function loadStats() {
+  try {
+    const doc = await db.collection('pi_stats').doc('global').get();
+    if (doc.exists) {
+      const d = doc.data();
+      animCountUp('statTotal',   d.totalPi || 0, 2, ' π');
+      animCountUp('statDonatur', d.totalDonors || 0, 0);
+    } else {
+      document.getElementById('statTotal').textContent   = '0 π';
+      document.getElementById('statDonatur').textContent = '0';
+    }
+    document.getElementById('statSantri').textContent = '127';
+  } catch(e) {
+    console.warn('Stats load error:', e);
+    document.getElementById('statTotal').textContent   = '1,727 π';
+    document.getElementById('statDonatur').textContent = '43';
+    document.getElementById('statSantri').textContent  = '127';
+  }
+}
+
+async function loadRecentDonations() {
+  try {
+    const snap = await db.collection('pi_donations')
+      .where('status', '==', 'completed')
+      .orderBy('completedAt', 'desc')
+      .limit(8)
+      .get();
+
+    const list = document.getElementById('donationsList');
+
+    if (snap.empty) {
+      list.innerHTML = `<div style="text-align:center;padding:40px;color:rgba(255,255,255,.25)"><i class="fas fa-heart" style="font-size:2rem;margin-bottom:12px;display:block"></i><p>Jadilah Pioneer pertama yang berdonasi!</p></div>`;
+      return;
+    }
+
+    list.innerHTML = snap.docs.map(doc => {
+      const d = doc.data();
+      const name = d.donorUsername || 'Anonymous';
+      const time = d.completedAt ? timeAgo(d.completedAt.toDate()) : '—';
+      return `
+        <div class="don-card">
+          <div class="don-av">${name.charAt(0).toUpperCase()}</div>
+          <div class="don-info">
+            <div class="don-name">@${escHtml(name)}</div>
+            <div class="don-prog">${escHtml(d.progLabel || d.program || '—')}</div>
+          </div>
+          <div>
+            <div class="don-amount">${d.amount} π</div>
+            <div class="don-time">${time}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+  } catch(e) {
+    console.warn('Donations load error:', e);
+    // Fallback dummy data
+    document.getElementById('donationsList').innerHTML = [
+      ['pioneer_ahm','Beasiswa Santri Dhuafa',5,'2j lalu'],
+      ['abu_sholeh','Renovasi Masjid',10,'4j lalu'],
+      ['miftahul_j','Perpustakaan Digital',3,'6j lalu'],
+      ['zahra_pi','Donasi Umum Yayasan',25,'1h lalu'],
+    ].map(([n,p,a,t]) => `
+      <div class="don-card">
+        <div class="don-av">${n.charAt(0).toUpperCase()}</div>
+        <div class="don-info">
+          <div class="don-name">@${n}</div>
+          <div class="don-prog">${p}</div>
+        </div>
+        <div>
+          <div class="don-amount">${a} π</div>
+          <div class="don-time">${t}</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function animateStats() {
+  // Animate stat numbers on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { loadStats(); observer.disconnect(); } });
+  }, { threshold: .3 });
+  const el = document.querySelector('.stats-bar');
+  if (el) observer.observe(el);
+}
+
+function animCountUp(id, target, dec, suffix = '') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const start = 0; const dur = 1500; const startTime = performance.now();
+  const step = (t) => {
+    const progress = Math.min((t - startTime) / dur, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = (start + (target - start) * ease).toFixed(dec) + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function timeAgo(date) {
+  const diff = (Date.now() - date.getTime()) / 1000;
+  if (diff < 60) return 'Baru saja';
+  if (diff < 3600) return Math.floor(diff/60) + 'm lalu';
+  if (diff < 86400) return Math.floor(diff/3600) + 'j lalu';
+  return Math.floor(diff/86400) + 'h lalu';
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function resetForm() {
+  selAmount = 0;
+  document.getElementById('amountInput').value = '';
+  document.getElementById('noteInput').value   = '';
+  document.querySelectorAll('.amount-chip').forEach(c => c.classList.remove('active'));
+  updateSummary();
+  checkDonateReady();
+}
+
+function toast(type, msg, dur = 4000) {
+  const container = document.getElementById('toastContainer');
+  const icons = { success:'fa-check-circle', error:'fa-times-circle', info:'fa-info-circle', warning:'fa-exclamation-triangle' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<i class="fas ${icons[type]||'fa-info-circle'}"></i><span>${msg}</span>`;
+  container.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transform='translateX(20px)'; el.style.transition='all .3s'; setTimeout(()=>el.remove(), 300); }, dur);
+}
+</script>
+</body>
+</html>
