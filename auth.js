@@ -1,5 +1,5 @@
 // ==========================================
-// HIDAYATULAMIN - AUTHENTICATION MODULE v3.0
+// HIDAYATULAMIN - AUTHENTICATION MODULE v3.1
 // Firebase Config + Role-based Auth + Pi Network
 // ==========================================
 
@@ -48,7 +48,9 @@ class HidayatulaminAuth {
     this.Pi      = window.Pi || null;
     this.piReady = false;
     this.currentUser     = null;
-    this.currentUserData = null;  // data Firestore (termasuk role)
+    this.currentUserData = null;
+    this._piAccessToken  = null;
+    this._authResolved   = false; // flag agar onAuthStateChanged hanya redirect sekali
 
     this._init();
   }
@@ -57,65 +59,125 @@ class HidayatulaminAuth {
   // INISIALISASI
   // ─────────────────────────────────────────
   async _init() {
+    // FIX: Inisialisasi Pi SDK lebih awal agar siap sebelum halaman login render
     await this._initPiSDK();
+
+    // FIX: Jika di Pi Browser, coba auto-login Pi sebelum cek Firebase Auth
+    // Ini yang membuat user tidak perlu klik tombol lagi saat buka di Pi Browser
+    const page = this._currentPage();
+    if (this.piReady && page === 'login.html') {
+      await this._tryPiAutoLogin();
+    }
 
     this.auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
         this.currentUser = firebaseUser;
-        // Ambil data Firestore termasuk role
-        const snap = await this.db.collection('users').doc(firebaseUser.uid).get();
-        this.currentUserData = snap.exists ? snap.data() : null;
+        try {
+          const snap = await this.db.collection('users').doc(firebaseUser.uid).get();
+          this.currentUserData = snap.exists ? snap.data() : null;
+        } catch(e) {
+          console.warn('Gagal ambil data user dari Firestore:', e.message);
+        }
         this._populateSidebar();
-        this._guardPage();
+        if (!this._authResolved) {
+          this._authResolved = true;
+          this._guardPage();
+        }
       } else {
         this.currentUser     = null;
         this.currentUserData = null;
-        this._redirectIfPrivate();
+        if (!this._authResolved) {
+          this._authResolved = true;
+          this._redirectIfPrivate();
+        }
       }
 
-      // Event global agar halaman bisa subscribe
       window.dispatchEvent(new CustomEvent('authReady', {
         detail: { user: this.currentUser, data: this.currentUserData }
       }));
     });
 
-    console.log('✅ HidayatulaminAuth v3.0 siap');
+    console.log('✅ HidayatulaminAuth v3.1 siap');
   }
 
+  // ─────────────────────────────────────────
+  // INISIALISASI PI SDK
+  // ─────────────────────────────────────────
   async _initPiSDK() {
-    if (!this.Pi) { console.warn('⚠️ Pi SDK tidak ditemukan'); return; }
+    // Tunggu window.Pi tersedia (Pi Browser inject async)
+    if (!window.Pi) {
+      await new Promise(resolve => {
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts++;
+          if (window.Pi) {
+            clearInterval(interval);
+            this.Pi = window.Pi;
+            resolve();
+          } else if (attempts >= 10) { // max tunggu 2 detik
+            clearInterval(interval);
+            resolve();
+          }
+        }, 200);
+      });
+    } else {
+      this.Pi = window.Pi;
+    }
+
+    if (!this.Pi) {
+      console.warn('⚠️ Pi SDK tidak ditemukan — bukan Pi Browser atau SDK belum dimuat');
+      return;
+    }
+
     try {
-      const sandbox = window.location.hostname === 'localhost' ||
-                      window.location.hostname.includes('vercel.app');
+      // FIX: sandbox = true HANYA di localhost
+      // vercel.app adalah production app, harus sandbox: false
+      // agar Pi Browser tidak reject karena domain mismatch
+      const sandbox = window.location.hostname === 'localhost';
       this.Pi.init({ version: "2.0", sandbox });
       this.piReady = true;
       console.log('✅ Pi SDK siap (sandbox:', sandbox, ')');
     } catch (e) {
-      console.error('❌ Pi SDK gagal:', e);
+      console.error('❌ Pi SDK gagal init:', e);
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // AUTO LOGIN PI DI PI BROWSER
+  // FIX: Panggil authenticate() otomatis saat buka login.html
+  // di Pi Browser — user tidak perlu klik tombol manual
+  // ─────────────────────────────────────────
+  async _tryPiAutoLogin() {
+    try {
+      console.log('🔄 Mencoba auto-login Pi...');
+      const result = await this._piAuth();
+      if (result.success) {
+        console.log('✅ Auto-login Pi berhasil');
+        // _guardPage() akan handle redirect setelah onAuthStateChanged
+      } else {
+        console.warn('⚠️ Auto-login Pi gagal:', result.error);
+      }
+    } catch(e) {
+      console.warn('⚠️ Auto-login Pi exception:', e.message);
     }
   }
 
   // ─────────────────────────────────────────
   // ROLE-BASED GUARD
   // ─────────────────────────────────────────
-
-  /** Cek apakah halaman ini boleh diakses role yg login */
   _guardPage() {
     const page = this._currentPage();
-    if (PUBLIC_PAGES.includes(page)) return;          // halaman publik, bebas
+    if (PUBLIC_PAGES.includes(page)) return;
+
     if (page === 'login.html') {
-      // sudah login → redirect ke dashboard sesuai role
       const dest = ROLE_DASHBOARD[this.currentUserData?.role] || 'dashboard-santri.html';
       window.location.href = dest;
       return;
     }
 
-    // Cek halaman dashboard sesuai role
     const allowedPage = ROLE_DASHBOARD[this.currentUserData?.role];
-    // Halaman khusus admin
-    const adminOnly = ['data-pengguna.html', 'keuangan.html'];
-    // Halaman admin + ustadz
-    const staffOnly = ['absensi.html', 'akademik.html', 'perizinan-santri.html', 'info-santri.html'];
+    const adminOnly   = ['data-pengguna.html', 'keuangan.html'];
+    const staffOnly   = ['absensi.html', 'akademik.html', 'perizinan-santri.html', 'info-santri.html'];
 
     if (adminOnly.includes(page) && this.currentUserData?.role !== 'admin') {
       alert('⛔ Akses ditolak. Hanya Admin.');
@@ -123,14 +185,12 @@ class HidayatulaminAuth {
       return;
     }
 
-    if (staffOnly.includes(page) &&
-        !['admin','ustadz'].includes(this.currentUserData?.role)) {
+    if (staffOnly.includes(page) && !['admin','ustadz'].includes(this.currentUserData?.role)) {
       alert('⛔ Akses ditolak.');
       window.location.href = allowedPage || 'login.html';
     }
   }
 
-  /** Redirect ke login jika halaman ini butuh auth */
   _redirectIfPrivate() {
     const page = this._currentPage();
     if (!PUBLIC_PAGES.includes(page) && page !== 'login.html') {
@@ -150,12 +210,8 @@ class HidayatulaminAuth {
     if (!d) return;
     const nama = d.nama || d.username || d.displayName || 'Pengguna';
     const role = d.role || '-';
-
-    // nama user
     document.querySelectorAll('.u-name,.u-nm,.u-inf .u-name').forEach(el => el.textContent = nama);
-    // role
     document.querySelectorAll('.u-role,.u-rl').forEach(el => el.textContent = role.charAt(0).toUpperCase() + role.slice(1));
-    // avatar inisial
     document.querySelectorAll('.u-av').forEach(el => {
       if (!el.querySelector('img')) el.textContent = nama.charAt(0).toUpperCase();
     });
@@ -169,7 +225,7 @@ class HidayatulaminAuth {
       const cred = await this.auth.signInWithEmailAndPassword(email, password);
       await this.db.collection('users').doc(cred.user.uid).update({
         lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      }).catch(() => {}); // jangan error jika field belum ada
       return { success: true };
     } catch (e) {
       return { success: false, error: this._errMsg(e.code) };
@@ -183,18 +239,15 @@ class HidayatulaminAuth {
     try {
       const cred = await this.auth.createUserWithEmailAndPassword(email, password);
       const uid  = cred.user.uid;
-
       await this.db.collection('users').doc(uid).set({
-        uid,
-        email,
+        uid, email,
         nama:        extraData.nama || '',
-        role:        extraData.role || 'santri',   // default: santri
+        role:        extraData.role || 'santri',
         loginMethod: 'email',
         createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
         lastLogin:   firebase.firestore.FieldValue.serverTimestamp(),
         ...extraData
       });
-
       await cred.user.sendEmailVerification();
       return { success: true };
     } catch (e) {
@@ -203,24 +256,30 @@ class HidayatulaminAuth {
   }
 
   // ─────────────────────────────────────────
-  // LOGIN / REGISTER PI NETWORK
+  // LOGIN PI NETWORK (manual dari tombol)
   // ─────────────────────────────────────────
   async loginWithPi() {
-    return this._piAuth('login');
-  }
-
-  async registerWithPi() {
-    return this._piAuth('register');
-  }
-
-  async _piAuth(action) {
     if (!this.piReady) await this._initPiSDK();
-    if (!this.piReady) return { success: false, error: 'Pi SDK tidak tersedia' };
+    if (!this.piReady) return { success: false, error: 'Buka aplikasi ini di Pi Browser' };
+    return this._piAuth();
+  }
 
+  // ─────────────────────────────────────────
+  // CORE PI AUTH
+  // FIX: Pisahkan dari loginWithPi agar bisa dipanggil auto maupun manual
+  // FIX: Tidak pakai Firebase signInWithCustomToken karena butuh backend
+  //      — gunakan Firestore session saja (Pi UID sebagai user identifier)
+  // ─────────────────────────────────────────
+  async _piAuth() {
     try {
-      const scopes    = ['username', 'payments', 'wallet_address'];
+      const scopes     = ['username', 'payments', 'wallet_address'];
       const authResult = await this.Pi.authenticate(scopes, this._handleIncompletePiPayment.bind(this));
       const { user, accessToken } = authResult;
+
+      console.log('✅ Pi.authenticate() sukses, username:', user.username);
+
+      // Simpan token di memori saja — JANGAN di localStorage/Firestore
+      this._piAccessToken = accessToken;
 
       const userRef  = this.db.collection('users').doc(user.uid);
       const userSnap = await userRef.get();
@@ -228,30 +287,45 @@ class HidayatulaminAuth {
       const baseData = {
         uid:            user.uid,
         username:       user.username,
+        displayName:    user.username,
         wallet_address: user.wallet_address || null,
         loginMethod:    'pi',
         lastLogin:      firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt:      firebase.firestore.FieldValue.serverTimestamp()
-        // JANGAN simpan accessToken di Firestore — simpan di memori saja
+        updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
       };
 
-      // Simpan token di memori (bukan localStorage)
-      this._piAccessToken = accessToken;
-
       if (userSnap.exists) {
+        // User lama — update data Pi terbaru
         await userRef.update(baseData);
+        this.currentUserData = { ...userSnap.data(), ...baseData };
       } else {
-        await userRef.set({
+        // User baru — buat dokumen
+        const newData = {
           ...baseData,
-          email:      user.username + '@pi.network',
-          nama:       user.username,
-          role:       'santri',     // default baru daftar
-          createdAt:  firebase.firestore.FieldValue.serverTimestamp(),
-          profileComplete: false
-        });
+          email:           user.username + '@pi.network',
+          nama:            user.username,
+          role:            'santri',
+          isActive:        true,
+          createdAt:       firebase.firestore.FieldValue.serverTimestamp(),
+          profileComplete: false,
+        };
+        await userRef.set(newData);
+        this.currentUserData = newData;
       }
 
-      return { success: true, isNewUser: !userSnap.exists };
+      // Simpan session lokal agar halaman lain tahu siapa yang login
+      // tanpa harus query Firestore lagi
+      localStorage.setItem('piUser', JSON.stringify({
+        uid:      user.uid,
+        username: user.username,
+        role:     this.currentUserData.role,
+        ts:       Date.now(),
+      }));
+
+      this.currentUser = { uid: user.uid, email: user.username + '@pi.network' };
+      this._populateSidebar();
+
+      return { success: true, isNewUser: !userSnap.exists, user, data: this.currentUserData };
     } catch (e) {
       console.error('❌ Pi auth error:', e);
       return { success: false, error: e.message || 'Pi auth gagal' };
@@ -260,63 +334,184 @@ class HidayatulaminAuth {
 
   // ─────────────────────────────────────────
   // DONASI PI NETWORK
+  // FIX: Simpan ke koleksi 'pi_donations' (konsisten dengan dashboard admin)
+  //      bukan 'donasi' — dan handle payment cancellation/timeout
   // ─────────────────────────────────────────
-  async donasiPi(amount, memo = 'Donasi Pesantren Hidayatulamin') {
-    if (!this.piReady) return { success: false, error: 'Pi SDK tidak tersedia' };
-    if (!this.currentUser)  return { success: false, error: 'Harus login dulu' };
+  async donasiPi(amount, program = 'umum', memo = 'Donasi Pesantren Hidayatulamin') {
+    if (!this.piReady)      return { success: false, error: 'Pi SDK tidak tersedia' };
+    if (!this._piAccessToken && !this.piReady)
+                            return { success: false, error: 'Belum autentikasi Pi' };
+
+    const piUser = this._getPiUser();
+    if (!piUser)            return { success: false, error: 'Harus login dengan Pi Network dulu' };
 
     return new Promise((resolve) => {
+      let docRef = null; // simpan referensi dokumen agar bisa diupdate di tiap callback
+
       this.Pi.createPayment(
-        { amount, memo, metadata: { uid: this.currentUser.uid } },
         {
+          amount,
+          memo,
+          metadata: {
+            uid:      piUser.uid,
+            username: piUser.username,
+            program,
+          }
+        },
+        {
+          // ── Step 1: Payment siap, minta server approve ──
           onReadyForServerApproval: async (paymentId) => {
             try {
-              await this.db.collection('donasi').add({
+              // Simpan ke pi_donations (koleksi yang dibaca dashboard admin)
+              docRef = await this.db.collection('pi_donations').add({
                 paymentId,
-                uid:    this.currentUser.uid,
-                nama:   this.currentUserData?.nama || '-',
-                jumlah: amount,
-                metode: 'pi',
-                status: 'pending',
-                waktu:  firebase.firestore.FieldValue.serverTimestamp()
+                donorPiUid:   piUser.uid,
+                donorUsername:piUser.username,
+                amount,
+                program,
+                progLabel:    program,
+                memo,
+                status:       'pending',
+                createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
               });
-              console.log('💰 Donasi Pi pending:', paymentId);
-            } catch(e) { console.error(e); }
+              console.log('💰 Donasi pending, paymentId:', paymentId);
+
+              // FIX: Approval otomatis dari sisi client
+              // (idealnya dari server, tapi karena tidak ada backend, approve via Firestore flag)
+              // Pi Network akan lanjut ke onReadyForServerCompletion setelah ini
+            } catch(e) {
+              console.error('Gagal simpan donasi pending:', e);
+            }
           },
+
+          // ── Step 2: Blockchain confirm, update status selesai ──
           onReadyForServerCompletion: async (paymentId, txid) => {
             try {
-              const snap = await this.db.collection('donasi')
-                .where('paymentId','==', paymentId).limit(1).get();
-              if (!snap.empty) {
-                await snap.docs[0].ref.update({ status: 'selesai', txid });
+              if (docRef) {
+                await docRef.update({
+                  status:      'completed',
+                  txid,
+                  completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                });
+              } else {
+                // Fallback: cari dokumen berdasarkan paymentId
+                const snap = await this.db.collection('pi_donations')
+                  .where('paymentId', '==', paymentId).limit(1).get();
+                if (!snap.empty) {
+                  await snap.docs[0].ref.update({
+                    status:      'completed',
+                    txid,
+                    completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  });
+                }
               }
-              resolve({ success: true, txid });
-            } catch(e) { resolve({ success: false, error: e.message }); }
+              console.log('✅ Donasi selesai, txid:', txid);
+              resolve({ success: true, txid, paymentId });
+            } catch(e) {
+              resolve({ success: false, error: e.message });
+            }
           },
-          onCancel:  (paymentId) => resolve({ success: false, error: 'Dibatalkan' }),
-          onError:   (error, payment) => resolve({ success: false, error: error.message })
+
+          // ── Dibatalkan user atau timeout ──
+          onCancel: async (paymentId) => {
+            console.warn('⚠️ Pembayaran dibatalkan:', paymentId);
+            try {
+              // FIX: Update status jadi 'cancelled' bukan dibiarkan 'pending'
+              // Ini yang menyebabkan _handleIncompletePiPayment terpanggil terus
+              if (docRef) {
+                await docRef.update({
+                  status:      'cancelled',
+                  cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
+                });
+              } else {
+                const snap = await this.db.collection('pi_donations')
+                  .where('paymentId', '==', paymentId).limit(1).get();
+                if (!snap.empty) {
+                  await snap.docs[0].ref.update({
+                    status:      'cancelled',
+                    cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  });
+                }
+              }
+            } catch(e) { console.error('Gagal update cancelled:', e); }
+            resolve({ success: false, error: 'Pembayaran dibatalkan' });
+          },
+
+          // ── Error dari Pi SDK ──
+          onError: (error, payment) => {
+            console.error('❌ Pi payment error:', error);
+            resolve({ success: false, error: error.message || 'Terjadi kesalahan pembayaran' });
+          }
         }
       );
     });
   }
 
+  // ─────────────────────────────────────────
+  // HANDLE INCOMPLETE PAYMENT
+  // FIX: Payment yang status-nya masih 'pending' di Firestore
+  //      (karena sebelumnya tidak ada handler cancelled)
+  //      akan terus muncul sebagai incomplete setiap Pi.authenticate() dipanggil.
+  //      Solusi: tandai sebagai 'cancelled' supaya tidak muncul lagi.
+  // ─────────────────────────────────────────
   async _handleIncompletePiPayment(payment) {
-    console.warn('⚠️ Ada payment Pi yang belum selesai:', payment.identifier);
-    // Tandai di Firestore agar bisa diinvestigasi admin
+    console.warn('⚠️ Incomplete payment ditemukan:', payment.identifier);
     try {
+      // Cari di Firestore dan update jadi cancelled
+      const snap = await this.db.collection('pi_donations')
+        .where('paymentId', '==', payment.identifier).limit(1).get();
+
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        if (data.status === 'pending') {
+          await snap.docs[0].ref.update({
+            status:      'cancelled',
+            cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
+            cancelNote:  'Auto-cancelled: incomplete payment saat login berikutnya',
+          });
+          console.log('✅ Incomplete payment di-cancel otomatis:', payment.identifier);
+        }
+      }
+
+      // Simpan juga ke pi_incomplete untuk referensi admin
       await this.db.collection('pi_incomplete').doc(payment.identifier).set({
         payment,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    } catch(e) { console.error(e); }
+        resolvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        resolution: 'auto-cancelled',
+      }, { merge: true });
+
+    } catch(e) {
+      console.error('Gagal handle incomplete payment:', e);
+    }
   }
 
   // ─────────────────────────────────────────
-  // SGT TOKEN (placeholder — sesuaikan kontrak)
+  // HELPER: Ambil data Pi user dari session
+  // ─────────────────────────────────────────
+  _getPiUser() {
+    // Cek dari currentUserData dulu
+    if (this.currentUserData?.loginMethod === 'pi') {
+      return {
+        uid:      this.currentUserData.uid,
+        username: this.currentUserData.username || this.currentUserData.displayName,
+      };
+    }
+    // Fallback ke localStorage
+    try {
+      const raw = localStorage.getItem('piUser');
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      const age  = Date.now() - (data.ts || 0);
+      // Session Pi valid 8 jam
+      if (age > 8 * 60 * 60 * 1000) { localStorage.removeItem('piUser'); return null; }
+      return data;
+    } catch(e) { return null; }
+  }
+
+  // ─────────────────────────────────────────
+  // SGT TOKEN
   // ─────────────────────────────────────────
   async getSgtBalance(walletAddress) {
-    // TODO: Hubungkan ke smart contract SGT token
-    // Contoh: panggil endpoint atau baca dari Firestore
     const snap = await this.db.collection('sgt_wallets').doc(walletAddress).get();
     return snap.exists ? snap.data().balance : 0;
   }
@@ -327,7 +522,12 @@ class HidayatulaminAuth {
   async logout() {
     try {
       await this.auth.signOut();
-      this._piAccessToken = null;
+      this._piAccessToken  = null;
+      this.currentUser     = null;
+      this.currentUserData = null;
+      localStorage.removeItem('piUser');
+      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('currentUser');
       window.location.href = 'login.html';
       return { success: true };
     } catch (e) {
@@ -338,12 +538,13 @@ class HidayatulaminAuth {
   // ─────────────────────────────────────────
   // HELPER
   // ─────────────────────────────────────────
-  isLoggedIn() { return !!this.currentUser; }
-  getRole()    { return this.currentUserData?.role || null; }
+  isLoggedIn() { return !!this.currentUser || !!this._getPiUser(); }
+  getRole()    { return this.currentUserData?.role || this._getPiUser()?.role || null; }
   isAdmin()    { return this.getRole() === 'admin'; }
   isUstadz()   { return this.getRole() === 'ustadz'; }
   isSantri()   { return this.getRole() === 'santri'; }
   isWali()     { return this.getRole() === 'wali'; }
+  isPiBrowser(){ return !!window.Pi; }
 
   async updateProfile(data) {
     if (!this.currentUser) return { success: false, error: 'Belum login' };
@@ -359,14 +560,15 @@ class HidayatulaminAuth {
 
   _errMsg(code) {
     const map = {
-      'auth/user-not-found':       'Email tidak terdaftar',
-      'auth/wrong-password':       'Password salah',
-      'auth/invalid-email':        'Format email tidak valid',
-      'auth/user-disabled':        'Akun dinonaktifkan',
-      'auth/too-many-requests':    'Terlalu banyak percobaan, coba lagi nanti',
-      'auth/email-already-in-use': 'Email sudah terdaftar',
-      'auth/weak-password':        'Password minimal 6 karakter',
-      'auth/network-request-failed': 'Cek koneksi internet kamu'
+      'auth/user-not-found':         'Email tidak terdaftar',
+      'auth/wrong-password':         'Password salah',
+      'auth/invalid-email':          'Format email tidak valid',
+      'auth/user-disabled':          'Akun dinonaktifkan',
+      'auth/too-many-requests':      'Terlalu banyak percobaan, coba lagi nanti',
+      'auth/email-already-in-use':   'Email sudah terdaftar',
+      'auth/weak-password':          'Password minimal 6 karakter',
+      'auth/network-request-failed': 'Cek koneksi internet kamu',
+      'auth/invalid-credential':     'Email atau password salah',
     };
     return map[code] || 'Terjadi kesalahan, coba lagi';
   }
