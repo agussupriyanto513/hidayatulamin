@@ -1200,19 +1200,19 @@ async function submitCair(type) {
 }
 
 // ════ SECTION SWITCH ════
-function go(name,navEl){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('sec-'+name).classList.add('active');
-  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
-  if(navEl)navEl.classList.add('active');
-  const titles={dashboard:'Dashboard Wali',santri:'Data Santri',hafalan:'Progres Hafalan',nilai:'Nilai & Raport',absensi:'Data Absensi',pembayaran:'Pembayaran',notifikasi:'Notifikasi',sgt:'Saldo SGT'};
-  setEl('pgTitle',titles[name]||'Dashboard');
-  if(name==='santri')renderSantriDetail();
-  if(name==='hafalan')renderHafalan();
-  if(name==='nilai')setTimeout(()=>renderNilai(),50);
-  if(name==='absensi')renderAbsensi();
-  if(name==='pembayaran')renderPembayaran();
-  if(name==='notifikasi')renderNotif();
+function go(name, navEl) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  const titles = {dashboard:'Dashboard Wali',santri:'Data Santri',hafalan:'Progres Hafalan',nilai:'Nilai & Raport',absensi:'Data Absensi',pembayaran:'Pembayaran',notifikasi:'Notifikasi',sgt:'Saldo SGT'};
+  setEl('pgTitle', titles[name] || 'Dashboard');
+  if (name === 'santri') renderSantriDetail();
+  if (name === 'hafalan') renderHafalan();
+  if (name === 'nilai') setTimeout(() => renderNilai(), 50);
+  if (name === 'absensi') renderAbsensi();
+  if (name === 'pembayaran') { renderPembayaran(); if (waliPiUser) loadPiPayHistory(); }
+  if (name === 'notifikasi') renderNotif();
   closeSb();
 }
 
@@ -1400,12 +1400,6 @@ async function loadPiPayHistory() {
   }
 }
 
-// Patch go() to load pi history when navigating to pembayaran
-const _origGo = go;
-function go(name, navEl) {
-  _origGo(name, navEl);
-  if (name === 'pembayaran' && waliPiUser) loadPiPayHistory();
-}
 // ════ END PI PAYMENT ════
 
 function toggleSb(){document.getElementById('sidebar').classList.toggle('off');document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOv').classList.toggle('show')}
