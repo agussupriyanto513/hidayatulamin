@@ -892,29 +892,31 @@ function bootDashboard(user, name) {
   loadDashboardData();
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   updateDate();
   initNotif();
   document.body.style.visibility = 'hidden';
 
-  if (typeof HA !== 'undefined') {
-    HA.requireAuth('admin', (user, data) => {
-      const name = data?.namaLengkap || data?.name || data?.displayName || user.email;
-      bootDashboard(user, name);
-    });
-    return;
-  }
+  // Timeout safety: kalau Firebase tidak merespons dalam 8 detik, tampilkan body
+  // supaya halaman tidak stuck kosong selamanya
+  const safetyTimer = setTimeout(() => {
+    if (!dashboardReady) {
+      console.warn('[Auth] Firebase timeout — redirecting to login');
+      document.body.style.visibility = '';
+      window.location.href = 'login.html';
+    }
+  }, 8000);
 
-  // Tunggu Firebase Auth restore session dari IndexedDB (async persistence)
-  await new Promise(resolve => setTimeout(resolve, 600));
-
+  // FIX: Gunakan onAuthStateChanged langsung tanpa setTimeout arbitrary.
+  // Firebase SDK compat sudah handle IndexedDB persistence secara internal —
+  // callback pertama selalu fired (user | null) setelah session restore selesai.
   auth.onAuthStateChanged(async user => {
     // ── Kasus 1: user ada ──────────────────────────────────────────
     if (user) {
-      // Kalau dashboard sudah di-boot sebelumnya (token refresh normal), abaikan saja
+      // Kalau dashboard sudah di-boot (token refresh normal), abaikan
       if (dashboardReady && user.uid === currentAdminUid) return;
 
-      // Cek session localStorage dulu — hindari round-trip Firestore yang tidak perlu
+      // Cek session cache localStorage dulu (hindari round-trip Firestore)
       const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
       if (raw) {
         try {
@@ -922,25 +924,30 @@ document.addEventListener('DOMContentLoaded', async () => {
           const age  = Date.now() - (sess.ts || 0);
           const MAX  = 8 * 60 * 60 * 1000; // 8 jam
           if (sess.role === 'admin' && sess.uid === user.uid && age < MAX) {
-            bootDashboard(user, user.displayName || user.email);
+            clearTimeout(safetyTimer);
+            bootDashboard(user, user.displayName || sess.nama || user.email);
             return;
           }
         } catch(e) { /* session rusak, lanjut ke Firestore */ }
       }
 
-      // Verifikasi via Firestore
+      // Verifikasi role via Firestore
       try {
+        // Force refresh token dulu supaya tidak kena permission-denied
+        await user.getIdToken(true).catch(() => {});
         const doc = await db.collection('users').doc(user.uid).get();
         if (doc.exists && doc.data().role === 'admin') {
           const d = doc.data();
-          const name = d.displayName || d.namaLengkap || user.email;
+          const name = d.displayName || d.namaLengkap || d.nama || user.email;
           localStorage.setItem('currentUser', JSON.stringify({
-            uid: user.uid, role: 'admin',
+            uid: user.uid, role: 'admin', nama: name,
             authMethod: d.authMethod || 'email', ts: Date.now()
           }));
+          clearTimeout(safetyTimer);
           bootDashboard(user, name);
         } else {
-          // Bukan admin → logout dan balik ke login
+          // Bukan admin → redirect ke login
+          clearTimeout(safetyTimer);
           await auth.signOut();
           localStorage.removeItem('currentUser');
           sessionStorage.removeItem('currentUser');
@@ -948,53 +955,48 @@ document.addEventListener('DOMContentLoaded', async () => {
           window.location.href = 'login.html';
         }
       } catch(e) {
-        // permission-denied atau network error → jangan redirect,
-        // percayai Firebase Auth yang sudah valid
-        console.warn('Firestore verify error:', e.code, e.message);
+        // permission-denied atau network error → percayai Firebase Auth
+        // Jangan redirect! Dashboard tetap ditampilkan.
+        console.warn('[Auth] Firestore verify error:', e.code, e.message);
+        clearTimeout(safetyTimer);
         bootDashboard(user, user.displayName || user.email);
       }
       return;
     }
 
     // ── Kasus 2: user null ────────────────────────────────────────
-    // Bisa terjadi karena:
-    //   a) Token refresh sesaat (false null) — ditangani dengan re-check
-    //   b) createUser dengan secondary app lalu secondaryAuth.signOut()
-    //      → TIDAK boleh redirect, karena main app admin masih login
-    //   c) Logout sungguhan
+    // Bisa karena: (a) belum login, (b) secondary app sign-out, (c) false-null saat token refresh
 
-    // Jika sedang proses buat user baru (secondary signOut), abaikan
+    // Sedang proses buat user baru via secondary app → abaikan null ini
     if (_creatingUser) return;
 
-    // Jika dashboard sudah ready, ini kemungkinan false-null dari secondary app sign-out
-    // atau token refresh → tunggu sebentar lalu re-check
+    // Dashboard sudah ready → kemungkinan false-null (secondary signOut / token refresh)
     if (dashboardReady) {
       await new Promise(resolve => setTimeout(resolve, 800));
-      if (auth.currentUser) return; // auth sudah kembali, abaikan
-      // Masih null setelah wait → logout sungguhan
+      if (auth.currentUser) return; // sudah kembali, abaikan
+      // Masih null → logout sungguhan
     } else {
-      // Dashboard belum ready tapi user null → cek apakah session masih ada
+      // Dashboard belum ready, user null → cek session masih ada
       const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
       if (raw) {
         try {
           const sess = JSON.parse(raw);
           const age  = Date.now() - (sess.ts || 0);
           if (sess.role === 'admin' && age < 8 * 60 * 60 * 1000) {
-            // Session masih valid → mungkin Firebase Auth masih restore, tunggu lebih lama
-            await new Promise(resolve => setTimeout(resolve, 1200));
-            if (auth.currentUser) return; // Auth sudah restore
+            // Session masih valid → Firebase Auth mungkin masih restore, tunggu sekali lagi
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            if (auth.currentUser) return;
           }
         } catch(e) { /* lanjut redirect */ }
       }
     }
 
-    // Benar-benar tidak ada user → bersihkan dan redirect
-    if (!auth.currentUser) {
-      localStorage.removeItem('currentUser');
-      sessionStorage.removeItem('currentUser');
-      document.body.style.visibility = '';
-      window.location.href = 'login.html';
-    }
+    // Benar-benar tidak ada user → redirect ke login
+    clearTimeout(safetyTimer);
+    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('currentUser');
+    document.body.style.visibility = '';
+    window.location.href = 'login.html';
   });
 });
 
