@@ -1,0 +1,2362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dashboard Admin | Hidayatullah Amin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --p:       #0db87a; --pd: #059669; --pl: #e6f9f2;
+  --b:       #2d7ef5; --bl: #eaf1fe;
+  --acc:     #8b5cf6; --acl: #f0ebff;
+  --w:       #f59e0b; --wl: #fef3c7;
+  --r:       #ef4444; --rl: #fee2e2;
+  --ink:     #0f172a; --ink2: #1e293b;
+  --g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;
+  --g400:#94a3b8;--g500:#64748b;--g600:#475569;--g700:#334155;
+  --white:#fff;
+  --sgt:#f59e0b;--sgtd:#d97706;--sgtl:#fef3c7;
+  --sh-sm:0 1px 3px rgba(0,0,0,.06);
+  --sh-md:0 4px 16px rgba(0,0,0,.08);
+  --sh-lg:0 10px 32px rgba(0,0,0,.1);
+  --rd:14px; --rdm:10px; --rds:6px;
+  --tr:all .2s cubic-bezier(.4,0,.2,1);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(--ink2);font-size:14px;min-height:100vh;display:flex;overflow-x:hidden}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{width:256px;min-width:256px;background:var(--ink);display:flex;flex-direction:column;position:fixed;left:0;top:0;height:100vh;z-index:200;overflow-y:auto;transition:transform .3s ease;scrollbar-width:none}
+.sidebar::-webkit-scrollbar{display:none}
+.sidebar.hidden-mobile{transform:translateX(-100%)}
+.sb-head{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px}
+.sb-logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0}
+.sb-brand h1{font-family:'Amiri',serif;color:#fff;font-size:16px;line-height:1.3}
+.sb-brand p{color:var(--p);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.sb-nav{flex:1;padding:12px 8px}
+.sb-sect-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.25);padding:10px 12px 4px;display:block}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rdm);color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;transition:var(--tr);cursor:pointer;margin-bottom:1px;border:1px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+.nav-item.active{background:rgba(13,184,122,.15);color:var(--p);border-color:rgba(13,184,122,.25)}
+.nav-item i{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--r);color:#fff;font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700}
+.sb-foot{padding:12px;border-top:1px solid rgba(255,255,255,.07)}
+.user-tile{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:var(--rdm);cursor:pointer;transition:var(--tr)}
+.user-tile:hover{background:rgba(255,255,255,.1)}
+.u-av{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+.u-inf{flex:1;min-width:0}
+.u-name{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-role{font-size:10px;color:rgba(255,255,255,.35)}
+
+/* ═══ OVERLAY (mobile) ═══ */
+.sb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;display:none;cursor:pointer}
+.sb-overlay.show{display:block}
+
+/* ═══ MAIN ═══ */
+.main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
+
+/* ═══ TOPBAR ═══ */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tb-left{display:flex;align-items:center;gap:10px}
+.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
+.menu-btn:hover{background:var(--pl);color:var(--p)}
+.pg-title h2{font-size:17px;font-weight:700;color:var(--ink2)}
+.pg-title p{font-size:11px;color:var(--g500)}
+.tb-right{display:flex;align-items:center;gap:6px}
+.tb-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);position:relative}
+.tb-btn:hover{background:var(--pl);color:var(--p)}
+.tb-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--r);border-radius:50%;border:2px solid var(--white)}
+
+/* ═══ CONTENT ═══ */
+.content{flex:1;padding:20px}
+
+/* ═══ SECTIONS ═══ */
+.section{display:none}
+.section.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ WELCOME BANNER ═══ */
+.welcome{background:linear-gradient(135deg,var(--ink) 0%,var(--ink2) 50%,#064e3b 100%);border-radius:var(--rd);padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative}
+.welcome::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:rgba(13,184,122,.08);border-radius:50%}
+.welcome-txt{position:relative;z-index:1}
+.welcome-txt h3{font-family:'Amiri',serif;font-size:20px;color:#fff;margin-bottom:4px}
+.welcome-txt p{font-size:12px;color:rgba(255,255,255,.5)}
+.welcome-date{position:relative;z-index:1;text-align:right}
+.wd-num{font-size:38px;font-weight:800;color:var(--p);line-height:1}
+.wd-str{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px}
+
+/* ═══ STAT CARDS ═══ */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:var(--white);border-radius:var(--rd);padding:18px;box-shadow:var(--sh-sm);border:1px solid var(--g100);transition:var(--tr);position:relative;overflow:hidden}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.stat-card::after{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:var(--p)}
+.stat-card.b::after{background:var(--b)}
+.stat-card.o::after{background:var(--w)}
+.stat-card.v::after{background:var(--acc)}
+.sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sc-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.sc-ico.g{background:var(--pl);color:var(--p)}
+.sc-ico.b{background:var(--bl);color:var(--b)}
+.sc-ico.o{background:var(--wl);color:var(--w)}
+.sc-ico.v{background:var(--acl);color:var(--acc)}
+.sc-trend{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--pl);color:var(--p)}
+.sc-trend.flat{background:var(--wl);color:var(--w)}
+.sc-val{font-size:26px;font-weight:800;color:var(--ink2);margin-bottom:2px;line-height:1}
+.sc-lbl{font-size:12px;color:var(--g500);font-weight:500}
+.sc-sub{font-size:10px;color:var(--g400);margin-top:2px}
+
+/* ═══ TWO-COL ═══ */
+.two-col{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
+.card{background:var(--white);border-radius:var(--rd);padding:18px;box-shadow:var(--sh-sm);border:1px solid var(--g100)}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-head h4{font-size:14px;font-weight:700;color:var(--ink2)}
+.card-head p{font-size:11px;color:var(--g500)}
+.card-link{font-size:12px;color:var(--p);font-weight:600;cursor:pointer;white-space:nowrap}
+
+/* ═══ CHART ═══ */
+.chart-wrap{position:relative;height:220px}
+
+/* ═══ PROGRESS LIST ═══ */
+.prog-list{display:flex;flex-direction:column;gap:10px}
+.prog-item{}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.prog-name{font-size:12px;font-weight:600;color:var(--g700)}
+.prog-val{font-size:12px;font-weight:700;color:var(--p)}
+.prog-bar{height:6px;background:var(--g100);border-radius:20px;overflow:hidden}
+.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--p),var(--pd));transition:width .8s ease}
+
+/* ═══ TABLE SECTION ═══ */
+.tbl-section{background:var(--white);border-radius:var(--rd);box-shadow:var(--sh-sm);border:1px solid var(--g100);overflow:hidden;margin-bottom:20px}
+.tbl-head{padding:16px 18px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tbl-title h4{font-size:14px;font-weight:700;color:var(--ink2)}
+.tbl-title p{font-size:11px;color:var(--g500)}
+.tbl-acts{display:flex;gap:8px;align-items:center}
+.search-box{position:relative}
+.search-box input{padding:8px 12px 8px 32px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit;transition:var(--tr);width:200px}
+.search-box input:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(13,184,122,.1)}
+.search-box i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px}
+.btn-p{padding:8px 14px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none;border-radius:var(--rdm);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:var(--tr);font-family:inherit;white-space:nowrap}
+.btn-p:hover{box-shadow:0 4px 14px rgba(13,184,122,.3);transform:translateY(-1px)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:500px}
+thead{background:var(--g50)}
+th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);white-space:nowrap}
+td{padding:10px 14px;border-top:1px solid var(--g100);color:var(--g600)}
+tr:hover td{background:var(--g50)}
+.u-cell{display:flex;align-items:center;gap:8px}
+.u-av-sm{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0}
+.u-det .u-nm{font-size:12px;font-weight:600;color:var(--ink2)}
+.u-det .u-em{font-size:10px;color:var(--g400)}
+.chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.chip-admin{background:var(--acl);color:var(--acc)}
+.chip-ustadz{background:var(--bl);color:var(--b)}
+.chip-wali{background:var(--wl);color:var(--w)}
+.chip-santri{background:var(--pl);color:var(--p)}
+.chip-aktif{background:var(--pl);color:var(--p)}
+.chip-nonaktif{background:var(--rl);color:var(--r)}
+.act-btns{display:flex;gap:4px}
+.act-btn{width:26px;height:26px;border:none;border-radius:var(--rds);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--tr);font-size:11px}
+.act-btn.v{background:var(--bl);color:var(--b)}
+.act-btn.d{background:var(--rl);color:var(--r)}
+.act-btn:hover{transform:scale(1.1)}
+
+/* ═══ SGT PANEL ═══ */
+.sgt-banner{background:linear-gradient(135deg,#1a0533 0%,#3d1078 40%,#7c3aed 75%,#f59e0b 100%);border-radius:var(--rd);padding:20px;margin-bottom:14px;color:#fff;position:relative;overflow:hidden}
+.sgt-banner::before{content:'SGT';position:absolute;right:-15px;top:-15px;font-size:110px;font-weight:900;color:rgba(255,255,255,.03);pointer-events:none;line-height:1}
+.sgt-coin{width:44px;height:44px;background:linear-gradient(135deg,#fcd34d,#f59e0b,#d97706);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#1a0533;flex-shrink:0;box-shadow:0 4px 12px rgba(245,158,11,.4)}
+.sgt-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.sgt-stat{background:rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center}
+.sgt-stat .sv{font-size:14px;font-weight:900;color:#fcd34d}
+.sgt-stat .sl{font-size:10px;color:rgba(255,255,255,.6);font-weight:600}
+.alloc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.alloc-card{background:var(--white);border-radius:var(--rdm);padding:14px;border:1.5px solid var(--g200);transition:var(--tr)}
+.alloc-card:hover{border-color:var(--sgt)}
+.alloc-bar{height:6px;background:var(--g100);border-radius:4px;overflow:hidden;margin:6px 0}
+.alloc-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.field-grp label{font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:5px}
+.field-grp input,.field-grp select,.field-grp textarea{width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit;transition:var(--tr)}
+.field-grp input:focus,.field-grp select:focus,.field-grp textarea:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(13,184,122,.1)}
+.info-row{background:var(--g50);border-radius:var(--rdm);padding:10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:12px}
+.btn-sgt{width:100%;padding:12px;border-radius:var(--rdm);color:#fff;font-weight:800;border:none;cursor:pointer;font-size:13px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-sgt.gold{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.btn-sgt.green{background:linear-gradient(135deg,var(--p),var(--pd))}
+.mart-card{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:2px solid var(--acc);border-radius:var(--rd);padding:14px;cursor:pointer;transition:var(--tr);text-decoration:none;margin-bottom:12px}
+.mart-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(139,92,246,.2)}
+
+/* ═══ MODAL ═══ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:var(--tr)}
+.modal-bg.open{opacity:1;visibility:visible}
+.modal{background:var(--white);border-radius:var(--rd);width:100%;max-width:520px;max-height:90vh;overflow:hidden;box-shadow:var(--sh-lg);transform:scale(.95);transition:var(--tr)}
+.modal-bg.open .modal{transform:scale(1)}
+.modal-hd{padding:14px 18px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between}
+.modal-hd h3{font-size:15px;font-weight:700;color:var(--ink2)}
+.modal-close{width:30px;height:30px;border:none;background:var(--g100);border-radius:var(--rds);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g500);transition:var(--tr)}
+.modal-close:hover{background:var(--rl);color:var(--r)}
+.modal-body{padding:18px;overflow-y:auto;max-height:calc(90vh - 130px)}
+.modal-ft{padding:12px 18px;border-top:1px solid var(--g100);display:flex;justify-content:flex-end;gap:10px}
+.btn-sec{padding:8px 14px;background:var(--g100);color:var(--g700);border:none;border-radius:var(--rdm);font-size:12px;font-weight:600;cursor:pointer;transition:var(--tr);font-family:inherit}
+.btn-sec:hover{background:var(--g200)}
+
+/* ═══ TOAST ═══ */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--white);border-radius:var(--rd);padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh-lg);border-left:4px solid var(--p);transform:translateX(120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);pointer-events:auto;min-width:280px;max-width:360px}
+.toast.show{transform:translateX(0)}
+.toast.error{border-color:var(--r)}
+.toast.warn{border-color:var(--w)}
+.toast.info{border-color:var(--b)}
+.t-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.toast.success .t-ico{background:var(--pl);color:var(--p)}
+.toast.error .t-ico{background:var(--rl);color:var(--r)}
+.toast.warn .t-ico{background:var(--wl);color:var(--w)}
+.toast.info .t-ico{background:var(--bl);color:var(--b)}
+.t-msg h4{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:1px}
+.t-msg p{font-size:11px;color:var(--g500)}
+
+/* ═══ QUICK ACTIONS ═══ */
+.qa-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.qa-card{background:var(--white);border-radius:var(--rd);padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:var(--tr);border:1px solid var(--g100);text-decoration:none;color:inherit}
+.qa-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md);border-color:var(--p)}
+.qa-card.prim{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none}
+.qa-card.prim .qa-ico{background:rgba(255,255,255,.2);color:#fff}
+.qa-card.prim p{color:rgba(255,255,255,.8)}
+.qa-ico{width:42px;height:42px;border-radius:var(--rdm);background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--p);flex-shrink:0}
+.qa-txt h4{font-size:13px;font-weight:700;margin-bottom:2px}
+.qa-txt p{font-size:11px;color:var(--g500)}
+
+/* ═══ NOTIF PANEL ═══ */
+.notif-panel{position:absolute;top:50px;right:0;width:320px;background:var(--white);border-radius:var(--rd);box-shadow:var(--sh-lg);border:1px solid var(--g200);z-index:500;display:none;overflow:hidden}
+.notif-panel.open{display:block}
+.notif-hd{padding:12px 14px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between}
+.notif-hd h4{font-size:13px;font-weight:700}
+.notif-item{padding:10px 14px;border-bottom:1px solid var(--g100);display:flex;gap:10px;align-items:flex-start;transition:var(--tr);cursor:pointer}
+.notif-item:hover{background:var(--g50)}
+.notif-item.unread{background:#f0fdf9}
+.n-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.n-body p{font-size:12px;color:var(--ink2);font-weight:500;margin-bottom:2px}
+.n-body span{font-size:10px;color:var(--g400)}
+
+/* ═══ SECTION HEADER ═══ */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px}
+.sec-hd h3{font-size:18px;font-weight:700;color:var(--ink2)}
+.sec-hd p{font-size:12px;color:var(--g500)}
+
+/* ═══ PENCAIRAN / WITHDRAWAL ═══ */
+.wd-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.wd-stat{background:var(--white);border-radius:var(--rdm);padding:14px;border:1px solid var(--g100);box-shadow:var(--sh-sm);position:relative;overflow:hidden}
+.wd-stat::after{content:'';position:absolute;left:0;top:0;width:3px;height:100%}
+.wd-stat.pending::after{background:#f59e0b}
+.wd-stat.approved::after{background:#0db87a}
+.wd-stat.rejected::after{background:#ef4444}
+.wd-stat.total::after{background:#8b5cf6}
+.wd-stat-val{font-size:22px;font-weight:800;color:var(--ink2);margin-bottom:2px}
+.wd-stat-lbl{font-size:11px;color:var(--g500);font-weight:600}
+
+.wd-filter-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.wd-fb{padding:6px 14px;border:1.5px solid var(--g200);border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;color:var(--g600);background:var(--white);font-family:inherit;transition:all .2s}
+.wd-fb.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.wd-fb.pend{}.wd-fb.pend.active{background:#f59e0b;border-color:#f59e0b}
+.wd-fb.appr.active{background:var(--p);border-color:var(--p)}
+.wd-fb.reje.active{background:var(--r);border-color:var(--r)}
+
+.wd-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.wd-table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.wd-table thead{background:var(--g50)}
+.wd-table th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);white-space:nowrap}
+.wd-table td{padding:10px 14px;border-top:1px solid var(--g100);color:var(--g600);vertical-align:middle}
+.wd-table tr:hover td{background:var(--g50)}
+.wd-table tr.row-pending td{background:#fffbeb}
+.wd-table tr.row-pending:hover td{background:#fef3c7}
+
+.badge-pending{background:#fef3c7;color:#d97706;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.badge-approved{background:#e6f9f2;color:#059669;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.badge-rejected{background:#fee2e2;color:#ef4444;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.badge-idr{background:#e6f9f2;color:#0db87a;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.badge-pi{background:#eef2ff;color:#6366f1;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+
+.wd-act-btn{padding:5px 11px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;transition:all .2s}
+.wd-act-btn.approve{background:#e6f9f2;color:#059669}
+.wd-act-btn.approve:hover{background:#0db87a;color:#fff}
+.wd-act-btn.reject{background:#fee2e2;color:#ef4444}
+.wd-act-btn.reject:hover{background:#ef4444;color:#fff}
+.wd-act-btn.view{background:var(--bl);color:var(--b)}
+.wd-act-btn.view:hover{background:var(--b);color:#fff}
+.wd-act-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Fonnte config card */
+.fonnte-card{background:linear-gradient(135deg,#064e3b,#047857,#0db87a);border-radius:var(--rdm);padding:16px;margin-bottom:14px;color:#fff;position:relative;overflow:hidden}
+.fonnte-card::before{content:'WA';position:absolute;right:-10px;top:-10px;font-size:90px;font-weight:900;color:rgba(255,255,255,.04);pointer-events:none;line-height:1}
+.fonnte-field{margin-top:12px}
+.fonnte-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.6);display:block;margin-bottom:5px}
+.fonnte-field input{width:100%;padding:9px 12px;border:1.5px solid rgba(255,255,255,.2);border-radius:var(--rdm);font-size:13px;font-family:inherit;background:rgba(255,255,255,.1);color:#fff;transition:all .2s}
+.fonnte-field input::placeholder{color:rgba(255,255,255,.4)}
+.fonnte-field input:focus{outline:none;border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.15)}
+.fonnte-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.btn-wa{padding:10px 16px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:var(--rdm);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+.btn-wa:hover{background:rgba(255,255,255,.25)}
+.btn-wa.save{background:#fff;color:#047857}
+.btn-wa.save:hover{background:#f0fdf4}
+.wa-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;margin-top:8px}
+.wa-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3)}
+.wa-dot.on{background:#6ee7b7;box-shadow:0 0 0 3px rgba(110,231,183,.25)}
+
+/* Detail modal pencairan */
+.wd-detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--g100)}
+.wd-detail-row:last-child{border-bottom:none}
+.wd-detail-lbl{font-size:12px;color:var(--g500)}
+.wd-detail-val{font-size:13px;font-weight:700;color:var(--ink2)}
+.wd-detail-val.green{color:var(--p)}
+.wd-detail-val.gold{color:#d97706}
+.reject-reason{width:100%;padding:9px 12px;border:1.5px solid var(--r);border-radius:var(--rdm);font-size:13px;font-family:inherit;margin-top:6px;transition:all .2s;background:#fff9f9}
+.reject-reason:focus{outline:none;box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:900px){
+  .wd-stats{grid-template-columns:1fr 1fr}
+}
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .menu-btn{display:flex}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .qa-row{grid-template-columns:1fr 1fr}
+}
+/* ═══ PI DONATIONS ═══ */
+.pi-don-banner{background:linear-gradient(135deg,#1e1b4b 0%,#2e1065 50%,#1a1040 100%);border-radius:var(--rd);padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
+.pi-don-banner::before{content:'π';position:absolute;right:-20px;top:-30px;font-size:160px;font-weight:900;color:rgba(255,255,255,.03);line-height:1}
+.pi-don-banner::after{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:rgba(139,92,246,.15);border-radius:50%;filter:blur(40px)}
+.pi-don-hd{display:flex;align-items:center;gap:16px;margin-bottom:20px;position:relative;z-index:1}
+.pi-don-ico{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#6d28d9,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;box-shadow:0 4px 20px rgba(109,40,217,.5)}
+.pi-don-hd-txt h3{color:#fff;font-size:16px;font-weight:800;margin-bottom:2px}
+.pi-don-hd-txt p{color:rgba(255,255,255,.45);font-size:12px}
+.pi-testnet-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(212,168,67,.2);border:1px solid rgba(212,168,67,.4);color:#d4a843;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;margin-left:10px}
+.pi-testnet-badge span{width:5px;height:5px;background:#d4a843;border-radius:50%;animation:blink2 2s ease infinite}
+@keyframes blink2{0%,100%{opacity:1}50%{opacity:.3}}
+.pi-don-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;position:relative;z-index:1}
+.pi-dstat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:var(--rdm);padding:14px;text-align:center}
+.pi-dstat-val{font-size:20px;font-weight:900;color:#c4b5fd;line-height:1;margin-bottom:4px}
+.pi-dstat-val.pi-color{color:#d4a843}
+.pi-dstat-lbl{font-size:10px;color:rgba(255,255,255,.35);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+.pi-don-filter{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.pi-filter-btn{padding:7px 14px;border-radius:var(--rdm);border:1.5px solid var(--g200);background:var(--white);color:var(--g500);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.pi-filter-btn.active,.pi-filter-btn:hover{background:var(--acl);border-color:var(--acc);color:var(--acc)}
+.pi-filter-btn.all.active{background:rgba(109,40,217,.1);border-color:#6d28d9;color:#6d28d9}
+.pi-filter-btn.success.active{background:var(--pl);border-color:var(--p);color:var(--pd)}
+.pi-filter-btn.pending.active{background:var(--wl);border-color:var(--w);color:#92400e}
+
+.pi-don-row{display:flex;align-items:center;gap:14px;padding:14px;background:var(--white);border:1px solid var(--g100);border-radius:var(--rdm);margin-bottom:8px;transition:var(--tr)}
+.pi-don-row:hover{border-color:rgba(109,40,217,.2);box-shadow:var(--sh-sm)}
+.pi-don-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#6d28d9);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0}
+.pi-don-info{flex:1;min-width:0}
+.pi-don-name{font-weight:700;font-size:13px;color:var(--ink2);margin-bottom:2px}
+.pi-don-prog{font-size:11px;color:var(--g400)}
+.pi-don-meta{text-align:right;flex-shrink:0}
+.pi-don-amt{font-size:15px;font-weight:900;color:#6d28d9}
+.pi-don-time{font-size:10px;color:var(--g400);margin-top:2px}
+.pi-don-status{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.pi-don-status.completed{background:var(--pl);color:var(--pd)}
+.pi-don-status.pending{background:var(--wl);color:#92400e}
+.pi-don-status.cancelled{background:var(--g100);color:var(--g500)}
+
+.pi-txid{font-size:10px;color:var(--g400);font-family:monospace;background:var(--g50);padding:2px 6px;border-radius:4px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;max-width:200px;white-space:nowrap}
+
+.pi-don-empty{text-align:center;padding:60px 20px;color:var(--g400)}
+.pi-don-empty i{font-size:2.5rem;margin-bottom:12px;display:block;color:var(--g300)}
+
+/* Quick action button Pi */
+.btn-pi-export{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;border:none;border-radius:var(--rdm);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr)}
+.btn-pi-export:hover{opacity:.9;transform:translateY(-1px)}
+</head>
+<body>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar hidden-mobile" id="sidebar">
+  <div class="sb-head">
+    <div class="sb-logo"><i class="fas fa-mosque"></i></div>
+    <div class="sb-brand"><h1>Hidayatulamin</h1><p>Admin Panel</p></div>
+  </div>
+  <nav class="sb-nav">
+    <span class="sb-sect-lbl">Menu Utama</span>
+    <a class="nav-item active" onclick="switchSection('dashboard',this)"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+    <a href="absensi.html" class="nav-item"><i class="fas fa-qrcode"></i><span>Absensi QR</span></a>
+    <a href="keuangan.html" class="nav-item"><i class="fas fa-wallet"></i><span>Keuangan</span><span class="nav-badge">3</span></a>
+    <span class="sb-sect-lbl">Manajemen</span>
+    <a class="nav-item" onclick="switchSection('users',this)"><i class="fas fa-users-cog"></i><span>Kelola User</span></a>
+    <a href="data-pengguna.html" class="nav-item"><i class="fas fa-user-graduate"></i><span>Data Santri</span></a>
+    <a href="data-pengguna.html" class="nav-item"><i class="fas fa-chalkboard-teacher"></i><span>Data Ustadz</span></a>
+    <a href="data-pengguna.html" class="nav-item"><i class="fas fa-user-friends"></i><span>Data Wali</span></a>
+    <span class="sb-sect-lbl">Portal</span>
+    <a href="dashboard-ustadz.html" class="nav-item"><i class="fas fa-chalkboard"></i><span>Portal Ustadz</span></a>
+    <a href="dashboard-santri.html" class="nav-item"><i class="fas fa-graduation-cap"></i><span>Portal Santri</span></a>
+    <a href="dashboard-wali.html" class="nav-item"><i class="fas fa-heart"></i><span>Portal Wali</span></a>
+    <span class="sb-sect-lbl">Ekosistem</span>
+    <a class="nav-item" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)" onclick="switchSection('sgt',this)"><span style="font-size:14px;font-weight:900;color:#d97706;width:16px;text-align:center">₴</span><span style="color:#d97706;font-weight:700">Kelola SGT</span></a>
+    <a class="nav-item" id="navPencairan" onclick="switchSection('pencairan',this)"><i class="fas fa-hand-holding-usd" style="color:#d97706"></i><span style="color:#d97706;font-weight:700">Pencairan SGT</span><span class="nav-badge" id="pendingBadge" style="display:none;background:#f59e0b">0</span></a>
+    <a class="nav-item" id="navEarnReq" onclick="switchSection('earnreq',this)"><i class="fas fa-paper-plane" style="color:#8b5cf6"></i><span style="color:#8b5cf6;font-weight:700">Pengajuan Reward</span><span class="nav-badge" id="earnBadge" style="display:none;background:#8b5cf6">0</span></a>
+    <a class="nav-item" id="navPiDonasi" onclick="switchSection('pi-donasi',this)" style="background:rgba(109,40,217,.1);border-color:rgba(109,40,217,.2)"><i class="fas fa-hand-holding-heart" style="color:#8b5cf6"></i><span style="color:#8b5cf6;font-weight:700">Donasi Pi</span><span class="nav-badge" id="piDonasiNewBadge" style="display:none;background:#6d28d9">0</span></a>
+    <a href="pi-donasi.html" target="_blank" class="nav-item" style="background:rgba(212,168,67,.08);border-color:rgba(212,168,67,.2)"><i class="fas fa-external-link-alt" style="color:#d4a843;font-size:11px"></i><span style="color:#d4a843;font-weight:600;font-size:12px">Halaman Donasi Publik</span></a>
+    <a href="https://sagatama-mart.vercel.app" target="_blank" class="nav-item" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)"><i class="fas fa-shopping-bag" style="color:var(--acc)"></i><span style="color:var(--acc);font-weight:700">Sagatama Mart</span><i class="fas fa-external-link-alt" style="font-size:9px;color:var(--acc);margin-left:auto"></i></a>
+  </nav>
+  <div class="sb-foot">
+    <div class="user-tile" onclick="handleLogout()">
+      <div class="u-av" id="uAvatar">A</div>
+      <div class="u-inf"><div class="u-name" id="uName">Administrator</div><div class="u-role">Klik untuk logout</div></div>
+      <i class="fas fa-sign-out-alt" style="color:rgba(255,255,255,.3);font-size:13px"></i>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <header class="topbar">
+    <div class="tb-left">
+      <button class="menu-btn" id="menuBtn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="pg-title"><h2 id="pgTitle">Dashboard Admin</h2><p id="pgDate">Memuat...</p></div>
+    </div>
+    <div class="tb-right" style="position:relative">
+      <button class="tb-btn" onclick="toggleNotif()" title="Notifikasi"><i class="fas fa-bell"></i><div class="tb-dot" id="notifDot"></div></button>
+      <!-- Notif Panel -->
+      <div class="notif-panel" id="notifPanel">
+        <div class="notif-hd"><h4>Notifikasi</h4><span style="font-size:11px;color:var(--p);cursor:pointer" onclick="markAllRead()">Tandai Dibaca</span></div>
+        <div id="notifList"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ════ DASHBOARD SECTION ════ -->
+    <div class="section active" id="sec-dashboard">
+      <div class="welcome">
+        <div class="welcome-txt">
+          <h3>Assalamu'alaikum, <span id="greetName">Admin</span>! 👋</h3>
+          <p id="greetSub">Semua sistem berjalan normal. Pantau aktivitas pondok hari ini.</p>
+        </div>
+        <div class="welcome-date"><div class="wd-num" id="wdNum">—</div><div class="wd-str" id="wdStr">—</div></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="sc-top"><div class="sc-ico g"><i class="fas fa-user-graduate"></i></div><div class="sc-trend"><i class="fas fa-arrow-up" style="font-size:9px"></i> 12%</div></div>
+          <div class="sc-val" id="statSantri"><i class="fas fa-spinner fa-spin" style="font-size:18px;color:var(--g300)"></i></div>
+          <div class="sc-lbl">Total Santri</div><div class="sc-sub">Aktif terdaftar</div>
+        </div>
+        <div class="stat-card b">
+          <div class="sc-top"><div class="sc-ico b"><i class="fas fa-chalkboard-teacher"></i></div><div class="sc-trend"><i class="fas fa-arrow-up" style="font-size:9px"></i> 5%</div></div>
+          <div class="sc-val" id="statUstadz"><i class="fas fa-spinner fa-spin" style="font-size:18px;color:var(--g300)"></i></div>
+          <div class="sc-lbl">Total Ustadz</div><div class="sc-sub">Aktif mengajar</div>
+        </div>
+        <div class="stat-card o">
+          <div class="sc-top"><div class="sc-ico o"><i class="fas fa-calendar-check"></i></div><div class="sc-trend flat"><i class="fas fa-minus" style="font-size:9px"></i> Stabil</div></div>
+          <div class="sc-val" id="statKehadiran">94%</div>
+          <div class="sc-lbl">Kehadiran</div><div class="sc-sub">Rata-rata minggu ini</div>
+        </div>
+        <div class="stat-card v">
+          <div class="sc-top"><div class="sc-ico v"><i class="fas fa-book-quran"></i></div><div class="sc-trend flat"><i class="fas fa-minus" style="font-size:9px"></i> Stabil</div></div>
+          <div class="sc-val" id="statHafalan">4.5</div>
+          <div class="sc-lbl">Rata-rata Hafalan</div><div class="sc-sub">Semua kelas (Juz)</div>
+        </div>
+      </div>
+
+      <div class="qa-row">
+        <a class="qa-card prim" onclick="openModal(); return false;">
+          <div class="qa-ico"><i class="fas fa-user-plus"></i></div>
+          <div class="qa-txt"><h4>Buat User Baru</h4><p>Tambah admin, ustadz, santri, wali</p></div>
+        </a>
+        <a href="data-pengguna.html" class="qa-card">
+          <div class="qa-ico" style="background:var(--bl);color:var(--b)"><i class="fas fa-users-cog"></i></div>
+          <div class="qa-txt"><h4>Kelola Data Santri</h4><p>Lihat dan edit semua data santri</p></div>
+        </a>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><div><h4>Grafik Kehadiran Santri</h4><p>Data 7 hari terakhir</p></div><select style="font-size:11px;border:1px solid var(--g200);border-radius:8px;padding:4px 8px;font-family:inherit" onchange="updateChart(this.value)"><option value="week">7 Hari</option><option value="month">30 Hari</option></select></div>
+          <div class="chart-wrap"><canvas id="chartKehadiran"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h4>Hafalan per Kelas</h4></div>
+          <div class="prog-list" id="hafalanList">
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas A</span><span class="prog-val">5.1 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:85%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas B</span><span class="prog-val">4.5 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:75%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas C</span><span class="prog-val">3.8 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:63%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas D</span><span class="prog-val">4.2 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:70%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas E</span><span class="prog-val">6.0 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /dashboard -->
+
+    <!-- ════ USER MANAGEMENT SECTION ════ -->
+    <div class="section" id="sec-users">
+      <div class="sec-hd">
+        <div><h3>Kelola User</h3><p>Semua pengguna sistem yang terdaftar</p></div>
+        <button class="btn-p" onclick="openModal()"><i class="fas fa-user-plus"></i> Buat User</button>
+      </div>
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Daftar User</h4><p>Klik icon untuk aksi</p></div>
+          <div class="tbl-acts">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchUser" placeholder="Cari nama / email..." oninput="filterUsers()"></div>
+            <select id="filterRole" onchange="filterUsers()" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit"><option value="">Semua Role</option><option value="admin">Admin</option><option value="ustadz">Ustadz</option><option value="wali">Wali</option><option value="santri">Santri</option></select>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+            <tbody id="usersTable"><tr><td colspan="5" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /users -->
+
+    <!-- ════ SGT TOKEN SECTION ════ -->
+    <div class="section" id="sec-sgt">
+      <div class="sec-hd"><div><h3>Manajemen SGT Token</h3><p>Kelola Sagatama Token (SGT) — 1 Miliar total supply</p></div><span style="background:var(--sgtl);color:var(--sgtd);font-size:11px;padding:4px 12px;border-radius:20px;font-weight:700;border:1px solid var(--sgt)">SAGATAMA TOKEN</span></div>
+
+      <div class="sgt-banner">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;z-index:1">
+          <div class="sgt-coin">₴</div>
+          <div>
+            <p style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px">Total Supply (Tetap)</p>
+            <p style="font-size:24px;font-weight:900;color:#fff;line-height:1.2">1.000.000.000 SGT</p>
+            <p style="font-size:11px;color:rgba(255,255,255,.5)">1 Miliar token · Tidak dapat ditambah</p>
+          </div>
+        </div>
+        <div class="sgt-stats">
+          <div class="sgt-stat"><div class="sv" id="sgtCirculating">—</div><div class="sl">Beredar</div></div>
+          <div class="sgt-stat"><div class="sv" id="sgtIssued">—</div><div class="sl">Diterbitkan</div></div>
+          <div class="sgt-stat"><div class="sv" id="sgtReserve">—</div><div class="sl">Cadangan</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h4>Alokasi Token per Segmen</h4></div>
+        <div class="alloc-grid" id="allocGrid"></div>
+        <div class="field-row">
+          <div class="field-grp"><label>Member / Santri (%)</label><input type="number" id="allocMember" value="30" min="0" max="100" oninput="calcTotal()"></div>
+          <div class="field-grp"><label>Ustadz / Pengajar (%)</label><input type="number" id="allocUstadz" value="20" min="0" max="100" oninput="calcTotal()"></div>
+          <div class="field-grp"><label>Sagatama Mart (%)</label><input type="number" id="allocMart" value="25" min="0" max="100" oninput="calcTotal()"></div>
+          <div class="field-grp"><label>Cadangan Yayasan (%)</label><input type="number" id="allocReserve" value="25" min="0" max="100" oninput="calcTotal()"></div>
+        </div>
+        <div class="info-row"><span style="color:var(--g500)">Total alokasi:</span><span id="allocTotal" style="font-weight:800;color:var(--p)">100%</span></div>
+        <button class="btn-sgt gold" onclick="saveAlloc()"><i class="fas fa-save"></i> Simpan Alokasi</button>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h4>Distribusi SGT ke Member</h4></div>
+        <div class="field-row">
+          <div class="field-grp"><label>Email Penerima</label><input type="email" id="distTarget" placeholder="email@hidayatulamin.pi"></div>
+          <div class="field-grp"><label>Jumlah SGT</label><input type="number" id="distAmount" placeholder="0" min="1"></div>
+        </div>
+        <div class="field-grp" style="margin-bottom:12px"><label>Keterangan</label><input type="text" id="distNote" placeholder="Alasan distribusi..."></div>
+        <button class="btn-sgt green" onclick="doDistribute()"><i class="fas fa-coins"></i> Distribusikan SGT</button>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:12px"><i class="fas fa-store" style="color:var(--acc);margin-right:8px"></i>Integrasi Ekosistem</h4>
+        <a href="https://hidayatulamin.vercel.app" target="_blank" class="mart-card">
+          <div style="width:46px;height:46px;background:linear-gradient(135deg,var(--acc),#7c3aed);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0"><i class="fas fa-shopping-bag"></i></div>
+          <div style="flex:1"><p style="font-weight:800;color:var(--ink2);font-size:14px">Sagatama Mart</p><p style="font-size:12px;color:var(--g500)">Pi E-Commerce · hidayatulamin.vercel.app</p></div>
+          <i class="fas fa-external-link-alt" style="color:var(--acc)"></i>
+        </a>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          <div style="background:var(--g50);border-radius:var(--rdm);padding:12px;text-align:center;border:1px solid var(--g200)"><p style="font-size:18px;font-weight:900;color:var(--acc)" id="martTx">—</p><p style="font-size:11px;color:var(--g500);font-weight:600">Transaksi</p></div>
+          <div style="background:var(--g50);border-radius:var(--rdm);padding:12px;text-align:center;border:1px solid var(--g200)"><p style="font-size:18px;font-weight:900;color:var(--sgtd)" id="martSgt">—</p><p style="font-size:11px;color:var(--g500);font-weight:600">SGT Diberikan</p></div>
+          <div style="background:var(--g50);border-radius:var(--rdm);padding:12px;text-align:center;border:1px solid var(--g200)"><p style="font-size:18px;font-weight:900;color:var(--p)" id="martMember">—</p><p style="font-size:11px;color:var(--g500);font-weight:600">Member</p></div>
+        </div>
+      </div>
+
+      <!-- Log Distribusi -->
+      <div class="tbl-section">
+        <div class="tbl-head"><div class="tbl-title"><h4>Log Distribusi SGT</h4><p>10 distribusi terakhir</p></div></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Penerima</th><th>Jumlah</th><th>Keterangan</th><th>Tanggal</th></tr></thead>
+            <tbody id="distLog"></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /sgt -->
+
+    <!-- ════ PENCAIRAN SGT SECTION ════ -->
+    <div class="section" id="sec-pencairan">
+      <div class="sec-hd">
+        <div><h3>Pencairan SGT</h3><p>Permintaan pencairan SGT dari santri — approval diperlukan sebelum dana ditransfer</p></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-p" style="background:linear-gradient(135deg,#047857,#059669)" onclick="loadWithdrawals()"><i class="fas fa-sync-alt" id="wdRefreshIco"></i> Refresh</button>
+          <span id="wdLastUpdate" style="font-size:11px;color:var(--g400)"></span>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="wd-stats">
+        <div class="wd-stat pending"><div class="wd-stat-val" id="wdStatPending">—</div><div class="wd-stat-lbl">⏳ Menunggu Approval</div></div>
+        <div class="wd-stat approved"><div class="wd-stat-val" id="wdStatApproved">—</div><div class="wd-stat-lbl">✅ Disetujui</div></div>
+        <div class="wd-stat rejected"><div class="wd-stat-val" id="wdStatRejected">—</div><div class="wd-stat-lbl">❌ Ditolak</div></div>
+        <div class="wd-stat total"><div class="wd-stat-val" id="wdStatTotal">—</div><div class="wd-stat-lbl">📊 Total SGT Dicairkan</div></div>
+      </div>
+
+      <!-- FONNTE WA CONFIG -->
+      <div class="fonnte-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px">📱</div>
+            <div>
+              <p style="font-size:13px;font-weight:700;color:#fff">Notifikasi WhatsApp via Fonnte</p>
+              <p style="font-size:11px;color:rgba(255,255,255,.55)">Admin akan dapat notif WA saat ada permintaan pencairan baru</p>
+            </div>
+          </div>
+          <div class="wa-status"><div class="wa-dot" id="waDot"></div><span id="waStatusTxt" style="color:rgba(255,255,255,.7)">Belum dikonfigurasi</span></div>
+        </div>
+        <div class="fonnte-row">
+          <div class="fonnte-field"><label>Fonnte API Token</label><input type="password" id="fonnteToken" placeholder="Token dari dashboard.fonnte.com" autocomplete="off"></div>
+          <div class="fonnte-field"><label>No. WA Admin (dengan kode negara)</label><input type="tel" id="adminWaNum" placeholder="628xxxxxxxxxx"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn-wa save" onclick="saveFonnteConfig()"><i class="fas fa-save"></i> Simpan Konfigurasi</button>
+          <button class="btn-wa" onclick="testWaNotif()"><i class="fas fa-paper-plane"></i> Kirim Pesan Test</button>
+        </div>
+      </div>
+
+      <!-- FILTER -->
+      <div class="wd-filter-bar">
+        <button class="wd-fb active" id="wdfAll"  onclick="wdFilter('all')">Semua</button>
+        <button class="wd-fb pend"   id="wdfPend" onclick="wdFilter('pending')">⏳ Menunggu</button>
+        <button class="wd-fb appr"   id="wdfAppr" onclick="wdFilter('approved')">✅ Disetujui</button>
+        <button class="wd-fb reje"   id="wdfReje" onclick="wdFilter('rejected')">❌ Ditolak</button>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+          <select id="wdTypeFilter" onchange="renderWithdrawals()" style="padding:6px 10px;border:1.5px solid var(--g200);border-radius:20px;font-size:11px;font-family:inherit;font-weight:700">
+            <option value="">Semua Jenis</option>
+            <option value="sgt-idr">SGT → Rupiah</option>
+            <option value="sgt-pi">SGT → Pi</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Daftar Permintaan Pencairan</h4><p id="wdTableSub">Memuat data...</p></div>
+          <div class="search-box"><i class="fas fa-search"></i><input type="text" id="wdSearch" placeholder="Cari nama santri..." oninput="renderWithdrawals()"></div>
+        </div>
+        <div class="wd-table-wrap">
+          <table class="wd-table">
+            <thead><tr><th>Santri</th><th>Jenis</th><th>SGT</th><th>Hasil</th><th>Tujuan</th><th>Waktu</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="wdTableBody"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /pencairan -->
+    <!-- ════ PENGAJUAN REWARD SGT SECTION ════ -->
+    <div class="section" id="sec-earnreq">
+      <div class="sec-hd">
+        <div><h3>Pengajuan Reward SGT</h3><p>Review dan setujui / tolak pengajuan reward dari Ustadz & Wali</p></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-p" style="background:linear-gradient(135deg,#5b21b6,#7c3aed)" onclick="loadEarnRequests()">
+            <i class="fas fa-sync-alt" id="earnRefIco"></i> Refresh
+          </button>
+          <span id="earnLastUpdate" style="font-size:11px;color:var(--g400)"></span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="wd-stats">
+        <div class="wd-stat pending"><div class="wd-stat-val" id="earnStatPending">—</div><div class="wd-stat-lbl">⏳ Menunggu Review</div></div>
+        <div class="wd-stat approved"><div class="wd-stat-val" id="earnStatApproved">—</div><div class="wd-stat-lbl">✅ Disetujui</div></div>
+        <div class="wd-stat rejected"><div class="wd-stat-val" id="earnStatRejected">—</div><div class="wd-stat-lbl">❌ Ditolak</div></div>
+        <div class="wd-stat total"><div class="wd-stat-val" id="earnStatSgt">—</div><div class="wd-stat-lbl">💰 SGT Dikreditkan</div></div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="wd-filter-bar">
+        <button class="wd-fb active" id="ernfAll"  onclick="earnFilter('all')">Semua</button>
+        <button class="wd-fb pend"   id="ernfPend" onclick="earnFilter('pending')">⏳ Menunggu</button>
+        <button class="wd-fb appr"   id="ernfAppr" onclick="earnFilter('approved')">✅ Disetujui</button>
+        <button class="wd-fb reje"   id="ernfReje" onclick="earnFilter('rejected')">❌ Ditolak</button>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+          <select id="earnRoleFilter" onchange="renderEarnRequests()" style="padding:6px 10px;border:1.5px solid var(--g200);border-radius:20px;font-size:11px;font-family:inherit;font-weight:700">
+            <option value="">Semua Role</option>
+            <option value="ustadz">Ustadz</option>
+            <option value="wali">Wali</option>
+          </select>
+          <select id="earnTypeFilter" onchange="renderEarnRequests()" style="padding:6px 10px;border:1.5px solid var(--g200);border-radius:20px;font-size:11px;font-family:inherit;font-weight:700">
+            <option value="">Semua Jenis</option>
+            <option value="absensi">Absensi</option>
+            <option value="hafalan">Hafalan</option>
+            <option value="performa">Performa</option>
+            <option value="spp">SPP/Cashback</option>
+            <option value="referral">Referral</option>
+            <option value="donasi">Donasi</option>
+            <option value="kegiatan">Kegiatan</option>
+            <option value="bonus">Bonus</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Daftar Pengajuan Reward</h4><p id="earnTableSub">Memuat data...</p></div>
+          <div class="search-box"><i class="fas fa-search"></i><input type="text" id="earnSearch" placeholder="Cari nama..." oninput="renderEarnRequests()"></div>
+        </div>
+        <div class="wd-table-wrap">
+          <table class="wd-table">
+            <thead><tr><th>Nama</th><th>Role</th><th>Jenis</th><th>Keterangan</th><th>Tanggal</th><th>Status</th><th>SGT</th><th>Aksi</th></tr></thead>
+            <tbody id="earnTableBody"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /earnreq -->
+
+    <!-- ════ PI DONATIONS SECTION ════ -->
+    <div class="section" id="sec-pi-donasi">
+      <div class="pi-don-banner">
+        <div class="pi-don-hd">
+          <div class="pi-don-ico">π</div>
+          <div class="pi-don-hd-txt">
+            <h3>Manajemen Donasi Pi Network <span class="pi-testnet-badge"><span></span> TESTNET</span></h3>
+            <p>Monitor semua transaksi donasi Pi dari halaman publik pi-donasi.html</p>
+          </div>
+        </div>
+        <div class="pi-don-stats">
+          <div class="pi-dstat"><div class="pi-dstat-val pi-color" id="pdStatTotal">—</div><div class="pi-dstat-lbl">Total Pi</div></div>
+          <div class="pi-dstat"><div class="pi-dstat-val" id="pdStatCount">—</div><div class="pi-dstat-lbl">Transaksi</div></div>
+          <div class="pi-dstat"><div class="pi-dstat-val" id="pdStatDonors">—</div><div class="pi-dstat-lbl">Donatur</div></div>
+          <div class="pi-dstat"><div class="pi-dstat-val" id="pdStatPending">—</div><div class="pi-dstat-lbl">Pending</div></div>
+        </div>
+      </div>
+
+      <div class="sec-hd">
+        <div><h3>Log Transaksi Donasi Pi</h3><p>Semua donasi Pi dari Pioneers via Pi Browser · Realtime Firestore</p></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-pi-export" onclick="exportPiDonations()"><i class="fas fa-download"></i> Export CSV</button>
+          <button class="btn-p" onclick="loadPiDonations()"><i class="fas fa-sync-alt"></i> Refresh</button>
+        </div>
+      </div>
+
+      <div class="pi-don-filter">
+        <button class="pi-filter-btn all active" id="pdf-all"       onclick="pdFilter('all')">Semua</button>
+        <button class="pi-filter-btn success"    id="pdf-completed" onclick="pdFilter('completed')">✅ Selesai</button>
+        <button class="pi-filter-btn pending"    id="pdf-pending"   onclick="pdFilter('pending')">⏳ Pending</button>
+        <button class="pi-filter-btn"            id="pdf-cancelled" onclick="pdFilter('cancelled')">❌ Dibatalkan</button>
+        <div style="margin-left:auto">
+          <input type="text" id="pdSearch" placeholder="Cari username..." oninput="pdSearchFn()"
+            style="padding:7px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-family:inherit;font-size:12px;width:180px">
+        </div>
+      </div>
+
+      <div id="pdList">
+        <div style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="card-head"><h4>Ringkasan per Program</h4><p>Total donasi per kategori</p></div>
+        <div id="pdProgramSummary" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:4px 0"></div>
+      </div>
+    </div><!-- /pi-donasi section -->
+
+    <!-- MODAL APPROVE REWARD -->
+    <div class="modal-bg" id="earnApproveModal" onclick="if(event.target===this)closeEarnModal()">
+      <div class="modal" style="max-width:460px">
+        <div class="modal-hd">
+          <h3><i class="fas fa-coins" style="color:#8b5cf6;margin-right:8px"></i>Setujui & Kreditkan SGT</h3>
+          <button class="modal-close" onclick="closeEarnModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="earnApproveBody"></div>
+        <div class="modal-ft" id="earnApproveFt"></div>
+      </div>
+    </div>
+
+    <!-- MODAL REJECT REWARD -->
+    <div class="modal-bg" id="earnRejectModal" onclick="if(event.target===this)closeEarnRejectModal()">
+      <div class="modal" style="max-width:460px">
+        <div class="modal-hd">
+          <h3><i class="fas fa-times-circle" style="color:var(--r);margin-right:8px"></i>Tolak Pengajuan Reward</h3>
+          <button class="modal-close" onclick="closeEarnRejectModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="earnRejectBody"></div>
+        <div class="modal-ft" id="earnRejectFt"></div>
+      </div>
+    </div>
+
+
+    <!-- MODAL DETAIL PENCAIRAN -->
+    <div class="modal-bg" id="wdDetailModal" onclick="closeWdModal(event)">
+      <div class="modal" style="max-width:480px">
+        <div class="modal-hd">
+          <h3><i class="fas fa-hand-holding-usd" style="color:#d97706;margin-right:8px"></i>Detail Pencairan</h3>
+          <button class="modal-close" onclick="closeWdDetailModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="wdDetailBody"></div>
+        <div class="modal-ft" id="wdDetailFt"></div>
+      </div>
+    </div>
+</div><!-- /main -->
+
+<!-- MODAL BUAT USER -->
+<div class="modal-bg" id="modalBg" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-hd"><h3><i class="fas fa-user-plus" style="color:var(--p);margin-right:8px"></i>Buat User Baru</h3><button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field-grp"><label>Nama Lengkap *</label><input type="text" id="fName" placeholder="Nama lengkap"></div>
+        <div class="field-grp"><label>Role *</label><select id="fRole" onchange="onRoleChange()"><option value="">Pilih Role</option><option value="santri">Santri</option><option value="ustadz">Ustadz</option><option value="wali">Wali Santri</option><option value="admin">Admin</option></select></div>
+      </div>
+      <div class="field-grp" style="margin-bottom:14px"><label>Email *</label><input type="email" id="fEmail" placeholder="email@contoh.com"></div>
+      <div class="field-grp" style="margin-bottom:14px"><label>Password *</label><input type="password" id="fPass" placeholder="Minimal 6 karakter"></div>
+      <div id="xSantri" style="display:none">
+        <div class="field-row">
+          <div class="field-grp"><label>NIS</label><input type="text" id="fNIS" placeholder="Nomor Induk Santri"></div>
+          <div class="field-grp"><label>Kelas</label><select id="fKelas"><option value="">Pilih Kelas</option><option>Kelas A</option><option>Kelas B</option><option>Kelas C</option><option>Kelas D</option><option>Kelas E</option></select></div>
+        </div>
+      </div>
+      <div id="xWali" style="display:none">
+        <div class="field-row">
+          <div class="field-grp"><label>No. HP</label><input type="tel" id="fPhone" placeholder="08xx-xxxx-xxxx"></div>
+          <div class="field-grp"><label>Hubungan</label><select id="fHubungan"><option value="ayah">Ayah</option><option value="ibu">Ibu</option><option value="wali">Wali</option></select></div>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--g600)"><input type="checkbox" id="fVerif" style="width:16px;height:16px;accent-color:var(--p)"> Kirim email verifikasi ke user</label>
+    </div>
+    <div class="modal-ft"><button class="btn-sec" onclick="closeModal()">Batal</button><button class="btn-p" id="createBtn" onclick="createUser()"><i class="fas fa-user-plus"></i><span id="createTxt">Buat User</span></button></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ════ FIREBASE ════
+// Firebase auth & db sudah tersedia via auth.js
+// (enablePersistence sudah dipanggil di auth.js — tidak perlu dipanggil lagi)
+
+// ════ HELPER ════
+/**
+ * setEl(id, value)
+ * Jika value adalah string/number → set textContent elemen #id
+ * Jika value adalah object        → set textContent per key: {key: val} → el.querySelector('[data-key]') atau getElementById
+ */
+function setEl(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (typeof value === 'object' && value !== null) {
+    // object: {key: val} — isi inner element dengan data-key atau id
+    Object.entries(value).forEach(([k, v]) => {
+      const child = el.querySelector('[data-key="' + k + '"]') || document.getElementById(k);
+      if (child) child.textContent = v;
+    });
+  } else {
+    el.textContent = value ?? '';
+  }
+}
+
+// ════ STATE ════
+let allUsers = [];
+const SGT_SUPPLY = 1_000_000_000;
+const SGT_ALLOC_DEFAULT = {
+  member:  {pct:30,label:'Member / Santri',    color:'#0db87a',cbg:'#e6f9f2'},
+  ustadz:  {pct:20,label:'Ustadz / Pengajar',  color:'#2d7ef5',cbg:'#eaf1fe'},
+  mart:    {pct:25,label:'Sagatama Mart',       color:'#8b5cf6',cbg:'#f0ebff'},
+  reserve: {pct:25,label:'Cadangan Yayasan',    color:'#f59e0b',cbg:'#fef3c7'},
+};
+
+// ════ AUTH GUARD ════
+// currentAdminUid: uid admin yang sudah terverifikasi di sesi ini
+// Dipakai untuk membedakan "user null karena logout" vs "user null karena token refresh sementara"
+let currentAdminUid  = null;
+let dashboardReady   = false;
+let _creatingUser    = false; // flag: sedang buat akun via secondary app, abaikan auth null
+
+function bootDashboard(user, name) {
+  if (dashboardReady) return; // jangan load ulang jika sudah siap
+  dashboardReady = true;
+  currentAdminUid = user.uid;
+  document.body.style.visibility = '';
+  setEl('greetName', name);
+  setEl('uName', name);
+  setEl('uAvatar', (name[0] || 'A').toUpperCase());
+  loadDashboardData();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateDate();
+  initNotif();
+  document.body.style.visibility = 'hidden';
+
+  console.log('%c[AUTH DEBUG] DOMContentLoaded — menunggu Firebase Auth...', 'color:#0db87a;font-weight:bold');
+
+  const safetyTimer = setTimeout(() => {
+    if (!dashboardReady) {
+      console.error('[AUTH DEBUG] TIMEOUT 8s — Firebase tidak merespons. Redirect ke login.');
+      document.body.style.visibility = '';
+      window.location.href = 'login.html';
+    }
+  }, 8000);
+
+  auth.onAuthStateChanged(async user => {
+    console.log('%c[AUTH DEBUG] onAuthStateChanged fired. user =', 'color:#2d7ef5;font-weight:bold', user ? user.email + ' | uid:' + user.uid : 'NULL');
+
+    // ── Kasus 1: user ada ──
+    if (user) {
+      if (dashboardReady && user.uid === currentAdminUid) {
+        console.log('[AUTH DEBUG] Dashboard sudah ready, abaikan re-fire.');
+        return;
+      }
+
+      // Cek cache localStorage
+      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+      if (raw) {
+        try {
+          const sess = JSON.parse(raw);
+          const age  = Date.now() - (sess.ts || 0);
+          const MAX  = 8 * 60 * 60 * 1000;
+          console.log('[AUTH DEBUG] Session cache ditemukan:', sess.role, '| age:', Math.round(age/1000)+'s');
+          if (sess.role === 'admin' && sess.uid === user.uid && age < MAX) {
+            console.log('[AUTH DEBUG] ✅ Cache valid → bootDashboard');
+            clearTimeout(safetyTimer);
+            bootDashboard(user, user.displayName || sess.nama || user.email);
+            return;
+          } else {
+            console.log('[AUTH DEBUG] Cache tidak valid (role/uid/age mismatch), lanjut ke Firestore.');
+          }
+        } catch(e) { console.warn('[AUTH DEBUG] Cache rusak:', e); }
+      } else {
+        console.log('[AUTH DEBUG] Tidak ada session cache, query Firestore...');
+      }
+
+      // Verifikasi via Firestore
+      try {
+        console.log('[AUTH DEBUG] getIdToken(force)...');
+        await user.getIdToken(true).catch(e => console.warn('[AUTH DEBUG] getIdToken error:', e));
+        console.log('[AUTH DEBUG] Query Firestore users/' + user.uid + '...');
+        const doc = await db.collection('users').doc(user.uid).get();
+        console.log('[AUTH DEBUG] Firestore result: exists=' + doc.exists + ', role=' + (doc.exists ? doc.data().role : 'N/A'));
+
+        if (doc.exists && doc.data().role === 'admin') {
+          const d = doc.data();
+          const name = d.displayName || d.namaLengkap || d.nama || user.email;
+          localStorage.setItem('currentUser', JSON.stringify({
+            uid: user.uid, role: 'admin', nama: name,
+            authMethod: d.authMethod || 'email', ts: Date.now()
+          }));
+          console.log('[AUTH DEBUG] ✅ Firestore verified admin → bootDashboard as:', name);
+          clearTimeout(safetyTimer);
+          bootDashboard(user, name);
+        } else {
+          console.warn('[AUTH DEBUG] ❌ Bukan admin atau doc tidak ada → redirect login');
+          clearTimeout(safetyTimer);
+          await auth.signOut();
+          localStorage.removeItem('currentUser');
+          sessionStorage.removeItem('currentUser');
+          document.body.style.visibility = '';
+          window.location.href = 'login.html';
+        }
+      } catch(e) {
+        console.error('[AUTH DEBUG] ⚠️ Firestore error:', e.code, e.message, '→ fallback bootDashboard');
+        clearTimeout(safetyTimer);
+        bootDashboard(user, user.displayName || user.email);
+      }
+      return;
+    }
+
+    // ── Kasus 2: user null ──
+    console.log('[AUTH DEBUG] user NULL. _creatingUser=' + _creatingUser + ' dashboardReady=' + dashboardReady);
+
+    if (_creatingUser) { console.log('[AUTH DEBUG] Sedang buat user, abaikan null.'); return; }
+
+    if (dashboardReady) {
+      console.log('[AUTH DEBUG] Dashboard sudah ready, tunggu 800ms re-check...');
+      await new Promise(resolve => setTimeout(resolve, 800));
+      if (auth.currentUser) { console.log('[AUTH DEBUG] Auth kembali setelah wait, abaikan.'); return; }
+      console.warn('[AUTH DEBUG] Masih null → logout sungguhan.');
+    } else {
+      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+      if (raw) {
+        try {
+          const sess = JSON.parse(raw);
+          const age  = Date.now() - (sess.ts || 0);
+          console.log('[AUTH DEBUG] Cache ada tapi user null, tunggu 1500ms...');
+          if (sess.role === 'admin' && age < 8 * 60 * 60 * 1000) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            if (auth.currentUser) { console.log('[AUTH DEBUG] Auth restore setelah 1500ms.'); return; }
+          }
+        } catch(e) {}
+      } else {
+        console.log('[AUTH DEBUG] Tidak ada session, langsung redirect.');
+      }
+    }
+
+    clearTimeout(safetyTimer);
+    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('currentUser');
+    document.body.style.visibility = '';
+    console.log('[AUTH DEBUG] → Redirect ke login.html');
+    window.location.href = 'login.html';
+  });
+});
+
+// ════ SECTION SWITCH ════
+function switchSection(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  setEl('pgTitle', {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token'}[name] || 'Dashboard');
+  if (name === 'users') loadAllUsers();
+  if (name === 'sgt') { renderAllocGrid(); loadMartStats(); renderDistLog(); }
+  closeSidebar();
+}
+
+// ════ LOAD DATA ════
+// ════ TOKEN HELPER ════
+// Force-refresh ID token sebelum operasi Firestore yang sensitif
+// Mencegah error "permission-denied" akibat token expired
+async function ensureFreshToken() {
+  try {
+    const user = auth.currentUser;
+    if (user) await user.getIdToken(true);
+  } catch(e) { console.warn('Token refresh failed:', e.message); }
+}
+
+async function loadDashboardData() {
+  try {
+    const [santriSnap, ustadzSnap] = await Promise.all([
+      db.collection('users').where('role','==','santri').where('isActive','==',true).get(),
+      db.collection('users').where('role','==','ustadz').where('isActive','==',true).get()
+    ]);
+    animNum('statSantri', santriSnap.size);
+    animNum('statUstadz', ustadzSnap.size);
+
+    // Load recent users for welcome screen
+    const recentSnap = await db.collection('users').limit(10).get();
+    allUsers = recentSnap.docs.map(d => ({id:d.id,...d.data()}));
+  } catch(e) { console.error('loadData:', e); }
+  initChart();
+  renderAllocGrid();
+  loadMartStats();
+  // Load badge count pengajuan reward pending
+  db.collection('sgt_earn_requests').where('status','==','pending').get()
+    .then(s=>{ earnAllData = s.docs.map(d=>({id:d.id,...d.data()})); updateEarnBadge(); })
+    .catch(()=>{});
+}
+
+async function loadAllUsers() {
+  document.getElementById('usersTable').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr>';
+  try {
+    await ensureFreshToken();
+    const snap = await db.collection('users').get();
+    allUsers = snap.docs.map(d => ({id:d.id,...d.data()}));
+    renderUsersTable(allUsers);
+  } catch(e) { showToast('error','Gagal','Gagal memuat data user: ' + e.message); }
+}
+
+// ════ USERS TABLE ════
+const ROLE_COLORS = {
+  admin:  {bg:'#f0ebff',txt:'#7c3aed',lbl:'Admin'},
+  ustadz: {bg:'#eaf1fe',txt:'#2d7ef5',lbl:'Ustadz'},
+  wali:   {bg:'#fef3c7',txt:'#f59e0b',lbl:'Wali'},
+  santri: {bg:'#e6f9f2',txt:'#0db87a',lbl:'Santri'},
+};
+
+function renderUsersTable(users) {
+  const tbody = document.getElementById('usersTable');
+  if (!users.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-inbox" style="font-size:36px;display:block;margin-bottom:8px;opacity:.3"></i>Belum ada user</td></tr>'; return; }
+  tbody.innerHTML = users.map(u => {
+    const c = ROLE_COLORS[u.role] || ROLE_COLORS.admin;
+    const date = u.createdAt?.toDate?.()?.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) || '—';
+    const active = u.isActive !== false;
+    return `<tr>
+      <td><div class="u-cell"><div class="u-av-sm" style="background:${c.bg};color:${c.txt}">${(u.displayName||'U')[0]}</div><div class="u-det"><div class="u-nm">${u.displayName||'Unknown'}</div><div class="u-em">${u.email||''}</div></div></div></td>
+      <td><span class="chip chip-${u.role}">${c.lbl}</span></td>
+      <td><span class="chip ${active?'chip-aktif':'chip-nonaktif'}">${active?'Aktif':'Nonaktif'}</span></td>
+      <td style="font-size:11px;color:var(--g500)">${date}</td>
+      <td><div class="act-btns">
+        <button class="act-btn v" onclick="viewUser('${u.id}')" title="Lihat Portal"><i class="fas fa-eye"></i></button>
+        <button class="act-btn ${active?'d':'v'}" onclick="toggleUser('${u.id}','${active}')" title="${active?'Nonaktifkan':'Aktifkan'}"><i class="fas ${active?'fa-ban':'fa-check'}"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterUsers() {
+  const q = document.getElementById('searchUser').value.toLowerCase();
+  const role = document.getElementById('filterRole').value;
+  const filtered = allUsers.filter(u =>
+    (!q || (u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)) &&
+    (!role || u.role === role)
+  );
+  renderUsersTable(filtered);
+}
+
+window.viewUser = role => {
+  const u = allUsers.find(x => x.id === role);
+  if (u) { const pages = {admin:'dashboard-admin.html',ustadz:'dashboard-ustadz.html',santri:'dashboard-santri.html',wali:'dashboard-wali.html'}; if(pages[u.role]) window.open(pages[u.role],'_blank'); }
+};
+
+window.toggleUser = async (uid, isActive) => {
+  const active = isActive === 'true';
+  if (!confirm(`${active?'Nonaktifkan':'Aktifkan'} user ini?`)) return;
+  try {
+    await ensureFreshToken();
+    await db.collection('users').doc(uid).update({isActive: !active});
+    showToast('success','Berhasil',`User berhasil ${active?'dinonaktifkan':'diaktifkan'}`);
+    loadAllUsers();
+  } catch(e) { showToast('error','Gagal', e.message); }
+};
+
+// ════ CREATE USER ════
+function onRoleChange() {
+  const role = document.getElementById('fRole').value;
+  document.getElementById('xSantri').style.display = role==='santri' ? 'block' : 'none';
+  document.getElementById('xWali').style.display   = role==='wali'   ? 'block' : 'none';
+}
+
+async function createUser() {
+  const name  = document.getElementById('fName').value.trim();
+  const role  = document.getElementById('fRole').value;
+  const email = document.getElementById('fEmail').value.trim();
+  const pass  = document.getElementById('fPass').value;
+  const verif = document.getElementById('fVerif').checked;
+
+  if (!name || !role || !email || !pass) { showToast('warn','Lengkapi Data','Semua field wajib diisi'); return; }
+  if (pass.length < 6) { showToast('warn','Password Lemah','Minimal 6 karakter'); return; }
+
+  setEl('createTxt','Memproses...');
+  document.getElementById('createBtn').disabled = true;
+
+  try {
+    // Simpan uid admin saat ini — dipakai untuk proteksi auth guard
+    const adminUser = auth.currentUser;
+    const adminUid  = adminUser?.uid;
+    if (!adminUid) { showToast('error','Sesi Berakhir','Silakan login ulang'); return; }
+
+    // Gunakan secondary app instance agar sesi admin utama tidak tergantikan
+    const secondaryApp = firebase.apps.find(a => a.name === '__secondary__') ||
+      firebase.initializeApp(firebase.app().options, '__secondary__');
+    const secondaryAuth = secondaryApp.auth();
+
+    // Set flag agar auth guard TIDAK redirect selama secondary sign-out
+    const prevAdminUid = currentAdminUid;
+    dashboardReady = true; // pastikan flag tetap true
+    _creatingUser  = true; // blok auth guard
+
+    const cred = await secondaryAuth.createUserWithEmailAndPassword(email, pass);
+    const uid  = cred.user.uid;
+
+    if (verif) await cred.user.sendEmailVerification().catch(()=>{});
+    await cred.user.updateProfile({ displayName: name }).catch(()=>{});
+
+    // Sign out secondary — ini bisa trigger onAuthStateChanged di main app sesaat
+    // Auth guard sudah aman karena dashboardReady = true dan kita cek auth.currentUser
+    await secondaryAuth.signOut();
+
+    // Tunggu sebentar agar auth state settle, lalu lepas flag
+    await new Promise(r => setTimeout(r, 500));
+    _creatingUser = false;
+
+    // Pastikan main auth masih valid
+    currentAdminUid = prevAdminUid;
+
+    const payload = {
+      uid, displayName: name, email, role, isActive: true,
+      authMethod: 'email',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastLogin: null
+    };
+    if (role === 'santri') { payload.nis = document.getElementById('fNIS').value.trim(); payload.kelas = document.getElementById('fKelas').value; }
+    if (role === 'wali')   { payload.phone = document.getElementById('fPhone').value.trim(); payload.hubungan = document.getElementById('fHubungan').value; }
+
+    const batch = db.batch();
+    batch.set(db.collection('users').doc(uid), payload);
+    const colMap = {admin:'admins',ustadz:'ustadz',santri:'santri',wali:'wali_santri'};
+    batch.set(db.collection(colMap[role]).doc(uid), payload);
+
+    // Pastikan token admin masih fresh sebelum write ke Firestore
+    await ensureFreshToken();
+    await batch.commit();
+
+    showToast('success','User Dibuat!',`${name} berhasil ditambahkan sebagai ${role}`);
+    closeModal();
+    if (document.getElementById('sec-users').classList.contains('active')) loadAllUsers();
+  } catch(e) {
+    const msgs = {'auth/email-already-in-use':'Email sudah terdaftar','auth/weak-password':'Password terlalu lemah','auth/invalid-email':'Format email tidak valid'};
+    showToast('error','Gagal Membuat User', msgs[e.code] || e.message);
+  } finally {
+    setEl('createTxt','Buat User');
+    document.getElementById('createBtn').disabled = false;
+  }
+}
+
+// ════ CHART ════
+let chartInstance = null;
+function initChart(period='week') {
+  const ctx = document.getElementById('chartKehadiran');
+  if (!ctx) return;
+  if (chartInstance) chartInstance.destroy();
+  const labels = period === 'week'
+    ? ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu']
+    : Array.from({length:30},(_,i)=> (i+1)+'');
+  const data = labels.map(()=> Math.floor(Math.random()*15)+80);
+  chartInstance = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[{label:'Kehadiran (%)',data,borderColor:'#0db87a',backgroundColor:'rgba(13,184,122,.08)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#0db87a',tension:.4,fill:true}] },
+    options:{ responsive:true,maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{min:60,max:100,ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:11}},grid:{display:false}}} }
+  });
+}
+
+function updateChart(period) { initChart(period); }
+
+// ════ SGT TOKEN ════
+function getSGTAlloc() { try { return JSON.parse(localStorage.getItem('sgt_alloc') || 'null') || SGT_ALLOC_DEFAULT; } catch(e) { return SGT_ALLOC_DEFAULT; } }
+function fmtSGT(n) { if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(1)+'K'; return n.toLocaleString('id-ID'); }
+
+function renderAllocGrid() {
+  const alloc = getSGTAlloc();
+  const issued = parseInt(localStorage.getItem('sgt_issued')||'0');
+  const grid = document.getElementById('allocGrid');
+  if (!grid) return;
+  ['member','ustadz','mart','reserve'].forEach(k => { const el = document.getElementById('alloc'+cap(k)); if(el) el.value = alloc[k].pct; });
+  grid.innerHTML = Object.entries(alloc).map(([key,a]) => {
+    const tokens = Math.floor(SGT_SUPPLY * a.pct / 100);
+    return `<div class="alloc-card">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><div style="width:8px;height:8px;border-radius:50%;background:${a.color}"></div><p style="font-size:11px;font-weight:700;color:var(--g600)">${a.label}</p></div>
+      <p style="font-size:13px;font-weight:800;color:var(--ink2);margin-bottom:2px">${fmtSGT(tokens)} SGT</p>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:${a.pct}%;background:${a.color}"></div></div>
+      <p style="font-size:10px;color:var(--g500);font-weight:700">${a.pct}% dari total supply</p>
+    </div>`;
+  }).join('');
+  setEl('sgtCirculating', fmtSGT(issued)+' SGT');
+  setEl('sgtIssued',      fmtSGT(issued)+' SGT');
+  setEl('sgtReserve',     fmtSGT(SGT_SUPPLY-issued)+' SGT');
+}
+
+function calcTotal() {
+  const keys = ['Member','Ustadz','Mart','Reserve'];
+  const total = keys.reduce((s,k) => s+(parseInt(document.getElementById('alloc'+k)?.value)||0), 0);
+  const el = document.getElementById('allocTotal');
+  if (el) { el.textContent = total+'%'; el.style.color = total===100 ? 'var(--p)' : 'var(--r)'; }
+}
+
+function saveAlloc() {
+  const alloc = getSGTAlloc();
+  const keys = ['member','ustadz','mart','reserve'];
+  let total = 0;
+  keys.forEach(k => { const v = Math.max(0,Math.min(100,parseInt(document.getElementById('alloc'+cap(k))?.value||0))); alloc[k].pct=v; total+=v; });
+  if (total !== 100) { showToast('warn','Total Salah',`Total harus 100% (sekarang ${total}%)`); return; }
+  localStorage.setItem('sgt_alloc', JSON.stringify(alloc));
+  renderAllocGrid();
+  showToast('success','Tersimpan','Alokasi SGT berhasil disimpan!');
+}
+
+async function doDistribute() {
+  const target = document.getElementById('distTarget')?.value.trim();
+  const amount = parseInt(document.getElementById('distAmount')?.value||'0');
+  const note   = document.getElementById('distNote')?.value.trim()||'-';
+  if (!target) { showToast('warn','Input Kosong','Masukkan email penerima'); return; }
+  if (!amount || amount <= 0) { showToast('warn','Jumlah Salah','Masukkan jumlah SGT yang valid'); return; }
+
+  const btn = document.querySelector('[onclick="doDistribute()"]');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...'; }
+
+  try {
+    // Cari user berdasarkan email di Firestore
+    const snap = await db.collection('users').where('email','==',target).limit(1).get();
+    if (snap.empty) {
+      showToast('error','User Tidak Ditemukan',`Tidak ada akun dengan email: ${target}`);
+      return;
+    }
+    const userDoc  = snap.docs[0];
+    const userData = userDoc.data();
+    const uid      = userDoc.id;
+
+    // ── 1. Update sgtBalance di /users (untuk tampilan di data-pengguna) ──
+    await db.collection('users').doc(uid).update({
+      sgtBalance: firebase.firestore.FieldValue.increment(amount),
+      updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // ── 2. Update /sgt/{uid} (yang dibaca dashboard ustadz/santri) ──
+    const sgtRef  = db.collection('sgt').doc(uid);
+    const sgtSnap = await sgtRef.get();
+    const txEntry = { amount, note, date: new Date().toISOString(), type: 'distribute' };
+    if (sgtSnap.exists) {
+      await sgtRef.update({
+        balance:      firebase.firestore.FieldValue.increment(amount),
+        transactions: firebase.firestore.FieldValue.arrayUnion(txEntry),
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      await sgtRef.set({
+        uid,
+        balance:      amount,
+        transactions: [txEntry],
+        createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // ── 3. Log ke sgt_transactions ──
+    await db.collection('sgt_transactions').add({
+      type:      'distribute',
+      fromUid:   currentAdminUid || 'admin',
+      toUid:     uid,
+      toEmail:   target,
+      toName:    userData.displayName || target,
+      toRole:    userData.role || '—',
+      amount,
+      note,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // ── 4. Update log localStorage (untuk tampilan log distribusi) ──
+    const issued = parseInt(localStorage.getItem('sgt_issued')||'0');
+    localStorage.setItem('sgt_issued', (issued+amount).toString());
+    const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
+    log.unshift({ target, toName: userData.displayName||target, amount, note, date: new Date().toISOString() });
+    localStorage.setItem('sgt_log', JSON.stringify(log.slice(0,100)));
+
+    document.getElementById('distTarget').value='';
+    document.getElementById('distAmount').value='';
+    document.getElementById('distNote').value='';
+    renderAllocGrid(); renderDistLog();
+    showToast('success','SGT Terkirim!',`${amount.toLocaleString()} SGT → ${userData.displayName||target}`);
+  } catch(e) {
+    if (e.code === 'permission-denied') {
+      showToast('error','Permission Denied','Update Firestore Rules di Firebase Console (lihat console)');
+      console.error('%c[SGT Fix] Tambahkan rule /sgt/{userId} allow write: if isAdmin()', 'color:orange;font-weight:bold');
+    } else {
+      showToast('error','Gagal', e.message||'Gagal mendistribusikan SGT');
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-coins"></i> Distribusikan SGT'; }
+  }
+}
+
+function renderDistLog() {
+  const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
+  const tbody = document.getElementById('distLog');
+  if (!tbody) return;
+  if (!log.length) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--g400)">Belum ada distribusi</td></tr>'; return; }
+  tbody.innerHTML = log.slice(0,10).map(l => `<tr>
+    <td><strong>${l.toName||l.target}</strong><br><span style="font-size:11px;color:var(--g500)">${l.target}</span></td>
+    <td><span style="font-weight:700;color:var(--sgtd)">${l.amount?.toLocaleString()||0} SGT</span></td>
+    <td style="color:var(--g500)">${l.note}</td>
+    <td style="font-size:11px;color:var(--g400)">${new Date(l.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</td>
+  </tr>`).join('');
+}
+
+function loadMartStats() {
+  let tx=0,sgt=0; const members=new Set();
+  try { for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith('sgt_transactions_')){const txs=JSON.parse(localStorage.getItem(k)||'[]');tx+=txs.length;txs.forEach(t=>{if(t.type==='earn')sgt+=t.amount||0;if(t.userId)members.add(t.userId);}); }} }catch(e){}
+  setEl('martTx',    tx.toLocaleString());
+  setEl('martSgt',   fmtSGT(sgt)+' SGT');
+  setEl('martMember', members.size.toLocaleString());
+}
+
+// ════ NOTIFICATIONS ════
+const NOTIF_DATA = [
+  {ico:'fa-user-plus',bg:'#e6f9f2',clr:'#0db87a',text:'Santri baru terdaftar: Ahmad Fauzi',time:'5 menit lalu',unread:true},
+  {ico:'fa-wallet',bg:'#fef3c7',clr:'#f59e0b',text:'Pembayaran SPP baru diterima',time:'30 menit lalu',unread:true},
+  {ico:'fa-calendar-check',bg:'#eaf1fe',clr:'#2d7ef5',text:'Absensi hari ini: 94% hadir',time:'2 jam lalu',unread:false},
+  {ico:'fa-book-open',bg:'#f0ebff',clr:'#8b5cf6',text:'Laporan hafalan minggu ini siap',time:'1 hari lalu',unread:false},
+];
+
+function initNotif() {
+  const list = document.getElementById('notifList');
+  if (!list) return;
+  list.innerHTML = NOTIF_DATA.map(n => `<div class="notif-item ${n.unread?'unread':''}">
+    <div class="n-ico" style="background:${n.bg};color:${n.clr}"><i class="fas ${n.ico}"></i></div>
+    <div class="n-body"><p>${n.text}</p><span>${n.time}</span></div>
+  </div>`).join('');
+  document.getElementById('notifDot').style.display = NOTIF_DATA.some(n=>n.unread) ? 'block' : 'none';
+}
+
+function toggleNotif() {
+  document.getElementById('notifPanel').classList.toggle('open');
+  document.querySelectorAll('.tb-btn').forEach(b => b !== event.currentTarget && document.getElementById('notifPanel').classList.remove('open'));
+}
+
+function markAllRead() {
+  document.querySelectorAll('.notif-item').forEach(el => el.classList.remove('unread'));
+  document.getElementById('notifDot').style.display = 'none';
+}
+
+document.addEventListener('click', e => { const p = document.getElementById('notifPanel'); if(p && !p.contains(e.target) && !e.target.closest('.tb-btn')) p.classList.remove('open'); });
+
+// ════ MODAL ════
+function openModal() { document.getElementById('modalBg').classList.add('open'); }
+function closeModal() { document.getElementById('modalBg').classList.remove('open'); resetModal(); }
+function closeModalOutside(e) { if(e.target === document.getElementById('modalBg')) closeModal(); }
+function resetModal() { ['fName','fEmail','fPass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); document.getElementById('fRole').value=''; document.getElementById('xSantri').style.display='none'; document.getElementById('xWali').style.display='none'; }
+
+// ════ SIDEBAR ════
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sbOverlay');
+  const isHidden = sb.classList.contains('hidden-mobile');
+  if (isHidden) {
+    sb.classList.remove('hidden-mobile'); sb.classList.add('open'); ov.classList.add('show');
+  } else {
+    sb.classList.add('hidden-mobile'); sb.classList.remove('open'); ov.classList.remove('show');
+  }
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar').classList.add('hidden-mobile');
+  document.getElementById('sbOverlay').classList.remove('show');
+}
+
+// ════ DATE ════
+function updateDate() {
+  const now = new Date();
+  const days=['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  setEl('pgDate', `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`);
+  setEl('wdNum', now.getDate().toString());
+  setEl('wdStr', `${months[now.getMonth()]} ${now.getFullYear()}`);
+}
+
+// ════ LOGOUT ════
+async function handleLogout() {
+  if (!confirm('Yakin ingin logout?')) return;
+  await auth.signOut().catch(()=>{});
+  sessionStorage.removeItem('currentUser');
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('piAuthUser');
+  window.location.href = 'login.html';
+}
+
+// ════ TOAST ════
+function showToast(type, title, msg) {
+  const wrap = document.getElementById('toastWrap');
+  const icons = {success:'fa-check-circle',error:'fa-circle-xmark',warn:'fa-triangle-exclamation',info:'fa-circle-info'};
+  const div = document.createElement('div');
+  div.className = `toast ${type==='warn'?'warn':type}`;
+  div.innerHTML = `<div class="t-ico"><i class="fas ${icons[type]||icons.info}"></i></div><div class="t-msg"><h4>${title}</h4><p>${msg}</p></div>`;
+  wrap.appendChild(div);
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ div.classList.add('show'); }); });
+  setTimeout(()=>{ div.classList.remove('show'); setTimeout(()=>div.remove(),500); },4000);
+}
+
+// ════ PENCAIRAN SGT ════
+const WD_SGT_PER_PI  = 500;
+const WD_IDR_PER_SGT = 100;
+let wdAllData    = [];   // semua withdrawal dari Firestore
+let wdFilter_    = 'all';
+
+// ── Patch switchSection agar handle 'pencairan' ──
+const _origSwitchSection = switchSection;
+switchSection = function(name, el) {
+  _origSwitchSection(name, el);
+  const titles = {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token',pencairan:'Pencairan SGT',earnreq:'Pengajuan Reward SGT','pi-donasi':'Donasi Pi Network'};
+  setEl('pgTitle', titles[name] || 'Dashboard');
+  if (name === 'pencairan')  { loadFonnteConfig(); loadWithdrawals(); }
+  if (name === 'earnreq')    { loadEarnRequests(); }
+  if (name === 'pi-donasi')  { loadPiDonations(); }
+};
+
+// ── Load dari Firestore koleksi `withdrawals` ──
+async function loadWithdrawals() {
+  const ico = document.getElementById('wdRefreshIco');
+  if (ico) { ico.classList.add('fa-spin'); }
+  try {
+    await ensureFreshToken();
+    const snap = await db.collection('withdrawals').orderBy('createdAt','desc').limit(200).get();
+    wdAllData = snap.docs.map(d => ({id: d.id, ...d.data()}));
+
+    // Juga cek dari walletHistory di tiap user jika koleksi `withdrawals` masih kosong
+    if (!wdAllData.length) {
+      const usersSnap = await db.collection('users').where('role','==','santri').limit(100).get();
+      const temp = [];
+      usersSnap.forEach(doc => {
+        const d = doc.data();
+        const hist = d.walletHistory || [];
+        hist.forEach(tx => {
+          if (tx.type === 'sgt-idr' || tx.type === 'sgt-pi') {
+            temp.push({
+              id: tx.id || ('WX'+Math.random()),
+              uid: doc.id,
+              santriName: d.displayName || d.nama || 'Santri',
+              santriNis: d.nis || '—',
+              ...tx,
+              status: tx.status || 'pending',
+              createdAt: tx.date ? new firebase.firestore.Timestamp(Math.floor(new Date(tx.date).getTime()/1000),0) : null,
+            });
+          }
+        });
+      });
+      wdAllData = temp.sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+    }
+
+    renderWithdrawals();
+    updateWdStats();
+    updatePendingBadge();
+    setEl('wdLastUpdate', 'Update: ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
+  } catch(e) {
+    console.error('loadWithdrawals:', e);
+    showToast('error','Gagal Memuat','Tidak bisa load data pencairan: ' + e.message);
+  } finally {
+    if (ico) ico.classList.remove('fa-spin');
+  }
+}
+
+function renderWithdrawals() {
+  const q      = (document.getElementById('wdSearch')?.value || '').toLowerCase();
+  const typeF  = document.getElementById('wdTypeFilter')?.value || '';
+  const tbody  = document.getElementById('wdTableBody');
+  if (!tbody) return;
+
+  let data = wdAllData.filter(w => {
+    const matchStatus = wdFilter_ === 'all' || w.status === wdFilter_;
+    const matchType   = !typeF || w.type === typeF;
+    const matchQ      = !q || (w.santriName||'').toLowerCase().includes(q) || (w.santriNis||'').toLowerCase().includes(q) || (w.dest||'').toLowerCase().includes(q);
+    return matchStatus && matchType && matchQ;
+  });
+
+  setEl('wdTableSub', `${data.length} permintaan`);
+
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-inbox" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>Tidak ada data</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(w => {
+    const isPending  = w.status === 'pending';
+    const isApproved = w.status === 'approved';
+    const isIdr      = w.type === 'sgt-idr';
+    const hasil      = isIdr
+      ? 'Rp ' + ((w.rpReceived||0).toLocaleString('id-ID'))
+      : ((w.piReceived||0).toFixed?.(4)||'0') + ' π';
+    const dateStr = w.createdAt?.toDate
+      ? w.createdAt.toDate().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
+      : (w.dateStr || '—');
+    const statusBadge = isPending
+      ? `<span class="badge-pending"><i class="fas fa-clock" style="font-size:9px"></i> Menunggu</span>`
+      : isApproved
+        ? `<span class="badge-approved"><i class="fas fa-check" style="font-size:9px"></i> Disetujui</span>`
+        : `<span class="badge-rejected"><i class="fas fa-times" style="font-size:9px"></i> Ditolak</span>`;
+    const typeBadge = isIdr ? `<span class="badge-idr">Rupiah</span>` : `<span class="badge-pi">Pi</span>`;
+    const actBtns = isPending
+      ? `<button class="wd-act-btn approve" onclick="approveWd('${w.id}')"><i class="fas fa-check"></i> Setujui</button>
+         <button class="wd-act-btn reject"  onclick="openRejectModal('${w.id}')"><i class="fas fa-times"></i> Tolak</button>`
+      : `<button class="wd-act-btn view" onclick="openWdDetail('${w.id}')"><i class="fas fa-eye"></i> Detail</button>`;
+    return `<tr class="${isPending?'row-pending':''}">
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--acl);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--acc);flex-shrink:0">${(w.santriName||'S')[0]}</div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--ink2)">${w.santriName||'—'}</div><div style="font-size:10px;color:var(--g400)">${w.santriNis||w.uid?.slice(0,8)||'—'}</div></div>
+      </div></td>
+      <td>${typeBadge}</td>
+      <td style="font-weight:700;color:#d97706">${(w.sgtUsed||0).toLocaleString('id-ID')} SGT</td>
+      <td style="font-weight:700;color:var(--p)">${hasil}</td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${w.dest||''}">${w.dest||'—'}</td>
+      <td style="font-size:11px;color:var(--g500)">${dateStr}</td>
+      <td>${statusBadge}</td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">${actBtns}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateWdStats() {
+  const pending  = wdAllData.filter(w => w.status === 'pending').length;
+  const approved = wdAllData.filter(w => w.status === 'approved').length;
+  const rejected = wdAllData.filter(w => w.status === 'rejected').length;
+  const totalSgt = wdAllData.filter(w => w.status === 'approved').reduce((s,w) => s + (w.sgtUsed||0), 0);
+  setEl('wdStatPending',  pending.toString());
+  setEl('wdStatApproved', approved.toString());
+  setEl('wdStatRejected', rejected.toString());
+  setEl('wdStatTotal',    fmtSGT(totalSgt) + ' SGT');
+}
+
+function updatePendingBadge() {
+  const pending = wdAllData.filter(w => w.status === 'pending').length;
+  const badge = document.getElementById('pendingBadge');
+  if (!badge) return;
+  if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline-flex'; }
+  else badge.style.display = 'none';
+}
+
+function wdFilter(f) {
+  wdFilter_ = f;
+  ['All','Pend','Appr','Reje'].forEach(k => document.getElementById('wdf'+k)?.classList.remove('active'));
+  const map = {all:'All',pending:'Pend',approved:'Appr',rejected:'Reje'};
+  document.getElementById('wdf'+(map[f]||'All'))?.classList.add('active');
+  renderWithdrawals();
+}
+
+// ── Approve ──
+async function approveWd(wdId) {
+  const wd = wdAllData.find(w => w.id === wdId);
+  if (!wd) return;
+  const isIdr = wd.type === 'sgt-idr';
+  const hasil = isIdr
+    ? `Rp ${(wd.rpReceived||0).toLocaleString('id-ID')} ke ${wd.dest}`
+    : `${(wd.piReceived||0).toFixed?.(4)||0} π ke ${wd.dest}`;
+  if (!confirm(`Setujui pencairan ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}?\n\nPastikan transfer sudah atau akan segera dilakukan.`)) return;
+
+  try {
+    await ensureFreshToken();
+    const now = new Date();
+    const updateData = {
+      status: 'approved',
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      approvedBy: currentAdminUid || 'admin',
+    };
+
+    // Update koleksi withdrawals (jika ada)
+    try { await db.collection('withdrawals').doc(wdId).update(updateData); } catch(e) { /* mungkin tidak ada doc terpisah */ }
+
+    // Update walletHistory di dokumen user
+    if (wd.uid) {
+      try {
+        const userDoc = await db.collection('users').doc(wd.uid).get();
+        if (userDoc.exists) {
+          const hist = userDoc.data().walletHistory || [];
+          const idx = hist.findIndex(h => h.id === wdId || h.id === wd.id);
+          if (idx > -1) {
+            hist[idx] = {...hist[idx], status:'approved', approvedAt: now.toISOString(), approvedBy: currentAdminUid||'admin'};
+            await db.collection('users').doc(wd.uid).update({ walletHistory: hist });
+          }
+        }
+      } catch(e) { console.warn('update walletHistory:', e.message); }
+    }
+
+    // Update local
+    const local = wdAllData.find(w => w.id === wdId);
+    if (local) { local.status = 'approved'; local.approvedAt = now; }
+
+    // Kirim notif WA ke santri (jika punya nomor HP)
+    await sendWaToSantri(wd, 'approved');
+
+    renderWithdrawals(); updateWdStats(); updatePendingBadge();
+    showToast('success','✅ Disetujui',`Pencairan ${(wd.sgtUsed||0).toLocaleString()} SGT berhasil disetujui`);
+  } catch(e) {
+    showToast('error','Gagal', e.message);
+  }
+}
+
+// ── Open reject modal (inside detail modal) ──
+function openRejectModal(wdId) {
+  const wd = wdAllData.find(w => w.id === wdId);
+  if (!wd) return;
+  const isIdr = wd.type === 'sgt-idr';
+  const hasil = isIdr
+    ? `Rp ${(wd.rpReceived||0).toLocaleString('id-ID')}`
+    : `${(wd.piReceived||0).toFixed?.(4)||0} π`;
+
+  const body = document.getElementById('wdDetailBody');
+  const ft   = document.getElementById('wdDetailFt');
+  body.innerHTML = `
+    <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:14px;margin-bottom:16px">
+      <p style="font-size:13px;font-weight:700;color:#c2410c;margin-bottom:4px"><i class="fas fa-exclamation-triangle"></i> Tolak Permintaan Pencairan</p>
+      <p style="font-size:12px;color:#92400e">Dari: <strong>${wd.santriName||'Santri'}</strong> — ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}</p>
+    </div>
+    <div>
+      <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px">ALASAN PENOLAKAN *</label>
+      <textarea id="rejectReason" class="reject-reason" rows="3" placeholder="Contoh: Nomor rekening tidak valid, saldo tidak mencukupi, dll..."></textarea>
+    </div>
+    <p style="font-size:11px;color:var(--g400);margin-top:8px"><i class="fas fa-info-circle" style="color:var(--b)"></i> SGT santri akan dikembalikan setelah ditolak</p>`;
+  ft.innerHTML = `
+    <button class="btn-sec" onclick="closeWdDetailModal()">Batal</button>
+    <button class="btn-p" style="background:linear-gradient(135deg,var(--r),#dc2626)" onclick="confirmReject('${wdId}')"><i class="fas fa-times-circle"></i> Konfirmasi Tolak</button>`;
+  document.getElementById('wdDetailModal').classList.add('open');
+}
+
+async function confirmReject(wdId) {
+  const reason = document.getElementById('rejectReason')?.value.trim();
+  if (!reason) { showToast('warn','Isi Alasan','Masukkan alasan penolakan'); return; }
+  const wd = wdAllData.find(w => w.id === wdId);
+  if (!wd) return;
+
+  try {
+    await ensureFreshToken();
+    const now = new Date();
+    const updateData = {
+      status: 'rejected',
+      rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      rejectedBy: currentAdminUid || 'admin',
+      rejectReason: reason,
+    };
+
+    try { await db.collection('withdrawals').doc(wdId).update(updateData); } catch(e) {}
+
+    if (wd.uid) {
+      try {
+        const userDoc = await db.collection('users').doc(wd.uid).get();
+        if (userDoc.exists) {
+          const hist = userDoc.data().walletHistory || [];
+          const idx  = hist.findIndex(h => h.id === wdId || h.id === wd.id);
+          if (idx > -1) {
+            hist[idx] = {...hist[idx], status:'rejected', rejectedAt: now.toISOString(), rejectReason: reason, rejectedBy: currentAdminUid||'admin'};
+            await db.collection('users').doc(wd.uid).update({ walletHistory: hist });
+          }
+          // Kembalikan saldo SGT santri
+          const currentSgt = userDoc.data().sgt || 0;
+          await db.collection('users').doc(wd.uid).update({ sgt: currentSgt + (wd.sgtUsed||0) });
+        }
+      } catch(e) { console.warn('reject update user:', e.message); }
+    }
+
+    const local = wdAllData.find(w => w.id === wdId);
+    if (local) { local.status = 'rejected'; local.rejectedAt = now; local.rejectReason = reason; }
+
+    await sendWaToSantri(wd, 'rejected', reason);
+
+    closeWdDetailModal();
+    renderWithdrawals(); updateWdStats(); updatePendingBadge();
+    showToast('success','Ditolak','Pencairan ditolak & SGT santri dikembalikan');
+  } catch(e) {
+    showToast('error','Gagal', e.message);
+  }
+}
+
+// ── Detail view (read-only) ──
+function openWdDetail(wdId) {
+  const wd = wdAllData.find(w => w.id === wdId);
+  if (!wd) return;
+  const isIdr = wd.type === 'sgt-idr';
+  const hasil = isIdr
+    ? `Rp ${(wd.rpReceived||0).toLocaleString('id-ID')}`
+    : `${(wd.piReceived||0).toFixed?.(4)||0} π`;
+  const dateStr = wd.createdAt?.toDate
+    ? wd.createdAt.toDate().toLocaleString('id-ID')
+    : (wd.date ? new Date(wd.date).toLocaleString('id-ID') : '—');
+  const statusHtml = wd.status === 'approved'
+    ? `<span class="badge-approved"><i class="fas fa-check" style="font-size:9px"></i> Disetujui</span>`
+    : `<span class="badge-rejected"><i class="fas fa-times" style="font-size:9px"></i> Ditolak${wd.rejectReason?' — '+wd.rejectReason:''}</span>`;
+
+  const body = document.getElementById('wdDetailBody');
+  body.innerHTML = `
+    <div style="background:var(--g50);border-radius:10px;padding:14px;margin-bottom:14px">
+      ${[
+        ['Santri',      wd.santriName||'—'],
+        ['NIS',         wd.santriNis||wd.uid?.slice(0,8)||'—'],
+        ['Jenis',       isIdr?'SGT → Rupiah':'SGT → Pi'],
+        ['SGT Digunakan', (wd.sgtUsed||0).toLocaleString('id-ID') + ' SGT'],
+        ['Hasil',       hasil],
+        ['Tujuan',      wd.dest||'—'],
+        ['Waktu Submit',dateStr],
+        ['Status',      statusHtml, true],
+      ].map(([l,v,raw])=>`<div class="wd-detail-row"><span class="wd-detail-lbl">${l}</span><span class="wd-detail-val ${l==='Hasil'?'green':l.includes('SGT')?'gold':''}">${raw?v:escHtml(v)}</span></div>`).join('')}
+    </div>
+    ${wd.note?`<div style="background:var(--bl);border-radius:8px;padding:10px;font-size:12px;color:var(--b)"><i class="fas fa-sticky-note" style="margin-right:6px"></i>${escHtml(wd.note)}</div>`:''}`;
+  document.getElementById('wdDetailFt').innerHTML = `<button class="btn-sec" onclick="closeWdDetailModal()">Tutup</button>`;
+  document.getElementById('wdDetailModal').classList.add('open');
+}
+
+function closeWdDetailModal() { document.getElementById('wdDetailModal').classList.remove('open'); }
+function closeWdModal(e) { if(e.target.id==='wdDetailModal') closeWdDetailModal(); }
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Fonnte WA Config ──
+function saveFonnteConfig() {
+  const token = document.getElementById('fonnteToken').value.trim();
+  const num   = document.getElementById('adminWaNum').value.trim();
+  if (!token || !num) { showToast('warn','Lengkapi Data','Isi token dan nomor WA admin'); return; }
+  localStorage.setItem('fonnte_token', token);
+  localStorage.setItem('admin_wa_num', num);
+  updateWaStatus(true);
+  showToast('success','Tersimpan','Konfigurasi Fonnte berhasil disimpan');
+}
+
+function loadFonnteConfig() {
+  const token = localStorage.getItem('fonnte_token') || '';
+  const num   = localStorage.getItem('admin_wa_num') || '';
+  if (document.getElementById('fonnteToken')) document.getElementById('fonnteToken').value = token ? '••••••••••••' : '';
+  if (document.getElementById('adminWaNum'))  document.getElementById('adminWaNum').value  = num;
+  updateWaStatus(!!token && !!num);
+}
+
+function updateWaStatus(ok) {
+  const dot = document.getElementById('waDot');
+  const txt = document.getElementById('waStatusTxt');
+  if (dot) dot.className = 'wa-dot' + (ok?' on':'');
+  if (txt) txt.textContent = ok ? 'Terhubung — siap kirim notifikasi' : 'Belum dikonfigurasi';
+}
+
+async function testWaNotif() {
+  const token = localStorage.getItem('fonnte_token');
+  const num   = localStorage.getItem('admin_wa_num');
+  if (!token || !num) { showToast('warn','Belum Dikonfigurasi','Simpan token dan nomor WA terlebih dahulu'); return; }
+  await sendFonnteWA(num, `✅ *Test Notifikasi — Dashboard Admin*\n\nKonfigurasi Fonnte berhasil! Admin akan mendapat notifikasi WhatsApp setiap ada permintaan pencairan SGT dari santri.\n\n_Hidayatullah Amin System_`, token);
+}
+
+async function sendFonnteWA(target, message, tokenOverride) {
+  const token = tokenOverride || localStorage.getItem('fonnte_token');
+  if (!token || !target) return false;
+  try {
+    const resp = await fetch('https://api.fonnte.com/send', {
+      method: 'POST',
+      headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target, message, countryCode: '62' })
+    });
+    const data = await resp.json();
+    if (data.status) {
+      showToast('success','WA Terkirim','Notifikasi WhatsApp berhasil dikirim');
+      return true;
+    } else {
+      showToast('warn','WA Gagal', data.reason || 'Cek token Fonnte Anda');
+      return false;
+    }
+  } catch(e) {
+    showToast('warn','WA Offline','Tidak bisa kirim WA: ' + e.message);
+    return false;
+  }
+}
+
+// Kirim WA ke admin saat ada pencairan baru
+async function sendWaAdminNewRequest(wd) {
+  const adminNum = localStorage.getItem('admin_wa_num');
+  if (!adminNum) return;
+  const isIdr = wd.type === 'sgt-idr';
+  const hasil = isIdr
+    ? `Rp ${(wd.rpReceived||0).toLocaleString('id-ID')}`
+    : `${(wd.piReceived||0).toFixed?.(4)||0} π`;
+  const msg = `🔔 *Permintaan Pencairan SGT Baru*\n\n` +
+    `👤 Santri: ${wd.santriName||'—'}\n` +
+    `💰 SGT: ${(wd.sgtUsed||0).toLocaleString()} SGT\n` +
+    `🎯 Tujuan: ${isIdr?'Rupiah':'Pi Coin'}\n` +
+    `💵 Hasil: ${hasil}\n` +
+    `📍 Tujuan Transfer: ${wd.dest||'—'}\n` +
+    `🕐 Waktu: ${new Date().toLocaleString('id-ID')}\n\n` +
+    `Buka dashboard admin untuk approve/tolak.`;
+  await sendFonnteWA(adminNum, msg);
+}
+
+// Kirim WA ke santri setelah approve/reject (jika ada no HP di data)
+async function sendWaToSantri(wd, status, reason) {
+  if (!wd.uid) return;
+  try {
+    const userDoc = await db.collection('users').doc(wd.uid).get();
+    const phone = userDoc.data()?.phone || userDoc.data()?.phoneNumber || '';
+    if (!phone) return;
+    const isIdr = wd.type === 'sgt-idr';
+    const hasil = isIdr
+      ? `Rp ${(wd.rpReceived||0).toLocaleString('id-ID')}`
+      : `${(wd.piReceived||0).toFixed?.(4)||0} π`;
+    const msg = status === 'approved'
+      ? `✅ *Pencairan SGT Disetujui*\n\nHai ${wd.santriName||'Santri'}, pencairan kamu telah disetujui!\n\n💰 ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}\n📍 Ke: ${wd.dest||'—'}\n\nProses transfer akan dilakukan segera. Terima kasih!\n\n_Hidayatullah Amin_`
+      : `❌ *Pencairan SGT Ditolak*\n\nHai ${wd.santriName||'Santri'}, pencairan kamu ditolak.\n\n💰 ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}\n📝 Alasan: ${reason||'—'}\n\nSaldo SGT kamu telah dikembalikan. Hubungi admin untuk info lebih lanjut.\n\n_Hidayatullah Amin_`;
+    await sendFonnteWA(phone, msg);
+  } catch(e) { console.warn('sendWaToSantri:', e.message); }
+}
+
+// Fungsi dipanggil dari dashboard-santri setelah submit pencairan (inject ke Firestore withdrawals)
+window.submitWithdrawalRequest = async function(uid, santriName, santriNis, txRecord) {
+  try {
+    const docRef = await db.collection('withdrawals').add({
+      uid, santriName, santriNis,
+      ...txRecord,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    // Notif WA ke admin
+    await sendWaAdminNewRequest({uid, santriName, santriNis, ...txRecord});
+    return docRef.id;
+  } catch(e) {
+    console.warn('submitWithdrawalRequest:', e.message);
+    return null;
+  }
+};
+
+function fmtSGT(n) {
+  n = Math.round(n||0);
+  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toLocaleString('id-ID');
+}
+function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+function animNum(id, target) {
+  const el = document.getElementById(id); if(!el) return;
+  let cur=0; const step=Math.max(1,Math.ceil(target/25));
+  const t = setInterval(()=>{ cur=Math.min(cur+step,target); el.textContent=cur; if(cur>=target)clearInterval(t); },40);
+}
+
+// Responsive sidebar on resize
+window.addEventListener('resize', () => {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sbOverlay');
+  if (window.innerWidth > 900) {
+    // Desktop: kalau sidebar sedang open via toggle, biarkan; kalau hidden paksa, tapi jangan paksa buka
+    ov.classList.remove('show');
+  } else {
+    if (!sb.classList.contains('open')) {
+      sb.classList.add('hidden-mobile');
+      ov.classList.remove('show');
+    }
+  }
+});
+// State awal
+if (window.innerWidth <= 900) {
+  document.getElementById('sidebar').classList.add('hidden-mobile');
+} else {
+  document.getElementById('sidebar').classList.remove('hidden-mobile');
+  document.getElementById('sbOverlay').classList.remove('show');
+}
+// ════ PENGAJUAN REWARD SGT ════
+let earnAllData  = [];
+let earnFilter_  = 'all';
+
+const EARN_TYPE_LABEL = {
+  absensi:'Absensi Mengajar', hafalan:'Input Hafalan', performa:'Performa Santri',
+  spp:'SPP/Cashback', referral:'Referral', donasi:'Donasi', kegiatan:'Kegiatan', bonus:'Bonus Admin'
+};
+const EARN_TYPE_ICON = {
+  absensi:'fa-qrcode', hafalan:'fa-book-open', performa:'fa-star',
+  spp:'fa-credit-card', referral:'fa-users', donasi:'fa-hand-holding-heart',
+  kegiatan:'fa-calendar-check', bonus:'fa-gift'
+};
+const EARN_DEFAULT_SGT = {
+  absensi:50, hafalan:25, performa:200, spp:100, referral:500, donasi:200, kegiatan:150, bonus:100
+};
+
+async function loadEarnRequests() {
+  const ico = document.getElementById('earnRefIco');
+  if (ico) ico.classList.add('fa-spin');
+  try {
+    await ensureFreshToken();
+    const snap = await db.collection('sgt_earn_requests').orderBy('createdAt','desc').limit(300).get();
+    earnAllData = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderEarnRequests();
+    updateEarnStats();
+    updateEarnBadge();
+    setEl('earnLastUpdate', 'Update: ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
+  } catch(e) {
+    console.error('loadEarnRequests:', e);
+    showToast('error','Gagal Memuat','Tidak bisa load pengajuan reward: ' + e.message);
+  } finally {
+    if (ico) ico.classList.remove('fa-spin');
+  }
+}
+
+function renderEarnRequests() {
+  const q       = (document.getElementById('earnSearch')?.value || '').toLowerCase();
+  const roleF   = document.getElementById('earnRoleFilter')?.value || '';
+  const typeF   = document.getElementById('earnTypeFilter')?.value || '';
+  const tbody   = document.getElementById('earnTableBody');
+  if (!tbody) return;
+
+  let data = earnAllData.filter(r => {
+    const matchStatus = earnFilter_ === 'all' || r.status === earnFilter_;
+    const matchRole   = !roleF || r.role === roleF;
+    const matchType   = !typeF || r.type === typeF;
+    const matchQ      = !q || (r.userName||'').toLowerCase().includes(q);
+    return matchStatus && matchRole && matchType && matchQ;
+  });
+
+  setEl('earnTableSub', `${data.length} pengajuan`);
+
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-inbox" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>Tidak ada pengajuan</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(r => {
+    const isPending  = r.status === 'pending';
+    const isApproved = r.status === 'approved';
+    const dateStr    = r.createdAt?.toDate
+      ? r.createdAt.toDate().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})
+      : (r.date || '—');
+    const roleBadge  = r.role === 'ustadz'
+      ? `<span style="background:#eaf1fe;color:#2d7ef5;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">Ustadz</span>`
+      : `<span style="background:#fef3c7;color:#d97706;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">Wali</span>`;
+    const typeLabel  = EARN_TYPE_LABEL[r.type] || r.type;
+    const typeIcon   = EARN_TYPE_ICON[r.type] || 'fa-coins';
+    const statusBadge = isPending
+      ? `<span class="badge-pending"><i class="fas fa-clock" style="font-size:9px"></i> Menunggu</span>`
+      : isApproved
+        ? `<span class="badge-approved"><i class="fas fa-check" style="font-size:9px"></i> Disetujui</span>`
+        : `<span class="badge-rejected"><i class="fas fa-times" style="font-size:9px"></i> Ditolak</span>`;
+    const sgtCell    = isApproved && r.sgtCredited
+      ? `<span style="font-weight:800;color:#d97706">+${r.sgtCredited.toLocaleString('id-ID')} SGT</span>`
+      : `<span style="color:var(--g400)">—</span>`;
+    const actBtns    = isPending
+      ? `<button class="wd-act-btn approve" onclick="openEarnApprove('${r.id}')"><i class="fas fa-check"></i> Setujui</button>
+         <button class="wd-act-btn reject"  onclick="openEarnReject('${r.id}')"><i class="fas fa-times"></i> Tolak</button>`
+      : `<button class="wd-act-btn view"   onclick="openEarnDetail('${r.id}')"><i class="fas fa-eye"></i> Detail</button>`;
+    return `<tr class="${isPending?'row-pending':''}">
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--acl);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--acc);flex-shrink:0">${(r.userName||'U')[0]}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--ink2)">${escHtml(r.userName||'—')}</div>
+      </div></td>
+      <td>${roleBadge}</td>
+      <td><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--acc)"><i class="fas ${typeIcon}"></i> ${typeLabel}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--g500)" title="${escHtml(r.note||'')}">${escHtml(r.note||'—')}</td>
+      <td style="font-size:11px;color:var(--g500)">${dateStr}</td>
+      <td>${statusBadge}</td>
+      <td>${sgtCell}</td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">${actBtns}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateEarnStats() {
+  const pending  = earnAllData.filter(r => r.status === 'pending').length;
+  const approved = earnAllData.filter(r => r.status === 'approved').length;
+  const rejected = earnAllData.filter(r => r.status === 'rejected').length;
+  const totalSgt = earnAllData.filter(r => r.status === 'approved').reduce((s,r) => s + (r.sgtCredited||0), 0);
+  setEl('earnStatPending',  pending.toString());
+  setEl('earnStatApproved', approved.toString());
+  setEl('earnStatRejected', rejected.toString());
+  setEl('earnStatSgt',      fmtSGT(totalSgt) + ' SGT');
+}
+
+function updateEarnBadge() {
+  const pending = earnAllData.filter(r => r.status === 'pending').length;
+  const badge = document.getElementById('earnBadge');
+  if (!badge) return;
+  if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline-flex'; }
+  else badge.style.display = 'none';
+}
+
+function earnFilter(f) {
+  earnFilter_ = f;
+  ['All','Pend','Appr','Reje'].forEach(k => document.getElementById('ernf'+k)?.classList.remove('active'));
+  const map = {all:'All',pending:'Pend',approved:'Appr',rejected:'Reje'};
+  document.getElementById('ernf'+(map[f]||'All'))?.classList.add('active');
+  renderEarnRequests();
+}
+
+// ── Open Approve Modal ──
+function openEarnApprove(id) {
+  const r = earnAllData.find(x => x.id === id);
+  if (!r) return;
+  const defSgt = EARN_DEFAULT_SGT[r.type] || 100;
+  const typeLabel = EARN_TYPE_LABEL[r.type] || r.type;
+  document.getElementById('earnApproveBody').innerHTML = `
+    <div style="background:var(--acl);border:1.5px solid rgba(139,92,246,.2);border-radius:10px;padding:14px;margin-bottom:16px">
+      <p style="font-size:12px;font-weight:700;color:var(--acc);margin-bottom:6px"><i class="fas fa-user"></i> ${escHtml(r.userName||'—')}
+        <span style="font-size:10px;background:#fff;padding:2px 8px;border-radius:20px;margin-left:6px">${r.role}</span>
+      </p>
+      <p style="font-size:12px;color:var(--g600);margin-bottom:4px"><b>Jenis:</b> ${typeLabel}</p>
+      <p style="font-size:12px;color:var(--g600);margin-bottom:4px"><b>Tanggal Kegiatan:</b> ${r.date||'—'}</p>
+      <p style="font-size:12px;color:var(--g600)"><b>Keterangan:</b> ${escHtml(r.note||'—')}</p>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px">JUMLAH SGT YANG DIKREDITKAN</label>
+      <input type="number" id="earnSgtAmount" value="${defSgt}" min="1" style="width:100%;padding:10px 12px;border:1.5px solid var(--acc);border-radius:var(--rdm);font-size:16px;font-weight:800;color:#d97706;font-family:inherit">
+      <p style="font-size:10px;color:var(--g400);margin-top:4px">Default reward untuk jenis ini: <b>${defSgt} SGT</b>. Ubah jika perlu.</p>
+    </div>
+    <div>
+      <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px">CATATAN ADMIN (opsional)</label>
+      <input type="text" id="earnAdminNote" placeholder="Misal: Sudah diverifikasi absensi kelas A..." style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit">
+    </div>`;
+  document.getElementById('earnApproveFt').innerHTML = `
+    <button class="btn-sec" onclick="closeEarnModal()">Batal</button>
+    <button class="btn-p" style="background:linear-gradient(135deg,#5b21b6,#7c3aed)" onclick="confirmEarnApprove('${id}')"><i class="fas fa-coins"></i> Kreditkan SGT</button>`;
+  document.getElementById('earnApproveModal').classList.add('open');
+}
+
+async function confirmEarnApprove(id) {
+  const r      = earnAllData.find(x => x.id === id);
+  if (!r) return;
+  const sgtAmt = parseInt(document.getElementById('earnSgtAmount')?.value || '0');
+  const note   = document.getElementById('earnAdminNote')?.value?.trim() || '';
+  if (!sgtAmt || sgtAmt <= 0) { showToast('warn','Jumlah SGT','Masukkan jumlah SGT yang valid'); return; }
+
+  // Disable tombol agar tidak double-submit
+  const btn = document.querySelector('#earnApproveFt .btn-p');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...'; }
+
+  try {
+    // Force refresh token admin dulu — ini kunci utama mencegah permission-denied
+    await ensureFreshToken();
+
+    const sgtRef = db.collection('sgt').doc(r.uid);
+
+    // Step 1: Baca wallet dulu SEBELUM batch (read di luar batch, write di dalam)
+    const sgtDoc = await sgtRef.get();
+
+    // Step 2: Jalankan semua write dalam satu batch
+    const batch = db.batch();
+
+    // 2a. Update status pengajuan reward
+    batch.update(db.collection('sgt_earn_requests').doc(id), {
+      status:      'approved',
+      sgtCredited: sgtAmt,
+      adminNote:   note,
+      approvedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      approvedBy:  currentAdminUid || 'admin',
+    });
+
+    // 2b. Kreditkan SGT ke wallet user
+    const txEntry = {
+      amount: sgtAmt,
+      note:   `Reward ${EARN_TYPE_LABEL[r.type]||r.type} — disetujui admin`,
+      date:   new Date().toISOString()
+    };
+    if (sgtDoc.exists) {
+      const cur = sgtDoc.data();
+      const txs = Array.isArray(cur.transactions) ? [...cur.transactions] : [];
+      txs.push(txEntry);
+      batch.update(sgtRef, {
+        balance:      (cur.balance || 0) + sgtAmt,
+        transactions: txs,
+      });
+    } else {
+      batch.set(sgtRef, {
+        uid:          r.uid,
+        balance:      sgtAmt,
+        transactions: [txEntry],
+        createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+
+    await batch.commit();
+
+    // Update local state
+    const local = earnAllData.find(x => x.id === id);
+    if (local) { local.status = 'approved'; local.sgtCredited = sgtAmt; local.adminNote = note; }
+
+    closeEarnModal();
+    renderEarnRequests(); updateEarnStats(); updateEarnBadge();
+    showToast('success','✅ SGT Dikreditkan',`${sgtAmt.toLocaleString('id-ID')} SGT berhasil dikirim ke wallet ${r.userName||'user'}`);
+  } catch(e) {
+    console.error('confirmEarnApprove:', e);
+    showToast('error','Gagal', e.message);
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-coins"></i> Kreditkan SGT'; }
+  }
+}
+
+// ── Open Reject Modal ──
+function openEarnReject(id) {
+  const r = earnAllData.find(x => x.id === id);
+  if (!r) return;
+  const typeLabel = EARN_TYPE_LABEL[r.type] || r.type;
+  document.getElementById('earnRejectBody').innerHTML = `
+    <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:14px;margin-bottom:16px">
+      <p style="font-size:13px;font-weight:700;color:#c2410c;margin-bottom:4px"><i class="fas fa-exclamation-triangle"></i> Tolak Pengajuan Reward</p>
+      <p style="font-size:12px;color:#92400e">Dari: <b>${escHtml(r.userName||'—')}</b> (${r.role}) — ${typeLabel}</p>
+    </div>
+    <div>
+      <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px">ALASAN PENOLAKAN *</label>
+      <textarea id="earnRejectReason" class="reject-reason" rows="3" placeholder="Contoh: Bukti tidak lengkap, kegiatan tidak sesuai, duplikasi pengajuan, dll..."></textarea>
+    </div>`;
+  document.getElementById('earnRejectFt').innerHTML = `
+    <button class="btn-sec" onclick="closeEarnRejectModal()">Batal</button>
+    <button class="btn-p" style="background:linear-gradient(135deg,var(--r),#dc2626)" onclick="confirmEarnReject('${id}')"><i class="fas fa-times-circle"></i> Konfirmasi Tolak</button>`;
+  document.getElementById('earnRejectModal').classList.add('open');
+}
+
+async function confirmEarnReject(id) {
+  const reason = document.getElementById('earnRejectReason')?.value?.trim();
+  if (!reason) { showToast('warn','Isi Alasan','Masukkan alasan penolakan'); return; }
+  const r = earnAllData.find(x => x.id === id);
+  if (!r) return;
+  try {
+    await ensureFreshToken();
+    await db.collection('sgt_earn_requests').doc(id).update({
+      status:     'rejected',
+      adminNote:  reason,
+      rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      rejectedBy: currentAdminUid || 'admin',
+    });
+    const local = earnAllData.find(x => x.id === id);
+    if (local) { local.status = 'rejected'; local.adminNote = reason; }
+    closeEarnRejectModal();
+    renderEarnRequests(); updateEarnStats(); updateEarnBadge();
+    showToast('success','Ditolak','Pengajuan reward berhasil ditolak');
+  } catch(e) {
+    showToast('error','Gagal', e.message);
+  }
+}
+
+// ── Detail view ──
+function openEarnDetail(id) {
+  const r = earnAllData.find(x => x.id === id);
+  if (!r) return;
+  const typeLabel = EARN_TYPE_LABEL[r.type] || r.type;
+  const isApproved = r.status === 'approved';
+  const statusHtml = isApproved
+    ? `<span class="badge-approved"><i class="fas fa-check" style="font-size:9px"></i> Disetujui — +${(r.sgtCredited||0).toLocaleString('id-ID')} SGT</span>`
+    : `<span class="badge-rejected"><i class="fas fa-times" style="font-size:9px"></i> Ditolak${r.adminNote?' — '+escHtml(r.adminNote):''}</span>`;
+  document.getElementById('earnApproveBody').innerHTML = `
+    <div style="background:var(--g50);border-radius:10px;padding:14px">
+      ${[
+        ['Nama',        r.userName||'—'],
+        ['Role',        r.role||'—'],
+        ['Jenis Reward',typeLabel],
+        ['Tanggal',     r.date||'—'],
+        ['Keterangan',  r.note||'—'],
+        ['Status',      statusHtml, true],
+      ].map(([l,v,raw])=>`<div class="wd-detail-row"><span class="wd-detail-lbl">${l}</span><span class="wd-detail-val">${raw?v:escHtml(v)}</span></div>`).join('')}
+    </div>`;
+  document.getElementById('earnApproveFt').innerHTML = `<button class="btn-sec" onclick="closeEarnModal()">Tutup</button>`;
+  document.getElementById('earnApproveModal').classList.add('open');
+}
+
+function closeEarnModal()       { document.getElementById('earnApproveModal').classList.remove('open'); }
+function closeEarnRejectModal() { document.getElementById('earnRejectModal').classList.remove('open'); }
+
+// ════════════════════════════════════════════════
+// PI DONATIONS MANAGEMENT
+// ════════════════════════════════════════════════
+let pdAllData    = [];
+let pdCurFilter  = 'all';
+let pdCurSearch  = '';
+
+const PROG_LABELS_ADMIN = {
+  beasiswa:     '🎓 Beasiswa Santri Dhuafa',
+  masjid:       '🕌 Renovasi Masjid & Aula',
+  perpustakaan: '📚 Perpustakaan Digital',
+  umum:         '💛 Donasi Umum Yayasan'
+};
+
+async function loadPiDonations() {
+  document.getElementById('pdList').innerHTML =
+    `<div style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></div>`;
+  try {
+    const snap = await db.collection('pi_donations')
+      .orderBy('createdAt', 'desc').limit(200).get();
+    pdAllData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderPiDonations();
+    updatePiStats();
+    renderProgramSummary();
+  } catch(e) {
+    console.error('loadPiDonations error:', e);
+    document.getElementById('pdList').innerHTML =
+      `<div class="pi-don-empty"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data: ${escHtml(e.message)}</p></div>`;
+  }
+}
+
+function renderPiDonations() {
+  let data = pdAllData;
+  if (pdCurFilter !== 'all') data = data.filter(d => d.status === pdCurFilter);
+  if (pdCurSearch) {
+    const q = pdCurSearch.toLowerCase();
+    data = data.filter(d =>
+      (d.donorUsername||'').toLowerCase().includes(q) ||
+      (d.program||'').toLowerCase().includes(q) ||
+      (d.txid||'').toLowerCase().includes(q)
+    );
+  }
+
+  if (!data.length) {
+    document.getElementById('pdList').innerHTML =
+      `<div class="pi-don-empty"><i class="fas fa-heart"></i><p>Belum ada donasi ${pdCurFilter !== 'all' ? 'dengan status ini' : 'masuk'}.</p></div>`;
+    return;
+  }
+
+  document.getElementById('pdList').innerHTML = data.map(d => {
+    const name    = d.donorUsername || 'anonymous';
+    const prog    = d.progLabel || PROG_LABELS_ADMIN[d.program] || d.program || '—';
+    const amt     = d.amount || 0;
+    const status  = d.status || 'pending';
+    const statusLabels = { completed:'✅ Selesai', pending:'⏳ Pending', cancelled:'❌ Dibatalkan' };
+    const time    = d.completedAt
+      ? timeAgoAdmin(d.completedAt.toDate())
+      : (d.createdAt ? timeAgoAdmin(d.createdAt.toDate()) : '—');
+    const txid    = d.txid ? `<div class="pi-txid" title="${d.txid}">TxID: ${d.txid.substring(0,20)}...</div>` : '';
+    return `
+      <div class="pi-don-row">
+        <div class="pi-don-av">${name.charAt(0).toUpperCase()}</div>
+        <div class="pi-don-info">
+          <div class="pi-don-name">@${escHtml(name)}</div>
+          <div class="pi-don-prog">${escHtml(prog)}</div>
+          ${txid}
+        </div>
+        <div class="pi-don-meta">
+          <div class="pi-don-amt">${amt} π</div>
+          <div><span class="pi-don-status ${status}">${statusLabels[status]||status}</span></div>
+          <div class="pi-don-time">${time}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function updatePiStats() {
+  const completed = pdAllData.filter(d => d.status === 'completed');
+  const pending   = pdAllData.filter(d => d.status === 'pending');
+  const totalPi   = completed.reduce((s, d) => s + (parseFloat(d.amount) || 0), 0);
+  const donors    = new Set(completed.map(d => d.donorPiUid)).size;
+
+  document.getElementById('pdStatTotal').textContent   = totalPi.toFixed(2) + ' π';
+  document.getElementById('pdStatCount').textContent   = completed.length;
+  document.getElementById('pdStatDonors').textContent  = donors;
+  document.getElementById('pdStatPending').textContent = pending.length;
+
+  // Update badge
+  const badge = document.getElementById('piDonasiNewBadge');
+  if (pending.length > 0) { badge.textContent = pending.length; badge.style.display = 'block'; }
+  else { badge.style.display = 'none'; }
+}
+
+function renderProgramSummary() {
+  const el = document.getElementById('pdProgramSummary');
+  const completed = pdAllData.filter(d => d.status === 'completed');
+  const progs = {};
+  completed.forEach(d => {
+    const p = d.program || 'umum';
+    if (!progs[p]) progs[p] = { total: 0, count: 0, label: PROG_LABELS_ADMIN[p] || p };
+    progs[p].total += parseFloat(d.amount) || 0;
+    progs[p].count++;
+  });
+
+  const colors = { beasiswa:'#6d28d9', masjid:'#059669', perpustakaan:'#2563eb', umum:'#d97706' };
+  el.innerHTML = Object.entries(progs).map(([key, v]) => `
+    <div style="background:var(--g50);border:1px solid var(--g200);border-radius:var(--rdm);padding:14px;border-left:3px solid ${colors[key]||'var(--acc)'}">
+      <p style="font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:4px">${escHtml(v.label)}</p>
+      <p style="font-size:18px;font-weight:900;color:${colors[key]||'var(--acc)'}">${v.total.toFixed(2)} π</p>
+      <p style="font-size:11px;color:var(--g400)">${v.count} transaksi</p>
+    </div>`).join('') || `<div style="grid-column:span 2;text-align:center;color:var(--g400);padding:20px">Belum ada data</div>`;
+}
+
+function pdFilter(f) {
+  pdCurFilter = f;
+  document.querySelectorAll('.pi-filter-btn').forEach(b => b.classList.remove('active'));
+  const map = { all:'pdf-all', completed:'pdf-completed', pending:'pdf-pending', cancelled:'pdf-cancelled' };
+  const el = document.getElementById(map[f]);
+  if (el) el.classList.add('active');
+  renderPiDonations();
+}
+
+function pdSearchFn() {
+  pdCurSearch = document.getElementById('pdSearch')?.value.trim() || '';
+  renderPiDonations();
+}
+
+function exportPiDonations() {
+  const data = pdAllData.filter(d => pdCurFilter === 'all' || d.status === pdCurFilter);
+  if (!data.length) { showToast('warn','Tidak ada data','Tidak ada data untuk diexport'); return; }
+  const headers = ['Username','Program','Jumlah Pi','Status','TxID','Tanggal'];
+  const rows = data.map(d => [
+    '@'+(d.donorUsername||''),
+    d.program||'',
+    d.amount||0,
+    d.status||'',
+    d.txid||'',
+    d.completedAt ? d.completedAt.toDate().toLocaleDateString('id-ID') : '—'
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+  a.download = `pi-donations-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('success','Export berhasil',`${data.length} baris diexport`);
+}
+
+function timeAgoAdmin(date) {
+  if (!date) return '—';
+  const diff = (Date.now() - date.getTime()) / 1000;
+  if (diff < 60) return 'Baru saja';
+  if (diff < 3600) return Math.floor(diff/60) + ' menit lalu';
+  if (diff < 86400) return Math.floor(diff/3600) + ' jam lalu';
+  return Math.floor(diff/86400) + ' hari lalu';
+}
+
+</script>
+</body>
+</html>
