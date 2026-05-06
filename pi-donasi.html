@@ -871,8 +871,13 @@ body {
 // ══════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════
-const SANDBOX = true; // TESTNET MODE
-const APP_ID  = 'hidayatulamin'; // sesuaikan dengan App Name di Developer Portal
+// FIX: sandbox otomatis — testnet di vercel/localhost, mainnet di domain custom
+const SANDBOX = (
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1' ||
+  window.location.hostname.includes('vercel.app')
+);
+const APP_ID = 'hidayatulamin';
 
 // ══════════════════════════════════════════
 // STATE
@@ -967,10 +972,11 @@ async function initPiLogin() {
 async function savePiUserToFirestore() {
   try {
     const ref = db.collection('pi_donors').doc(piUser.uid);
+    // FIX: Jangan simpan accessToken di Firestore (security issue)
     await ref.set({
-      piUid: piUser.uid, piUsername: piUser.username,
-      lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-      accessToken: piToken
+      piUid: piUser.uid,
+      piUsername: piUser.username,
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
   } catch(e) { console.warn('Firestore save error:', e); }
 }

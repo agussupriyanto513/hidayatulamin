@@ -954,8 +954,17 @@ function detectPi() {
   }
 
   try {
-    window.Pi.init({ version: '2.0', sandbox: false });
+    // FIX: sandbox otomatis sesuai environment
+    // - localhost/vercel.app → sandbox: true (testnet)
+    // - domain custom (hidayatulamin.id) → sandbox: false (mainnet)
+    const sandbox = (
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.includes('vercel.app')
+    );
+    window.Pi.init({ version: '2.0', sandbox });
     piReady = true;
+    console.log('Pi SDK init OK | sandbox:', sandbox);
   } catch(e) {
     console.warn('Pi SDK init failed:', e);
   }
