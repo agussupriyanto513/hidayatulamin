@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/api/payments/approve",
+      "dest": "/api/payments/approve.js"
+    },
+    {
+      "src": "/api/payments/complete",
+      "dest": "/api/payments/complete.js"
+    },
+    {
+      "src": "/api/payments/cancel",
+      "dest": "/api/payments/cancel.js"
+    },
+    {
+      "src": "/",
+      "dest": "/login.html"
+    }
+  ]
+}
