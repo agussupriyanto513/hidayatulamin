@@ -359,7 +359,7 @@ class HidayatulaminAuth {
           }
         },
         {
-          // ── Step 1: Payment siap, minta server approve ──
+          // ── Step 1: Simpan ke Firestore LALU approve ke backend server ──
           onReadyForServerApproval: async (paymentId) => {
             try {
               // Simpan ke pi_donations (koleksi yang dibaca dashboard admin)
@@ -376,36 +376,34 @@ class HidayatulaminAuth {
               });
               console.log('💰 Donasi pending, paymentId:', paymentId);
 
-              // FIX: Approval otomatis dari sisi client
-              // (idealnya dari server, tapi karena tidak ada backend, approve via Firestore flag)
-              // Pi Network akan lanjut ke onReadyForServerCompletion setelah ini
+              // Approve ke backend server — WAJIB agar Pi SDK tidak timeout
+              const approveRes = await fetch('/api/payments/approve', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ paymentId }),
+              });
+              const approveData = await approveRes.json();
+              if (!approveRes.ok) throw new Error(approveData.error || 'Approve gagal');
+              console.log('✅ Donasi approved oleh server');
+
             } catch(e) {
-              console.error('Gagal simpan donasi pending:', e);
+              console.error('Gagal approve donasi:', e);
             }
           },
 
-          // ── Step 2: Blockchain confirm, update status selesai ──
+          // ── Step 2: Blockchain confirm → complete ke backend server ──
           onReadyForServerCompletion: async (paymentId, txid) => {
             try {
-              if (docRef) {
-                await docRef.update({
-                  status:      'completed',
-                  txid,
-                  completedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                });
-              } else {
-                // Fallback: cari dokumen berdasarkan paymentId
-                const snap = await this.db.collection('pi_donations')
-                  .where('paymentId', '==', paymentId).limit(1).get();
-                if (!snap.empty) {
-                  await snap.docs[0].ref.update({
-                    status:      'completed',
-                    txid,
-                    completedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                  });
-                }
-              }
-              console.log('✅ Donasi selesai, txid:', txid);
+              // Complete ke backend server — WAJIB agar Pi tahu transaksi selesai
+              const completeRes = await fetch('/api/payments/complete', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ paymentId, txid }),
+              });
+              const completeData = await completeRes.json();
+              if (!completeRes.ok) throw new Error(completeData.error || 'Complete gagal');
+              console.log('✅ Donasi completed oleh server, txid:', txid);
+
               resolve({ success: true, txid, paymentId });
             } catch(e) {
               resolve({ success: false, error: e.message });
@@ -416,24 +414,12 @@ class HidayatulaminAuth {
           onCancel: async (paymentId) => {
             console.warn('⚠️ Pembayaran dibatalkan:', paymentId);
             try {
-              // FIX: Update status jadi 'cancelled' bukan dibiarkan 'pending'
-              // Ini yang menyebabkan _handleIncompletePiPayment terpanggil terus
-              if (docRef) {
-                await docRef.update({
-                  status:      'cancelled',
-                  cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
-                });
-              } else {
-                const snap = await this.db.collection('pi_donations')
-                  .where('paymentId', '==', paymentId).limit(1).get();
-                if (!snap.empty) {
-                  await snap.docs[0].ref.update({
-                    status:      'cancelled',
-                    cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
-                  });
-                }
-              }
-            } catch(e) { console.error('Gagal update cancelled:', e); }
+              await fetch('/api/payments/cancel', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ paymentId }),
+              });
+            } catch(e) { console.error('Gagal cancel ke server:', e); }
             resolve({ success: false, error: 'Pembayaran dibatalkan' });
           },
 
