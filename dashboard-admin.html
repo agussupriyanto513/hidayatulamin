@@ -2222,32 +2222,7 @@ function renderPiDonTable() {
   }).join('');
 }
 
-// Patch switchSection to load Pi Donations data when navigating to it
-const _origSwitchSection = typeof switchSection === 'function' ? switchSection : null;
-
 // ════ END PI DONATIONS ════
-
-function escHtml(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-  const r = earnAllData.find(x => x.id === id);
-  if (!r) return;
-  const typeLabel = EARN_TYPE_LABEL[r.type] || r.type;
-  document.getElementById('earnRejectBody').innerHTML = `
-    <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:14px;margin-bottom:16px">
-      <p style="font-size:13px;font-weight:700;color:#c2410c;margin-bottom:4px"><i class="fas fa-exclamation-triangle"></i> Tolak Pengajuan Reward</p>
-      <p style="font-size:12px;color:#92400e">Dari: <b>${escHtml(r.userName||'—')}</b> (${r.role}) — ${typeLabel}</p>
-    </div>
-    <div>
-      <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px">ALASAN PENOLAKAN *</label>
-      <textarea id="earnRejectReason" class="reject-reason" rows="3" placeholder="Contoh: Bukti tidak lengkap, kegiatan tidak sesuai, duplikasi pengajuan, dll..."></textarea>
-    </div>`;
-  document.getElementById('earnRejectFt').innerHTML = `
-    <button class="btn-sec" onclick="closeEarnRejectModal()">Batal</button>
-    <button class="btn-p" style="background:linear-gradient(135deg,var(--r),#dc2626)" onclick="confirmEarnReject('${id}')"><i class="fas fa-times-circle"></i> Konfirmasi Tolak</button>`;
-  document.getElementById('earnRejectModal').classList.add('open');
-}
 
 async function confirmEarnReject(id) {
   const reason = document.getElementById('earnRejectReason')?.value?.trim();
