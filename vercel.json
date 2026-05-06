@@ -3,17 +3,35 @@
   "builds": [
     {
       "src": "api/payments/*.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": { "maxLambdaSize": "15mb" }
+    },
+    {
+      "src": "**/*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.js",
+      "use": "@vercel/static",
+      "config": { "zeroConfig": true }
     }
   ],
   "routes": [
     {
-      "src": "/api/payments/(.*)",
-      "dest": "/api/payments/$1"
+      "src": "/api/payments/approve",
+      "dest": "/api/payments/approve.js"
     },
     {
-      "src": "/(.*\\.html)",
-      "dest": "/$1"
+      "src": "/api/payments/complete",
+      "dest": "/api/payments/complete.js"
+    },
+    {
+      "src": "/api/payments/cancel",
+      "dest": "/api/payments/cancel.js"
     },
     {
       "src": "/",
