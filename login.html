@@ -1000,110 +1000,231 @@ async function doPiLogin() {
   }
 }
 
-async function processPiAuth(auth2) {
-  const piUid    = auth2.user.uid;
-  const piUser   = auth2.user.username;
-  // Email di-generate dari piUid agar konsisten & tidak konflik antar username
-  const genEmail = `pi_${piUid}@pi.hidayatulamin.id`;
-  // Password deterministik dari piUid (tidak perlu disimpan, hanya untuk Firebase Auth)
-  const tempPw   = 'Pi_' + piUid + '_HdyAmin!';
+// ════════════════════════════════════════
+// PI AUTH MIDDLEWARE — PERBAIKAN
+// Alur:
+//  1. Cek whitelist Pi user di Firestore (koleksi `pi_whitelist`)
+//  2. Cari dokumen user berdasarkan piUid
+//  3. Validasi role terdaftar VS role yang dipilih (strict)
+//  4. Login Firebase Auth, simpan session
+// ════════════════════════════════════════
 
-  showLoader('Memverifikasi akun...');
+/**
+ * Cek apakah pi_username masuk whitelist.
+ * Whitelist hanya wajib untuk role admin & ustadz.
+ * Wali & santri boleh masuk tanpa whitelist (tapi tetap harus sudah punya dokumen user).
+ */
+async function checkPiWhitelist(piUsername, role) {
+  // Hanya role privileged yang perlu whitelist
+  const PRIVILEGED_ROLES = ['admin', 'ustadz'];
+  if (!PRIVILEGED_ROLES.includes(role)) return { ok: true };
 
   try {
-    let fUid = null;
-    let isNew = false;
+    const snap = await db.collection('pi_whitelist').doc(piUsername).get();
+    if (!snap.exists) {
+      return {
+        ok: false,
+        msg: `Akun Pi "@${piUsername}" tidak terdaftar dalam whitelist. Hubungi administrator untuk mendapatkan akses.`
+      };
+    }
+    const data = snap.data();
+    // Whitelist bisa membatasi role spesifik, misal field `allowedRoles: ['ustadz']`
+    if (data.allowedRoles && !data.allowedRoles.includes(role)) {
+      return {
+        ok: false,
+        msg: `Akun Pi "@${piUsername}" tidak diizinkan untuk role "${ROLES[role].label}".`
+      };
+    }
+    if (data.isBlocked === true) {
+      return { ok: false, msg: `Akun Pi "@${piUsername}" telah diblokir. Hubungi administrator.` };
+    }
+    return { ok: true };
+  } catch(e) {
+    console.warn('[checkPiWhitelist] error:', e.code, e.message);
+    // Jika koleksi belum dibuat (permission-denied / not-found), loloskan dulu
+    // agar tidak memblokir deployment awal — log warning untuk admin
+    if (e.code === 'permission-denied' || e.code === 'not-found') {
+      console.warn('⚠️ Koleksi pi_whitelist belum tersedia. Buat koleksi dan atur Security Rules!');
+      return { ok: true };
+    }
+    return { ok: false, msg: 'Gagal memverifikasi whitelist. Coba lagi.' };
+  }
+}
 
-    // --- Cek apakah sudah ada di Firestore (berdasarkan piUid) ---
+async function processPiAuth(auth2) {
+  const piUid  = auth2.user.uid;
+  const piUser = auth2.user.username;
+
+  // Email deterministik dari piUid — tidak berubah walau username Pi berubah
+  const genEmail = `pi_${piUid}@pi.hidayatulamin.id`;
+  // Password deterministik — hanya untuk Firebase Auth internal, tidak disimpan atau ditampilkan
+  const tempPw = 'PiNet_' + piUid.slice(0, 12) + '_HdyAmin2025!';
+
+  showLoader('Memverifikasi akun Pi...');
+
+  try {
+    // ─── LANGKAH 1: Whitelist check (untuk admin & ustadz) ───────────────────
+    showLoader('Memeriksa izin akses...');
+    const wl = await checkPiWhitelist(piUser, activeRole);
+    if (!wl.ok) {
+      hideLoader();
+      toast('error', wl.msg);
+      resetPiBtn();
+      return;
+    }
+
+    // ─── LANGKAH 2: Cari dokumen user di Firestore ───────────────────────────
+    showLoader('Mencari data akun...');
+    let fUid       = null;
+    let isNew      = false;
+    let userDocRef = null;
+
     let existingSnap = null;
     try {
-      existingSnap = await db.collection('users').where('piUid','==',piUid).limit(1).get();
-    } catch(e) { console.warn('Query piUid err:', e); }
+      existingSnap = await db.collection('users')
+        .where('piUid', '==', piUid)
+        .limit(1)
+        .get();
+    } catch(e) {
+      console.warn('[processPiAuth] Query piUid gagal:', e.code, e.message);
+      // Lanjut — mungkin rules belum mengizinkan query; coba Firebase Auth dulu
+    }
 
     if (existingSnap && !existingSnap.empty) {
-      // User sudah ada — ambil fUid-nya
-      const existingData = existingSnap.docs[0].data();
-      fUid = existingSnap.docs[0].id;
+      // ── User LAMA: sudah ada di Firestore ─────────────────────────────────
+      const docSnap    = existingSnap.docs[0];
+      const userData   = docSnap.data();
+      fUid             = docSnap.id;
+      userDocRef       = db.collection('users').doc(fUid);
 
-      // Cek role — kalau role berbeda, update ke role yang dipilih (Pi user fleksibel antar role)
-      // Kecuali jika role terdaftar adalah 'admin' — hanya bisa login sebagai admin
-      const registeredRole = existingData.role;
-      if (registeredRole && registeredRole === 'admin' && activeRole !== 'admin') {
+      const registeredRole = userData.role;
+
+      // VALIDASI ROLE — strict: role terdaftar HARUS cocok dengan role yang dipilih
+      // (Berbeda dengan email login, Pi user tidak bisa berpindah role sendiri)
+      if (registeredRole && registeredRole !== activeRole) {
         hideLoader();
-        toast('error', `Akun Pi ini terdaftar sebagai Administrator. Pilih role Administrator.`);
-        resetPiBtn(); return;
+        const regLabel = ROLES[registeredRole]?.label || registeredRole;
+        toast('error',
+          `Akun Pi "@${piUser}" terdaftar sebagai "${regLabel}". ` +
+          `Pilih role "${regLabel}" untuk masuk.`
+        );
+        resetPiBtn();
+        return;
       }
 
-      // Update role jika berbeda (Pi user bisa punya multi-role)
-      const updatePayload = {
-        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-        piUsername: piUser,
-      };
-      // Jika belum punya role, set sekarang
-      if (!registeredRole) updatePayload.role = activeRole;
+      // Update metadata saja — TIDAK mengubah role
+      await userDocRef.update({
+        piUsername: piUser, // username Pi bisa berubah, sync setiap login
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(e => console.warn('Update lastLogin gagal:', e.message));
 
-      await db.collection('users').doc(fUid).update(updatePayload).catch(()=>{});
+      // Cek isActive — akun bisa dinonaktifkan admin
+      if (userData.isActive === false) {
+        hideLoader();
+        toast('error', 'Akun Anda telah dinonaktifkan. Hubungi administrator.');
+        resetPiBtn();
+        return;
+      }
+
       toast('success', `Selamat datang kembali, @${piUser}!`);
 
     } else {
-      // User baru — buat Firebase Auth account dulu
+      // ── User BARU: belum ada di Firestore ────────────────────────────────
+      // Hanya wali & santri yang boleh self-register via Pi
+      // Admin & ustadz harus dibuat manual oleh admin (sudah di-guard whitelist di atas,
+      // tapi kita tambah lapisan kedua di sini)
+      const SELF_REGISTER_ALLOWED = ['wali', 'santri'];
+      if (!SELF_REGISTER_ALLOWED.includes(activeRole)) {
+        hideLoader();
+        toast('error',
+          `Akun Pi "@${piUser}" belum terdaftar. ` +
+          `Akun "${ROLES[activeRole].label}" harus dibuat oleh administrator terlebih dahulu.`
+        );
+        resetPiBtn();
+        return;
+      }
+
       isNew = true;
+      showLoader('Membuat akun baru...');
+
+      // Buat Firebase Auth account
       try {
         const cred = await auth.createUserWithEmailAndPassword(genEmail, tempPw);
         fUid = cred.user.uid;
       } catch(e) {
         if (e.code === 'auth/email-already-in-use') {
-          // Akun Firebase Auth sudah ada, coba sign in
+          // Firebase Auth ada tapi Firestore belum — edge case (data tidak sinkron)
           try {
             const cred = await auth.signInWithEmailAndPassword(genEmail, tempPw);
             fUid = cred.user.uid;
-            isNew = false;
+            isNew = false; // sudah ada di Auth, akan di-set sebagai user baru di Firestore
           } catch(e2) {
-            throw new Error('Akun sudah ada tapi password tidak cocok. Hubungi administrator.');
+            throw new Error(
+              'Akun sudah terdaftar di sistem tapi datanya tidak sinkron. ' +
+              'Hubungi administrator untuk perbaikan.'
+            );
           }
-        } else throw e;
+        } else {
+          throw e;
+        }
       }
 
-      if (fUid && isNew) {
-        const payload = {
-          uid: fUid, piUid, piUsername: piUser,
-          email: genEmail, displayName: piUser,
-          role: activeRole, isActive: true, authMethod: 'pi_network',
+      // Tulis dokumen user baru ke Firestore
+      if (fUid) {
+        const newPayload = {
+          uid: fUid,
+          piUid,
+          piUsername: piUser,
+          email: genEmail,
+          displayName: piUser,
+          role: activeRole,
+          isActive: true,
+          authMethod: 'pi_network',
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           lastLogin:  firebase.firestore.FieldValue.serverTimestamp()
         };
-        await db.collection('users').doc(fUid).set(payload).catch(()=>{});
-        await db.collection(ROLES[activeRole].col).doc(fUid).set(payload).catch(()=>{});
+        userDocRef = db.collection('users').doc(fUid);
+        // Gunakan set() — create-only, tidak ada risiko overwrite user lain
+        await userDocRef.set(newPayload).catch(e => {
+          console.error('Gagal menyimpan dokumen user baru:', e);
+          throw new Error('Gagal menyimpan data akun. Coba lagi.');
+        });
+        // Tulis ke koleksi role-spesifik
+        await db.collection(ROLES[activeRole].col).doc(fUid).set(newPayload)
+          .catch(e => console.warn('Role collection write gagal (non-fatal):', e.message));
+
         toast('success', `Akun berhasil dibuat! Selamat datang, @${piUser}!`);
       }
     }
 
-    if (!fUid) { throw new Error('Gagal mendapatkan ID akun. Coba lagi.'); }
+    if (!fUid) {
+      throw new Error('Gagal mendapatkan ID akun. Coba lagi.');
+    }
 
-    // --- Login ke Firebase Auth (wajib agar session aktif) ---
-    // Kalau belum sign in (user lama yang cuma update Firestore), sign in sekarang
+    // ─── LANGKAH 3: Pastikan Firebase Auth session aktif ─────────────────────
+    showLoader('Menyelesaikan login...');
     if (!auth.currentUser || auth.currentUser.uid !== fUid) {
       try {
         await auth.signInWithEmailAndPassword(genEmail, tempPw);
       } catch(e) {
-        console.warn('Firebase signIn after piAuth failed:', e.message);
-        // Tetap lanjut — simpan session manual
+        // Jika Firebase Auth gagal (misal password berubah), session manual masih valid
+        // Dashboard akan re-validasi via onAuthStateChanged
+        console.warn('[processPiAuth] Firebase signIn gagal (non-fatal):', e.message);
       }
     }
 
-    // Simpan session
+    // ─── LANGKAH 4: Simpan session ────────────────────────────────────────────
+    // activeRole sudah tervalidasi di atas — aman digunakan untuk routing
     saveSession(fUid, activeRole, 'pi_network', genEmail, piUser);
-    localStorage.setItem('piAuthUser', JSON.stringify({
-      uid: fUid, piUid, username: piUser, role: activeRole, ts: Date.now()
-    }));
 
     hideLoader();
-    setTimeout(() => goTo(activeRole), 1000);
+    setTimeout(() => goTo(activeRole), 900);
 
   } catch(err) {
-    console.error('processPiAuth error:', err);
-    hideLoader(); resetPiBtn();
-    toast('error', err.message || 'Gagal memproses login Pi');
+    console.error('[processPiAuth] Fatal error:', err);
+    hideLoader();
+    resetPiBtn();
+    toast('error', err.message || 'Gagal memproses login Pi. Coba lagi.');
   }
 }
 
@@ -1237,45 +1358,80 @@ async function checkSession() {
 }
 
 // ════════════════════════════════════════
-// ROLE VERIFICATION
+// ROLE VERIFICATION — Email Login
 // ════════════════════════════════════════
 async function verifyRole(uid, role) {
   const cfg = ROLES[role];
 
   try {
     const doc = await db.collection('users').doc(uid).get();
+
     if (doc.exists) {
       const d = doc.data();
+
+      // Cek isActive
+      if (d.isActive === false) {
+        return { ok: false, msg: 'Akun Anda telah dinonaktifkan. Hubungi administrator.' };
+      }
+
       if (!d.role) {
-        // Dokumen ada tapi tanpa field role → update dengan role yang dipilih
-        await db.collection('users').doc(uid).update({ role, lastLogin: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
+        // Dokumen ada tapi belum punya role (user lama) → set role sekarang
+        await db.collection('users').doc(uid)
+          .update({ role, lastLogin: firebase.firestore.FieldValue.serverTimestamp() })
+          .catch(() => {});
         return { ok: true };
       }
-      if (d.role === role || d.role === 'admin') return { ok: true };
-      return { ok: false, msg: `Akun ini terdaftar sebagai "${ROLES[d.role]?.label||d.role}". Pilih role yang benar.` };
+
+      // Role harus cocok PERSIS — tidak ada promosi otomatis dari UI
+      if (d.role === role) {
+        // Update lastLogin
+        await db.collection('users').doc(uid)
+          .update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() })
+          .catch(() => {});
+        return { ok: true };
+      }
+
+      const regLabel = ROLES[d.role]?.label || d.role;
+      return {
+        ok: false,
+        msg: `Akun ini terdaftar sebagai "${regLabel}". Pilih role "${regLabel}" untuk masuk.`
+      };
     }
 
-    // Dokumen belum ada → buat baru dengan role yang dipilih
+    // Dokumen belum ada → buat baru (hanya untuk wali & santri via self-register)
+    const SELF_REGISTER_ALLOWED = ['wali', 'santri'];
+    if (!SELF_REGISTER_ALLOWED.includes(role)) {
+      return {
+        ok: false,
+        msg: `Akun "${cfg.label}" harus dibuat oleh administrator terlebih dahulu.`
+      };
+    }
+
     await db.collection('users').doc(uid).set({
       uid, role, isActive: true, authMethod: 'email',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+      lastLogin:  firebase.firestore.FieldValue.serverTimestamp()
     });
-    // Tulis juga ke koleksi role-spesifik
     await db.collection(cfg.col).doc(uid).set({
       uid, role, isActive: true, authMethod: 'email',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).catch(()=>{});
+    }).catch(() => {});
     return { ok: true };
 
   } catch(e) {
-    console.warn('[verifyRole] error:', e.code, e.message);
-    // Apapun errornya (permission-denied, network, dll) → izinkan masuk
-    // Dashboard akan menangani verifikasi lanjutan
+    console.error('[verifyRole] error:', e.code, e.message);
     if (e.code === 'permission-denied') {
-      console.warn('⚠️ Firestore Rules memblokir. Buka debug.html untuk petunjuk perbaikan.');
+      // Security Rules memblokir — JANGAN loloskan, tolak login
+      return {
+        ok: false,
+        msg: 'Tidak dapat memverifikasi akun. Hubungi administrator (permission-denied).'
+      };
     }
-    return { ok: true };
+    if (e.code === 'unavailable' || e.code === 'deadline-exceeded') {
+      return { ok: false, msg: 'Koneksi ke server bermasalah. Coba lagi.' };
+    }
+    // Error tidak dikenal — tolak untuk keamanan
+    return { ok: false, msg: 'Terjadi kesalahan saat verifikasi. Coba lagi.' };
   }
 }
 

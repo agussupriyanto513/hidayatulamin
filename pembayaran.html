@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pembayaran | Hidayatulamin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="auth.js"></script>
+<style>
+:root {
+  /* Role colors: diset via JS saat load */
+  --accent:    #8b5cf6;
+  --accent-d:  #7c3aed;
+  --accent-l:  #f0ebff;
+  --pi:        #6d28d9;
+  --pi-l:      #ede9fe;
+  --green:     #0db87a;
+  --green-d:   #059669;
+  --green-l:   #e6f9f2;
+  --blue:      #2d7ef5;
+  --blue-l:    #eaf1fe;
+  --amber:     #f59e0b;
+  --amber-l:   #fef3c7;
+  --red:       #ef4444;
+  --red-l:     #fee2e2;
+  --sgt:       #d97706;
+  --sgt-l:     #fef3c7;
+  --ink:       #0f172a;
+  --ink2:      #1e293b;
+  --g50:       #f8fafc;
+  --g100:      #f1f5f9;
+  --g200:      #e2e8f0;
+  --g300:      #cbd5e1;
+  --g400:      #94a3b8;
+  --g500:      #64748b;
+  --g600:      #475569;
+  --white:     #ffffff;
+  --sh-sm:     0 1px 3px rgba(0,0,0,.06);
+  --sh-md:     0 4px 16px rgba(0,0,0,.08);
+  --sh-lg:     0 12px 40px rgba(0,0,0,.12);
+  --rd:        14px;
+  --rdm:       10px;
+  --rds:       6px;
+  --tr:        all .2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(--ink2);font-size:14px;min-height:100vh;padding-bottom:80px}
+
+/* ═══ TOPBAR ═══ */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.back-btn{width:36px;height:36px;border:1.5px solid var(--g200);background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);text-decoration:none;transition:var(--tr);flex-shrink:0}
+.back-btn:hover{background:var(--accent-l);color:var(--accent);border-color:var(--accent)}
+.topbar-title{flex:1}
+.topbar-title h1{font-size:16px;font-weight:700;color:var(--ink2)}
+.topbar-title p{font-size:11px;color:var(--g400)}
+.sgt-chip{display:flex;align-items:center;gap:5px;background:var(--sgt-l);border:1.5px solid rgba(217,119,6,.2);border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;color:var(--sgt);cursor:pointer;transition:var(--tr);white-space:nowrap}
+.sgt-chip:hover{transform:scale(1.03)}
+
+/* ═══ WRAP ═══ */
+.wrap{max-width:600px;margin:0 auto;padding:16px}
+
+/* ═══ BANNER TAGIHAN ═══ */
+.tagihan-banner{border-radius:var(--rd);padding:20px;margin-bottom:20px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--ink) 0%,#1e293b 60%,#064e3b 100%)}
+.tagihan-banner::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:rgba(13,184,122,.1);border-radius:50%;pointer-events:none}
+.tagihan-banner::after{content:'₴';position:absolute;bottom:-10px;right:16px;font-size:80px;font-weight:900;color:rgba(255,255,255,.04);line-height:1;pointer-events:none}
+.tag-inner{position:relative;z-index:1}
+.tag-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.5);margin-bottom:6px}
+.tag-santri{font-size:16px;font-weight:700;color:#fff;margin-bottom:2px}
+.tag-period{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:16px}
+.tag-row{display:flex;gap:12px;flex-wrap:wrap}
+.tag-item{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px 16px;min-width:120px}
+.tag-item-val{font-size:18px;font-weight:800;color:var(--green);margin-bottom:2px}
+.tag-item-val.red{color:#f87171}
+.tag-item-lbl{font-size:10px;color:rgba(255,255,255,.45);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.tag-status{margin-top:14px;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700}
+.tag-status.lunas{background:rgba(13,184,122,.2);color:#4ade80;border:1px solid rgba(13,184,122,.3)}
+.tag-status.belum{background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.tag-status.menunggak{background:rgba(245,158,11,.2);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+
+/* ═══ METODE PEMBAYARAN ═══ */
+.sec-title{font-size:13px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--g200)}
+
+.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.method-card{border-radius:var(--rd);padding:16px 12px;cursor:pointer;text-align:center;border:2px solid transparent;transition:var(--tr);background:var(--white);box-shadow:var(--sh-sm);position:relative;overflow:hidden}
+.method-card:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+.method-card.active{border-color:var(--accent)}
+.method-card.active::after{content:'✓';position:absolute;top:6px;right:8px;font-size:10px;font-weight:900;color:var(--accent)}
+.method-ico{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:20px;transition:var(--tr)}
+.method-card:hover .method-ico{transform:scale(1.1)}
+.method-name{font-size:12px;font-weight:700;color:var(--ink2)}
+.method-sub{font-size:10px;color:var(--g400);margin-top:2px}
+.method-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;margin-top:4px}
+
+/* Pi card */
+.method-card.pi .method-ico{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+.method-card.pi.active{border-color:#8b5cf6;background:linear-gradient(135deg,rgba(139,92,246,.04),rgba(109,40,217,.07))}
+/* QRIS card */
+.method-card.qris .method-ico{background:linear-gradient(135deg,var(--green),var(--green-d))}
+.method-card.qris.active{border-color:var(--green);background:linear-gradient(135deg,rgba(13,184,122,.04),rgba(5,150,105,.07))}
+/* Bank card */
+.method-card.bank .method-ico{background:linear-gradient(135deg,var(--blue),#1d4ed8)}
+.method-card.bank.active{border-color:var(--blue);background:linear-gradient(135deg,rgba(45,126,245,.04),rgba(29,78,216,.07))}
+
+/* ═══ PAYMENT PANELS ═══ */
+.pay-panel{display:none;animation:fadeUp .25s ease}
+.pay-panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Panel: Pi */
+.pi-panel{background:linear-gradient(135deg,#1a0040,#2d1b69);border-radius:var(--rd);padding:20px;border:1px solid rgba(139,92,246,.3)}
+.pi-sdk-status{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:12px;color:rgba(255,255,255,.5)}
+.pi-sdk-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0}
+.pi-sdk-dot.ready{background:var(--green)}
+
+.pi-user-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:var(--rdm);padding:12px;margin-bottom:14px;display:none}
+.pi-user-card.show{display:flex;align-items:center;gap:10px}
+.pi-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#5b21b6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0}
+.pi-uname{font-size:14px;font-weight:700;color:#fff}
+.pi-pioneer{font-size:10px;color:#c4b5fd}
+
+.pay-type-select{width:100%;padding:11px 14px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:var(--rdm);color:#fff;font-family:inherit;font-size:13px;font-weight:600;margin-bottom:10px;cursor:pointer}
+.pay-type-select option{background:#1e1b4b;color:#fff}
+.pi-amt-display{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--rdm);padding:14px;text-align:center;margin-bottom:14px}
+.pi-amt-val{font-size:28px;font-weight:900;color:#c4b5fd;line-height:1}
+.pi-amt-desc{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px}
+.pi-note-input{width:100%;padding:10px 14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:var(--rdm);color:#fff;font-family:inherit;font-size:13px;margin-bottom:14px;outline:none;transition:var(--tr)}
+.pi-note-input::placeholder{color:rgba(255,255,255,.3)}
+.pi-note-input:focus{border-color:#8b5cf6;background:rgba(255,255,255,.1)}
+
+/* SGT Bonus indicator */
+.sgt-bonus-bar{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#fbbf24}
+.sgt-bonus-ico{font-size:16px;flex-shrink:0}
+.sgt-bonus-val{font-weight:800;font-size:14px}
+
+.btn-pi-pay{width:100%;padding:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:var(--rdm);color:#fff;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr);font-family:inherit;letter-spacing:.02em}
+.btn-pi-pay:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(139,92,246,.4)}
+.btn-pi-pay:disabled{opacity:.5;cursor:not-allowed}
+.btn-pi-login{width:100%;padding:13px;background:rgba(139,92,246,.2);border:1.5px solid rgba(139,92,246,.4);border-radius:var(--rdm);color:#c4b5fd;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr);font-family:inherit}
+.btn-pi-login:hover{background:rgba(139,92,246,.3)}
+
+/* Panel: QRIS */
+.qris-panel{background:var(--white);border-radius:var(--rd);padding:20px;box-shadow:var(--sh-sm);border:1px solid var(--g100)}
+.qris-container{text-align:center;margin-bottom:20px}
+.qris-frame{width:220px;height:220px;margin:0 auto 10px;border:3px solid var(--g200);border-radius:16px;display:flex;align-items:center;justify-content:center;background:var(--g50);position:relative;overflow:hidden}
+.qris-frame canvas{width:100%!important;height:100%!important}
+.qris-logo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:var(--white);border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.qris-label{font-size:11px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.qris-nominal{font-size:22px;font-weight:800;color:var(--ink2)}
+.qris-apps{display:flex;justify-content:center;gap:8px;margin:12px 0;flex-wrap:wrap}
+.qris-app{padding:5px 12px;background:var(--g100);border-radius:20px;font-size:11px;font-weight:600;color:var(--g600)}
+
+.qris-steps{background:var(--green-l);border-radius:var(--rdm);padding:14px;margin-bottom:14px;border:1px solid rgba(13,184,122,.15)}
+.qris-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.qris-step:last-child{margin-bottom:0}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-txt{font-size:12px;color:var(--ink2);line-height:1.5}
+
+.qris-type-select{width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit;margin-bottom:12px;background:var(--white);color:var(--ink2)}
+.btn-confirm-qris{width:100%;padding:13px;background:linear-gradient(135deg,var(--green),var(--green-d));border:none;border-radius:var(--rdm);color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr);font-family:inherit}
+.btn-confirm-qris:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(13,184,122,.3)}
+
+/* Panel: Bank Transfer */
+.bank-panel{background:var(--white);border-radius:var(--rd);padding:20px;box-shadow:var(--sh-sm);border:1px solid var(--g100)}
+.bank-card{background:var(--g50);border:1.5px solid var(--g200);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.bank-logo{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:900;flex-shrink:0}
+.bank-logo.bri{background:linear-gradient(135deg,#0047ff,#2563eb)}
+.bank-logo.bca{background:linear-gradient(135deg,#0055a5,#0070c9)}
+.bank-logo.bsi{background:linear-gradient(135deg,#00704a,#059669)}
+.bank-no{font-size:15px;font-weight:800;color:var(--blue);letter-spacing:1.5px}
+.bank-name{font-size:11px;color:var(--g500)}
+.copy-btn{margin-left:auto;background:var(--blue-l);border:none;border-radius:8px;padding:7px 10px;color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;transition:var(--tr);white-space:nowrap}
+.copy-btn:hover{background:var(--blue);color:#fff}
+.copy-btn.copied{background:var(--green-l);color:var(--green-d)}
+
+.transfer-form{border-top:1px solid var(--g200);padding-top:16px;margin-top:4px}
+.tf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.tf-grp{display:flex;flex-direction:column;gap:4px}
+.tf-grp label{font-size:10px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.5px}
+.tf-grp input,.tf-grp select{padding:9px 12px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:13px;font-family:inherit;color:var(--ink2);background:var(--white);transition:var(--tr)}
+.tf-grp input:focus,.tf-grp select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(45,126,245,.1)}
+.btn-send-transfer{width:100%;padding:13px;background:linear-gradient(135deg,var(--blue),#1d4ed8);border:none;border-radius:var(--rdm);color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr);font-family:inherit;margin-top:14px}
+.btn-send-transfer:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,126,245,.3)}
+
+/* ═══ RIWAYAT PEMBAYARAN ═══ */
+.history-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--g200);padding-bottom:0}
+.htab{padding:8px 14px;font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;border-bottom:2px solid transparent;transition:var(--tr);margin-bottom:-1px}
+.htab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+
+.pay-history{display:none}
+.pay-history.active{display:block}
+
+.ph-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--g100)}
+.ph-item:last-child{border-bottom:none}
+.ph-ico{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ph-ico.pi{background:var(--pi-l);color:#8b5cf6}
+.ph-ico.qris{background:var(--green-l);color:var(--green-d)}
+.ph-ico.bank{background:var(--blue-l);color:var(--blue)}
+.ph-ico.sgt{background:var(--sgt-l);color:var(--sgt)}
+.ph-info{flex:1;min-width:0}
+.ph-name{font-size:13px;font-weight:600;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph-date{font-size:11px;color:var(--g400)}
+.ph-right{text-align:right;flex-shrink:0}
+.ph-amt{font-size:13px;font-weight:800;color:var(--ink2)}
+.ph-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;margin-top:2px}
+.ph-badge.lunas,.ph-badge.completed{background:var(--green-l);color:var(--green-d)}
+.ph-badge.pending{background:var(--amber-l);color:#92400e}
+.ph-badge.menunggu_konfirmasi{background:var(--blue-l);color:var(--blue)}
+.ph-badge.ditolak{background:var(--red-l);color:var(--red)}
+/* fallback amber */
+.ph-badge.pending_konfirmasi{background:var(--amber-l);color:#92400e}
+
+.empty-ph{text-align:center;padding:32px 0;color:var(--g400)}
+.empty-ph i{font-size:32px;display:block;margin-bottom:8px;opacity:.4}
+
+/* ═══ BOTTOM FLOATING ACTIONS ═══ */
+.float-actions{position:fixed;bottom:16px;left:0;right:0;padding:0 16px;z-index:50;pointer-events:none;display:flex;justify-content:center}
+.float-bar{background:var(--white);border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,.15);padding:8px;display:flex;gap:6px;pointer-events:all;max-width:400px;width:100%}
+.float-btn{flex:1;padding:11px;border:none;border-radius:14px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:var(--tr);font-family:inherit}
+.float-btn.pi{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff}
+.float-btn.qris{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff}
+.float-btn.bank{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff}
+.float-btn:hover{transform:translateY(-2px)}
+
+/* ═══ MODAL ═══ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+@media(min-width:520px){.modal-bg{align-items:center}}
+.modal{background:var(--white);border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@media(min-width:520px){.modal{border-radius:var(--rd);animation:fadeIn .2s ease}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.modal-hd{padding:18px 18px 0;display:flex;align-items:center;justify-content:space-between}
+.modal-hd h3{font-size:16px;font-weight:700;color:var(--ink2)}
+.modal-close{width:30px;height:30px;border:none;background:var(--g100);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g500);font-size:13px}
+.modal-body{padding:16px 18px}
+.modal-ft{padding:0 18px 18px;display:flex;gap:8px}
+.btn-sec{flex:0 0 80px;padding:11px;background:var(--g100);border:none;border-radius:var(--rdm);font-size:13px;font-weight:600;color:var(--g600);cursor:pointer;transition:var(--tr);font-family:inherit}
+.btn-sec:hover{background:var(--g200)}
+.btn-primary{flex:1;padding:11px;background:linear-gradient(135deg,var(--accent),var(--accent-d));border:none;border-radius:var(--rdm);font-size:13px;font-weight:700;color:#fff;cursor:pointer;transition:var(--tr);font-family:inherit}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(139,92,246,.3)}
+
+/* Result overlay */
+.result-overlay{position:fixed;inset:0;background:rgba(15,23,42,.9);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:24px}
+.result-overlay.show{display:flex}
+.result-box{background:var(--white);border-radius:20px;padding:32px 24px;text-align:center;max-width:360px;width:100%;animation:scaleIn .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes scaleIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.result-ico{font-size:56px;margin-bottom:16px;line-height:1}
+.result-title{font-size:20px;font-weight:800;color:var(--ink2);margin-bottom:8px}
+.result-msg{font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:6px}
+.result-txid{font-size:10px;color:var(--g400);font-family:'Space Mono',monospace;word-break:break-all;background:var(--g50);padding:8px 10px;border-radius:8px;margin-top:10px;margin-bottom:16px}
+.result-sgt{background:linear-gradient(135deg,var(--sgt-l),#fff7ed);border:1.5px solid rgba(217,119,6,.2);border-radius:12px;padding:12px;margin-bottom:16px}
+.result-sgt-val{font-size:22px;font-weight:900;color:var(--sgt)}
+.result-sgt-lbl{font-size:11px;color:var(--g500)}
+.btn-result-close{width:100%;padding:13px;background:linear-gradient(135deg,var(--ink),var(--ink2));border:none;border-radius:var(--rdm);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:var(--tr)}
+.btn-result-close:hover{opacity:.9}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:500;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{background:var(--ink2);color:#fff;padding:10px 18px;border-radius:30px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(10px);transition:all .3s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:var(--green-d)}
+.toast.error{background:var(--red)}
+
+/* ═══ SGT BADGE ═══ */
+.sgt-earn-badge{background:linear-gradient(135deg,#fef3c7,#fff7ed);border:2px solid rgba(217,119,6,.25);border-radius:var(--rd);padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:12px}
+.sgt-coin-ico{width:46px;height:46px;background:linear-gradient(135deg,var(--amber),var(--sgt));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0}
+.sgt-earn-title{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:2px}
+.sgt-earn-desc{font-size:11px;color:var(--g500);line-height:1.5}
+.sgt-earn-list{margin-top:6px;display:flex;flex-direction:column;gap:3px}
+.sgt-earn-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g600)}
+.sgt-earn-item b{color:var(--sgt)}
+
+/* LOADING */
+.loading-page{position:fixed;inset:0;background:var(--g50);z-index:900;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loading-ring{width:44px;height:44px;border:3px solid var(--g200);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:13px;color:var(--g400)}
+
+@media(max-width:480px){
+  .method-grid{grid-template-columns:repeat(3,1fr)}
+  .tf-row{grid-template-columns:1fr}
+  .tag-row{gap:8px}
+  .tag-item{min-width:100px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-page" id="loadingPage">
+  <div class="loading-ring"></div>
+  <div class="loading-txt">Memuat data pembayaran...</div>
+</div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <a id="backBtn" href="#" class="back-btn" title="Kembali"><i class="fas fa-arrow-left"></i></a>
+  <div class="topbar-title">
+    <h1>Pusat Pembayaran</h1>
+    <p id="topbarSub">Memuat...</p>
+  </div>
+  <div class="sgt-chip" onclick="scrollToSGT()">
+    <span style="font-size:13px;font-weight:900;color:var(--sgt)">₴</span>
+    <span id="topSGTBal">—</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- BANNER TAGIHAN -->
+  <div class="tagihan-banner" id="tagihanBanner">
+    <div class="tag-inner">
+      <div class="tag-label">Tagihan Aktif</div>
+      <div class="tag-santri" id="tagSantriName">—</div>
+      <div class="tag-period" id="tagPeriod">—</div>
+      <div class="tag-row">
+        <div class="tag-item">
+          <div class="tag-item-val" id="tagSPP">—</div>
+          <div class="tag-item-lbl">SPP Bulan Ini</div>
+        </div>
+        <div class="tag-item">
+          <div class="tag-item-val" id="tagTunggakan">Rp 0</div>
+          <div class="tag-item-lbl">Total Tunggakan</div>
+        </div>
+        <div class="tag-item">
+          <div class="tag-item-val" id="tagPiRate">15 π</div>
+          <div class="tag-item-lbl">SPP via Pi</div>
+        </div>
+      </div>
+      <div class="tag-status" id="tagStatus">
+        <i class="fas fa-spinner fa-spin" style="font-size:10px"></i> Mengecek...
+      </div>
+    </div>
+  </div>
+
+  <!-- SGT BONUS INFO -->
+  <div class="sgt-earn-badge">
+    <div class="sgt-coin-ico">₴</div>
+    <div>
+      <div class="sgt-earn-title">Bonus SGT untuk Pembayaran Tepat Waktu</div>
+      <div class="sgt-earn-list">
+        <div class="sgt-earn-item"><i class="fas fa-check-circle" style="color:var(--green);font-size:10px"></i> Bayar SPP → <b>+100 SGT</b></div>
+        <div class="sgt-earn-item"><i class="fas fa-check-circle" style="color:var(--green);font-size:10px"></i> 3 bulan berturut-turut → <b>+300 SGT</b> bonus</div>
+        <div class="sgt-earn-item"><i class="fas fa-star" style="color:var(--amber);font-size:10px"></i> Bayar Pi Network → <b>+50 SGT</b> extra</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILIH METODE -->
+  <div class="sec-title"><i class="fas fa-credit-card"></i> Pilih Metode Pembayaran</div>
+  <div class="method-grid">
+    <div class="method-card pi active" onclick="selectMethod('pi',this)" id="mcPi">
+      <div class="method-ico"><span style="font-size:22px;font-weight:900;color:#fff">π</span></div>
+      <div class="method-name">Pi Network</div>
+      <div class="method-sub">Kripto langsung</div>
+      <span class="method-badge" style="background:#ede9fe;color:#7c3aed">+50 SGT extra</span>
+    </div>
+    <div class="method-card qris" onclick="selectMethod('qris',this)" id="mcQris">
+      <div class="method-ico"><i class="fas fa-qrcode" style="color:#fff"></i></div>
+      <div class="method-name">QRIS</div>
+      <div class="method-sub">Scan & bayar</div>
+      <span class="method-badge" style="background:var(--green-l);color:var(--green-d)">e-Wallet ✓</span>
+    </div>
+    <div class="method-card bank" onclick="selectMethod('bank',this)" id="mcBank">
+      <div class="method-ico"><i class="fas fa-university" style="color:#fff"></i></div>
+      <div class="method-name">Transfer Bank</div>
+      <div class="method-sub">BRI / BCA / BSI</div>
+      <span class="method-badge" style="background:var(--blue-l);color:var(--blue)">Manual</span>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL PI ═══ -->
+  <div class="pay-panel active" id="panel-pi">
+    <div class="pi-panel">
+      <div class="pi-sdk-status">
+        <div class="pi-sdk-dot" id="piSdkDot"></div>
+        <span id="piSdkStatus">Mendeteksi Pi Browser...</span>
+      </div>
+
+      <!-- User sudah login Pi -->
+      <div class="pi-user-card" id="piUserCard">
+        <div class="pi-avatar" id="piAvatar">?</div>
+        <div style="flex:1">
+          <div class="pi-uname" id="piUname">—</div>
+          <div class="pi-pioneer">Pi Pioneer · Terverifikasi ✓</div>
+        </div>
+        <button onclick="piLogout()" style="background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:12px">Ganti</button>
+      </div>
+
+      <!-- Pilih jenis pembayaran -->
+      <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);display:block;margin-bottom:5px">Jenis Pembayaran</label>
+      <select class="pay-type-select" id="piPayType" onchange="updatePiAmt()">
+        <option value="spp_bulan" data-pi="15" data-rp="500000" data-sgt="150">💳 SPP Bulanan — 15 π (≈ Rp 500.000)</option>
+        <option value="spp_tahun" data-pi="150" data-rp="5500000" data-sgt="800">📋 SPP Tahunan — 150 π (≈ Rp 5.500.000)</option>
+        <option value="uang_makan" data-pi="8" data-rp="250000" data-sgt="80">🍽️ Uang Makan — 8 π (≈ Rp 250.000)</option>
+        <option value="seragam" data-pi="10" data-rp="300000" data-sgt="50">👕 Seragam — 10 π (≈ Rp 300.000)</option>
+        <option value="donasi" data-pi="5" data-rp="0" data-sgt="30">🤲 Donasi Yayasan — 5 π</option>
+      </select>
+
+      <!-- Display jumlah -->
+      <div class="pi-amt-display">
+        <div class="pi-amt-val"><span id="piAmtVal">15</span> <span style="font-size:16px;font-weight:900">π</span></div>
+        <div class="pi-amt-desc" id="piAmtDesc">≈ Rp 500.000 · SPP Bulanan</div>
+      </div>
+
+      <!-- Bonus SGT -->
+      <div class="sgt-bonus-bar">
+        <span class="sgt-bonus-ico">₴</span>
+        <div>
+          <span style="font-size:11px;color:rgba(255,255,255,.5)">Bonus SGT didapat: </span>
+          <span class="sgt-bonus-val" id="piSgtBonus">+150 SGT</span>
+          <span style="font-size:11px;color:rgba(255,255,255,.4)"> (termasuk +50 SGT Pi bonus)</span>
+        </div>
+      </div>
+
+      <!-- Catatan -->
+      <input type="text" class="pi-note-input" id="piNote" placeholder="Catatan (misal: atas nama Ahmad Fauzi)">
+
+      <!-- Login atau bayar -->
+      <div id="piActionArea">
+        <button class="btn-pi-login" id="btnPiLogin" onclick="doPiLogin()">
+          <span style="font-size:16px;font-weight:900">π</span> Login Pi untuk Bayar
+        </button>
+      </div>
+      <div id="piPayAction" style="display:none">
+        <button class="btn-pi-pay" id="btnPiPay" onclick="submitPiPayment()">
+          <span style="font-size:18px;font-weight:900">π</span>
+          <span id="btnPiPayTxt">Bayar 15 π Sekarang</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL QRIS ═══ -->
+  <div class="pay-panel" id="panel-qris">
+    <div class="qris-panel">
+      <div class="sec-title" style="margin-bottom:14px"><i class="fas fa-qrcode" style="color:var(--green)"></i> Scan QR untuk Bayar</div>
+
+      <div class="qris-container">
+        <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g400);display:block;margin-bottom:8px">Pilih nominal</label>
+        <select class="qris-type-select" id="qrisPayType" onchange="updateQrisDisplay()">
+          <option value="spp" data-rp="500000">SPP Bulanan — Rp 500.000</option>
+          <option value="spp_tahun" data-rp="5500000">SPP Tahunan — Rp 5.500.000</option>
+          <option value="uang_makan" data-rp="250000">Uang Makan — Rp 250.000</option>
+          <option value="seragam" data-rp="300000">Seragam — Rp 300.000</option>
+          <option value="donasi" data-rp="100000">Donasi — Rp 100.000</option>
+        </select>
+
+        <div class="qris-frame" id="qrisFrame">
+          <!-- QR Code rendered here via JS -->
+          <i class="fas fa-qrcode" style="font-size:80px;color:var(--g300)" id="qrisPlaceholder"></i>
+          <canvas id="qrisCanvas" style="display:none;position:absolute;inset:0;width:100%;height:100%"></canvas>
+          <div class="qris-logo" id="qrisLogo" style="display:none">
+            <span style="font-size:18px">🕌</span>
+          </div>
+        </div>
+        <div class="qris-label">Nominal</div>
+        <div class="qris-nominal" id="qrisNominal">Rp 500.000</div>
+        <div class="qris-apps">
+          <span class="qris-app">GoPay</span>
+          <span class="qris-app">OVO</span>
+          <span class="qris-app">DANA</span>
+          <span class="qris-app">ShopeePay</span>
+          <span class="qris-app">BSI</span>
+        </div>
+      </div>
+
+      <div class="qris-steps">
+        <div class="qris-step"><div class="step-num">1</div><div class="step-txt">Buka aplikasi e-wallet (GoPay, OVO, DANA, dll)</div></div>
+        <div class="qris-step"><div class="step-num">2</div><div class="step-txt">Pilih <b>Scan QR / QRIS</b> → arahkan ke kode di atas</div></div>
+        <div class="qris-step"><div class="step-num">3</div><div class="step-txt">Konfirmasi nominal, kemudian klik <b>Sudah Bayar</b> di bawah ini</div></div>
+      </div>
+
+      <button class="btn-confirm-qris" onclick="openQrisConfirmModal()">
+        <i class="fas fa-check-circle"></i> Sudah Scan & Bayar
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL BANK ═══ -->
+  <div class="pay-panel" id="panel-bank">
+    <div class="bank-panel">
+      <div class="sec-title" style="margin-bottom:14px"><i class="fas fa-university" style="color:var(--blue)"></i> Rekening Tujuan</div>
+
+      <div class="bank-card">
+        <div class="bank-logo bri">BRI</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:2px">Bank BRI</div>
+          <div class="bank-no" id="briNo">1234-01-567890-50-1</div>
+          <div class="bank-name">a/n Yayasan Hidayatullah Amin</div>
+        </div>
+        <button class="copy-btn" onclick="copyRek(this,'1234015678905001')"><i class="fas fa-copy"></i> Salin</button>
+      </div>
+
+      <div class="bank-card">
+        <div class="bank-logo bca">BCA</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:2px">Bank BCA</div>
+          <div class="bank-no" id="bcaNo" style="color:var(--blue)">1234-5678-90</div>
+          <div class="bank-name">a/n Yayasan Hidayatullah Amin</div>
+        </div>
+        <button class="copy-btn" onclick="copyRek(this,'1234567890')"><i class="fas fa-copy"></i> Salin</button>
+      </div>
+
+      <div class="bank-card">
+        <div class="bank-logo bsi">BSI</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:2px">BSI (Bank Syariah Indonesia)</div>
+          <div class="bank-no" id="bsiNo" style="color:var(--green-d)">7120-0012-345</div>
+          <div class="bank-name">a/n Yayasan Hidayatullah Amin</div>
+        </div>
+        <button class="copy-btn" onclick="copyRek(this,'7120001234500')"><i class="fas fa-copy"></i> Salin</button>
+      </div>
+
+      <div class="transfer-form">
+        <div style="font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:12px">Konfirmasi Setelah Transfer</div>
+        <div class="tf-row">
+          <div class="tf-grp">
+            <label>Jenis Pembayaran</label>
+            <select id="transferType">
+              <option value="spp">SPP Bulanan — Rp 500.000</option>
+              <option value="spp_tahun">SPP Tahunan — Rp 5.500.000</option>
+              <option value="uang_makan">Uang Makan — Rp 250.000</option>
+              <option value="seragam">Seragam — Rp 300.000</option>
+              <option value="donasi">Donasi</option>
+            </select>
+          </div>
+          <div class="tf-grp">
+            <label>Nominal (Rp)</label>
+            <input type="number" id="transferNominal" placeholder="500000">
+          </div>
+        </div>
+        <div class="tf-row">
+          <div class="tf-grp">
+            <label>Tanggal Transfer</label>
+            <input type="date" id="transferDate">
+          </div>
+          <div class="tf-grp">
+            <label>Bank Pengirim</label>
+            <input type="text" id="transferBankAsal" placeholder="BRI / BCA / BNI / dll">
+          </div>
+        </div>
+        <div class="tf-grp" style="margin-bottom:0">
+          <label>Nama Pengirim / Catatan</label>
+          <input type="text" id="transferNote" placeholder="Nama pemilik rekening pengirim">
+        </div>
+        <button class="btn-send-transfer" onclick="submitTransfer()">
+          <i class="fas fa-paper-plane"></i> Kirim Konfirmasi ke Admin
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RIWAYAT ═══ -->
+  <div style="margin-top:24px">
+    <div class="sec-title" id="sgtSection"><i class="fas fa-history"></i> Riwayat Pembayaran</div>
+    <div class="history-tabs">
+      <div class="htab active" onclick="switchHistTab('semua',this)">Semua</div>
+      <div class="htab" onclick="switchHistTab('pi',this)">Pi Network</div>
+      <div class="htab" onclick="switchHistTab('fiat',this)">Fiat / QRIS</div>
+      <div class="htab" onclick="switchHistTab('sgt',this)">SGT Diterima</div>
+    </div>
+    <div id="hist-semua" class="pay-history active">
+      <div class="empty-ph"><i class="fas fa-spinner fa-spin"></i><span>Memuat riwayat...</span></div>
+    </div>
+    <div id="hist-pi" class="pay-history">
+      <div class="empty-ph"><i class="fas fa-spinner fa-spin"></i></div>
+    </div>
+    <div id="hist-fiat" class="pay-history">
+      <div class="empty-ph"><i class="fas fa-spinner fa-spin"></i></div>
+    </div>
+    <div id="hist-sgt" class="pay-history">
+      <div class="empty-ph"><i class="fas fa-spinner fa-spin"></i></div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<!-- MODAL: QRIS Konfirmasi -->
+<div class="modal-bg" id="mdlQrisConfirm" onclick="if(event.target===this)closeModal('mdlQrisConfirm')">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3><i class="fas fa-qrcode" style="color:var(--green);margin-right:8px"></i>Konfirmasi Pembayaran QRIS</h3>
+      <button class="modal-close" onclick="closeModal('mdlQrisConfirm')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--g600);margin-bottom:14px;line-height:1.6">
+        Setelah berhasil scan & bayar, isi data di bawah ini untuk dikonfirmasi ke admin. Pembayaran akan diverifikasi dalam <b>1×24 jam</b>.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="tf-grp">
+          <label>Jenis Pembayaran</label>
+          <select id="qrisConfirmType">
+            <option value="spp">SPP Bulanan — Rp 500.000</option>
+            <option value="spp_tahun">SPP Tahunan — Rp 5.500.000</option>
+            <option value="uang_makan">Uang Makan — Rp 250.000</option>
+            <option value="seragam">Seragam — Rp 300.000</option>
+            <option value="donasi">Donasi</option>
+          </select>
+        </div>
+        <div class="tf-grp">
+          <label>Nama Pembayar / Catatan</label>
+          <input type="text" id="qrisConfirmNote" placeholder="Atas nama / keterangan">
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-sec" onclick="closeModal('mdlQrisConfirm')">Batal</button>
+      <button class="btn-primary" onclick="submitQrisConfirm()"><i class="fas fa-check"></i> Kirim Konfirmasi</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-box">
+    <div class="result-ico" id="resultIco">✅</div>
+    <div class="result-title" id="resultTitle">Pembayaran Berhasil!</div>
+    <div class="result-msg" id="resultMsg"></div>
+    <div class="result-sgt" id="resultSgt" style="display:none">
+      <div class="result-sgt-val" id="resultSgtVal">+150 SGT</div>
+      <div class="result-sgt-lbl">Bonus SGT dikreditkan ke wallet Anda</div>
+    </div>
+    <div class="result-txid" id="resultTxid" style="display:none"></div>
+    <button class="btn-result-close" onclick="closeResult()">Tutup</button>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ════════════════════════════════════════
+// STATE & CONFIG
+// ════════════════════════════════════════
+let currentUser   = null;  // Firebase user
+let currentRole   = null;  // 'wali' | 'santri'
+let currentUid    = null;
+let targetId      = null;  // santri's targetId for wali
+let piUser        = null;  // Pi Network user { uid, username }
+let piSDKReady    = false;
+let payHistory    = [];    // cache riwayat
+
+// SPP Rates
+const SPP_RATES = {
+  spp:       { pi: 15,  rp: 500000,  sgt: 100, label: 'SPP Bulanan' },
+  spp_tahun: { pi: 150, rp: 5500000, sgt: 800, label: 'SPP Tahunan' },
+  uang_makan:{ pi: 8,   rp: 250000,  sgt: 80,  label: 'Uang Makan' },
+  seragam:   { pi: 10,  rp: 300000,  sgt: 50,  label: 'Seragam' },
+  donasi:    { pi: 5,   rp: 0,       sgt: 30,  label: 'Donasi' },
+};
+const PI_EXTRA_SGT = 50;  // bonus SGT ekstra kalau pakai Pi
+
+// Akun bank pesantren (bisa dikonfig dari Firestore nanti)
+const BANK_ACCOUNTS = {
+  bri: { name:'BRI', no:'1234-01-567890-50-1', raw:'1234015678905001', an:'Yayasan Hidayatullah Amin' },
+  bca: { name:'BCA', no:'1234-5678-90',        raw:'1234567890',       an:'Yayasan Hidayatullah Amin' },
+  bsi: { name:'BSI', no:'7120-0012-345',        raw:'7120001234500',   an:'Yayasan Hidayatullah Amin' },
+};
+
+// QRIS Dummy (ganti dengan string QRIS asli dari bank)
+const QRIS_STRING = 'https://hidayatulamin.vercel.app/donasi'; // <- ganti dengan QRIS asli
+
+// ════════════════════════════════════════
+// AUTH GUARD
+// ════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+  // Set tanggal default transfer hari ini
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('transferDate').value = today;
+
+  // Baca session
+  const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+  if (!raw) { window.location.href = 'login.html?message=Silakan+login+terlebih+dahulu'; return; }
+
+  let sess;
+  try { sess = JSON.parse(raw); } catch(e) { window.location.href = 'login.html'; return; }
+
+  // Hanya wali & santri yang bisa akses
+  if (!['wali','santri'].includes(sess.role)) {
+    window.location.href = sess.role === 'admin'
+      ? 'dashboard-admin.html'
+      : 'dashboard-ustadz.html';
+    return;
+  }
+
+  currentRole = sess.role;
+  currentUid  = sess.uid;
+  targetId    = sess.targetId || sess.uid;
+
+  // Set back button
+  document.getElementById('backBtn').href = currentRole === 'wali'
+    ? 'dashboard-wali.html'
+    : 'dashboard-santri.html';
+
+  // Set topbar subtitle
+  document.getElementById('topbarSub').textContent = currentRole === 'wali'
+    ? 'Portal Wali · Pembayaran SPP'
+    : 'Portal Santri · Pembayaran';
+
+  // Init Pi SDK
+  initPiSDK();
+
+  // Load all data
+  await Promise.all([
+    loadTagihan(),
+    loadSGTBalance(),
+    loadPayHistory(),
+    renderQRIS(),
+  ]);
+
+  document.getElementById('loadingPage').style.display = 'none';
+});
+
+// ════════════════════════════════════════
+// TAGIHAN LOADER
+// ════════════════════════════════════════
+async function loadTagihan() {
+  try {
+    const now    = new Date();
+    const bulan  = now.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+    document.getElementById('tagPeriod').textContent = 'Periode: ' + bulan;
+
+    // Cari data santri
+    const snapRef = currentRole === 'wali'
+      ? db.collection('santri').where('waliId','==',currentUid).limit(1)
+      : db.collection('santri').doc(targetId);
+
+    let santriData = null;
+    if (currentRole === 'wali') {
+      const snap = await snapRef.get();
+      if (!snap.empty) santriData = snap.docs[0].data();
+    } else {
+      const snap = await snapRef.get();
+      if (snap.exists) santriData = snap.data();
+    }
+
+    const nama = santriData?.namaLengkap || santriData?.nama || 'Santri';
+    document.getElementById('tagSantriName').textContent = nama;
+
+    // Cek status SPP bulan ini
+    const bulanKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const sppSnap  = await db.collection('spp_payments')
+      .where('santriId','==',targetId)
+      .where('bulanKey','==',bulanKey)
+      .limit(1).get();
+
+    if (!sppSnap.empty) {
+      const d = sppSnap.docs[0].data();
+      if (d.status === 'lunas') {
+        document.getElementById('tagSPP').textContent = 'Lunas ✓';
+        document.getElementById('tagSPP').classList.add('lunas');
+        const statusEl = document.getElementById('tagStatus');
+        statusEl.className = 'tag-status lunas';
+        statusEl.innerHTML = '<i class="fas fa-check-circle"></i> SPP Bulan Ini Lunas';
+      } else {
+        document.getElementById('tagSPP').textContent = 'Belum Lunas';
+        document.getElementById('tagSPP').classList.add('red');
+        setStatusBelum();
+      }
+    } else {
+      document.getElementById('tagSPP').textContent = 'Rp 500.000';
+      document.getElementById('tagSPP').classList.add('red');
+      setStatusBelum();
+    }
+
+    // Cek tunggakan
+    const tunggakanSnap = await db.collection('spp_payments')
+      .where('santriId','==',targetId)
+      .where('status','in',['belum','menunggak']).get();
+    const total = tunggakanSnap.docs.reduce((s,d) => s + (d.data().nominal||500000), 0);
+    document.getElementById('tagTunggakan').textContent = total > 0
+      ? 'Rp ' + total.toLocaleString('id-ID')
+      : 'Rp 0';
+    if (total > 0) document.getElementById('tagTunggakan').classList.add('red');
+
+  } catch(e) {
+    console.warn('[loadTagihan] error:', e.message);
+    document.getElementById('tagSantriName').textContent = 'Data Santri';
+    document.getElementById('tagPeriod').textContent = 'Tidak dapat memuat tagihan';
+    setStatusBelum();
+  }
+}
+
+function setStatusBelum() {
+  const statusEl = document.getElementById('tagStatus');
+  statusEl.className = 'tag-status belum';
+  statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Belum Bayar SPP Bulan Ini';
+}
+
+// ════════════════════════════════════════
+// SGT BALANCE
+// ════════════════════════════════════════
+async function loadSGTBalance() {
+  try {
+    const snap = await db.collection('sgt_wallets').doc(currentUid).get();
+    const bal  = snap.exists ? (snap.data().balance || 0) : 0;
+    document.getElementById('topSGTBal').textContent = bal.toLocaleString('id-ID') + ' SGT';
+  } catch(e) {
+    document.getElementById('topSGTBal').textContent = '— SGT';
+  }
+}
+
+// ════════════════════════════════════════
+// METODE SELECT
+// ════════════════════════════════════════
+function selectMethod(method, el) {
+  document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.pay-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + method).classList.add('active');
+}
+
+// ════════════════════════════════════════
+// PI NETWORK
+// ════════════════════════════════════════
+function initPiSDK() {
+  const dot = document.getElementById('piSdkDot');
+  const txt = document.getElementById('piSdkStatus');
+  const inPi = typeof window.Pi !== 'undefined'
+    || navigator.userAgent.toLowerCase().includes('pi browser')
+    || navigator.userAgent.toLowerCase().includes('pibrowser');
+
+  if (!inPi) {
+    txt.textContent = 'Buka di Pi Browser untuk bayar dengan Pi';
+    document.getElementById('btnPiLogin').disabled = true;
+    document.getElementById('btnPiLogin').innerHTML = '<i class="fas fa-mobile-alt"></i> Perlu Pi Browser';
+    return;
+  }
+
+  try {
+    const isSandbox = !window.location.hostname.includes('hidayatulamin.com')
+                   || window.location.hostname === 'localhost';
+    window.Pi.init({ version:'2.0', sandbox: isSandbox });
+    piSDKReady = true;
+    dot.classList.add('ready');
+    txt.textContent = 'Pi Browser terdeteksi ✓';
+  } catch(e) {
+    txt.textContent = 'Pi SDK gagal dimuat. Coba refresh.';
+  }
+}
+
+async function doPiLogin() {
+  if (!piSDKReady) { showToast('error','Buka halaman ini di Pi Browser'); return; }
+  const btn = document.getElementById('btnPiLogin');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghubungkan Pi...';
+  try {
+    const auth2 = await window.Pi.authenticate(['username','payments'], handleIncompletePiPay);
+    piUser = { uid: auth2.user.uid, username: auth2.user.username };
+    showPiUser();
+  } catch(e) {
+    showToast('error', 'Login Pi gagal: ' + (e.message||'coba lagi'));
+    btn.disabled = false;
+    btn.innerHTML = '<span style="font-size:16px;font-weight:900">π</span> Login Pi untuk Bayar';
+  }
+}
+
+function showPiUser() {
+  document.getElementById('piUserCard').classList.add('show');
+  document.getElementById('piAvatar').textContent  = piUser.username[0].toUpperCase();
+  document.getElementById('piUname').textContent   = '@' + piUser.username;
+  document.getElementById('piActionArea').style.display = 'none';
+  document.getElementById('piPayAction').style.display  = 'block';
+}
+
+function piLogout() {
+  piUser = null;
+  document.getElementById('piUserCard').classList.remove('show');
+  document.getElementById('piActionArea').style.display = 'block';
+  document.getElementById('piPayAction').style.display  = 'none';
+  document.getElementById('btnPiLogin').disabled  = false;
+  document.getElementById('btnPiLogin').innerHTML = '<span style="font-size:16px;font-weight:900">π</span> Login Pi untuk Bayar';
+}
+
+function updatePiAmt() {
+  const sel  = document.getElementById('piPayType');
+  const opt  = sel.options[sel.selectedIndex];
+  const pi   = parseFloat(opt.dataset.pi) || 0;
+  const sgt  = parseInt(opt.dataset.sgt)  || 0;
+  const type = sel.value;
+  const rate = SPP_RATES[type] || {};
+
+  document.getElementById('piAmtVal').textContent   = pi;
+  document.getElementById('piAmtDesc').textContent  = `≈ ${rate.rp ? 'Rp '+rate.rp.toLocaleString('id-ID')+' · ' : ''}${rate.label||type}`;
+  document.getElementById('piSgtBonus').textContent = `+${sgt + PI_EXTRA_SGT} SGT`;
+  document.getElementById('btnPiPayTxt').textContent = `Bayar ${pi} π Sekarang`;
+}
+
+async function handleIncompletePiPay(payment) {
+  // Handle pembayaran yang belum selesai dari sesi sebelumnya
+  console.log('[Pi] Incomplete payment found:', payment.identifier);
+  try {
+    await fetch('/api/payments/complete', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction?.txid })
+    });
+  } catch(e) { console.warn('handleIncompletePiPay error:', e); }
+}
+
+async function submitPiPayment() {
+  if (!piUser) { showToast('error','Login Pi terlebih dahulu'); return; }
+
+  const sel     = document.getElementById('piPayType');
+  const type    = sel.value;
+  const opt     = sel.options[sel.selectedIndex];
+  const pi      = parseFloat(opt.dataset.pi) || 0;
+  const sgt     = parseInt(opt.dataset.sgt)  || 0;
+  const rate    = SPP_RATES[type] || {};
+  const note    = document.getElementById('piNote').value.trim();
+  const memo    = `${rate.label||type} - Hidayatulamin ${note ? '- '+note : ''}`;
+  const totalSgt = sgt + PI_EXTRA_SGT;
+
+  const btn = document.getElementById('btnPiPay');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+  try {
+    const result = await new Promise((resolve, reject) => {
+      window.Pi.createPayment(
+        { amount: pi, memo, metadata: { type, santriUid: targetId, waliUid: currentUid, role: currentRole, note } },
+        {
+          onReadyForServerApproval: async (paymentId) => {
+            try {
+              // Simpan ke Firestore dulu (optimistic)
+              await db.collection('spp_payments').add({
+                paymentId,
+                santriId:     targetId,
+                payerId:      currentUid,
+                payerRole:    currentRole,
+                piUid:        piUser.uid,
+                piUsername:   piUser.username,
+                method:       'pi_network',
+                type,
+                typeLabel:    rate.label || type,
+                nominal:      pi,
+                nominalRp:    rate.rp || 0,
+                sgtBonus:     totalSgt,
+                memo,
+                note,
+                status:       'pending',
+                bulanKey:     getBulanKey(),
+                createdAt:    firebase.firestore.FieldValue.serverTimestamp()
+              });
+
+              // Approve via API
+              await fetch('/api/payments/approve', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ paymentId })
+              });
+            } catch(e) { console.error('onReadyForServerApproval err:', e); }
+          },
+
+          onReadyForServerCompletion: async (paymentId, txid) => {
+            try {
+              // Complete via API
+              const res = await fetch('/api/payments/complete', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ paymentId, txid })
+              });
+              if (!res.ok) throw new Error('Complete gagal');
+
+              // Update status di Firestore
+              const snap = await db.collection('spp_payments')
+                .where('paymentId','==',paymentId).limit(1).get();
+              if (!snap.empty) {
+                await snap.docs[0].ref.update({
+                  status:      'lunas',
+                  txid,
+                  completedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+              }
+
+              // Kredit SGT bonus
+              await creditSGT(totalSgt, type, paymentId);
+
+              resolve({ txid, sgt: totalSgt });
+            } catch(e) { reject(e); }
+          },
+
+          onCancel: async (paymentId) => {
+            // Update status cancel
+            const snap = await db.collection('spp_payments')
+              .where('paymentId','==',paymentId).limit(1).get();
+            if (!snap.empty) await snap.docs[0].ref.update({ status:'cancelled' });
+            reject(new Error('Pembayaran dibatalkan'));
+          },
+
+          onError: (error) => {
+            reject(new Error(error?.message || 'Terjadi kesalahan Pi'));
+          }
+        }
+      );
+    });
+
+    showResult('success_pi', result.txid, result.sgt);
+    await Promise.all([loadTagihan(), loadSGTBalance(), loadPayHistory()]);
+
+  } catch(e) {
+    if (e.message !== 'Pembayaran dibatalkan') {
+      showResult('error', e.message);
+    } else {
+      showToast('error', 'Pembayaran dibatalkan');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<span style="font-size:18px;font-weight:900">π</span><span id="btnPiPayTxt">Bayar ${document.getElementById('piAmtVal').textContent} π Sekarang</span>`;
+  }
+}
+
+// ════════════════════════════════════════
+// QRIS
+// ════════════════════════════════════════
+async function renderQRIS() {
+  // Generate QR sederhana menggunakan canvas (tanpa library eksternal)
+  // Untuk production, ganti dengan QR code string dari bank
+  const canvas = document.getElementById('qrisCanvas');
+  const ctx    = canvas.getContext('2d');
+  canvas.width  = 220;
+  canvas.height = 220;
+
+  // Draw placeholder QR pattern (simbolis)
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, 220, 220);
+  ctx.fillStyle = '#0f172a';
+
+  // Sudut kiri atas
+  drawQRCorner(ctx, 20, 20, 50);
+  // Sudut kanan atas
+  drawQRCorner(ctx, 150, 20, 50);
+  // Sudut kiri bawah
+  drawQRCorner(ctx, 20, 150, 50);
+
+  // Data dots
+  const seed = [...QRIS_STRING].reduce((a,c) => a + c.charCodeAt(0), 0);
+  for (let i = 0; i < 8; i++) {
+    for (let j = 0; j < 8; j++) {
+      const val = Math.sin(seed * (i+1) * (j+1)) > 0;
+      if (val && !(i < 3 && j < 3) && !(i > 4 && j < 3) && !(i < 3 && j > 4)) {
+        const x = 80 + i * 8;
+        const y = 20 + j * 8;
+        ctx.fillRect(x, y, 6, 6);
+      }
+    }
+  }
+  for (let i = 0; i < 10; i++) {
+    for (let j = 3; j < 10; j++) {
+      const val = Math.cos(seed * (i+2) * (j+1)) > 0.1;
+      if (val) {
+        const x = 20 + i * 8;
+        const y = 100 + j * 8;
+        ctx.fillRect(x, y, 6, 6);
+      }
+    }
+  }
+
+  document.getElementById('qrisPlaceholder').style.display = 'none';
+  canvas.style.display = 'block';
+  document.getElementById('qrisLogo').style.display = 'flex';
+}
+
+function drawQRCorner(ctx, x, y, size) {
+  // Outer square
+  ctx.fillRect(x, y, size, 7);
+  ctx.fillRect(x, y, 7, size);
+  ctx.fillRect(x + size - 7, y, 7, size);
+  ctx.fillRect(x, y + size - 7, size, 7);
+  // Inner square
+  ctx.fillRect(x + 14, y + 14, size - 28, size - 28);
+}
+
+function updateQrisDisplay() {
+  const sel  = document.getElementById('qrisPayType');
+  const opt  = sel.options[sel.selectedIndex];
+  const rp   = parseInt(opt.dataset.rp) || 0;
+  document.getElementById('qrisNominal').textContent = 'Rp ' + rp.toLocaleString('id-ID');
+  // Sync konfirmasi modal
+  document.getElementById('qrisConfirmType').value = sel.value;
+}
+
+function openQrisConfirmModal() {
+  document.getElementById('qrisConfirmType').value = document.getElementById('qrisPayType').value;
+  document.getElementById('qrisConfirmNote').value = '';
+  document.getElementById('mdlQrisConfirm').classList.add('open');
+}
+
+async function submitQrisConfirm() {
+  const type = document.getElementById('qrisConfirmType').value;
+  const note = document.getElementById('qrisConfirmNote').value.trim();
+  const rate = SPP_RATES[type] || {};
+
+  closeModal('mdlQrisConfirm');
+
+  try {
+    await db.collection('spp_payments').add({
+      santriId:   targetId,
+      payerId:    currentUid,
+      payerRole:  currentRole,
+      method:     'qris',
+      type,
+      typeLabel:  rate.label || type,
+      nominal:    rate.rp || 0,
+      note,
+      status:     'menunggu_konfirmasi',
+      bulanKey:   getBulanKey(),
+      createdAt:  firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showResult('pending', null, 0);
+    loadPayHistory();
+  } catch(e) {
+    showToast('error', 'Gagal kirim konfirmasi: ' + e.message);
+  }
+}
+
+// ════════════════════════════════════════
+// BANK TRANSFER
+// ════════════════════════════════════════
+function copyRek(btn, no) {
+  navigator.clipboard?.writeText(no).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = '<i class="fas fa-check"></i> Disalin!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<i class="fas fa-copy"></i> Salin';
+    }, 2000);
+  }).catch(() => {
+    showToast('error','Tidak bisa menyalin. Salin manual.');
+  });
+}
+
+async function submitTransfer() {
+  const type    = document.getElementById('transferType').value;
+  const nominal = parseInt(document.getElementById('transferNominal').value) || 0;
+  const date    = document.getElementById('transferDate').value;
+  const bank    = document.getElementById('transferBankAsal').value.trim();
+  const note    = document.getElementById('transferNote').value.trim();
+
+  if (!nominal || nominal < 1000) { showToast('error','Isi nominal transfer'); return; }
+  if (!date) { showToast('error','Isi tanggal transfer'); return; }
+  if (!bank && !note) { showToast('error','Isi bank pengirim atau nama'); return; }
+
+  const rate = SPP_RATES[type] || {};
+
+  try {
+    await db.collection('spp_payments').add({
+      santriId:     targetId,
+      payerId:      currentUid,
+      payerRole:    currentRole,
+      method:       'transfer_bank',
+      type,
+      typeLabel:    rate.label || type,
+      nominal,
+      bankAsal:     bank,
+      transferDate: date,
+      note,
+      status:       'menunggu_konfirmasi',
+      bulanKey:     getBulanKey(),
+      createdAt:    firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Reset form
+    ['transferNominal','transferBankAsal','transferNote'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+
+    showResult('pending', null, 0);
+    loadPayHistory();
+  } catch(e) {
+    showToast('error','Gagal: ' + e.message);
+  }
+}
+
+// ════════════════════════════════════════
+// SGT CREDIT
+// ════════════════════════════════════════
+async function creditSGT(amount, type, ref) {
+  if (!amount || amount <= 0) return;
+  try {
+    const walletRef = db.collection('sgt_wallets').doc(currentUid);
+    const walletSnap = await walletRef.get();
+    if (walletSnap.exists) {
+      await walletRef.update({
+        balance:  firebase.firestore.FieldValue.increment(amount),
+        earned:   firebase.firestore.FieldValue.increment(amount),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      await walletRef.set({
+        uid: currentUid, balance: amount, earned: amount, spent: 0,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    // Log transaksi SGT
+    await db.collection('sgt_transactions').add({
+      uid: currentUid, type: 'earn', subtype: 'payment_bonus',
+      amount, ref, paymentType: type,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { console.warn('[creditSGT] error:', e.message); }
+}
+
+// ════════════════════════════════════════
+// RIWAYAT
+// ════════════════════════════════════════
+async function loadPayHistory() {
+  try {
+    // Ambil dari Firestore
+    const snap = await db.collection('spp_payments')
+      .where('payerId','==',currentUid)
+      .orderBy('createdAt','desc')
+      .limit(30).get();
+
+    payHistory = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+
+    renderHistTab('semua');
+    renderHistTab('pi');
+    renderHistTab('fiat');
+    renderHistTab('sgt');
+
+  } catch(e) {
+    console.warn('[loadPayHistory] error:', e.message);
+    document.getElementById('hist-semua').innerHTML =
+      '<div class="empty-ph"><i class="fas fa-exclamation-circle"></i><span>Gagal memuat riwayat</span></div>';
+  }
+}
+
+function renderHistTab(tab) {
+  const el = document.getElementById('hist-' + tab);
+  if (!el) return;
+
+  let data = payHistory;
+  if (tab === 'pi')   data = payHistory.filter(d => d.method === 'pi_network');
+  if (tab === 'fiat') data = payHistory.filter(d => ['qris','transfer_bank'].includes(d.method));
+
+  if (tab === 'sgt') {
+    // Load SGT transactions
+    loadSGTHistory();
+    return;
+  }
+
+  if (!data.length) {
+    el.innerHTML = `<div class="empty-ph"><i class="fas fa-receipt"></i><span>Belum ada transaksi</span></div>`;
+    return;
+  }
+
+  const METHOD_ICO = { pi_network:'fas fa-pi', qris:'fas fa-qrcode', transfer_bank:'fas fa-university' };
+  const METHOD_CLS = { pi_network:'pi', qris:'qris', transfer_bank:'bank' };
+  const METHOD_LABEL = { pi_network:'Pi Network', qris:'QRIS', transfer_bank:'Transfer Bank' };
+  const STATUS_LABEL = {
+    lunas:'Lunas', completed:'Lunas', pending:'Proses',
+    menunggu_konfirmasi:'Menunggu Konfirmasi', cancelled:'Dibatalkan', ditolak:'Ditolak'
+  };
+
+  el.innerHTML = data.map(d => {
+    const cls   = METHOD_CLS[d.method] || 'bank';
+    const ico   = METHOD_ICO[d.method] || 'fa-money-bill';
+    const dt    = d.createdAt?.toDate ? timeAgo(d.createdAt.toDate()) : '—';
+    const amt   = d.method === 'pi_network'
+      ? `${d.nominal} π`
+      : `Rp ${(d.nominal||0).toLocaleString('id-ID')}`;
+    const stCls = (d.status||'').toLowerCase().replace(' ','_');
+    const stLbl = STATUS_LABEL[stCls] || d.status || '—';
+    return `<div class="ph-item">
+      <div class="ph-ico ${cls}"><i class="${ico}"></i></div>
+      <div class="ph-info">
+        <div class="ph-name">${escHtml(d.typeLabel||d.type||'Pembayaran')}</div>
+        <div class="ph-date">${escHtml(METHOD_LABEL[d.method]||d.method||'')} · ${dt}</div>
+      </div>
+      <div class="ph-right">
+        <div class="ph-amt">${amt}</div>
+        <span class="ph-badge ${stCls}">${stLbl}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadSGTHistory() {
+  const el = document.getElementById('hist-sgt');
+  try {
+    const snap = await db.collection('sgt_transactions')
+      .where('uid','==',currentUid)
+      .orderBy('createdAt','desc').limit(20).get();
+
+    if (snap.empty) {
+      el.innerHTML = '<div class="empty-ph"><i class="fas fa-coins"></i><span>Belum ada SGT diterima</span></div>';
+      return;
+    }
+    const SUBTYPE_LABEL = {
+      payment_bonus:'Bonus Pembayaran', referral:'Referral',
+      kegiatan:'Kegiatan', bonus:'Bonus Admin'
+    };
+    el.innerHTML = snap.docs.map(d => {
+      const data = d.data();
+      const dt   = data.createdAt?.toDate ? timeAgo(data.createdAt.toDate()) : '—';
+      const lbl  = SUBTYPE_LABEL[data.subtype] || data.subtype || 'SGT Diterima';
+      return `<div class="ph-item">
+        <div class="ph-ico sgt"><i class="fas fa-coins"></i></div>
+        <div class="ph-info">
+          <div class="ph-name">${escHtml(lbl)}</div>
+          <div class="ph-date">${dt}</div>
+        </div>
+        <div class="ph-right">
+          <div class="ph-amt" style="color:var(--sgt)">+${data.amount} SGT</div>
+          <span class="ph-badge lunas">Dikreditkan</span>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty-ph"><i class="fas fa-coins"></i><span>Belum ada data SGT</span></div>';
+  }
+}
+
+// ════════════════════════════════════════
+// RESULT MODAL
+// ════════════════════════════════════════
+function showResult(type, txid, sgtAmt) {
+  const ov = document.getElementById('resultOverlay');
+  if (type === 'success_pi') {
+    document.getElementById('resultIco').textContent   = '✅';
+    document.getElementById('resultTitle').textContent = 'Pembayaran Berhasil!';
+    document.getElementById('resultMsg').textContent   = 'Pembayaran via Pi Network telah dikonfirmasi. Jazakumullah khairan! 🤲';
+    if (txid) {
+      document.getElementById('resultTxid').style.display = 'block';
+      document.getElementById('resultTxid').textContent   = 'TxID: ' + txid;
+    }
+    if (sgtAmt > 0) {
+      document.getElementById('resultSgt').style.display = 'block';
+      document.getElementById('resultSgtVal').textContent = '+' + sgtAmt + ' SGT';
+    }
+  } else if (type === 'pending') {
+    document.getElementById('resultIco').textContent   = '⏳';
+    document.getElementById('resultTitle').textContent = 'Konfirmasi Terkirim!';
+    document.getElementById('resultMsg').textContent   = 'Pembayaran Anda sedang diverifikasi admin. Biasanya selesai dalam 1×24 jam. Kami akan notifikasi jika sudah dikonfirmasi.';
+    document.getElementById('resultSgt').style.display = 'none';
+    document.getElementById('resultTxid').style.display = 'none';
+  } else {
+    document.getElementById('resultIco').textContent   = '❌';
+    document.getElementById('resultTitle').textContent = 'Pembayaran Gagal';
+    document.getElementById('resultMsg').textContent   = txid || 'Terjadi kesalahan. Coba lagi.';
+    document.getElementById('resultSgt').style.display = 'none';
+    document.getElementById('resultTxid').style.display = 'none';
+  }
+  ov.classList.add('show');
+}
+
+function closeResult() {
+  document.getElementById('resultOverlay').classList.remove('show');
+}
+
+// ════════════════════════════════════════
+// HISTORY TABS
+// ════════════════════════════════════════
+function switchHistTab(tab, el) {
+  document.querySelectorAll('.htab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.pay-history').forEach(h => h.classList.remove('active'));
+  document.getElementById('hist-' + tab).classList.add('active');
+  if (tab === 'sgt') loadSGTHistory();
+}
+
+// ════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════
+function getBulanKey() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function scrollToSGT() {
+  document.getElementById('sgtSection').scrollIntoView({ behavior:'smooth' });
+}
+
+function timeAgo(date) {
+  const d = (Date.now() - date.getTime()) / 1000;
+  if (d < 60)    return 'Baru saja';
+  if (d < 3600)  return Math.floor(d/60) + ' mnt lalu';
+  if (d < 86400) return Math.floor(d/3600) + ' jam lalu';
+  return Math.floor(d/86400) + ' hari lalu';
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showToast(type, msg) {
+  const wrap = document.getElementById('toastWrap');
+  const div  = document.createElement('div');
+  div.className = 'toast ' + (type||'');
+  div.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-exclamation-circle'}"></i><span>${escHtml(msg)}</span>`;
+  wrap.appendChild(div);
+  requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add('show')));
+  setTimeout(() => { div.classList.remove('show'); setTimeout(() => div.remove(),400); }, 3500);
+}
+</script>
+</body>
+</html>

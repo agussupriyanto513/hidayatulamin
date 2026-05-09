@@ -338,8 +338,13 @@ tr:hover td{background:var(--g50)}
   .alloc-grid{grid-template-columns:1fr}
   .sgt-stats{grid-template-columns:1fr 1fr}
 }
+/* ═══ PI DONATIONS PANEL ═══ */
+.pi-prog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.pi-prog-name{font-size:12px;font-weight:600;color:var(--g700)}
+.pi-prog-val{font-size:12px;font-weight:700;color:#8b5cf6}
+.pi-prog-bar{height:6px;background:var(--g100);border-radius:20px;overflow:hidden;margin-bottom:12px}
+.pi-prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#8b5cf6,#6d28d9)}
 </style>
-</head>
 <body>
 
 <!-- SIDEBAR OVERLAY -->
@@ -369,6 +374,8 @@ tr:hover td{background:var(--g50)}
     <a class="nav-item" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)" onclick="switchSection('sgt',this)"><span style="font-size:14px;font-weight:900;color:#d97706;width:16px;text-align:center">₴</span><span style="color:#d97706;font-weight:700">Kelola SGT</span></a>
     <a class="nav-item" id="navPencairan" onclick="switchSection('pencairan',this)"><i class="fas fa-hand-holding-usd" style="color:#d97706"></i><span style="color:#d97706;font-weight:700">Pencairan SGT</span><span class="nav-badge" id="pendingBadge" style="display:none;background:#f59e0b">0</span></a>
     <a class="nav-item" id="navEarnReq" onclick="switchSection('earnreq',this)"><i class="fas fa-paper-plane" style="color:#8b5cf6"></i><span style="color:#8b5cf6;font-weight:700">Pengajuan Reward</span><span class="nav-badge" id="earnBadge" style="display:none;background:#8b5cf6">0</span></a>
+    <a class="nav-item" id="navPiDon" onclick="switchSection('pi-donations',this)" style="background:rgba(109,40,217,.1);border-color:rgba(109,40,217,.2)"><span style="font-size:14px;font-weight:900;color:#8b5cf6;width:16px;text-align:center">π</span><span style="color:#8b5cf6;font-weight:700">Donasi Pi</span><span class="nav-badge" id="piDonBadge" style="display:none;background:#8b5cf6">0</span></a>
+    <a class="nav-item" id="navWhitelist" onclick="switchSection('whitelist',this)" style="background:rgba(13,184,122,.08);border-color:rgba(13,184,122,.2)"><i class="fas fa-shield-alt" style="color:var(--p)"></i><span style="color:var(--p);font-weight:700">Whitelist Pi</span><span class="nav-badge" id="whitelistBadge" style="display:none;background:var(--p)">0</span></a>
     <a href="https://sagatama-mart.vercel.app" target="_blank" class="nav-item" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)"><i class="fas fa-shopping-bag" style="color:var(--acc)"></i><span style="color:var(--acc);font-weight:700">Sagatama Mart</span><i class="fas fa-external-link-alt" style="font-size:9px;color:var(--acc);margin-left:auto"></i></a>
   </nav>
   <div class="sb-foot">
@@ -708,6 +715,79 @@ tr:hover td{background:var(--g50)}
     </div>
 
 
+    <!-- ════ PI DONATIONS MANAGEMENT SECTION ════ -->
+    <div class="section" id="sec-pi-donations">
+      <div class="sec-hd">
+        <div><h3>Manajemen Donasi Pi</h3><p>Riwayat dan monitoring donasi Pi Network dari publik</p></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <a href="pi-donasi.html" target="_blank" class="btn-p" style="text-decoration:none;background:linear-gradient(135deg,#7c3aed,#5b21b6)"><span style="font-size:14px;font-weight:900">π</span> Halaman Donasi</a>
+          <button class="btn-p" onclick="loadPiDonations()"><i class="fas fa-sync-alt" id="piDonRefIco"></i> Refresh</button>
+        </div>
+      </div>
+
+      <!-- PI STATS -->
+      <div class="stats-row" style="margin-bottom:14px">
+        <div class="stat-card v">
+          <div class="sc-top"><div class="sc-ico v"><span style="font-size:16px;font-weight:900">π</span></div></div>
+          <div class="sc-val" id="piDonTotal" style="font-size:22px">—</div>
+          <div class="sc-lbl">Total Pi Terkumpul</div>
+          <div class="sc-sub">Semua transaksi selesai</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-top"><div class="sc-ico g"><i class="fas fa-check-circle"></i></div></div>
+          <div class="sc-val" id="piDonCompleted">—</div>
+          <div class="sc-lbl">Donasi Selesai</div>
+        </div>
+        <div class="stat-card b">
+          <div class="sc-top"><div class="sc-ico b"><i class="fas fa-clock"></i></div></div>
+          <div class="sc-val" id="piDonPending">—</div>
+          <div class="sc-lbl">Menunggu</div>
+        </div>
+        <div class="stat-card o">
+          <div class="sc-top"><div class="sc-ico o"><i class="fas fa-users"></i></div></div>
+          <div class="sc-val" id="piDonDonors">—</div>
+          <div class="sc-lbl">Donatur Unik</div>
+        </div>
+      </div>
+
+      <!-- PROGRAM BREAKDOWN -->
+      <div class="two-col" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-head"><h4>Pi per Program</h4></div>
+          <div class="prog-list" id="piDonByProg">
+            <div style="text-align:center;padding:20px;color:var(--g400)"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h4>10 Donatur Terbesar</h4></div>
+          <div id="piTopDonors" style="display:flex;flex-direction:column;gap:8px">
+            <div style="text-align:center;padding:20px;color:var(--g400)"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS TABLE -->
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Semua Transaksi Donasi Pi</h4><p id="piDonSubtitle">Memuat data...</p></div>
+          <div class="tbl-acts">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="piDonSearch" placeholder="Cari username Pi..." oninput="renderPiDonTable()"></div>
+            <select id="piDonFilter" onchange="renderPiDonTable()" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit">
+              <option value="">Semua Status</option>
+              <option value="completed">Selesai</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Donatur Pi</th><th>Program</th><th>Jumlah</th><th>Status</th><th>TxID</th><th>Waktu</th></tr></thead>
+            <tbody id="piDonTable"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /pi-donations -->
+
     <!-- MODAL DETAIL PENCAIRAN -->
     <div class="modal-bg" id="wdDetailModal" onclick="closeWdModal(event)">
       <div class="modal" style="max-width:480px">
@@ -719,6 +799,151 @@ tr:hover td{background:var(--g50)}
         <div class="modal-ft" id="wdDetailFt"></div>
       </div>
     </div>
+    <!-- ════ PI WHITELIST SECTION ════ -->
+    <div class="section" id="sec-whitelist">
+      <div class="sec-hd">
+        <div>
+          <h3>Whitelist Pi Network</h3>
+          <p>Kelola daftar Pi username yang diizinkan login sebagai Ustadz atau Admin</p>
+        </div>
+        <button class="btn-p" onclick="openWhitelistModal()">
+          <i class="fas fa-plus"></i> Tambah Pi User
+        </button>
+      </div>
+
+      <!-- INFO BANNER -->
+      <div style="background:linear-gradient(135deg,#064e3b,#0f172a);border-radius:var(--rd);padding:16px 20px;margin-bottom:18px;display:flex;align-items:flex-start;gap:14px;border:1px solid rgba(13,184,122,.2)">
+        <div style="width:36px;height:36px;border-radius:9px;background:rgba(13,184,122,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--p);font-size:16px"><i class="fas fa-shield-alt"></i></div>
+        <div>
+          <p style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">Cara kerja whitelist</p>
+          <p style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6">Pi user yang login sebagai <strong style="color:var(--p)">Ustadz</strong> atau <strong style="color:var(--p)">Admin</strong> via Pi Browser wajib terdaftar di sini. Wali & santri tidak memerlukan whitelist. Username bersifat case-sensitive sesuai Pi Network.</p>
+        </div>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+        <div class="stat-card">
+          <div class="sc-top"><div class="sc-ico g"><i class="fas fa-check-shield"></i></div></div>
+          <div class="sc-val" id="wlStatTotal">—</div>
+          <div class="sc-lbl">Total Whitelist</div>
+          <div class="sc-sub">Semua role</div>
+        </div>
+        <div class="stat-card b">
+          <div class="sc-top"><div class="sc-ico b"><i class="fas fa-chalkboard-teacher"></i></div></div>
+          <div class="sc-val" id="wlStatUstadz">—</div>
+          <div class="sc-lbl">Ustadz</div>
+          <div class="sc-sub">Izin login</div>
+        </div>
+        <div class="stat-card" style="border-color:rgba(37,99,235,.1)">
+          <div class="sc-top"><div class="sc-ico" style="background:var(--bl);color:var(--b)"><i class="fas fa-user-shield"></i></div></div>
+          <div class="sc-val" id="wlStatAdmin">—</div>
+          <div class="sc-lbl">Admin</div>
+          <div class="sc-sub">Izin login</div>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4>Daftar Whitelist</h4><p id="wlSubtitle">Memuat data...</p></div>
+          <div class="tbl-acts">
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" id="wlSearch" placeholder="Cari username Pi..." oninput="renderWhitelistTable()">
+            </div>
+            <select id="wlFilterRole" onchange="renderWhitelistTable()" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit">
+              <option value="">Semua Role</option>
+              <option value="ustadz">Ustadz</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Pi Username</th>
+                <th>Role Diizinkan</th>
+                <th>Status</th>
+                <th>Ditambahkan</th>
+                <th>Catatan</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="wlTable">
+              <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /whitelist -->
+
+    <!-- MODAL TAMBAH/EDIT WHITELIST -->
+    <div class="modal-bg" id="wlModalBg" onclick="if(event.target===this)closeWhitelistModal()">
+      <div class="modal" style="max-width:460px">
+        <div class="modal-hd">
+          <h3 id="wlModalTitle"><i class="fas fa-shield-alt" style="color:var(--p);margin-right:8px"></i>Tambah Pi User ke Whitelist</h3>
+          <button class="modal-close" onclick="closeWhitelistModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="wlEditId">
+          <div class="field-grp" style="margin-bottom:16px">
+            <label>Pi Username <span style="color:var(--r)">*</span></label>
+            <div style="position:relative">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:900;color:var(--acc);font-size:15px">@</span>
+              <input type="text" id="wlPiUsername" placeholder="username_pi" style="padding-left:30px"
+                oninput="this.value=this.value.replace(/[^a-z0-9_]/gi,'').toLowerCase()">
+            </div>
+            <p style="font-size:11px;color:var(--g400);margin-top:4px">Hanya huruf kecil, angka, dan underscore. Sesuai username Pi Network persis.</p>
+          </div>
+          <div class="field-grp" style="margin-bottom:16px">
+            <label>Role yang Diizinkan <span style="color:var(--r)">*</span></label>
+            <select id="wlRole">
+              <option value="">Pilih role...</option>
+              <option value="ustadz">Ustadz</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="field-grp" style="margin-bottom:16px">
+            <label>Catatan (opsional)</label>
+            <input type="text" id="wlNote" placeholder="Nama asli, keterangan, dll.">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--g50);border-radius:var(--rdm);border:1.5px solid var(--g200)">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--g600);flex:1">
+              <input type="checkbox" id="wlIsBlocked" style="width:16px;height:16px;accent-color:var(--r)">
+              <span>Blokir akun ini (tidak bisa login)</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-ft">
+          <button class="btn-sec" onclick="closeWhitelistModal()">Batal</button>
+          <button class="btn-p" id="wlSaveBtn" onclick="saveWhitelistEntry()">
+            <i class="fas fa-save"></i> <span id="wlSaveTxt">Simpan</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI HAPUS WHITELIST -->
+    <div class="modal-bg" id="wlDeleteBg" onclick="if(event.target===this)closeDeleteWlModal()">
+      <div class="modal" style="max-width:400px">
+        <div class="modal-hd">
+          <h3><i class="fas fa-trash" style="color:var(--r);margin-right:8px"></i>Hapus dari Whitelist</h3>
+          <button class="modal-close" onclick="closeDeleteWlModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:14px;color:var(--g600);line-height:1.6">Hapus <strong id="wlDeleteName" style="color:var(--ink2)">@username</strong> dari whitelist?</p>
+          <p style="font-size:12px;color:var(--r);margin-top:8px;background:var(--rl);padding:10px;border-radius:8px"><i class="fas fa-exclamation-triangle" style="margin-right:6px"></i>User ini tidak akan bisa login via Pi Network lagi.</p>
+        </div>
+        <div class="modal-ft">
+          <button class="btn-sec" onclick="closeDeleteWlModal()">Batal</button>
+          <button class="btn-p" style="background:var(--r)" id="wlDeleteBtn" onclick="confirmDeleteWl()">
+            <i class="fas fa-trash"></i> Hapus
+          </button>
+        </div>
+      </div>
+    </div>
+
 </div><!-- /main -->
 
 <!-- MODAL BUAT USER -->
@@ -863,7 +1088,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch(e) {
         // permission-denied atau network error → jangan redirect,
         // percayai Firebase Auth yang sudah valid
-        console.warn('Firestore verify error:', e.code, e.message);
         bootDashboard(user, user.displayName || user.email);
       }
       return;
@@ -917,9 +1141,11 @@ function switchSection(name, el) {
   document.getElementById('sec-' + name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
-  setEl('pgTitle', {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token'}[name] || 'Dashboard');
+  const titles = {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token',pencairan:'Pencairan SGT',earnreq:'Pengajuan Reward SGT','pi-donations':'Manajemen Donasi Pi'};
+  setEl('pgTitle', titles[name] || 'Dashboard');
   if (name === 'users') loadAllUsers();
   if (name === 'sgt') { renderAllocGrid(); loadMartStats(); renderDistLog(); }
+  if (name === 'pi-donations') loadPiDonations();
   closeSidebar();
 }
 
@@ -931,7 +1157,7 @@ async function ensureFreshToken() {
   try {
     const user = auth.currentUser;
     if (user) await user.getIdToken(true);
-  } catch(e) { console.warn('Token refresh failed:', e.message); }
+  } catch(e) { }
 }
 
 async function loadDashboardData() {
@@ -946,7 +1172,7 @@ async function loadDashboardData() {
     // Load recent users for welcome screen
     const recentSnap = await db.collection('users').limit(10).get();
     allUsers = recentSnap.docs.map(d => ({id:d.id,...d.data()}));
-  } catch(e) { console.error('loadData:', e); }
+  } catch(e) { }
   initChart();
   renderAllocGrid();
   loadMartStats();
@@ -1239,7 +1465,7 @@ async function doDistribute() {
   } catch(e) {
     if (e.code === 'permission-denied') {
       showToast('error','Permission Denied','Update Firestore Rules di Firebase Console (lihat console)');
-      console.error('%c[SGT Fix] Tambahkan rule /sgt/{userId} allow write: if isAdmin()', 'color:orange;font-weight:bold');
+
     } else {
       showToast('error','Gagal', e.message||'Gagal mendistribusikan SGT');
     }
@@ -1408,7 +1634,6 @@ async function loadWithdrawals() {
     updatePendingBadge();
     setEl('wdLastUpdate', 'Update: ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
   } catch(e) {
-    console.error('loadWithdrawals:', e);
     showToast('error','Gagal Memuat','Tidak bisa load data pencairan: ' + e.message);
   } finally {
     if (ico) ico.classList.remove('fa-spin');
@@ -1532,7 +1757,7 @@ async function approveWd(wdId) {
             await db.collection('users').doc(wd.uid).update({ walletHistory: hist });
           }
         }
-      } catch(e) { console.warn('update walletHistory:', e.message); }
+      } catch(e) { }
     }
 
     // Update local
@@ -1608,7 +1833,7 @@ async function confirmReject(wdId) {
           const currentSgt = userDoc.data().sgt || 0;
           await db.collection('users').doc(wd.uid).update({ sgt: currentSgt + (wd.sgtUsed||0) });
         }
-      } catch(e) { console.warn('reject update user:', e.message); }
+      } catch(e) { }
     }
 
     const local = wdAllData.find(w => w.id === wdId);
@@ -1752,7 +1977,7 @@ async function sendWaToSantri(wd, status, reason) {
       ? `✅ *Pencairan SGT Disetujui*\n\nHai ${wd.santriName||'Santri'}, pencairan kamu telah disetujui!\n\n💰 ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}\n📍 Ke: ${wd.dest||'—'}\n\nProses transfer akan dilakukan segera. Terima kasih!\n\n_Hidayatullah Amin_`
       : `❌ *Pencairan SGT Ditolak*\n\nHai ${wd.santriName||'Santri'}, pencairan kamu ditolak.\n\n💰 ${(wd.sgtUsed||0).toLocaleString()} SGT → ${hasil}\n📝 Alasan: ${reason||'—'}\n\nSaldo SGT kamu telah dikembalikan. Hubungi admin untuk info lebih lanjut.\n\n_Hidayatullah Amin_`;
     await sendFonnteWA(phone, msg);
-  } catch(e) { console.warn('sendWaToSantri:', e.message); }
+  } catch(e) { }
 }
 
 // Fungsi dipanggil dari dashboard-santri setelah submit pencairan (inject ke Firestore withdrawals)
@@ -1768,7 +1993,6 @@ window.submitWithdrawalRequest = async function(uid, santriName, santriNis, txRe
     await sendWaAdminNewRequest({uid, santriName, santriNis, ...txRecord});
     return docRef.id;
   } catch(e) {
-    console.warn('submitWithdrawalRequest:', e.message);
     return null;
   }
 };
@@ -1836,7 +2060,6 @@ async function loadEarnRequests() {
     updateEarnBadge();
     setEl('earnLastUpdate', 'Update: ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}));
   } catch(e) {
-    console.error('loadEarnRequests:', e);
     showToast('error','Gagal Memuat','Tidak bisa load pengajuan reward: ' + e.message);
   } finally {
     if (ico) ico.classList.remove('fa-spin');
@@ -2026,31 +2249,139 @@ async function confirmEarnApprove(id) {
     renderEarnRequests(); updateEarnStats(); updateEarnBadge();
     showToast('success','✅ SGT Dikreditkan',`${sgtAmt.toLocaleString('id-ID')} SGT berhasil dikirim ke wallet ${r.userName||'user'}`);
   } catch(e) {
-    console.error('confirmEarnApprove:', e);
     showToast('error','Gagal', e.message);
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-coins"></i> Kreditkan SGT'; }
   }
 }
 
-// ── Open Reject Modal ──
-function openEarnReject(id) {
-  const r = earnAllData.find(x => x.id === id);
-  if (!r) return;
-  const typeLabel = EARN_TYPE_LABEL[r.type] || r.type;
-  document.getElementById('earnRejectBody').innerHTML = `
-    <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:14px;margin-bottom:16px">
-      <p style="font-size:13px;font-weight:700;color:#c2410c;margin-bottom:4px"><i class="fas fa-exclamation-triangle"></i> Tolak Pengajuan Reward</p>
-      <p style="font-size:12px;color:#92400e">Dari: <b>${escHtml(r.userName||'—')}</b> (${r.role}) — ${typeLabel}</p>
-    </div>
-    <div>
-      <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px">ALASAN PENOLAKAN *</label>
-      <textarea id="earnRejectReason" class="reject-reason" rows="3" placeholder="Contoh: Bukti tidak lengkap, kegiatan tidak sesuai, duplikasi pengajuan, dll..."></textarea>
-    </div>`;
-  document.getElementById('earnRejectFt').innerHTML = `
-    <button class="btn-sec" onclick="closeEarnRejectModal()">Batal</button>
-    <button class="btn-p" style="background:linear-gradient(135deg,var(--r),#dc2626)" onclick="confirmEarnReject('${id}')"><i class="fas fa-times-circle"></i> Konfirmasi Tolak</button>`;
-  document.getElementById('earnRejectModal').classList.add('open');
+// ════ PI DONATIONS MANAGEMENT ════
+let piDonAllData = [];
+
+async function loadPiDonations() {
+  const ico = document.getElementById('piDonRefIco');
+  if (ico) ico.classList.add('fa-spin');
+
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    showToast('error', 'Tidak Login', 'Session habis, silakan login ulang');
+    if (ico) ico.classList.remove('fa-spin');
+    return;
+  }
+
+  try {
+    await ensureFreshToken();
+    const snap = await db.collection('pi_donations').orderBy('createdAt','desc').limit(200).get();
+
+    piDonAllData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    updatePiDonStats();
+    renderPiDonByProg();
+    renderPiTopDonors();
+    renderPiDonTable();
+    document.getElementById('piDonSubtitle').textContent = piDonAllData.length + ' transaksi ditemukan';
+
+    const pending = piDonAllData.filter(x => x.status === 'pending').length;
+    const badge = document.getElementById('piDonBadge');
+    if (badge) { badge.style.display = pending > 0 ? '' : 'none'; badge.textContent = pending; }
+
+  } catch(e) {
+    if (e.code === 'permission-denied') {
+      showToast('error', 'Akses Ditolak', 'Pastikan Firestore Rules mengizinkan admin membaca pi_donations');
+    } else if (e.code === 'failed-precondition') {
+      showToast('error', 'Index Belum Dibuat', 'Buat index Firestore untuk koleksi pi_donations');
+    } else {
+      showToast('error', 'Gagal memuat Pi Donations', e.message);
+    }
+  } finally {
+    if (ico) ico.classList.remove('fa-spin');
+  }
 }
+
+function updatePiDonStats() {
+  const completed = piDonAllData.filter(x => x.status === 'completed');
+  const pending   = piDonAllData.filter(x => x.status === 'pending');
+  const total     = completed.reduce((s, x) => s + (parseFloat(x.amount)||0), 0);
+  const donors    = new Set(completed.map(x => x.donorPiUid)).size;
+  setEl('piDonTotal',     total.toFixed(2) + ' π');
+  setEl('piDonCompleted', completed.length);
+  setEl('piDonPending',   pending.length);
+  setEl('piDonDonors',    donors);
+}
+
+function renderPiDonByProg() {
+  const el = document.getElementById('piDonByProg');
+  const completed = piDonAllData.filter(x => x.status === 'completed');
+  const totalPi   = completed.reduce((s, x) => s + (parseFloat(x.amount)||0), 0);
+  const byProg = {};
+  completed.forEach(x => {
+    const k = x.progLabel || x.program || 'Umum';
+    byProg[k] = (byProg[k] || 0) + (parseFloat(x.amount)||0);
+  });
+  if (!Object.keys(byProg).length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Belum ada donasi selesai</div>';
+    return;
+  }
+  el.innerHTML = Object.entries(byProg).sort((a,b) => b[1]-a[1]).map(([k,v]) => {
+    const pct = totalPi > 0 ? Math.round(v/totalPi*100) : 0;
+    return `<div>
+      <div class="pi-prog-row"><span class="pi-prog-name">${escHtml(k)}</span><span class="pi-prog-val">${v.toFixed(2)} π (${pct}%)</span></div>
+      <div class="pi-prog-bar"><div class="pi-prog-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderPiTopDonors() {
+  const el = document.getElementById('piTopDonors');
+  const completed = piDonAllData.filter(x => x.status === 'completed');
+  const byUser = {};
+  completed.forEach(x => {
+    const k = x.donorUsername || 'anonymous';
+    byUser[k] = (byUser[k] || 0) + (parseFloat(x.amount)||0);
+  });
+  const sorted = Object.entries(byUser).sort((a,b) => b[1]-a[1]).slice(0,10);
+  if (!sorted.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Belum ada donatur</div>';
+    return;
+  }
+  el.innerHTML = sorted.map(([name, total], i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px;background:var(--g50);border-radius:8px">
+      <span style="width:20px;font-size:11px;font-weight:700;color:var(--g400);flex-shrink:0">#${i+1}</span>
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">${name[0].toUpperCase()}</div>
+      <span style="flex:1;font-size:12px;font-weight:600;color:var(--ink2)">@${escHtml(name)}</span>
+      <span style="font-size:12px;font-weight:800;color:#8b5cf6">${total.toFixed(2)} π</span>
+    </div>`).join('');
+}
+
+function renderPiDonTable() {
+  const tbody  = document.getElementById('piDonTable');
+  const q      = (document.getElementById('piDonSearch')?.value||'').toLowerCase();
+  const filter = document.getElementById('piDonFilter')?.value || '';
+  let data = piDonAllData.filter(x => {
+    if (filter && x.status !== filter) return false;
+    if (q && !(x.donorUsername||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--g400)">Tidak ada data</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(x => {
+    const status = x.status === 'completed'
+      ? '<span class="chip chip-aktif">✅ Selesai</span>'
+      : '<span class="chip" style="background:var(--wl);color:var(--w)">⏳ Pending</span>';
+    const txid   = x.txid ? `<span style="font-size:10px;font-family:monospace;color:var(--g400)" title="${x.txid}">${x.txid.slice(0,10)}...</span>` : '—';
+    const time   = x.completedAt ? new Date(x.completedAt.toDate()).toLocaleString('id-ID') : (x.createdAt ? new Date(x.createdAt.toDate()).toLocaleString('id-ID') : '—');
+    return `<tr>
+      <td><div class="u-cell"><div class="u-av-sm" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff">${(x.donorUsername||'?')[0].toUpperCase()}</div><div class="u-det"><div class="u-nm">@${escHtml(x.donorUsername||'anonymous')}</div></div></div></td>
+      <td>${escHtml(x.progLabel||x.program||'—')}</td>
+      <td><b style="color:#8b5cf6">${(parseFloat(x.amount)||0)} π</b></td>
+      <td>${status}</td>
+      <td>${txid}</td>
+      <td style="font-size:11px;color:var(--g500)">${time}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ════ END PI DONATIONS ════
 
 async function confirmEarnReject(id) {
   const reason = document.getElementById('earnRejectReason')?.value?.trim();
@@ -2101,6 +2432,257 @@ function openEarnDetail(id) {
 
 function closeEarnModal()       { document.getElementById('earnApproveModal').classList.remove('open'); }
 function closeEarnRejectModal() { document.getElementById('earnRejectModal').classList.remove('open'); }
+
+// ════════════════════════════════════════════════════════════════
+// PI WHITELIST MANAGEMENT
+// Koleksi Firestore: pi_whitelist/{piUsername}
+// Schema dokumen:
+//   piUsername   : string  — key utama (doc ID)
+//   allowedRoles : array   — ['ustadz'] atau ['admin'] atau ['admin','ustadz']
+//   isBlocked    : boolean — true = blokir sementara
+//   note         : string  — catatan admin (opsional)
+//   addedBy      : string  — uid admin yang menambahkan
+//   addedAt      : timestamp
+//   updatedAt    : timestamp
+// ════════════════════════════════════════════════════════════════
+
+let wlAllData    = []; // cache data whitelist
+let wlDeleteTarget = null; // username yang akan dihapus
+
+// ── Load data whitelist dari Firestore ──────────────────────────
+async function loadWhitelist() {
+  const tbody    = document.getElementById('wlTable');
+  const subtitle = document.getElementById('wlSubtitle');
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr>`;
+
+  try {
+    const snap = await db.collection('pi_whitelist').orderBy('addedAt', 'desc').get();
+    wlAllData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    updateWhitelistStats();
+    renderWhitelistTable();
+  } catch(e) {
+    console.error('[loadWhitelist] error:', e);
+    if (e.code === 'failed-precondition') {
+      // Index belum ada — fallback tanpa orderBy
+      try {
+        const snap2 = await db.collection('pi_whitelist').get();
+        wlAllData = snap2.docs.map(d => ({ id: d.id, ...d.data() }));
+        updateWhitelistStats();
+        renderWhitelistTable();
+      } catch(e2) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--r)"><i class="fas fa-exclamation-circle"></i> Gagal memuat: ${escHtml(e2.message)}</td></tr>`;
+      }
+    } else {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--r)"><i class="fas fa-exclamation-circle"></i> Gagal memuat: ${escHtml(e.message)}</td></tr>`;
+    }
+  }
+}
+
+// ── Update statistik di stat cards ─────────────────────────────
+function updateWhitelistStats() {
+  const active   = wlAllData.filter(d => !d.isBlocked);
+  const ustadz   = active.filter(d => (d.allowedRoles||[]).includes('ustadz'));
+  const adminWl  = active.filter(d => (d.allowedRoles||[]).includes('admin'));
+  setEl('wlStatTotal',  wlAllData.length);
+  setEl('wlStatUstadz', ustadz.length);
+  setEl('wlStatAdmin',  adminWl.length);
+  // Badge di sidebar
+  const badge = document.getElementById('whitelistBadge');
+  if (badge) {
+    badge.textContent = wlAllData.length;
+    badge.style.display = wlAllData.length > 0 ? '' : 'none';
+  }
+}
+
+// ── Render tabel dengan filter & search ────────────────────────
+function renderWhitelistTable() {
+  const tbody    = document.getElementById('wlTable');
+  const subtitle = document.getElementById('wlSubtitle');
+  const q        = (document.getElementById('wlSearch')?.value || '').toLowerCase().trim();
+  const roleF    = document.getElementById('wlFilterRole')?.value || '';
+
+  let data = wlAllData;
+  if (q)     data = data.filter(d => d.id.toLowerCase().includes(q) || (d.note||'').toLowerCase().includes(q));
+  if (roleF) data = data.filter(d => (d.allowedRoles||[]).includes(roleF));
+
+  subtitle.textContent = `${data.length} dari ${wlAllData.length} entri`;
+
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--g400)">
+      <i class="fas fa-shield-alt" style="font-size:28px;margin-bottom:8px;display:block;opacity:.3"></i>
+      ${wlAllData.length === 0 ? 'Belum ada whitelist. Klik "Tambah Pi User" untuk mulai.' : 'Tidak ada data yang cocok.'}
+    </td></tr>`;
+    return;
+  }
+
+  const ROLE_COLORS = { ustadz: 'var(--acc)', admin: 'var(--b)' };
+  const ROLE_LABELS = { ustadz: 'Ustadz', admin: 'Admin' };
+
+  tbody.innerHTML = data.map(d => {
+    const rolesHtml = (d.allowedRoles || []).map(r =>
+      `<span style="background:${ROLE_COLORS[r]||'var(--g200)'};color:#fff;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;margin-right:4px">${ROLE_LABELS[r]||r}</span>`
+    ).join('');
+
+    const statusHtml = d.isBlocked
+      ? `<span style="background:var(--rl);color:var(--r);font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700"><i class="fas fa-ban" style="font-size:9px;margin-right:3px"></i>Diblokir</span>`
+      : `<span style="background:var(--pl);color:var(--pd);font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700"><i class="fas fa-check-circle" style="font-size:9px;margin-right:3px"></i>Aktif</span>`;
+
+    const addedAt = d.addedAt?.toDate
+      ? d.addedAt.toDate().toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' })
+      : '—';
+
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#5b21b6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900;flex-shrink:0">π</div>
+          <div>
+            <div style="font-weight:700;color:var(--ink2);font-size:13px">@${escHtml(d.id)}</div>
+          </div>
+        </div>
+      </td>
+      <td>${rolesHtml || '<span style="color:var(--g400);font-size:12px">—</span>'}</td>
+      <td>${statusHtml}</td>
+      <td style="font-size:12px;color:var(--g500)">${addedAt}</td>
+      <td style="font-size:12px;color:var(--g500);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(d.note||'')}">${escHtml(d.note||'—')}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button onclick="openEditWhitelist('${escHtml(d.id)}')" style="width:30px;height:30px;border:1.5px solid var(--g200);background:var(--white);border-radius:8px;cursor:pointer;color:var(--g500);transition:var(--tr)" title="Edit"><i class="fas fa-edit"></i></button>
+          <button onclick="openDeleteWlModal('${escHtml(d.id)}')" style="width:30px;height:30px;border:1.5px solid var(--rl);background:var(--white);border-radius:8px;cursor:pointer;color:var(--r);transition:var(--tr)" title="Hapus"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Modal: Tambah baru ──────────────────────────────────────────
+function openWhitelistModal() {
+  document.getElementById('wlModalTitle').innerHTML = '<i class="fas fa-shield-alt" style="color:var(--p);margin-right:8px"></i>Tambah Pi User ke Whitelist';
+  document.getElementById('wlEditId').value = '';
+  document.getElementById('wlPiUsername').value = '';
+  document.getElementById('wlPiUsername').disabled = false;
+  document.getElementById('wlRole').value = '';
+  document.getElementById('wlNote').value = '';
+  document.getElementById('wlIsBlocked').checked = false;
+  document.getElementById('wlSaveTxt').textContent = 'Simpan';
+  document.getElementById('wlModalBg').classList.add('open');
+}
+
+// ── Modal: Edit existing ────────────────────────────────────────
+function openEditWhitelist(piUsername) {
+  const entry = wlAllData.find(d => d.id === piUsername);
+  if (!entry) return;
+  document.getElementById('wlModalTitle').innerHTML = '<i class="fas fa-edit" style="color:var(--b);margin-right:8px"></i>Edit Whitelist';
+  document.getElementById('wlEditId').value = piUsername;
+  document.getElementById('wlPiUsername').value = piUsername;
+  document.getElementById('wlPiUsername').disabled = true; // ID tidak bisa diubah
+  document.getElementById('wlRole').value = (entry.allowedRoles || [])[0] || '';
+  document.getElementById('wlNote').value = entry.note || '';
+  document.getElementById('wlIsBlocked').checked = !!entry.isBlocked;
+  document.getElementById('wlSaveTxt').textContent = 'Update';
+  document.getElementById('wlModalBg').classList.add('open');
+}
+
+function closeWhitelistModal() {
+  document.getElementById('wlModalBg').classList.remove('open');
+}
+
+// ── Simpan / update ke Firestore ───────────────────────────────
+async function saveWhitelistEntry() {
+  const editId    = document.getElementById('wlEditId').value.trim();
+  const isEdit    = !!editId;
+  const username  = isEdit ? editId : (document.getElementById('wlPiUsername').value.trim().toLowerCase());
+  const role      = document.getElementById('wlRole').value;
+  const note      = document.getElementById('wlNote').value.trim();
+  const isBlocked = document.getElementById('wlIsBlocked').checked;
+
+  // Validasi
+  if (!username) { showToast('warn', 'Username wajib', 'Isi Pi username terlebih dahulu'); return; }
+  if (!/^[a-z0-9_]{2,30}$/.test(username)) {
+    showToast('warn', 'Format salah', 'Username hanya boleh huruf kecil, angka, underscore (2–30 karakter)');
+    return;
+  }
+  if (!role) { showToast('warn', 'Role wajib', 'Pilih role yang diizinkan'); return; }
+
+  const btn = document.getElementById('wlSaveBtn');
+  btn.disabled = true;
+  document.getElementById('wlSaveTxt').textContent = 'Menyimpan...';
+
+  try {
+    const payload = {
+      allowedRoles: [role],
+      isBlocked,
+      note: note || '',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    };
+
+    if (!isEdit) {
+      // Cek duplikat
+      const existing = await db.collection('pi_whitelist').doc(username).get();
+      if (existing.exists) {
+        showToast('warn', 'Sudah ada', `@${username} sudah terdaftar di whitelist`);
+        btn.disabled = false;
+        document.getElementById('wlSaveTxt').textContent = 'Simpan';
+        return;
+      }
+      payload.piUsername = username;
+      payload.addedBy    = currentAdminUid || 'admin';
+      payload.addedAt    = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('pi_whitelist').doc(username).set(payload);
+      showToast('success', 'Berhasil', `@${username} ditambahkan ke whitelist sebagai ${role}`);
+    } else {
+      await db.collection('pi_whitelist').doc(username).update(payload);
+      showToast('success', 'Diperbarui', `Data @${username} berhasil diupdate`);
+    }
+
+    closeWhitelistModal();
+    await loadWhitelist();
+
+  } catch(e) {
+    console.error('[saveWhitelistEntry] error:', e);
+    showToast('error', 'Gagal', e.message || 'Terjadi kesalahan');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('wlSaveTxt').textContent = isEdit ? 'Update' : 'Simpan';
+  }
+}
+
+// ── Modal konfirmasi hapus ──────────────────────────────────────
+function openDeleteWlModal(piUsername) {
+  wlDeleteTarget = piUsername;
+  document.getElementById('wlDeleteName').textContent = `@${piUsername}`;
+  document.getElementById('wlDeleteBg').classList.add('open');
+}
+function closeDeleteWlModal() {
+  wlDeleteTarget = null;
+  document.getElementById('wlDeleteBg').classList.remove('open');
+}
+async function confirmDeleteWl() {
+  if (!wlDeleteTarget) return;
+  const btn = document.getElementById('wlDeleteBtn');
+  btn.disabled = true;
+  try {
+    await db.collection('pi_whitelist').doc(wlDeleteTarget).delete();
+    showToast('success', 'Dihapus', `@${wlDeleteTarget} dihapus dari whitelist`);
+    closeDeleteWlModal();
+    await loadWhitelist();
+  } catch(e) {
+    showToast('error', 'Gagal hapus', e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Hook ke switchSection ───────────────────────────────────────
+// Patch switchSection agar load whitelist saat section dibuka
+const _origSwitch = typeof switchSection === 'function' ? switchSection : null;
+if (_origSwitch) {
+  window.switchSection = function(name, el) {
+    _origSwitch(name, el);
+    if (name === 'whitelist' && wlAllData.length === 0) loadWhitelist();
+  };
+}
+
+// ════ END PI WHITELIST ════
 
 </script>
 </body>
