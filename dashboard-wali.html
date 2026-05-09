@@ -646,63 +646,58 @@ tr:hover td{background:var(--g50)}
   </div><!-- /content -->
 </div><!-- /main -->
 
-<!-- MODAL BAYAR PI (DIPERBAIKI) -->
+<!-- MODAL BAYAR PI -->
 <div class="modal-bg" id="mdlPiPay" onclick="if(event.target===this)closeModal('mdlPiPay')">
-  <div class="modal" style="max-width:460px">
+  <div class="modal" style="max-width:440px">
     <div class="modal-hd">
       <h3><span style="font-size:16px;font-weight:900;color:#8b5cf6">π</span> Bayar dengan Pi Network</h3>
       <button class="modal-close" onclick="closeModal('mdlPiPay')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-      <div style="background:linear-gradient(135deg,#1e1433,#3d1078);border-radius:12px;padding:14px;margin-bottom:14px;display:flex;gap:10px;align-items:center">
-        <div style="width:40px;height:40px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0">π</div>
-        <div><p style="font-size:13px;font-weight:700;color:#fff">Pembayaran Pi Network</p><p style="font-size:11px;color:rgba(255,255,255,.5)">Bayar SPP & donasi pesantren dengan Pi Coin</p></div>
+      <!-- Sandbox notice -->
+      <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start">
+        <i class="fas fa-flask" style="color:#d97706;margin-top:2px;flex-shrink:0"></i>
+        <p style="font-size:11px;color:#92400e;line-height:1.6"><b>Mode Testnet</b> — Pembayaran ini menggunakan Pi testnet. Tidak ada Pi asli yang digunakan.</p>
       </div>
+      <!-- Pi Login Area -->
       <div id="piPayLoginArea">
-        <p style="font-size:12px;color:var(--g500);margin-bottom:10px;text-align:center"><i class="fas fa-info-circle" style="color:var(--b)"></i> Buka di <strong>Pi Browser</strong> dan login Pi untuk melanjutkan</p>
-        <button id="btnPiLoginWali" onclick="waliPiLogin()" style="width:100%;padding:13px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-          <span style="font-size:18px;font-weight:900">π</span> Login dengan Pi Network
+        <p style="font-size:12px;color:var(--g500);margin-bottom:10px;text-align:center">Login dengan Pi Network untuk melanjutkan pembayaran</p>
+        <button id="btnPiLoginWali" onclick="waliPiLogin()" style="width:100%;padding:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+          <span style="font-size:16px;font-weight:900">π</span> Login dengan Pi Network
         </button>
       </div>
+      <!-- Pi User Area -->
       <div id="piPayUserArea" style="display:none">
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(13,184,122,.08);border:1.5px solid rgba(13,184,122,.25);border-radius:12px;padding:12px;margin-bottom:16px">
-          <div id="piPayAvatar" style="width:36px;height:36px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0">?</div>
-          <div style="flex:1"><p id="piPayUsername" style="font-size:13px;font-weight:700;color:var(--ink2)">—</p><p style="font-size:10px;color:var(--p)"><i class="fas fa-check-circle"></i> Pi Pioneer Terverifikasi</p></div>
-          <button onclick="waliPiLogout()" style="background:var(--g100);border:none;border-radius:7px;padding:5px 10px;font-size:11px;color:var(--g500);cursor:pointer">Ganti</button>
+        <div style="display:flex;align-items:center;gap:8px;background:rgba(13,184,122,.08);border:1px solid rgba(13,184,122,.2);border-radius:10px;padding:10px;margin-bottom:14px">
+          <div id="piPayAvatar" style="width:32px;height:32px;background:linear-gradient(135deg,var(--p),var(--pd));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff">?</div>
+          <div style="flex:1"><p id="piPayUsername" style="font-size:13px;font-weight:700;color:var(--ink2)">—</p><p style="font-size:10px;color:var(--g400)">Pioneer Pi Network ✓</p></div>
+          <button onclick="waliPiLogout()" style="background:none;border:none;font-size:11px;color:var(--g400);cursor:pointer">Ganti</button>
         </div>
-        <div style="margin-bottom:12px">
-          <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Jenis Pembayaran</label>
-          <select id="piPayType" onchange="updatePiPayAmount()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:13px;font-family:inherit;background:#fff">
-            <option value="spp_bulan" data-amt="15">📋 SPP Bulanan (15 π)</option>
-            <option value="spp_tahun" data-amt="150">📋 SPP Tahunan (150 π)</option>
-            <option value="uang_makan" data-amt="30">🍽️ Uang Makan Bulanan (30 π)</option>
-            <option value="seragam" data-amt="10">👔 Seragam (10 π)</option>
-            <option value="buku" data-amt="5">📚 Buku & Alat Tulis (5 π)</option>
-            <option value="kegiatan" data-amt="8">🎪 Biaya Kegiatan (8 π)</option>
-            <option value="donasi_umum" data-amt="0">🤲 Donasi Umum (bebas)</option>
+        <!-- Jenis Pembayaran -->
+        <div class="field-grp" style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:5px">JENIS PEMBAYARAN</label>
+          <select id="piPayType" onchange="updatePiPayAmount()" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:13px;font-family:inherit">
+            <option value="spp_bulan" data-amt="15">SPP Bulanan (15 π)</option>
+            <option value="spp_tahun" data-amt="150">SPP Tahunan (150 π)</option>
+            <option value="uang_makan" data-amt="30">Uang Makan Bulanan (30 π)</option>
+            <option value="seragam" data-amt="10">Seragam (10 π)</option>
+            <option value="donasi_umum" data-amt="0">Donasi Umum (jumlah bebas)</option>
           </select>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div>
-            <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Jumlah (π)</label>
-            <input type="number" id="piPayAmount" value="15" min="0.01" step="0.01" oninput="updatePiEstIdr()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:18px;font-weight:800;font-family:inherit;color:#8b5cf6">
-          </div>
-          <div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.2);border-radius:10px;padding:10px;display:flex;flex-direction:column;justify-content:center;text-align:center">
-            <p style="font-size:10px;color:var(--g400);margin-bottom:3px">Estimasi IDR</p>
-            <p id="piPayEstIdr" style="font-size:14px;font-weight:800;color:#7c3aed">Rp ~112.500</p>
-            <p style="font-size:9px;color:var(--g300)">*kurs Pi saat ini</p>
-          </div>
+        <div class="field-grp" style="margin-bottom:12px">
+          <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:5px">JUMLAH (π)</label>
+          <input type="number" id="piPayAmount" value="15" min="0.01" step="0.01" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:16px;font-weight:700;font-family:inherit">
         </div>
-        <div>
-          <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Catatan (opsional)</label>
-          <input type="text" id="piPayNote" placeholder="Misal: SPP atas nama Ahmad Fauzi" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:13px;font-family:inherit">
+        <div class="field-grp" style="margin-bottom:0">
+          <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:5px">CATATAN (opsional)</label>
+          <input type="text" id="piPayNote" placeholder="Misal: SPP atas nama Ahmad" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:13px;font-family:inherit">
         </div>
       </div>
     </div>
     <div class="modal-ft">
       <button class="btn-sec" onclick="closeModal('mdlPiPay')">Batal</button>
-      <button id="btnDoPiPay" onclick="submitPiPay()" style="padding:11px 20px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px" disabled>
-        <span style="font-size:16px;font-weight:900">π</span> Bayar dengan Pi
+      <button id="btnDoPiPay" onclick="submitPiPay()" style="padding:10px 18px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px" disabled>
+        <span style="font-size:14px;font-weight:900">π</span> Bayar dengan Pi
       </button>
     </div>
   </div>
@@ -762,7 +757,6 @@ const DEMO_NOTIF=[
 // ════ AUTH ════
 document.addEventListener('DOMContentLoaded', () => {
   updateDate();
-  initDashPiSDK(); // inisialisasi Pi SDK di background
 
   // Tunggu event authReady dari auth.js
   window.addEventListener('authReady', async ({ detail }) => {
@@ -770,63 +764,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = detail.data;
 
     if (!user) {
-      // Cek apakah ada session Pi yang valid
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          const age = Date.now() - (sess.ts || 0);
-          if (sess.role === 'wali' && age < 8*60*60*1000) {
-            // Session Pi masih valid, lanjutkan dengan data terbatas
-            currentUid = sess.uid;
-            const nm = sess.piUsername || sess.email || 'Wali';
-            setEl('greetName', nm);
-            setEl('uName', nm);
-            setEl('uAv', (nm[0]||'W').toUpperCase());
-            // Set waliPiUser jika login via Pi
-            if (sess.authMethod === 'pi_network' && sess.piUsername) {
-              waliPiUser = { uid: sess.uid, username: sess.piUsername };
-            }
-            await loadWaliData(sess.uid);
-            return;
-          }
-        } catch(e) {}
-      }
       window.location.href = 'login.html';
       return;
     }
-
-    // Cek role — wali bisa login dengan email atau Pi
-    if (data?.role && data.role !== 'wali') {
+    if (data?.role !== 'wali') {
       await firebase.auth().signOut().catch(() => {});
-      sessionStorage.removeItem('currentUser');
-      localStorage.removeItem('currentUser');
       window.location.href = 'login.html';
       return;
     }
 
     currentUid = user.uid;
     waliData = data;
-
-    // Ambil nama dari berbagai sumber
-    const nm = data?.namaLengkap || data?.nama || data?.displayName || data?.piUsername || user.email;
+    const nm = data?.namaLengkap || data?.nama || data?.displayName || user.email;
     setEl('greetName', nm);
     setEl('uName', nm);
-    setEl('uAv', (nm[0]||'W').toUpperCase());
-
-    // Restore Pi user dari session jika login via Pi
-    const raw = localStorage.getItem('piAuthUser');
-    if (raw) {
-      try {
-        const piSess = JSON.parse(raw);
-        const age = Date.now() - (piSess.ts || 0);
-        if (piSess.username && age < 8*60*60*1000) {
-          waliPiUser = { uid: piSess.uid || user.uid, username: piSess.username };
-          console.log('Pi user restored:', waliPiUser.username);
-        }
-      } catch(e) {}
-    }
-
+    setEl('uAv', nm[0]?.toUpperCase() || 'W');
     loadWaliData(user.uid);
   });
 });
@@ -1278,29 +1230,11 @@ function closeModalOut(e,id){if(e.target===document.getElementById(id))closeModa
 let waliPiSDKReady = false;
 let waliPiUser = null;
 
-function initDashPiSDK() {
-  // Coba inisialisasi Pi SDK di background dengan retry
-  let attempts = 0;
-  const tryInit = () => {
-    attempts++;
-    try {
-      if (typeof window.Pi === 'undefined') throw new Error('Pi not loaded');
-      window.Pi.init({ version: '2.0', sandbox: false });
-      waliPiSDKReady = true;
-      console.log('Dashboard Pi SDK ready');
-    } catch(e) {
-      if (attempts < 15) setTimeout(tryInit, 600);
-    }
-  };
-  if (typeof window.Pi !== 'undefined') tryInit();
-  else window.addEventListener('load', tryInit);
-}
-
 function initWaliPiSDK() {
-  if (waliPiSDKReady) return true;
   if (!window.Pi) { showToast('warn','Pi SDK','Buka halaman ini di Pi Browser'); return false; }
   try {
-    window.Pi.init({ version: '2.0', sandbox: false });
+    const isSandbox = !window.location.hostname.includes('hidayatulamin.com');
+    window.Pi.init({ version: '2.0', sandbox: isSandbox });
     waliPiSDKReady = true;
     return true;
   } catch(e) {
@@ -1314,19 +1248,6 @@ function openPiPayModal() {
   openModal('mdlPiPay');
   if (waliPiUser) {
     showWaliPiUser();
-  } else {
-    // Cek session Pi dari localStorage
-    const raw = localStorage.getItem('piAuthUser');
-    if (raw) {
-      try {
-        const piSess = JSON.parse(raw);
-        const age = Date.now() - (piSess.ts || 0);
-        if (piSess.username && age < 8*60*60*1000) {
-          waliPiUser = { uid: piSess.uid || currentUid, username: piSess.username };
-          showWaliPiUser();
-        }
-      } catch(e) {}
-    }
   }
 }
 
@@ -1355,33 +1276,17 @@ function showWaliPiUser() {
   document.getElementById('piPayUserArea').style.display  = 'block';
   document.getElementById('piPayUsername').textContent    = '@' + waliPiUser.username;
   document.getElementById('piPayAvatar').textContent      = waliPiUser.username[0].toUpperCase();
-  const btn = document.getElementById('btnDoPiPay');
-  btn.disabled = false;
-  btn.style.opacity = '1';
-  btn.style.pointerEvents = 'auto';
-  updatePiEstIdr();
-}
-
-function updatePiEstIdr() {
-  const amt = parseFloat(document.getElementById('piPayAmount')?.value || '0');
-  // Estimasi kurs Pi ~7.500 IDR (2025)
-  const idr = Math.round(amt * 7500);
-  const el = document.getElementById('piPayEstIdr');
-  if (el) el.textContent = 'Rp ~' + idr.toLocaleString('id-ID');
+  document.getElementById('btnDoPiPay').disabled = false;
 }
 
 function waliPiLogout() {
   waliPiUser = null;
-  localStorage.removeItem('piAuthUser');
   document.getElementById('piPayLoginArea').style.display = 'block';
   document.getElementById('piPayUserArea').style.display  = 'none';
-  const btn = document.getElementById('btnDoPiPay');
-  btn.disabled = true;
-  btn.style.opacity = '.5';
-  btn.style.pointerEvents = 'none';
-  const loginBtn = document.getElementById('btnPiLoginWali');
-  loginBtn.disabled = false;
-  loginBtn.innerHTML = '<span style="font-size:18px;font-weight:900">π</span> Login dengan Pi Network';
+  document.getElementById('btnDoPiPay').disabled = true;
+  const btn = document.getElementById('btnPiLoginWali');
+  btn.disabled = false;
+  btn.innerHTML = '<span style="font-size:16px;font-weight:900">π</span> Login dengan Pi Network';
 }
 
 function updatePiPayAmount() {
@@ -1418,7 +1323,6 @@ async function submitPiPay() {
                 paymentId,
                 donorPiUid:    waliPiUser.uid,
                 donorUsername: waliPiUser.username,
-                paidByUid:     currentUid,
                 amount:        amt,
                 memo,
                 program:       type.value,
@@ -1465,22 +1369,11 @@ async function loadPiPayHistory() {
   if (!el) return;
   if (!currentUid) return;
   try {
-    // Query berdasarkan piUid kalau ada, atau fallback ke donorPiUid = uid firebase
-    const piUidToSearch = waliPiUser?.uid || 'none';
-    let snap = await db.collection('pi_donations')
-      .where('donorPiUid','==', piUidToSearch)
+    const snap = await db.collection('pi_donations')
+      .where('donorPiUid','==', waliPiUser?.uid || 'none')
       .orderBy('createdAt','desc').limit(10).get();
-
-    // Fallback: cari berdasarkan uid firebase jika belum ada dengan piUid
-    if (snap.empty && currentUid) {
-      snap = await db.collection('pi_donations')
-        .where('paidByUid','==', currentUid)
-        .orderBy('createdAt','desc').limit(10).get().catch(()=>({empty:true,docs:[]}));
-    }
-
-    const count = snap.size || snap.docs?.length || 0;
-    document.getElementById('piPayCount').textContent = count + ' transaksi';
-    if (!count) {
+    document.getElementById('piPayCount').textContent = snap.size + ' transaksi';
+    if (snap.empty) {
       el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-receipt"></i><br>Belum ada riwayat pembayaran Pi</div>';
       return;
     }
