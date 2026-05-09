@@ -939,20 +939,42 @@ function detectPi() {
     return;
   }
 
-  try {
-    window.Pi.init({ version: '2.0', sandbox: false });
-    piReady = true;
-  } catch(e) {
-    console.warn('Pi SDK init failed:', e);
-  }
+  // Pi SDK bisa belum siap saat DOMContentLoaded — retry sampai berhasil
+  let attempts = 0;
+  const tryInit = () => {
+    attempts++;
+    try {
+      if (typeof window.Pi === 'undefined') throw new Error('Pi not defined');
+      window.Pi.init({ version: '2.0', sandbox: false });
+      piReady = true;
+      console.log('Pi SDK initialized OK');
+    } catch(e) {
+      console.warn(`Pi SDK init attempt ${attempts}:`, e.message);
+      if (attempts < 10) setTimeout(tryInit, 500);
+      else console.error('Pi SDK gagal setelah 10 percobaan');
+    }
+  };
+  tryInit();
 }
 
 async function doPiLogin() {
-  if (!inPiBrowser || !piReady) {
+  if (!inPiBrowser) {
     toast('warning', 'Buka aplikasi ini di Pi Browser untuk login dengan Pi Network');
     return;
   }
   if (!activeRole) { toast('error', 'Pilih peran Anda terlebih dahulu'); return; }
+
+  // Jika SDK belum siap, coba init dulu
+  if (!piReady) {
+    try {
+      if (typeof window.Pi === 'undefined') throw new Error('Pi SDK belum tersedia');
+      window.Pi.init({ version: '2.0', sandbox: false });
+      piReady = true;
+    } catch(e) {
+      toast('warning', 'Pi SDK belum siap. Pastikan Anda membuka halaman ini di Pi Browser dan coba lagi.');
+      return;
+    }
+  }
 
   const btn = document.getElementById('piBtn');
   btn.disabled = true;
@@ -1003,17 +1025,24 @@ async function processPiAuth(auth2) {
       const existingData = existingSnap.docs[0].data();
       fUid = existingSnap.docs[0].id;
 
-      // Cek role — kalau role berbeda, tolak
-      if (existingData.role && existingData.role !== activeRole && existingData.role !== 'admin') {
+      // Cek role — kalau role berbeda, update ke role yang dipilih (Pi user fleksibel antar role)
+      // Kecuali jika role terdaftar adalah 'admin' — hanya bisa login sebagai admin
+      const registeredRole = existingData.role;
+      if (registeredRole && registeredRole === 'admin' && activeRole !== 'admin') {
         hideLoader();
-        toast('error', `Akun Pi ini terdaftar sebagai ${ROLES[existingData.role]?.label || existingData.role}. Pilih role yang benar.`);
+        toast('error', `Akun Pi ini terdaftar sebagai Administrator. Pilih role Administrator.`);
         resetPiBtn(); return;
       }
 
-      await db.collection('users').doc(fUid).update({
+      // Update role jika berbeda (Pi user bisa punya multi-role)
+      const updatePayload = {
         lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-        piUsername: piUser, // update username kalau berubah
-      }).catch(()=>{});
+        piUsername: piUser,
+      };
+      // Jika belum punya role, set sekarang
+      if (!registeredRole) updatePayload.role = activeRole;
+
+      await db.collection('users').doc(fUid).update(updatePayload).catch(()=>{});
       toast('success', `Selamat datang kembali, @${piUser}!`);
 
     } else {
@@ -1063,7 +1092,7 @@ async function processPiAuth(auth2) {
     }
 
     // Simpan session
-    saveSession(fUid, activeRole, 'pi_network');
+    saveSession(fUid, activeRole, 'pi_network', genEmail, piUser);
     localStorage.setItem('piAuthUser', JSON.stringify({
       uid: fUid, piUid, username: piUser, role: activeRole, ts: Date.now()
     }));
@@ -1258,9 +1287,9 @@ function goTo(role) {
   window.location.href = ROLES[role].page;
 }
 
-function saveSession(uid, role, method, email) {
+function saveSession(uid, role, method, email, piUsername) {
   // Gunakan localStorage agar sesi bertahan saat redirect antar halaman
-  const session = JSON.stringify({ uid, role, email: email||'', authMethod: method, ts: Date.now() });
+  const session = JSON.stringify({ uid, role, email: email||'', authMethod: method, piUsername: piUsername||'', ts: Date.now() });
   localStorage.setItem('currentUser', session);
   sessionStorage.setItem('currentUser', session); // backup fallback
 }
