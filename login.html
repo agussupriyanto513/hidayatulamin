@@ -1087,7 +1087,27 @@ async function processPiAuth(auth2) {
         .get();
     } catch(e) {
       console.warn('[processPiAuth] Query piUid gagal:', e.code, e.message);
-      // Lanjut — mungkin rules belum mengizinkan query; coba Firebase Auth dulu
+    }
+
+    // ── Fallback: cari berdasarkan piUsername jika piUid tidak cocok ──────────
+    // Ini terjadi saat admin buat akun manual tanpa piUid (hanya piUsername)
+    if (!existingSnap || existingSnap.empty) {
+      try {
+        const snapByUsername = await db.collection('users')
+          .where('piUsername', '==', piUser)
+          .limit(1)
+          .get();
+        if (!snapByUsername.empty) {
+          existingSnap = snapByUsername;
+          console.log('[processPiAuth] Ditemukan via piUsername:', piUser);
+          // Simpan piUid yang benar ke dokumen ini agar pencarian berikutnya lebih cepat
+          await db.collection('users').doc(snapByUsername.docs[0].id)
+            .update({ piUid })
+            .catch(e => console.warn('Update piUid gagal (non-fatal):', e.message));
+        }
+      } catch(e) {
+        console.warn('[processPiAuth] Query piUsername gagal:', e.code, e.message);
+      }
     }
 
     if (existingSnap && !existingSnap.empty) {
@@ -1100,7 +1120,6 @@ async function processPiAuth(auth2) {
       const registeredRole = userData.role;
 
       // VALIDASI ROLE — strict: role terdaftar HARUS cocok dengan role yang dipilih
-      // (Berbeda dengan email login, Pi user tidak bisa berpindah role sendiri)
       if (registeredRole && registeredRole !== activeRole) {
         hideLoader();
         const regLabel = ROLES[registeredRole]?.label || registeredRole;
@@ -1112,12 +1131,6 @@ async function processPiAuth(auth2) {
         return;
       }
 
-      // Update metadata saja — TIDAK mengubah role
-      await userDocRef.update({
-        piUsername: piUser, // username Pi bisa berubah, sync setiap login
-        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(e => console.warn('Update lastLogin gagal:', e.message));
-
       // Cek isActive — akun bisa dinonaktifkan admin
       if (userData.isActive === false) {
         hideLoader();
@@ -1125,6 +1138,41 @@ async function processPiAuth(auth2) {
         resetPiBtn();
         return;
       }
+
+      // ── Pastikan Firebase Auth account ada untuk user ini ─────────────────
+      // Akun yang dibuat admin manual (via dashboard) mungkin belum punya
+      // Firebase Auth account Pi (genEmail). Coba login, kalau gagal buat baru.
+      showLoader('Menyiapkan sesi login...');
+      let piAuthUid = null;
+      try {
+        const piCred = await auth.signInWithEmailAndPassword(genEmail, tempPw);
+        piAuthUid = piCred.user.uid;
+      } catch(authErr) {
+        if (authErr.code === 'auth/user-not-found' || authErr.code === 'auth/invalid-credential' || authErr.code === 'auth/invalid-login-credentials') {
+          // Buat Firebase Auth account baru menggunakan genEmail deterministik
+          try {
+            const newCred = await auth.createUserWithEmailAndPassword(genEmail, tempPw);
+            piAuthUid = newCred.user.uid;
+            console.log('[processPiAuth] Firebase Auth dibuat untuk user existing:', piUser);
+          } catch(createErr) {
+            console.warn('[processPiAuth] Gagal buat Firebase Auth:', createErr.message);
+            // Gunakan fUid dari Firestore doc sebagai fallback
+            piAuthUid = fUid;
+          }
+        } else {
+          console.warn('[processPiAuth] signIn gagal (non-fatal):', authErr.message);
+          piAuthUid = fUid;
+        }
+      }
+
+      // Sinkronkan fUid — gunakan uid dari Firestore doc (yang sudah ada)
+      // karena dokumen sudah benar, yang perlu disinkronkan hanya Firebase Auth
+      // Update metadata saja — TIDAK mengubah role
+      await userDocRef.update({
+        piUsername: piUser,
+        piUid,
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(e => console.warn('Update metadata gagal:', e.message));
 
       toast('success', `Selamat datang kembali, @${piUser}!`);
 

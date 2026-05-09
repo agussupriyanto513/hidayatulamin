@@ -982,6 +982,20 @@ tr:hover td{background:var(--g50)}
       </div>
       <div class="field-grp" style="margin-bottom:14px"><label>Email *</label><input type="email" id="fEmail" placeholder="email@contoh.com"></div>
       <div class="field-grp" style="margin-bottom:14px"><label>Password *</label><input type="password" id="fPass" placeholder="Minimal 6 karakter"></div>
+      <!-- Pi Username — muncul otomatis untuk role admin & ustadz -->
+      <div id="xPiUsername" style="display:none;margin-bottom:14px">
+        <div class="field-grp">
+          <label>Pi Username <span style="font-size:10px;font-weight:500;color:var(--g400)">(wajib untuk Admin & Ustadz agar bisa login via Pi Browser)</span></label>
+          <div style="position:relative">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:900;color:var(--acc);font-size:15px">@</span>
+            <input type="text" id="fPiUsername" placeholder="username_pi_network" style="padding-left:30px"
+              oninput="this.value=this.value.replace(/[^a-z0-9_]/gi,'').toLowerCase()">
+          </div>
+          <p style="font-size:11px;color:var(--b);margin-top:5px;padding:6px 10px;background:var(--bl);border-radius:6px">
+            <i class="fas fa-info-circle"></i> Username ini akan otomatis ditambahkan ke <strong>Whitelist Pi</strong> sekaligus disimpan di profil user.
+          </p>
+        </div>
+      </div>
       <div id="xSantri" style="display:none">
         <div class="field-row">
           <div class="field-grp"><label>NIS</label><input type="text" id="fNIS" placeholder="Nomor Induk Santri"></div>
@@ -1274,8 +1288,9 @@ window.toggleUser = async (uid, isActive) => {
 // ════ CREATE USER ════
 function onRoleChange() {
   const role = document.getElementById('fRole').value;
-  document.getElementById('xSantri').style.display = role==='santri' ? 'block' : 'none';
-  document.getElementById('xWali').style.display   = role==='wali'   ? 'block' : 'none';
+  document.getElementById('xSantri').style.display    = role==='santri'  ? 'block' : 'none';
+  document.getElementById('xWali').style.display      = role==='wali'    ? 'block' : 'none';
+  document.getElementById('xPiUsername').style.display = (role==='admin' || role==='ustadz') ? 'block' : 'none';
 }
 
 async function createUser() {
@@ -1284,9 +1299,21 @@ async function createUser() {
   const email = document.getElementById('fEmail').value.trim();
   const pass  = document.getElementById('fPass').value;
   const verif = document.getElementById('fVerif').checked;
+  const piUsername = document.getElementById('fPiUsername')?.value.trim().toLowerCase() || '';
 
   if (!name || !role || !email || !pass) { showToast('warn','Lengkapi Data','Semua field wajib diisi'); return; }
   if (pass.length < 6) { showToast('warn','Password Lemah','Minimal 6 karakter'); return; }
+
+  // Validasi Pi username untuk role privileged
+  const PRIVILEGED = ['admin','ustadz'];
+  if (PRIVILEGED.includes(role) && !piUsername) {
+    showToast('warn','Pi Username Kosong',`Role ${role} wajib mengisi Pi Username agar bisa login lewat Pi Browser`);
+    return;
+  }
+  if (piUsername && !/^[a-z0-9_]{2,30}$/.test(piUsername)) {
+    showToast('warn','Format Pi Username Salah','Hanya huruf kecil, angka, underscore (2–30 karakter)');
+    return;
+  }
 
   setEl('createTxt','Memproses...');
   document.getElementById('createBtn').disabled = true;
@@ -1296,6 +1323,20 @@ async function createUser() {
     const adminUser = auth.currentUser;
     const adminUid  = adminUser?.uid;
     if (!adminUid) { showToast('error','Sesi Berakhir','Silakan login ulang'); return; }
+
+    // Cek duplikat Pi username di whitelist (untuk admin & ustadz)
+    if (PRIVILEGED.includes(role) && piUsername) {
+      const wlSnap = await db.collection('pi_whitelist').doc(piUsername).get();
+      if (wlSnap.exists && wlSnap.data().isBlocked !== true) {
+        const existingRole = (wlSnap.data().allowedRoles || [])[0];
+        if (existingRole && existingRole !== role) {
+          showToast('warn','Konflik Whitelist',`@${piUsername} sudah terdaftar di whitelist sebagai "${existingRole}"`);
+          document.getElementById('createBtn').disabled = false;
+          setEl('createTxt','Buat User');
+          return;
+        }
+      }
+    }
 
     // Gunakan secondary app instance agar sesi admin utama tidak tergantikan
     const secondaryApp = firebase.apps.find(a => a.name === '__secondary__') ||
@@ -1313,8 +1354,7 @@ async function createUser() {
     if (verif) await cred.user.sendEmailVerification().catch(()=>{});
     await cred.user.updateProfile({ displayName: name }).catch(()=>{});
 
-    // Sign out secondary — ini bisa trigger onAuthStateChanged di main app sesaat
-    // Auth guard sudah aman karena dashboardReady = true dan kita cek auth.currentUser
+    // Sign out secondary
     await secondaryAuth.signOut();
 
     // Tunggu sebentar agar auth state settle, lalu lepas flag
@@ -1330,22 +1370,41 @@ async function createUser() {
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       lastLogin: null
     };
+    if (piUsername) { payload.piUsername = piUsername; }
     if (role === 'santri') { payload.nis = document.getElementById('fNIS').value.trim(); payload.kelas = document.getElementById('fKelas').value; }
     if (role === 'wali')   { payload.phone = document.getElementById('fPhone').value.trim(); payload.hubungan = document.getElementById('fHubungan').value; }
+
+    // Pastikan token admin masih fresh sebelum write ke Firestore
+    await ensureFreshToken();
 
     const batch = db.batch();
     batch.set(db.collection('users').doc(uid), payload);
     const colMap = {admin:'admins',ustadz:'ustadz',santri:'santri',wali:'wali_santri'};
     batch.set(db.collection(colMap[role]).doc(uid), payload);
 
-    // Pastikan token admin masih fresh sebelum write ke Firestore
-    await ensureFreshToken();
+    // ── Otomatis tulis ke pi_whitelist untuk role admin & ustadz ──
+    if (PRIVILEGED.includes(role) && piUsername) {
+      batch.set(db.collection('pi_whitelist').doc(piUsername), {
+        piUsername,
+        allowedRoles: [role],
+        isBlocked: false,
+        note: `Dibuat otomatis saat buat user: ${name}`,
+        addedBy: adminUid,
+        addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true }); // merge:true agar tidak overwrite jika sudah ada
+    }
+
     await batch.commit();
 
-    showToast('success','User Dibuat!',`${name} berhasil ditambahkan sebagai ${role}`);
+    const piInfo = (PRIVILEGED.includes(role) && piUsername) ? ` · @${piUsername} ditambahkan ke whitelist Pi` : '';
+    showToast('success','User Dibuat!',`${name} berhasil ditambahkan sebagai ${role}${piInfo}`);
     closeModal();
     if (document.getElementById('sec-users').classList.contains('active')) loadAllUsers();
+    // Refresh whitelist jika sedang di tab whitelist
+    if (document.getElementById('sec-whitelist')?.classList.contains('active')) loadWhitelist();
   } catch(e) {
+    _creatingUser = false;
     const msgs = {'auth/email-already-in-use':'Email sudah terdaftar','auth/weak-password':'Password terlalu lemah','auth/invalid-email':'Format email tidak valid'};
     showToast('error','Gagal Membuat User', msgs[e.code] || e.message);
   } finally {
@@ -1554,7 +1613,7 @@ document.addEventListener('click', e => { const p = document.getElementById('not
 function openModal() { document.getElementById('modalBg').classList.add('open'); }
 function closeModal() { document.getElementById('modalBg').classList.remove('open'); resetModal(); }
 function closeModalOutside(e) { if(e.target === document.getElementById('modalBg')) closeModal(); }
-function resetModal() { ['fName','fEmail','fPass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); document.getElementById('fRole').value=''; document.getElementById('xSantri').style.display='none'; document.getElementById('xWali').style.display='none'; }
+function resetModal() { ['fName','fEmail','fPass','fPiUsername'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); document.getElementById('fRole').value=''; document.getElementById('xSantri').style.display='none'; document.getElementById('xWali').style.display='none'; document.getElementById('xPiUsername').style.display='none'; }
 
 // ════ SIDEBAR ════
 function toggleSidebar() {
