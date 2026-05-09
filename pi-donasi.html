@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Donasi Pi — Yayasan Hidayatulamin</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -36,7 +36,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(
                    linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
   background-size:40px 40px}
 
-.wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:24px 16px 60px}
+.wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:24px 16px calc(60px + env(safe-area-inset-bottom))}
 
 /* HEADER */
 .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
@@ -114,9 +114,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(
 .don-list{display:flex;flex-direction:column;gap:8px}
 .don-row{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.03);border-radius:var(--rds)}
 .don-av{width:32px;height:32px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
-.don-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.8)}
+.don-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px}
 .don-prog{font-size:10px;color:rgba(255,255,255,.35)}
-.don-amt{margin-left:auto;font-size:13px;font-weight:800;color:var(--p)}
+.don-amt{margin-left:auto;font-size:13px;font-weight:800;color:var(--p);white-space:nowrap;flex-shrink:0}
 .don-time{font-size:10px;color:rgba(255,255,255,.25);margin-left:6px}
 .empty-state{text-align:center;padding:24px;color:rgba(255,255,255,.25);font-size:13px}
 
@@ -138,10 +138,34 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(
 .toast-msg.success{border-color:rgba(13,184,122,.3)}
 .toast-msg.error{border-color:rgba(239,68,68,.3)}
 
-@media(max-width:400px){
-  .prog-grid{grid-template-columns:1fr}
-  .stats-row{grid-template-columns:repeat(3,1fr)}
-  .stat-val{font-size:16px}
+/* ── RESPONSIVE MOBILE ── */
+@media(max-width:540px){
+  .wrap{padding:16px 12px 60px}
+  .hero h1{font-size:22px}
+  .hero p{font-size:12px}
+  .pi-logo{width:60px;height:60px;font-size:26px}
+  .stats-row{grid-template-columns:repeat(3,1fr);gap:6px}
+  .stat-box{padding:10px 6px}
+  .stat-val{font-size:17px}
+  .stat-lbl{font-size:9px}
+  .prog-grid{grid-template-columns:1fr 1fr}
+  .amount-grid{grid-template-columns:repeat(3,1fr)}
+  .card{padding:14px}
+  .top-bar{margin-bottom:20px}
+  .result-box{padding:20px 16px}
+  .result-title{font-size:16px}
+  .don-row{flex-wrap:wrap}
+  .sandbox-notice p{font-size:10px}
+}
+@media(max-width:380px){
+  .stats-row{gap:4px}
+  .stat-box{padding:8px 4px}
+  .stat-val{font-size:14px}
+  .amount-grid{grid-template-columns:repeat(2,1fr)}
+  .wrap{padding:12px 10px 60px}
+  .card-title{font-size:11px}
+  .btn-donate{font-size:13px;padding:14px}
+  .btn-pi-login{font-size:13px;padding:12px}
 }
 </style>
 </head>
