@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Santri | Hidayatullah Amin</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -11,6 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="auth.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
 :root{
   --p:#8b5cf6;--pd:#7c3aed;--pl:#f0ebff;
@@ -352,16 +353,28 @@ tr:hover td{background:var(--g50)}
 .bn-item i{font-size:18px}
 
 /* RESPONSIVE */
+@media(min-width:901px){
+  .sidebar{transform:translateX(0)!important}
+  .sb-ov{display:none!important}
+}
 @media(max-width:900px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
   .main{margin-left:0}
-  .menu-btn{display:flex}
+  .menu-btn{display:flex!important}
   .stats-row{grid-template-columns:1fr 1fr}
   .two-col{grid-template-columns:1fr}
-  .content{padding:12px 12px 80px}
+  .content{padding:12px 12px calc(80px + env(safe-area-inset-bottom))}
   .bottom-nav{display:block}
   .juz-grid{grid-template-columns:repeat(6,1fr)}
+  .greeting{flex-direction:column;gap:12px}
+  .gr-badge{width:100%;display:flex;align-items:center;gap:16px;text-align:left}
+  .gr-juz{font-size:36px}
+  .tbl-hd{flex-direction:column;align-items:flex-start}
+  .rate-strip{flex-direction:column;gap:6px;text-align:center}
+  .rs-right{text-align:center}
+  .sgt-hero-actions{grid-template-columns:1fr 1fr}
+  .wmodal{border-radius:20px 20px 0 0}
 }
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr}
@@ -369,7 +382,79 @@ tr:hover td{background:var(--g50)}
   .info-grid{grid-template-columns:1fr}
   .juz-grid{grid-template-columns:repeat(5,1fr)}
   .sgt-grid{grid-template-columns:1fr 1fr}
+  .sc{padding:12px 14px}
+  .sc-val{font-size:20px}
+  .greeting{padding:16px}
+  .gr-txt h3{font-size:17px}
+  .sgt-equiv-row{flex-direction:column}
+  .sgt-eq-pill{min-width:unset;width:100%}
+  .whist-head{flex-direction:column;align-items:flex-start;gap:8px}
+  .profile-header{flex-direction:column;text-align:center}
+  .profile-av{margin:0 auto}
+  .chat-wrap{height:260px}
 }
+@media(max-width:380px){
+  .juz-cell{font-size:10px}
+  .juz-grid{gap:4px}
+  .content{padding:10px 10px calc(75px + env(safe-area-inset-bottom))}
+  .stats-row{gap:8px}
+}
+
+/* ═══ PEMBAYARAN FIAT ═══ */
+.pay-method-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.pay-method-btn{background:var(--white);border:2px solid var(--g200);border-radius:var(--rdm);padding:14px;cursor:pointer;transition:var(--tr);text-align:center;font-family:inherit}
+.pay-method-btn:hover{border-color:var(--g);background:var(--gl)}
+.pay-method-btn.active{border-color:var(--g);background:var(--gl)}
+.pay-method-btn i{font-size:22px;margin-bottom:6px;display:block}
+.pay-method-btn span{font-size:12px;font-weight:700;color:var(--ink2);display:block}
+.pay-method-btn small{font-size:10px;color:var(--g500)}
+.pay-item-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.pay-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--rdm);border:1.5px solid var(--g200);background:var(--white);cursor:pointer;transition:var(--tr)}
+.pay-item:hover{border-color:var(--g);background:var(--gl)}
+.pay-item.selected{border-color:var(--g);background:var(--gl)}
+.pay-item-ico{width:40px;height:40px;border-radius:10px;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pay-item-info{flex:1}
+.pay-item-info h5{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:2px}
+.pay-item-info p{font-size:11px;color:var(--g500)}
+.pay-item-amt{font-size:14px;font-weight:800;color:var(--ink2)}
+.pay-status{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.pay-status.lunas{background:var(--gl);color:var(--g)}
+.pay-status.pending{background:var(--wl);color:var(--w)}
+.pay-status.overdue{background:var(--rl);color:var(--r)}
+
+/* QR MODAL */
+.qr-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:var(--tr)}
+.qr-modal-bg.open{opacity:1;visibility:visible}
+.qr-modal{background:var(--white);border-radius:20px;width:100%;max-width:380px;overflow:hidden;box-shadow:var(--sh-lg);transform:scale(.95);transition:var(--tr)}
+.qr-modal-bg.open .qr-modal{transform:scale(1)}
+.qr-modal-hd{background:linear-gradient(135deg,var(--g),var(--gd));padding:18px 20px;color:#fff;display:flex;align-items:center;justify-content:space-between}
+.qr-modal-hd h3{font-size:15px;font-weight:800}
+.qr-modal-hd p{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px}
+.qr-close-btn{width:30px;height:30px;border:none;background:rgba(255,255,255,.2);border-radius:8px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.qr-close-btn:hover{background:rgba(255,255,255,.3)}
+.qr-body{padding:24px 20px;text-align:center}
+.qr-canvas-wrap{width:200px;height:200px;margin:0 auto 16px;border:3px solid var(--g100);border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--white)}
+.qr-canvas-wrap canvas{width:100%!important;height:100%!important}
+.qr-detail-box{background:var(--g50);border-radius:var(--rdm);padding:12px;margin-bottom:14px;text-align:left}
+.qr-detail-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px}
+.qr-detail-row:not(:last-child){border-bottom:1px solid var(--g200)}
+.qr-detail-lbl{color:var(--g500)}
+.qr-detail-val{font-weight:700;color:var(--ink2)}
+.qr-copy-btn{width:100%;padding:11px;background:linear-gradient(135deg,var(--g),var(--gd));border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr);margin-bottom:8px}
+.qr-copy-btn:hover{box-shadow:0 4px 14px rgba(13,184,122,.3);transform:translateY(-1px)}
+.qr-note{font-size:11px;color:var(--g500);line-height:1.5}
+
+/* Payment summary banner */
+.pay-summary-banner{background:linear-gradient(135deg,#064e3b,#0db87a);border-radius:var(--rd);padding:16px 20px;color:#fff;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.psb-left h4{font-size:14px;font-weight:800;margin-bottom:2px}
+.psb-left p{font-size:11px;color:rgba(255,255,255,.6)}
+.psb-right{text-align:right}
+.psb-total{font-size:22px;font-weight:900;color:#fcd34d}
+.psb-label{font-size:10px;color:rgba(255,255,255,.5)}
+.pay-tabs{display:flex;gap:4px;background:var(--g100);border-radius:var(--rdm);padding:3px;margin-bottom:16px}
+.pay-tab{flex:1;padding:8px 4px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;color:var(--g500);background:transparent;font-family:inherit;transition:all .2s}
+.pay-tab.active{background:var(--white);color:var(--ink2);box-shadow:var(--sh-sm)}
+
 </style>
 </head>
 <body>
@@ -392,6 +477,7 @@ tr:hover td{background:var(--g50)}
     <a class="ni" onclick="go('pengumuman',this)"><i class="fas fa-bullhorn"></i><span>Pengumuman</span></a>
     <a class="ni" onclick="go('perizinan',this)"><i class="fas fa-file-signature"></i><span>Perizinan</span></a>
     <a class="ni" onclick="go('konsultasi',this)"><i class="fas fa-comments"></i><span>Konsultasi</span></a>
+    <a class="ni" onclick="go('pembayaran',this)" style="background:rgba(13,184,122,.1);border-color:rgba(13,184,122,.2)"><i class="fas fa-credit-card" style="color:var(--g)"></i><span style="color:var(--g);font-weight:700">Pembayaran</span></a>
     <span class="sb-lbl">Ekosistem</span>
     <a class="ni" onclick="go('sgt',this)" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)"><span style="font-size:14px;font-weight:900;color:#d97706;width:16px;text-align:center">₴</span><span style="color:#d97706;font-weight:700">SGT Token</span></a>
     <a href="https://sagatama-mart.vercel.app" target="_blank" class="ni" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)"><i class="fas fa-shopping-bag" style="color:var(--p)"></i><span style="color:var(--p);font-weight:700">Sagatama Mart</span></a>
@@ -784,6 +870,152 @@ tr:hover td{background:var(--g50)}
       </div>
     </div>
 
+
+    <!-- ════ PEMBAYARAN ════ -->
+    <div class="section" id="sec-pembayaran">
+      <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Pembayaran</h3><p style="font-size:12px;color:var(--g500)">Bayar SPP dan tagihan pesantren via transfer, QRIS, atau Pi Network</p></div>
+
+      <!-- SUMMARY BANNER -->
+      <div class="pay-summary-banner" id="payBanner">
+        <div class="psb-left">
+          <h4>Total Tagihan Aktif</h4>
+          <p id="payBannerSub">Memuat data...</p>
+        </div>
+        <div class="psb-right">
+          <div class="psb-total" id="payBannerTotal">Rp —</div>
+          <div class="psb-label">Belum dibayar</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="pay-tabs">
+        <button class="pay-tab active" id="ptab-tagihan" onclick="switchPayTab('tagihan')">📋 Tagihan</button>
+        <button class="pay-tab" id="ptab-riwayat" onclick="switchPayTab('riwayat')">🧾 Riwayat</button>
+        <button class="pay-tab" id="ptab-pi" onclick="switchPayTab('pi')"><span style="font-weight:900">π</span> Bayar Pi</button>
+      </div>
+
+      <!-- TAB: TAGIHAN -->
+      <div id="payTab-tagihan">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hd"><h4>Pilih Metode Pembayaran</h4></div>
+          <div class="pay-method-grid">
+            <button class="pay-method-btn active" id="meth-qris" onclick="selectPayMethod('qris')">
+              <i class="fas fa-qrcode" style="color:var(--g)"></i>
+              <span>QRIS / QR Code</span>
+              <small>Scan & bayar instant</small>
+            </button>
+            <button class="pay-method-btn" id="meth-transfer" onclick="selectPayMethod('transfer')">
+              <i class="fas fa-university" style="color:var(--b)"></i>
+              <span>Transfer Bank</span>
+              <small>BRI · BCA · Mandiri</small>
+            </button>
+            <button class="pay-method-btn" id="meth-ewallet" onclick="selectPayMethod('ewallet')">
+              <i class="fas fa-mobile-alt" style="color:var(--p)"></i>
+              <span>E-Wallet</span>
+              <small>GoPay · OVO · DANA</small>
+            </button>
+            <button class="pay-method-btn" id="meth-tunai" onclick="selectPayMethod('tunai')">
+              <i class="fas fa-money-bill-wave" style="color:var(--w)"></i>
+              <span>Tunai Langsung</span>
+              <small>Bayar ke bendahara</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd"><h4>Tagihan Aktif</h4><p id="tagihanSub">Memuat...</p></div>
+          <div class="pay-item-list" id="tagihanList">
+            <div style="text-align:center;padding:24px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i></div>
+          </div>
+          <button class="btn-p" id="btnBayarNow" style="width:100%;justify-content:center;margin-top:4px" onclick="openQRModal()" disabled>
+            <i class="fas fa-qrcode"></i> <span id="btnBayarTxt">Pilih tagihan dulu</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB: RIWAYAT -->
+      <div id="payTab-riwayat" style="display:none">
+        <div class="tbl-sec">
+          <div class="tbl-hd"><h4>Riwayat Pembayaran</h4><p>Semua transaksi pembayaran</p></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Jenis</th><th>Jumlah</th><th>Metode</th><th>Tanggal</th><th>Status</th></tr></thead>
+              <tbody id="payHistTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: PI PAYMENT -->
+      <div id="payTab-pi" style="display:none">
+        <div style="background:linear-gradient(135deg,#1a0040,#3d0099,#6d28d9);border-radius:var(--rd);padding:18px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden">
+          <div style="position:absolute;right:-10px;top:-20px;font-size:80px;font-weight:900;color:rgba(255,255,255,.05);pointer-events:none">π</div>
+          <div style="position:relative;z-index:1">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0">π</div>
+              <div>
+                <p style="font-size:14px;font-weight:800;color:#fff">Bayar SPP via Pi Network</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.55)">Pi Browser · Testnet aktif</p>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px;margin-bottom:12px">
+              <p style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:4px">Kurs: 1 π ≈ Rp 50.000 · SPP Rp 200.000 = 4 π</p>
+              <div id="piPaymentRate" style="font-size:16px;font-weight:900;color:#fcd34d">— π untuk tagihan aktif</div>
+            </div>
+            <div id="piPayArea">
+              <div id="piPayLoginArea">
+                <p style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:10px;text-align:center"><i class="fas fa-info-circle" style="color:#a78bfa"></i> Login Pi Network untuk membayar</p>
+                <button style="width:100%;padding:12px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px" onclick="piLoginForPayment()">
+                  <span style="font-size:16px;font-weight:900">π</span> Login dengan Pi Network
+                </button>
+              </div>
+              <div id="piPayUserArea" style="display:none">
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);border-radius:10px;padding:10px;margin-bottom:10px">
+                  <div style="width:34px;height:34px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:13px;flex-shrink:0" id="piPayAvatar">?</div>
+                  <div style="flex:1"><p style="font-size:13px;font-weight:700;color:#fff" id="piPayUsername">—</p><p style="font-size:10px;color:rgba(255,255,255,.4)">Pioneer Pi Network ✓</p></div>
+                  <button onclick="piPayLogout()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:11px">Ganti</button>
+                </div>
+                <button id="btnPiPay" style="width:100%;padding:13px;background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;transition:var(--tr)" onclick="submitPiPayment()">
+                  <span style="font-size:18px;font-weight:900">π</span> Bayar SPP Sekarang
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><h4>Riwayat Pembayaran Pi</h4></div>
+          <div id="piPayHistory"><div style="text-align:center;padding:20px;color:var(--g400)">Belum ada riwayat</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR MODAL -->
+    <div class="qr-modal-bg" id="qrModal" onclick="if(event.target===this)closeQRModal()">
+      <div class="qr-modal">
+        <div class="qr-modal-hd">
+          <div>
+            <h3 id="qrModalTitle">QR Code Pembayaran</h3>
+            <p id="qrModalSub">Scan untuk membayar</p>
+          </div>
+          <button class="qr-close-btn" onclick="closeQRModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="qr-body">
+          <div class="qr-canvas-wrap">
+            <canvas id="qrCanvas"></canvas>
+          </div>
+          <div class="qr-detail-box">
+            <div class="qr-detail-row"><span class="qr-detail-lbl">Nama Santri</span><span class="qr-detail-val" id="qrSantriNama">—</span></div>
+            <div class="qr-detail-row"><span class="qr-detail-lbl">Jenis Tagihan</span><span class="qr-detail-val" id="qrJenis">—</span></div>
+            <div class="qr-detail-row"><span class="qr-detail-lbl">Jumlah</span><span class="qr-detail-val" id="qrJumlah">—</span></div>
+            <div class="qr-detail-row"><span class="qr-detail-lbl">Metode</span><span class="qr-detail-val" id="qrMetode">—</span></div>
+            <div class="qr-detail-row"><span class="qr-detail-lbl">Kode Bayar</span><span class="qr-detail-val" id="qrKode" style="font-family:monospace;color:var(--g)">—</span></div>
+          </div>
+          <button class="qr-copy-btn" onclick="copyPaymentCode()"><i class="fas fa-copy"></i> Salin Kode Pembayaran</button>
+          <p class="qr-note" id="qrInstruction">Scan QR code di atas menggunakan aplikasi perbankan atau e-wallet Anda</p>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -795,6 +1027,7 @@ tr:hover td{background:var(--g50)}
     <button class="bn-item" id="bn-jadwal" onclick="go('jadwal',null);setBn('jadwal')"><i class="fas fa-calendar-alt"></i><span>Jadwal</span></button>
     <button class="bn-item" id="bn-nilai" onclick="go('nilai',null);setBn('nilai')"><i class="fas fa-star"></i><span>Nilai</span></button>
     <button class="bn-item" id="bn-sgt" onclick="go('sgt',null);setBn('sgt')"><span style="font-size:18px;font-weight:900;color:inherit">₴</span><span>SGT</span></button>
+    <button class="bn-item" id="bn-pembayaran" onclick="go('pembayaran',null);setBn('pembayaran')"><i class="fas fa-credit-card"></i><span>Bayar</span></button>
   </div>
 </nav>
 
@@ -876,6 +1109,20 @@ async function bootDashboard(user, data) {
   initSantri();
   // Load Pi donation stats (fire and forget)
   setTimeout(() => loadMyPiDonations(user.uid), 1000);
+  // Real-time listener for data santri (SGT, nilai, dll)
+  if(currentUid && typeof db!=='undefined'){
+    db.collection('users').doc(currentUid).onSnapshot(snap=>{
+      if(snap.exists){
+        const d=snap.data();
+        if(typeof d.sgt==='number'){
+          santriData={...santriData,...d};
+          localStorage.setItem('sgt_bal_'+currentUid,d.sgt.toString());
+          const el=document.getElementById('stSGT');
+          if(el && d.sgt) el.textContent=fmtSGT(d.sgt);
+        }
+      }
+    },()=>{});
+  }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1220,8 +1467,18 @@ const MISSIONS=[
   {id:'m4',ico:'fa-comments',bg:'#fef3c7',clr:'#f59e0b',title:'Konsultasi Ustadz',desc:'Chat dengan ustadz pembimbing',reward:20,done:false},
 ];
 
-function loadSGT(){
+async function loadSGT(){
   const uid=currentUid||'demo';
+  // Prioritize Firestore data for SGT balance
+  if(currentUid && typeof db!=='undefined' && santriData){
+    try{
+      const snap=await db.collection('users').doc(currentUid).get();
+      if(snap.exists){
+        const d=snap.data();
+        if(typeof d.sgt==='number'){ santriData.sgt=d.sgt; localStorage.setItem('sgt_bal_'+uid,d.sgt.toString()); }
+      }
+    }catch(e){ console.warn('SGT Firestore:',e.message); }
+  }
   let bal=parseInt(localStorage.getItem('sgt_bal_'+uid)||'0');
   if(!bal&&santriData?.sgt){bal=santriData.sgt;localStorage.setItem('sgt_bal_'+uid,bal.toString());}
   const txs=JSON.parse(localStorage.getItem('sgt_transactions_'+uid)||'[]');
@@ -1545,13 +1802,14 @@ function go(name,navEl){
   document.getElementById('sec-'+name)?.classList.add('active');
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   if(navEl)navEl.classList.add('active');
-  const titles={dashboard:'Dashboard Santri',hafalan:'Hafalan Saya',jadwal:'Jadwal',nilai:'Nilai & Raport',absensi:'Data Absensi',pengumuman:'Pengumuman',perizinan:'Perizinan',konsultasi:'Konsultasi',sgt:'SGT Token'};
+  const titles={dashboard:'Dashboard Santri',hafalan:'Hafalan Saya',jadwal:'Jadwal',nilai:'Nilai & Raport',absensi:'Data Absensi',pengumuman:'Pengumuman',perizinan:'Perizinan',konsultasi:'Konsultasi',sgt:'SGT Token',pembayaran:'Pembayaran'};
   setEl('pgTitle',titles[name]||'Dashboard');
   if(name==='nilai')setTimeout(()=>renderNilai(),50);
   if(name==='jadwal')renderJadwal();
   if(name==='hafalan')loadHafalanRiwayat();
   if(name==='pengumuman')renderPengumuman();
   if(name==='perizinan')loadIznHistory();
+  if(name==='pembayaran')loadTagihan();
   closeSb();
 }
 
@@ -1628,6 +1886,291 @@ async function loadMyPiDonations(uid) {
   }
 }
 // ════ END PI DONATIONS INFO ════
+
+// ════ PEMBAYARAN FIAT ════
+let selectedPayMethod = 'qris';
+let selectedTagihan   = null;
+let allTagihan        = [];
+let piPayUser         = null;
+const IDR_PER_PI      = 50000;
+
+const TAGIHAN_DEMO = [
+  { id:'tag001', jenis:'SPP Bulanan', periode:'Mei 2026', jumlah:200000, status:'pending', dueDate:'2026-05-31' },
+  { id:'tag002', jenis:'Uang Makan',  periode:'Mei 2026', jumlah:150000, status:'pending', dueDate:'2026-05-31' },
+  { id:'tag003', jenis:'SPP Bulanan', periode:'Apr 2026', jumlah:200000, status:'lunas',   dueDate:'2026-04-30' },
+  { id:'tag004', jenis:'Seragam',     periode:'2026',     jumlah:350000, status:'overdue', dueDate:'2026-04-15' },
+];
+
+const PAY_HIST_DEMO = [
+  { jenis:'SPP Bulanan', jumlah:200000, metode:'Transfer BRI', tgl:'2026-04-02', status:'lunas' },
+  { jenis:'Uang Makan',  jumlah:150000, metode:'QRIS',         tgl:'2026-04-02', status:'lunas' },
+];
+
+async function loadTagihan() {
+  const el = document.getElementById('tagihanList');
+  const subEl = document.getElementById('tagihanSub');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:22px"></i></div>';
+
+  try {
+    if (currentUid && typeof db !== 'undefined') {
+      const snap = await db.collection('tagihan')
+        .where('santriId','==', currentUid)
+        .orderBy('dueDate','asc').get();
+      if (!snap.empty) {
+        allTagihan = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } else {
+        allTagihan = TAGIHAN_DEMO;
+      }
+    } else {
+      allTagihan = TAGIHAN_DEMO;
+    }
+  } catch(e) {
+    allTagihan = TAGIHAN_DEMO;
+  }
+
+  renderTagihan();
+  updatePayBanner();
+  updatePiPayRate();
+}
+
+function renderTagihan() {
+  const el = document.getElementById('tagihanList');
+  const subEl = document.getElementById('tagihanSub');
+  if (!el) return;
+  const pending = allTagihan.filter(t => t.status !== 'lunas');
+  if (subEl) subEl.textContent = pending.length + ' tagihan belum dibayar';
+
+  if (!allTagihan.length) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--g400)"><i class="fas fa-check-circle" style="font-size:32px;display:block;margin-bottom:8px;color:var(--g)"></i><p>Semua tagihan sudah lunas!</p></div>';
+    return;
+  }
+
+  const sc = { lunas:{cl:'lunas',lbl:'Lunas'}, pending:{cl:'pending',lbl:'Belum Bayar'}, overdue:{cl:'overdue',lbl:'Lewat Jatuh Tempo'} };
+  el.innerHTML = allTagihan.map(t => {
+    const s = sc[t.status] || sc.pending;
+    const isSelected = selectedTagihan?.id === t.id;
+    const canSelect = t.status !== 'lunas';
+    return `<div class="pay-item ${isSelected?'selected':''}" onclick="${canSelect?`selectTagihan('${t.id}')`:''}" style="${canSelect?'':'opacity:.6;cursor:default'}">
+      <div class="pay-item-ico" style="background:${t.status==='lunas'?'var(--gl)':t.status==='overdue'?'var(--rl)':'var(--pl)'}">
+        <i class="fas ${t.status==='lunas'?'fa-check':'fa-file-invoice-dollar'}" style="color:${t.status==='lunas'?'var(--g)':t.status==='overdue'?'var(--r)':'var(--p)'}"></i>
+      </div>
+      <div class="pay-item-info">
+        <h5>${t.jenis}</h5>
+        <p>${t.periode || ''} · Jatuh tempo: ${t.dueDate||'—'}</p>
+      </div>
+      <div style="text-align:right">
+        <div class="pay-item-amt">Rp ${(t.jumlah||0).toLocaleString('id-ID')}</div>
+        <span class="pay-status ${s.cl}">${s.lbl}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectTagihan(id) {
+  selectedTagihan = allTagihan.find(t => t.id === id) || null;
+  renderTagihan();
+  const btn = document.getElementById('btnBayarNow');
+  const btnTxt = document.getElementById('btnBayarTxt');
+  if (btn && btnTxt) {
+    if (selectedTagihan) {
+      btn.disabled = false;
+      const mLabel = {qris:'Bayar via QRIS',transfer:'Lihat Info Transfer',ewallet:'Bayar via E-Wallet',tunai:'Cetak Bukti Tunai'};
+      btnTxt.textContent = (mLabel[selectedPayMethod]||'Bayar Sekarang') + ' — Rp ' + (selectedTagihan.jumlah||0).toLocaleString('id-ID');
+    } else {
+      btn.disabled = true;
+      btnTxt.textContent = 'Pilih tagihan dulu';
+    }
+  }
+}
+
+function selectPayMethod(m) {
+  selectedPayMethod = m;
+  ['qris','transfer','ewallet','tunai'].forEach(k => {
+    const el = document.getElementById('meth-'+k);
+    if (el) el.classList.toggle('active', k === m);
+  });
+  if (selectedTagihan) selectTagihan(selectedTagihan.id);
+}
+
+function updatePayBanner() {
+  const pending = allTagihan.filter(t => t.status !== 'lunas');
+  const total   = pending.reduce((s,t) => s+(t.jumlah||0), 0);
+  const el1 = document.getElementById('payBannerTotal');
+  const el2 = document.getElementById('payBannerSub');
+  if (el1) el1.textContent = 'Rp ' + total.toLocaleString('id-ID');
+  if (el2) el2.textContent = pending.length + ' tagihan · ' + (pending.filter(t=>t.status==='overdue').length) + ' lewat jatuh tempo';
+}
+
+function updatePiPayRate() {
+  const pending = allTagihan.filter(t => t.status !== 'lunas');
+  const total   = pending.reduce((s,t) => s+(t.jumlah||0), 0);
+  const pi      = (total / IDR_PER_PI).toFixed(2);
+  const el      = document.getElementById('piPaymentRate');
+  if (el) el.textContent = pi + ' π untuk semua tagihan (Rp ' + total.toLocaleString('id-ID') + ')';
+}
+
+function switchPayTab(tab) {
+  ['tagihan','riwayat','pi'].forEach(t => {
+    const content = document.getElementById('payTab-'+t);
+    const btn = document.getElementById('ptab-'+t);
+    if (content) content.style.display = t===tab ? '' : 'none';
+    if (btn) btn.classList.toggle('active', t===tab);
+  });
+  if (tab==='riwayat') renderPayHist();
+}
+
+function renderPayHist() {
+  const tbody = document.getElementById('payHistTable');
+  if (!tbody) return;
+  const sc = {lunas:'chip-g',pending:'chip-w',overdue:'chip-r'};
+  const scLbl = {lunas:'Lunas',pending:'Pending',overdue:'Terlambat'};
+  tbody.innerHTML = PAY_HIST_DEMO.map(h => `
+    <tr>
+      <td><strong>${h.jenis}</strong></td>
+      <td>Rp ${(h.jumlah||0).toLocaleString('id-ID')}</td>
+      <td>${h.metode}</td>
+      <td>${h.tgl}</td>
+      <td><span class="chip ${sc[h.status]||'chip-w'}">${scLbl[h.status]||h.status}</span></td>
+    </tr>`).join('');
+}
+
+// ── QR Modal ──
+const QR_DATA_MAP = {
+  qris:     { title:'QRIS — Scan & Bayar', prefix:'QRIS.HIDAYATULAMIN.', instruction:'Scan QR di atas menggunakan aplikasi GoPay, OVO, DANA, ShopeePay, atau aplikasi bank Anda' },
+  transfer: { title:'Transfer Bank',       prefix:'TRF.BRI.9876543210.', instruction:'Transfer ke rekening BRI 9876-5432-10 a/n Yayasan Hidayatulamin. Konfirmasi ke admin setelah transfer.' },
+  ewallet:  { title:'E-Wallet (GoPay/OVO/DANA)', prefix:'EW.0812345678.',   instruction:'Kirim ke nomor 0812-3456-78 (terdaftar di GoPay, OVO, DANA) a/n Yayasan Hidayatulamin' },
+  tunai:    { title:'Pembayaran Tunai',    prefix:'TUNAI.',              instruction:'Tunjukkan QR ini ke bendahara pesantren. Bayar langsung dan minta tanda terima resmi.' },
+};
+
+function openQRModal() {
+  if (!selectedTagihan) { showToast('warn','Pilih Tagihan','Pilih tagihan yang akan dibayar dulu'); return; }
+  const mData = QR_DATA_MAP[selectedPayMethod] || QR_DATA_MAP.qris;
+  const kode  = mData.prefix + (selectedTagihan.id||'TAG001') + '.' + (selectedTagihan.jumlah||0);
+  const santri = santriData?.nama || 'Santri';
+
+  document.getElementById('qrModalTitle').textContent = mData.title;
+  document.getElementById('qrModalSub').textContent = 'Rp ' + (selectedTagihan.jumlah||0).toLocaleString('id-ID');
+  document.getElementById('qrSantriNama').textContent = santri;
+  document.getElementById('qrJenis').textContent = selectedTagihan.jenis || '—';
+  document.getElementById('qrJumlah').textContent = 'Rp ' + (selectedTagihan.jumlah||0).toLocaleString('id-ID');
+  document.getElementById('qrMetode').textContent = { qris:'QRIS', transfer:'Transfer Bank', ewallet:'E-Wallet', tunai:'Tunai' }[selectedPayMethod] || selectedPayMethod;
+  document.getElementById('qrKode').textContent = kode;
+  document.getElementById('qrInstruction').textContent = mData.instruction;
+
+  // Generate QR
+  const canvas = document.getElementById('qrCanvas');
+  if (window.QRCode && canvas) {
+    QRCode.toCanvas(canvas, kode, { width: 200, margin: 1, color:{ dark:'#0f172a', light:'#ffffff' } }, (err) => {
+      if (err) console.warn('QR gen:', err);
+    });
+  }
+
+  document.getElementById('qrModal').classList.add('open');
+  // Save to Firestore as pending payment request
+  savePaymentRequest(kode, selectedTagihan, selectedPayMethod, santri);
+}
+
+function closeQRModal() { document.getElementById('qrModal').classList.remove('open'); }
+
+async function savePaymentRequest(kode, tagihan, metode, santriNama) {
+  if (!currentUid || typeof db === 'undefined') return;
+  try {
+    await db.collection('payment_requests').add({
+      santriId:   currentUid,
+      santriNama,
+      santriNis:  santriData?.nis || '—',
+      tagihanId:  tagihan.id,
+      jenis:      tagihan.jenis,
+      jumlah:     tagihan.jumlah,
+      metode,
+      kode,
+      status:    'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch(e) { console.warn('savePaymentRequest:', e.message); }
+}
+
+function copyPaymentCode() {
+  const kode = document.getElementById('qrKode')?.textContent;
+  if (!kode) return;
+  navigator.clipboard?.writeText(kode).then(() => {
+    showToast('success','Tersalin!','Kode pembayaran sudah disalin');
+  }).catch(() => {
+    showToast('info','Kode','Salin manual: ' + kode);
+  });
+}
+
+// ── Pi Payment ──
+async function piLoginForPayment() {
+  if (!window.Pi) { showToast('error','Pi Browser','Buka halaman ini di Pi Browser'); return; }
+  try {
+    window.Pi.init({ version:'2.0', sandbox: true });
+    const auth = await window.Pi.authenticate(['username','payments'], ()=>{});
+    piPayUser = { uid: auth.user.uid, username: auth.user.username };
+    document.getElementById('piPayAvatar').textContent = piPayUser.username[0].toUpperCase();
+    document.getElementById('piPayUsername').textContent = '@' + piPayUser.username;
+    document.getElementById('piPayLoginArea').style.display = 'none';
+    document.getElementById('piPayUserArea').style.display = 'block';
+    showToast('success','Login Berhasil','@' + piPayUser.username + ' siap membayar');
+  } catch(e) {
+    showToast('error','Login Gagal', e.message || 'Buka di Pi Browser');
+  }
+}
+
+function piPayLogout() {
+  piPayUser = null;
+  document.getElementById('piPayLoginArea').style.display = 'block';
+  document.getElementById('piPayUserArea').style.display = 'none';
+}
+
+async function submitPiPayment() {
+  if (!piPayUser) { showToast('warn','Login Pi','Login Pi Network dulu'); return; }
+  const pending = allTagihan.filter(t => t.status !== 'lunas');
+  if (!pending.length) { showToast('info','Sudah Lunas','Tidak ada tagihan yang perlu dibayar'); return; }
+  const total = pending.reduce((s,t) => s+(t.jumlah||0), 0);
+  const piAmt = parseFloat((total / IDR_PER_PI).toFixed(4));
+  const btn = document.getElementById('btnPiPay');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+  try {
+    await new Promise((resolve, reject) => {
+      window.Pi.createPayment({
+        amount: piAmt,
+        memo: 'Pembayaran SPP Yayasan Hidayatulamin',
+        metadata: { santriId: currentUid, santriNama: santriData?.nama, totalIdr: total, tagihanIds: pending.map(t=>t.id) }
+      }, {
+        onReadyForServerApproval: async (paymentId) => {
+          try {
+            await db.collection('pi_payments').add({
+              paymentId, santriId: currentUid, santriNama: santriData?.nama, amount: piAmt,
+              totalIdr: total, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            const res = await fetch('/api/payments/approve', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({paymentId}) });
+            if (!res.ok) throw new Error('Approve gagal');
+          } catch(e) { console.error('approve:', e); }
+        },
+        onReadyForServerCompletion: async (paymentId, txid) => {
+          try {
+            const res = await fetch('/api/payments/complete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({paymentId, txid}) });
+            if (!res.ok) throw new Error('Complete gagal');
+            resolve({ success:true, txid });
+          } catch(e) { reject(e); }
+        },
+        onCancel: () => reject(new Error('Pembayaran dibatalkan')),
+        onError: (e) => reject(new Error(e?.message||'Error Pi')),
+      });
+    });
+    showToast('success','Pembayaran Pi Berhasil!', piAmt.toFixed(4)+' π telah dikirim. Admin akan konfirmasi.');
+  } catch(e) {
+    showToast('error','Gagal', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span style="font-size:18px;font-weight:900">π</span> Bayar SPP Sekarang';
+  }
+}
+// ════ END PEMBAYARAN ════
+
 </script>
 </body>
 </html>
