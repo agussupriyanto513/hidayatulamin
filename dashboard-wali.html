@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Wali | Hidayatullah Amin</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -60,7 +60,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
 
 /* TOPBAR */
-.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
 .tb-l{display:flex;align-items:center;gap:10px}
 .menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
 .menu-btn:hover{background:var(--pl);color:var(--p)}
@@ -213,27 +213,31 @@ tr:hover td{background:var(--g50)}
   .two-col{grid-template-columns:1fr}
   .content{padding:12px 12px 80px}
   .bottom-nav{display:block}
-  .greeting{flex-direction:column;align-items:flex-start;gap:10px;padding:16px}
-  .gr-date{text-align:left}
-  .gd-num{font-size:28px}
   .santri-cards{grid-template-columns:1fr}
-  .modal{max-width:100% !important;margin:0 8px}
+  .modal{max-height:95vh;border-radius:var(--rd) var(--rd) 0 0;margin-top:auto}
+  .modal-bg{align-items:flex-end;padding:0}
   .modal-body{max-height:calc(85vh - 120px)}
-  .tbl-hd{flex-direction:column;align-items:flex-start}
+  .sgt-grid{grid-template-columns:1fr 1fr 1fr}
+  .greeting{flex-direction:column;gap:12px;text-align:center}
+  .gr-date{text-align:center}
 }
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr}
   .sgt-grid{grid-template-columns:1fr 1fr}
-  .sc-val{font-size:20px}
-  .greeting{padding:14px}
-  .gr-txt h3{font-size:16px}
+  .santri-cards{grid-template-columns:1fr}
+  .s-stats{grid-template-columns:repeat(3,1fr)}
+  .tbl-hd{flex-direction:column;align-items:flex-start}
+  .modal-ft{flex-direction:column}
+  .modal-ft .btn-p,.modal-ft .btn-sec{width:100%;justify-content:center}
+  .pay-item{flex-wrap:wrap;gap:8px}
   .topbar{padding:8px 12px}
   .pg-ttl h2{font-size:15px}
+}
+@media(max-width:380px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .sc{padding:12px}
+  .sc-val{font-size:20px}
   .content{padding:10px 10px 80px}
-  .modal-bg{padding:4px}
-  .modal{border-radius:18px 18px 0 0;max-height:92vh;margin:0}
-  .modal-bg.open{align-items:flex-end}
-  .modal-body{max-height:calc(92vh - 120px)}
 }
 </style>
 </head>
@@ -621,6 +625,52 @@ tr:hover td{background:var(--g50)}
         </div>
       </div>
     </div>
+    <!-- MODAL CAIRKAN IDR -->
+    <div class="modal-bg" id="mdlCairIdr" onclick="closeModalOut(event,'mdlCairIdr')">
+      <div class="modal">
+        <div class="modal-hd"><h3>Cairkan SGT → Rupiah</h3><button class="modal-close" onclick="closeModal('mdlCairIdr')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+          <div style="background:var(--pl);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--pd)">
+            <b>Kurs:</b> 1.000 SGT = Rp 100.000 &nbsp;|&nbsp; <b>Saldo:</b> <span id="mdlIdrBal">—</span> SGT
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Jumlah SGT yang dicairkan</label>
+          <input type="number" id="cairIdrAmt" min="1000" step="1000" placeholder="Min. 1.000 SGT" oninput="calcIdr()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;margin-bottom:10px">
+          <div style="background:var(--g50);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--g600);margin-bottom:10px">
+            Anda akan menerima: <b style="color:var(--p);font-size:14px" id="idrResult">Rp 0</b>
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">No. Rekening / Tujuan Transfer</label>
+          <input type="text" id="cairIdrDest" placeholder="Contoh: BCA 1234567890 a/n Nama" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px">
+        </div>
+        <div class="modal-ft">
+          <button class="btn-sec" onclick="closeModal('mdlCairIdr')">Batal</button>
+          <button class="btn-p" onclick="submitCair('idr')"><i class="fas fa-paper-plane"></i> Ajukan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL CAIRKAN PI -->
+    <div class="modal-bg" id="mdlCairPi" onclick="closeModalOut(event,'mdlCairPi')">
+      <div class="modal">
+        <div class="modal-hd"><h3>Cairkan SGT → Pi Coin</h3><button class="modal-close" onclick="closeModal('mdlCairPi')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+          <div style="background:var(--bl);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
+            <b>Kurs:</b> 500 SGT = 1 π &nbsp;|&nbsp; <b>Saldo:</b> <span id="mdlPiBal">—</span> SGT
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Jumlah SGT yang dicairkan</label>
+          <input type="number" id="cairPiAmt" min="500" step="500" placeholder="Min. 500 SGT" oninput="calcPi()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;margin-bottom:10px">
+          <div style="background:var(--g50);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--g600);margin-bottom:10px">
+            Anda akan menerima: <b style="color:var(--b);font-size:14px" id="piResult">0 π</b>
+          </div>
+          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Username Pi Network</label>
+          <input type="text" id="cairPiDest" placeholder="Contoh: @username_pi" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px">
+        </div>
+        <div class="modal-ft">
+          <button class="btn-sec" onclick="closeModal('mdlCairPi')">Batal</button>
+          <button class="btn-p" onclick="submitCair('pi')"><i class="fas fa-paper-plane"></i> Ajukan</button>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -650,7 +700,7 @@ tr:hover td{background:var(--g50)}
         </div>
         <div style="margin-bottom:12px">
           <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Jenis Pembayaran</label>
-          <select id="piPayType" onchange="updatePiPayAmount()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:13px;font-family:inherit;background:#fff">
+          <select id="piPayType" onchange="updatePiPayAmount()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:16px;font-family:inherit;background:#fff">
             <option value="spp_bulan" data-amt="15">📋 SPP Bulanan (15 π)</option>
             <option value="spp_tahun" data-amt="150">📋 SPP Tahunan (150 π)</option>
             <option value="uang_makan" data-amt="30">🍽️ Uang Makan Bulanan (30 π)</option>
@@ -663,7 +713,7 @@ tr:hover td{background:var(--g50)}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
           <div>
             <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Jumlah (π)</label>
-            <input type="number" id="piPayAmount" value="15" min="0.01" step="0.01" oninput="updatePiEstIdr()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:18px;font-weight:800;font-family:inherit;color:#8b5cf6">
+            <input type="number" id="piPayAmount" value="15" min="0.01" step="0.01" oninput="updatePiEstIdr()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:10px;font-size:18px;font-weight:800;font-family:inherit;color:#8b5cf6;-webkit-text-size-adjust:100%">
           </div>
           <div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.2);border-radius:10px;padding:10px;display:flex;flex-direction:column;justify-content:center;text-align:center">
             <p style="font-size:10px;color:var(--g400);margin-bottom:3px">Estimasi IDR</p>
@@ -1303,7 +1353,7 @@ function go(name, navEl) {
   if (name === 'hafalan') renderHafalan();
   if (name === 'nilai') setTimeout(() => renderNilai(), 50);
   if (name === 'absensi') renderAbsensi();
-  if (name === 'pembayaran') { renderPembayaran(); if (waliPiUser) loadPiPayHistory(); }
+  if (name === 'pembayaran') { renderPembayaran(); loadPiPayHistory(); }
   if (name === 'notifikasi') renderNotif();
   closeSb();
 }
@@ -1382,17 +1432,26 @@ async function waliPiLogin() {
   try {
     // Hanya gunakan scope 'username' dan 'payments' — wallet_address tidak valid di Pi SDK
     const scopes = ['username', 'payments'];
-    const result = await window.Pi.authenticate(scopes, async (payment) => {
-      // Incomplete payment handler — selesaikan pembayaran yang belum selesai
-      console.log('Incomplete payment found:', payment.identifier);
-      try {
-        // Tandai sebagai cancelled di Firestore
-        const snap = await db.collection('pi_donations')
-          .where('paymentId','==', payment.identifier).limit(1).get().catch(()=>({empty:true}));
-        if (!snap.empty) {
-          await snap.docs[0].ref.update({ status: 'cancelled' }).catch(()=>{});
-        }
-      } catch(e) { console.warn('Incomplete payment cleanup:', e); }
+    const result = await window.Pi.authenticate(scopes, (payment) => {
+      // Incomplete payment handler — TIDAK boleh async, jalankan di background
+      if (!payment) return;
+      const pid = payment.identifier;
+      console.log('Incomplete payment found:', pid);
+      (async () => {
+        try {
+          // Approve dulu via backend agar Pi tidak block transaksi baru
+          await fetch('/api/payments/approve', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paymentId: pid })
+          });
+          // Update Firestore
+          db.collection('pi_donations')
+            .where('paymentId','==', pid).limit(1).get()
+            .then(snap => {
+              if (!snap.empty) snap.docs[0].ref.update({ status: 'incomplete_handled' }).catch(()=>{});
+            }).catch(()=>{});
+        } catch(e) { console.warn('Incomplete payment cleanup:', e.message); }
+      })();
     });
     waliPiUser = { uid: result.user.uid, username: result.user.username, accessToken: result.accessToken };
     // Simpan ke localStorage untuk digunakan ulang
@@ -1464,71 +1523,34 @@ async function submitPiPay() {
 
   const memo = `${typeLabel.replace(/[^\w\s\-]/g, '')} — Hidayatulamin`;
 
-  // Timeout 3 menit — Pi Browser terkadang butuh waktu
-  const PI_TIMEOUT_MS = 3 * 60 * 1000;
-
   try {
-    // Re-authenticate dengan scope 'payments' sebelum createPayment
-    let freshAuth;
-    try {
-      freshAuth = await Promise.race([
-        window.Pi.authenticate(['username','payments'], async (incompletePay) => {
-          console.log('Incomplete payment found:', incompletePay?.identifier);
-        }),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('Autentikasi Pi timeout. Pastikan buka di Pi Browser.')), 30000))
-      ]);
-    } catch(authErr) {
-      throw new Error(authErr.message || 'Gagal autentikasi Pi. Buka di Pi Browser dan coba lagi.');
-    }
-    waliPiUser.uid = freshAuth.user.uid;
-    waliPiUser.username = freshAuth.user.username;
+    let docRef = null;
 
     await new Promise((resolve, reject) => {
-      // Timeout keseluruhan transaksi
-      const timeoutId = setTimeout(() => {
-        reject(new Error('Transaksi timeout (3 menit). Cek riwayat — mungkin berhasil. Jika belum, coba lagi.'));
-      }, PI_TIMEOUT_MS);
-
       window.Pi.createPayment(
         { amount: amt, memo, metadata: { type: type.value, note, donorPiUid: waliPiUser.uid, role: 'wali' } },
         {
-          onReadyForServerApproval: async (paymentId) => {
-            // Simpan ke Firestore — jika gagal tetap lanjut (Pi sudah approve)
-            try {
-              await db.collection('pi_donations').add({
-                paymentId,
-                donorPiUid:    waliPiUser.uid,
-                donorUsername: waliPiUser.username,
-                paidByUid:     currentUid,
-                amount:        amt,
-                memo,
-                program:       type.value,
-                progLabel:     typeLabel,
-                note:          note || '—',
-                paidByRole:    'wali',
-                status:        'pending',
-                createdAt:     firebase.firestore.FieldValue.serverTimestamp()
-              });
-            } catch(e) {
-              // Firestore gagal tapi pembayaran tetap berjalan
-              console.warn('Firestore approval save error (non-fatal):', e);
-            }
-            // PENTING: tidak reject/resolve di sini — tunggu completion
-          },
-          onReadyForServerCompletion: async (paymentId, txid) => {
-            clearTimeout(timeoutId);
-            try {
-              const snap = await db.collection('pi_donations')
-                .where('paymentId','==',paymentId).limit(1).get();
-              if (!snap.empty) {
-                await snap.docs[0].ref.update({
-                  status:'completed', txid,
-                  completedAt: firebase.firestore.FieldValue.serverTimestamp()
+          // ── Step 1: approve dulu ke backend, Firestore belakangan ──
+          // KRITIS: callback TIDAK boleh async. Approve harus dipanggil SECEPAT mungkin.
+          onReadyForServerApproval: (paymentId) => {
+            console.log('onReadyForServerApproval (wali):', paymentId);
+            (async () => {
+              try {
+                // PRIORITAS 1: Approve ke backend Pi DULU — ini yang paling penting
+                // Jangan await Firestore dulu, langsung approve
+                const approveRes = await fetch('/api/payments/approve', {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ paymentId })
                 });
-              } else {
-                // Dokumen belum ada (race condition), buat baru langsung completed
-                await db.collection('pi_donations').add({
-                  paymentId, txid,
+                if (!approveRes.ok) {
+                  const errData = await approveRes.json().catch(()=>({}));
+                  throw new Error(errData.error || 'Approve gagal dari server');
+                }
+                console.log('Wali payment approved:', paymentId);
+
+                // PRIORITAS 2: Simpan ke Firestore setelah approve berhasil (background)
+                db.collection('pi_donations').add({
+                  paymentId,
                   donorPiUid:    waliPiUser.uid,
                   donorUsername: waliPiUser.username,
                   paidByUid:     currentUid,
@@ -1538,24 +1560,55 @@ async function submitPiPay() {
                   progLabel:     typeLabel,
                   note:          note || '—',
                   paidByRole:    'wali',
-                  status:        'completed',
-                  createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
-                  completedAt:   firebase.firestore.FieldValue.serverTimestamp()
-                });
+                  status:        'approved',
+                  createdAt:     firebase.firestore.FieldValue.serverTimestamp()
+                }).then(ref => { docRef = ref; }).catch(e => console.warn('Firestore add (non-fatal):', e.message));
+
+              } catch(e) {
+                console.error('onReadyForServerApproval error:', e);
+                reject(new Error('Approve gagal: ' + e.message));
               }
-            } catch(e) {
-              console.warn('Completion update error (non-fatal):', e);
-            }
-            resolve({ txid });
+            })();
           },
+
+          // ── Step 2: Complete — fire-and-forget ──
+          onReadyForServerCompletion: (paymentId, txid) => {
+            console.log('onReadyForServerCompletion (wali):', paymentId, txid);
+            (async () => {
+              try {
+                // Complete via backend
+                const completeRes = await fetch('/api/payments/complete', {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ paymentId, txid })
+                });
+                if (!completeRes.ok) {
+                  const e = await completeRes.json().catch(()=>({}));
+                  throw new Error(e.error || 'Complete gagal');
+                }
+
+                // Update Firestore status completed
+                if (docRef) {
+                  await docRef.update({ status: 'completed', txid, completedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                } else {
+                  const snap = await db.collection('pi_donations').where('paymentId','==',paymentId).limit(1).get();
+                  if (!snap.empty) await snap.docs[0].ref.update({ status:'completed', txid, completedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                }
+                resolve({ txid });
+              } catch(e) {
+                console.error('onReadyForServerCompletion error:', e);
+                reject(e);
+              }
+            })();
+          },
+
           onCancel: (paymentId) => {
-            clearTimeout(timeoutId);
             console.log('Payment cancelled:', paymentId);
+            if (docRef) docRef.update({ status:'cancelled', cancelledAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
             reject(new Error('Pembayaran dibatalkan oleh pengguna'));
           },
           onError: (err, payment) => {
-            clearTimeout(timeoutId);
             console.error('Pi payment error:', err, payment);
+            if (docRef) docRef.update({ status:'error', errorMsg: err?.message||String(err) }).catch(()=>{});
             reject(new Error(err?.message || 'Terjadi kesalahan saat pembayaran Pi'));
           }
         }
@@ -1564,16 +1617,12 @@ async function submitPiPay() {
 
     closeModal('mdlPiPay');
     showToast('success','Pembayaran Berhasil', `${amt} π untuk ${typeLabel} berhasil dikirim! 🎉`);
+    // Refresh riwayat 2x: cepat (data mungkin belum complete) dan delayed (pastikan Firestore update)
     setTimeout(() => loadPiPayHistory(), 800);
+    setTimeout(() => loadPiPayHistory(), 3000);
   } catch(e) {
     console.error('submitPiPay error:', e);
-    // Pesan timeout lebih informatif
-    const isTimeout = e.message && e.message.includes('timeout');
-    showToast(
-      isTimeout ? 'warn' : 'error',
-      isTimeout ? 'Perhatian' : 'Pembayaran Gagal',
-      e.message || 'Coba lagi'
-    );
+    showToast('error','Pembayaran Gagal', e.message || 'Coba lagi');
   }
 
   btn.disabled = false;
@@ -1585,45 +1634,76 @@ async function loadPiPayHistory() {
   if (!el) return;
   if (!currentUid) return;
   try {
-    // Query berdasarkan piUid kalau ada, atau fallback ke donorPiUid = uid firebase
-    const piUidToSearch = waliPiUser?.uid || 'none';
-    let snap = await db.collection('pi_donations')
-      .where('donorPiUid','==', piUidToSearch)
-      .orderBy('createdAt','desc').limit(10).get();
+    // Cari berdasarkan paidByUid (uid Firebase) — tidak butuh composite index
+    let docs = [];
 
-    // Fallback: cari berdasarkan uid firebase jika belum ada dengan piUid
-    if (snap.empty && currentUid) {
-      snap = await db.collection('pi_donations')
-        .where('paidByUid','==', currentUid)
-        .orderBy('createdAt','desc').limit(10).get().catch(()=>({empty:true,docs:[]}));
+    const snapByUid = await db.collection('pi_donations')
+      .where('paidByUid','==', currentUid)
+      .get().catch(()=>null);
+    if (snapByUid && !snapByUid.empty) {
+      snapByUid.forEach(d => docs.push(d.data()));
     }
 
-    const count = snap.size || snap.docs?.length || 0;
-    document.getElementById('piPayCount').textContent = count + ' transaksi';
+    // Juga cari berdasarkan donorPiUid jika waliPiUser ada dan berbeda
+    if (waliPiUser?.uid && waliPiUser.uid !== currentUid) {
+      const snapByPi = await db.collection('pi_donations')
+        .where('donorPiUid','==', waliPiUser.uid)
+        .get().catch(()=>null);
+      if (snapByPi && !snapByPi.empty) {
+        snapByPi.forEach(d => {
+          const data = d.data();
+          // Hindari duplikat
+          if (!docs.find(x => x.paymentId === data.paymentId)) docs.push(data);
+        });
+      }
+    }
+
+    // Sort di client — terbaru di atas, tidak perlu Firestore index
+    docs.sort((a, b) => {
+      const ta = a.createdAt?.toDate?.()?.getTime() || 0;
+      const tb = b.createdAt?.toDate?.()?.getTime() || 0;
+      return tb - ta;
+    });
+    docs = docs.slice(0, 10);
+
+    const count = docs.length;
+    const countEl = document.getElementById('piPayCount');
+    if (countEl) countEl.textContent = count + ' transaksi';
+
     if (!count) {
-      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-receipt"></i><br>Belum ada riwayat pembayaran Pi</div>';
+      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--g400);font-size:13px"><i class="fas fa-receipt" style="font-size:24px;margin-bottom:8px;display:block"></i>Belum ada riwayat pembayaran Pi</div>';
       return;
     }
-    el.innerHTML = snap.docs.map(d => {
-      const x = d.data();
-      const status = x.status === 'completed'
-        ? '<span style="font-size:10px;font-weight:700;background:var(--pl);color:var(--p);padding:2px 8px;border-radius:20px">✅ Selesai</span>'
-        : '<span style="font-size:10px;font-weight:700;background:var(--wl);color:var(--w);padding:2px 8px;border-radius:20px">⏳ Pending</span>';
-      const time = x.createdAt ? new Date(x.createdAt.toDate()).toLocaleDateString('id-ID') : '—';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--g50);border-radius:10px;margin-bottom:8px;border:1px solid var(--g200)">
-        <div style="width:34px;height:34px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;flex-shrink:0">π</div>
+
+    const stMap = {
+      completed: { bg:'var(--pl)', color:'var(--p)',  ico:'✅', lbl:'Selesai'  },
+      approved:  { bg:'var(--bl)', color:'var(--b)',  ico:'⏳', lbl:'Diproses' },
+      pending:   { bg:'var(--wl)', color:'var(--w)',  ico:'⏳', lbl:'Pending'  },
+      cancelled: { bg:'var(--rl)', color:'var(--r)',  ico:'❌', lbl:'Dibatalkan'},
+      error:     { bg:'var(--rl)', color:'var(--r)',  ico:'⚠️', lbl:'Error'    },
+    };
+
+    el.innerHTML = docs.map(x => {
+      const st  = stMap[x.status] || stMap.pending;
+      const tgl = x.completedAt?.toDate?.()?.toLocaleDateString('id-ID')
+               || x.createdAt?.toDate?.()?.toLocaleDateString('id-ID') || '—';
+      const idr = x.amount ? 'Rp ~' + Math.round(x.amount * 7500).toLocaleString('id-ID') : '';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--g50);border-radius:10px;margin-bottom:8px;border:1px solid var(--g200)">
+        <div style="width:36px;height:36px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:15px;flex-shrink:0">π</div>
         <div style="flex:1;min-width:0">
-          <p style="font-size:12px;font-weight:700;color:var(--ink2)">${x.progLabel||x.program||'—'}</p>
-          <p style="font-size:10px;color:var(--g400)">${time}</p>
+          <p style="font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${x.progLabel||x.program||'Donasi/Pembayaran'}</p>
+          <p style="font-size:10px;color:var(--g400)">${tgl}${idr ? ' · ' + idr : ''}</p>
         </div>
-        <div style="text-align:right">
-          <p style="font-size:13px;font-weight:800;color:#8b5cf6">${x.amount} π</p>
-          ${status}
+        <div style="text-align:right;flex-shrink:0">
+          <p style="font-size:13px;font-weight:800;color:#8b5cf6;margin-bottom:3px">${x.amount} π</p>
+          <span style="font-size:10px;font-weight:700;background:${st.bg};color:${st.color};padding:2px 8px;border-radius:20px">${st.ico} ${st.lbl}</span>
         </div>
       </div>`;
     }).join('');
+
   } catch(e) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Gagal memuat</div>';
+    console.error('loadPiPayHistory error:', e);
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Gagal memuat riwayat</div>';
   }
 }
 
