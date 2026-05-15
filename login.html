@@ -2,19 +2,12 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Masuk | Yayasan Hidayatulamin</title>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<!-- Skip auth redirect di halaman login -->
-<script>
-  // Beritahu auth.js bahwa kita di halaman login — jangan redirect
-  window._isLoginPage = true;
-  // Hapus piUser lama agar tidak ada auto-redirect
-  try { localStorage.removeItem('piUser'); } catch(e) {}
-</script>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -24,477 +17,538 @@
 <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 
 <style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 :root {
   --gold:    #c9a84c;
-  --gold2:   #e8c97e;
-  --emerald: #0e7c5b;
-  --em2:     #12a67a;
+  --gold2:   #f0d080;
+  --emerald: #0d9e6e;
+  --em-dark: #0a7a55;
+  --em-glow: rgba(13,158,110,.4);
   --pi:      #7c3aed;
-  --ink:     #0d1117;
-  --ink2:    #1c2333;
+  --pi-glow: rgba(124,58,237,.4);
+  --bg:      #080c10;
+  --bg2:     #0d1218;
+  --surface: rgba(255,255,255,.04);
+  --border:  rgba(255,255,255,.08);
+  --text:    #e8edf2;
+  --muted:   rgba(255,255,255,.38);
+  --danger:  #f87171;
+  --success: #34d399;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; }
-
 body {
-  font-family: 'DM Sans', sans-serif;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ink);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
   padding: 20px;
   overflow-x: hidden;
+  color: var(--text);
 }
 
-/* Background */
-.bg-glow {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 70% 50% at 15% 40%, rgba(201,168,76,.10) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 70% at 85% 70%, rgba(14,124,91,.08) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 50% 10%, rgba(124,58,237,.06) 0%, transparent 60%);
+/* ── Animated background ── */
+.bg-layer {
+  position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0;
+}
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .12;
+  animation: float 12s ease-in-out infinite;
+}
+.bg-blob:nth-child(1) {
+  width: 500px; height: 500px;
+  background: var(--emerald);
+  top: -100px; left: -120px;
+  animation-delay: 0s;
+}
+.bg-blob:nth-child(2) {
+  width: 400px; height: 400px;
+  background: var(--pi);
+  bottom: -80px; right: -100px;
+  animation-delay: -4s;
+}
+.bg-blob:nth-child(3) {
+  width: 300px; height: 300px;
+  background: var(--gold);
+  top: 40%; left: 50%;
+  transform: translate(-50%,-50%);
+  animation-delay: -8s;
+  opacity: .06;
+}
+@keyframes float {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(30px,-20px) scale(1.05); }
+  66%      { transform: translate(-15px,25px) scale(.97); }
 }
 
-/* Grid pattern */
+/* Grid lines */
 .bg-grid {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
-  background-size: 40px 40px;
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
 }
 
-/* Card */
-.card {
-  position: relative;
-  z-index: 10;
+/* ── Layout ── */
+.login-wrapper {
+  position: relative; z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr;
   width: 100%;
-  max-width: 420px;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 24px;
-  padding: 40px 36px;
-  backdrop-filter: blur(20px);
-  animation: fadeUp .6s ease both;
+  max-width: 440px;
+  gap: 0;
 }
 
-@keyframes fadeUp {
-  from { opacity:0; transform: translateY(24px); }
-  to   { opacity:1; transform: translateY(0); }
+/* ── Card ── */
+.card {
+  background: rgba(13,18,24,.85);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 44px 40px 36px;
+  backdrop-filter: blur(24px);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.04),
+    0 32px 64px rgba(0,0,0,.6),
+    0 0 120px rgba(13,158,110,.04);
+  animation: slideUp .6s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes slideUp {
+  from { opacity:0; transform: translateY(32px) scale(.98); }
+  to   { opacity:1; transform: translateY(0) scale(1); }
 }
 
-/* Logo */
-.logo-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 28px;
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 36px;
 }
-
-.logo-icon {
-  width: 72px;
-  height: 72px;
-  background: linear-gradient(135deg, var(--emerald), #059669);
+.mosque-icon {
+  width: 80px; height: 80px;
+  margin: 0 auto 20px;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.mosque-icon::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: conic-gradient(from 0deg, var(--emerald), var(--em-dark), var(--emerald));
+  border-radius: 22px;
+  animation: rotateBorder 6s linear infinite;
+  padding: 2px;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+@keyframes rotateBorder {
+  to { transform: rotate(360deg); }
+}
+.mosque-icon::after {
+  content: '🕌';
+  position: absolute;
+  font-size: 34px;
+  filter: drop-shadow(0 4px 12px rgba(13,158,110,.5));
+}
+.mosque-bg {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #0d2a1e, #0a1a12);
   border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  margin-bottom: 16px;
-  box-shadow: 0 8px 32px rgba(14,124,91,.35);
-  animation: pulse 3s ease-in-out infinite;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(13,158,110,.15);
 }
 
-@keyframes pulse {
-  0%,100% { box-shadow: 0 8px 32px rgba(14,124,91,.35); }
-  50%      { box-shadow: 0 8px 48px rgba(14,124,91,.55); }
-}
-
-.arabic {
-  font-family: 'Amiri', serif;
-  font-size: 20px;
-  color: var(--gold2);
-  direction: rtl;
-  margin-bottom: 4px;
-  letter-spacing: 1px;
-}
-
-.brand-name {
+.arabic-title {
   font-family: 'Amiri', serif;
   font-size: 22px;
+  color: var(--gold2);
+  direction: rtl;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  text-shadow: 0 0 40px rgba(240,208,128,.25);
+}
+.brand-name {
+  font-family: 'Amiri', serif;
+  font-size: 24px;
   font-weight: 700;
-  color: #fff;
-  text-align: center;
+  color: var(--text);
   line-height: 1.2;
+  margin-bottom: 4px;
+}
+.brand-tagline {
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: .8px;
+  text-transform: uppercase;
 }
 
-.brand-sub {
-  font-size: 12px;
-  color: rgba(255,255,255,.35);
-  text-align: center;
-  margin-top: 4px;
-  letter-spacing: .5px;
-}
-
-/* Divider */
+/* ── Divider ── */
 .divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: flex; align-items: center; gap: 12px;
   margin: 24px 0;
 }
 .divider::before, .divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(255,255,255,.08);
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
 }
 .divider span {
-  font-size: 11px;
-  color: rgba(255,255,255,.25);
-  letter-spacing: .5px;
-  text-transform: uppercase;
+  font-size: 10.5px; color: var(--muted);
+  letter-spacing: .8px; text-transform: uppercase;
 }
 
-/* Pi Button */
+/* ── Pi Button ── */
 .btn-pi {
-  width: 100%;
-  padding: 14px 20px;
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
-  border: none;
+  width: 100%; padding: 15px 20px;
+  background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 50%, #8b5cf6 100%);
+  border: 1px solid rgba(139,92,246,.3);
   border-radius: 14px;
   color: #fff;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14.5px; font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition: all .2s ease;
-  box-shadow: 0 4px 20px rgba(124,58,237,.35);
-  margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: center; gap: 11px;
+  transition: all .25s ease;
+  box-shadow: 0 4px 20px rgba(109,40,217,.35), 0 1px 0 rgba(255,255,255,.1) inset;
+  position: relative; overflow: hidden;
+  margin-bottom: 10px;
 }
-
+.btn-pi::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.1), transparent);
+  opacity: 0; transition: opacity .25s;
+}
+.btn-pi:hover:not(:disabled)::before { opacity: 1; }
 .btn-pi:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(124,58,237,.45);
+  box-shadow: 0 8px 28px rgba(109,40,217,.5), 0 1px 0 rgba(255,255,255,.1) inset;
 }
+.btn-pi:active:not(:disabled) { transform: translateY(0); }
+.btn-pi:disabled { opacity: .45; cursor: not-allowed; }
 
-.btn-pi:disabled {
-  opacity: .6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-pi .pi-logo {
-  width: 22px;
-  height: 22px;
-  background: rgba(255,255,255,.2);
+.pi-badge {
+  width: 26px; height: 26px;
+  background: rgba(255,255,255,.15);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 900;
+  border: 1px solid rgba(255,255,255,.2);
+  flex-shrink: 0;
 }
 
-/* Email login section */
+/* ── Email section ── */
 .email-section {
   display: none;
+  animation: fadeIn .3s ease both;
 }
+.email-section.show { display: block; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
 
-.email-section.show {
-  display: block;
-  animation: fadeUp .3s ease both;
-}
-
-.form-group {
-  margin-bottom: 14px;
-}
+.form-group { margin-bottom: 14px; }
 
 .form-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255,255,255,.5);
-  display: block;
-  margin-bottom: 6px;
-  letter-spacing: .3px;
-}
-
-.form-input {
-  width: 100%;
-  padding: 12px 14px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 10px;
-  color: #fff;
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  transition: border-color .2s;
-  outline: none;
-}
-
-.form-input:focus {
-  border-color: var(--emerald);
-  background: rgba(255,255,255,.08);
-}
-
-.form-input::placeholder { color: rgba(255,255,255,.2); }
-
-.btn-email {
-  width: 100%;
-  padding: 13px 20px;
-  background: linear-gradient(135deg, var(--emerald), #059669);
-  border: none;
-  border-radius: 14px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all .2s ease;
-  box-shadow: 0 4px 16px rgba(14,124,91,.3);
-  margin-top: 4px;
-}
-
-.btn-email:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(14,124,91,.4);
-}
-
-.btn-email:disabled { opacity: .6; cursor: not-allowed; }
-
-/* Toggle email login */
-.toggle-email {
-  text-align: center;
-  margin-top: 16px;
-}
-
-.toggle-email button {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,.3);
-  font-size: 12px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: color .2s;
-  font-family: 'DM Sans', sans-serif;
-}
-
-.toggle-email button:hover { color: rgba(255,255,255,.6); }
-
-/* Alert */
-.alert {
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  margin-bottom: 16px;
-  display: none;
-  align-items: flex-start;
-  gap: 8px;
-  line-height: 1.5;
-}
-.alert.show { display: flex; }
-.alert.error   { background: rgba(220,38,38,.15); border: 1px solid rgba(220,38,38,.25); color: #fca5a5; }
-.alert.success { background: rgba(14,124,91,.15);  border: 1px solid rgba(14,124,91,.25);  color: #6ee7b7; }
-.alert.info    { background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.25); color: #c4b5fd; }
-
-/* Loading overlay */
-.loader-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(13,17,23,.85);
-  z-index: 100;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  backdrop-filter: blur(8px);
-}
-.loader-overlay.show { display: flex; }
-
-.loader-spinner {
-  width: 48px;
-  height: 48px;
-  border: 3px solid rgba(255,255,255,.1);
-  border-top-color: var(--emerald);
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.loader-text {
-  color: rgba(255,255,255,.7);
-  font-size: 14px;
-  font-weight: 500;
-  text-align: center;
-}
-
-/* Not Pi Browser notice */
-.not-pibrowser {
-  background: rgba(245,158,11,.08);
-  border: 1px solid rgba(245,158,11,.2);
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 20px;
-  display: none;
-}
-.not-pibrowser.show { display: block; }
-.not-pibrowser p {
-  font-size: 12px;
-  color: rgba(245,158,11,.8);
-  line-height: 1.6;
-  text-align: center;
-}
-
-/* Footer badges */
-.foot-badges {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-  margin-top: 24px;
-  flex-wrap: wrap;
-}
-.foot-badge {
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .4px;
+  font-size: 11.5px; font-weight: 600;
+  color: var(--muted);
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 7px; letter-spacing: .3px;
   text-transform: uppercase;
 }
-.fb-green  { background: rgba(14,124,91,.15);  color: #34d399; border: 1px solid rgba(14,124,91,.25); }
-.fb-purple { background: rgba(124,58,237,.15); color: #a78bfa; border: 1px solid rgba(124,58,237,.25); }
-.fb-gold   { background: rgba(201,168,76,.15); color: #fbbf24; border: 1px solid rgba(201,168,76,.25); }
-.fb-blue   { background: rgba(37,99,235,.15);  color: #60a5fa; border: 1px solid rgba(37,99,235,.25); }
 
-.spin { animation: spin .8s linear infinite; display: inline-block; }
+.input-wrap { position: relative; }
 
-@media (max-width: 440px) {
-  .card { padding: 32px 24px; }
-  .brand-name { font-size: 19px; }
+.form-input {
+  width: 100%; padding: 13px 16px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all .2s;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--emerald);
+  background: rgba(13,158,110,.06);
+  box-shadow: 0 0 0 3px rgba(13,158,110,.12);
+}
+.form-input::placeholder { color: rgba(255,255,255,.18); }
+.form-input.has-icon { padding-right: 44px; }
+
+.input-action {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--muted); cursor: pointer;
+  padding: 4px; border-radius: 6px;
+  transition: color .2s;
+}
+.input-action:hover { color: var(--text); }
+
+/* ── Submit button ── */
+.btn-submit {
+  width: 100%; padding: 14px 20px; margin-top: 6px;
+  background: linear-gradient(135deg, var(--em-dark) 0%, var(--emerald) 100%);
+  border: 1px solid rgba(13,158,110,.3);
+  border-radius: 14px;
+  color: #fff;
+  font-size: 14.5px; font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .25s;
+  box-shadow: 0 4px 16px rgba(13,158,110,.3), 0 1px 0 rgba(255,255,255,.1) inset;
+  position: relative; overflow: hidden;
+}
+.btn-submit::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.08), transparent);
+  opacity: 0; transition: opacity .25s;
+}
+.btn-submit:hover:not(:disabled)::before { opacity: 1; }
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(13,158,110,.45);
+}
+.btn-submit:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── Toggle link ── */
+.toggle-wrap {
+  text-align: center; margin-top: 18px;
+}
+.toggle-btn {
+  background: none; border: none;
+  color: var(--muted); font-size: 12.5px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer; padding: 6px 12px;
+  border-radius: 8px; transition: all .2s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.toggle-btn:hover {
+  color: var(--emerald);
+  background: rgba(13,158,110,.08);
+}
+
+/* ── Alert ── */
+.alert {
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px; line-height: 1.55;
+  margin-bottom: 18px;
+  display: none; align-items: flex-start; gap: 10px;
+}
+.alert.show { display: flex; animation: fadeIn .25s ease both; }
+.alert-icon { margin-top: 1px; flex-shrink: 0; }
+.alert.error   { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.2); color: #fca5a5; }
+.alert.success { background: rgba(52,211,153,.1);  border: 1px solid rgba(52,211,153,.2);  color: #6ee7b7; }
+.alert.info    { background: rgba(124,58,237,.1);  border: 1px solid rgba(124,58,237,.2);  color: #c4b5fd; }
+.alert.warning { background: rgba(245,158,11,.1);  border: 1px solid rgba(245,158,11,.2);  color: #fcd34d; }
+
+/* ── Notice ── */
+.pi-notice {
+  background: rgba(245,158,11,.07);
+  border: 1px solid rgba(245,158,11,.18);
+  border-radius: 12px; padding: 12px 14px;
+  margin-bottom: 18px; display: none;
+}
+.pi-notice.show { display: block; }
+.pi-notice p {
+  font-size: 12px; color: rgba(253,211,77,.8);
+  line-height: 1.65; text-align: center;
+}
+
+/* ── Loading overlay ── */
+.loader {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,12,16,.88);
+  z-index: 999;
+  flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  backdrop-filter: blur(10px);
+}
+.loader.show { display: flex; animation: fadeIn .2s ease both; }
+.loader-ring {
+  width: 52px; height: 52px;
+  border: 2.5px solid rgba(255,255,255,.08);
+  border-top-color: var(--emerald);
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { color: rgba(255,255,255,.65); font-size: 13.5px; font-weight: 500; }
+.loader-sub  { color: rgba(255,255,255,.3);  font-size: 11.5px; }
+
+/* ── Footer ── */
+.footer {
+  display: flex; justify-content: center;
+  gap: 6px; margin-top: 28px; flex-wrap: wrap;
+}
+.badge {
+  padding: 4px 11px; border-radius: 20px;
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: .6px; text-transform: uppercase;
+}
+.badge-green  { background: rgba(13,158,110,.12); color: #34d399; border: 1px solid rgba(13,158,110,.2); }
+.badge-purple { background: rgba(124,58,237,.12); color: #a78bfa; border: 1px solid rgba(124,58,237,.2); }
+.badge-gold   { background: rgba(201,168,76,.12); color: #fbbf24; border: 1px solid rgba(201,168,76,.2); }
+.badge-blue   { background: rgba(59,130,246,.12); color: #60a5fa; border: 1px solid rgba(59,130,246,.2); }
+
+/* ── Spinner helper ── */
+.spin-icon { display: inline-block; animation: spin .75s linear infinite; }
+
+/* ── Responsive ── */
+@media (max-width: 460px) {
+  .card { padding: 36px 28px 28px; border-radius: 22px; }
+  .brand-name { font-size: 21px; }
 }
 </style>
 </head>
 <body>
 
-<div class="bg-glow"></div>
+<!-- Background -->
+<div class="bg-layer">
+  <div class="bg-blob"></div>
+  <div class="bg-blob"></div>
+  <div class="bg-blob"></div>
+</div>
 <div class="bg-grid"></div>
 
-<!-- Loading Overlay -->
-<div class="loader-overlay" id="loaderOverlay">
-  <div class="loader-spinner"></div>
+<!-- Loader -->
+<div class="loader" id="loader">
+  <div class="loader-ring"></div>
   <p class="loader-text" id="loaderText">Memverifikasi akun...</p>
+  <p class="loader-sub" id="loaderSub"></p>
 </div>
 
-<div class="card">
+<!-- Card -->
+<div class="login-wrapper">
+  <div class="card">
 
-  <!-- Logo & Brand -->
-  <div class="logo-wrap">
-    <div class="logo-icon">🕌</div>
-    <p class="arabic">الهداية الأمين</p>
-    <h1 class="brand-name">Yayasan Hidayatulamin</h1>
-    <p class="brand-sub">Pesantren Modern · Pi Network · SGT Token</p>
-  </div>
+    <!-- Header -->
+    <div class="header">
+      <div class="mosque-icon">
+        <div class="mosque-bg"></div>
+      </div>
+      <p class="arabic-title">الهداية الأمين</p>
+      <h1 class="brand-name">Yayasan Hidayatulamin</h1>
+      <p class="brand-tagline">Pesantren Modern · Pi Network · SGT Token</p>
+    </div>
 
-  <!-- Alert -->
-  <div class="alert" id="alertBox">
-    <i class="fas fa-exclamation-circle" style="margin-top:2px; flex-shrink:0;"></i>
-    <span id="alertMsg"></span>
-  </div>
+    <!-- Alert -->
+    <div class="alert" id="alertBox">
+      <i class="alert-icon fas fa-exclamation-circle"></i>
+      <span id="alertMsg"></span>
+    </div>
 
-  <!-- Not Pi Browser Notice -->
-  <div class="not-pibrowser" id="notPiBrowser">
-    <p><i class="fas fa-info-circle"></i> Untuk login dengan Pi Network, buka halaman ini melalui <strong>Pi Browser</strong>. Atau gunakan login email di bawah.</p>
-  </div>
+    <!-- Pi Notice -->
+    <div class="pi-notice" id="piNotice">
+      <p><i class="fas fa-info-circle"></i> &nbsp;Login Pi Network hanya tersedia di <strong>Pi Browser</strong>. Gunakan login email atau buka melalui Pi Browser.</p>
+    </div>
 
-  <!-- Pi Login Button -->
-  <button class="btn-pi" id="piBtn" onclick="doPiLogin()">
-    <div class="pi-logo">π</div>
-    <span id="piBtnText">Masuk dengan Pi Network</span>
-  </button>
-
-  <!-- Divider -->
-  <div class="divider"><span>atau</span></div>
-
-  <!-- Email Login Toggle -->
-  <div class="toggle-email">
-    <button onclick="toggleEmail()" id="toggleEmailBtn">
-      <i class="fas fa-envelope" style="margin-right:5px;"></i>Masuk dengan Email
+    <!-- Pi Button -->
+    <button class="btn-pi" id="piBtn" onclick="doPiLogin()">
+      <span class="pi-badge">π</span>
+      <span id="piBtnText">Masuk dengan Pi Network</span>
     </button>
-  </div>
 
-  <!-- Email Login Section -->
-  <div class="email-section" id="emailSection">
-    <div style="margin-top:16px;">
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input type="email" id="emailInput" class="form-input" placeholder="admin@hidayatulamin.id"
-          onkeydown="if(event.key==='Enter') doEmailLogin()">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <div style="position:relative;">
-          <input type="password" id="passInput" class="form-input" placeholder="••••••••"
-            style="padding-right:42px;"
-            onkeydown="if(event.key==='Enter') doEmailLogin()">
-          <button onclick="togglePass()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;padding:4px;" id="togglePassBtn">
-            <i class="fas fa-eye" id="passEyeIcon"></i>
-          </button>
-        </div>
-      </div>
-      <button class="btn-email" id="emailBtn" onclick="doEmailLogin()">
-        <i class="fas fa-sign-in-alt" style="margin-right:8px;"></i>Masuk
+    <!-- Divider -->
+    <div class="divider"><span>atau</span></div>
+
+    <!-- Toggle Email -->
+    <div class="toggle-wrap">
+      <button class="toggle-btn" onclick="toggleEmail()" id="toggleEmailBtn">
+        <i class="fas fa-envelope fa-sm"></i>
+        <span id="toggleEmailText">Masuk dengan Email</span>
       </button>
     </div>
-  </div>
 
-  <!-- Footer Badges -->
-  <div class="foot-badges">
-    <span class="foot-badge fb-green">Firebase</span>
-    <span class="foot-badge fb-purple">Pi Network</span>
-    <span class="foot-badge fb-gold">SGT Token</span>
-    <span class="foot-badge fb-blue">Testnet</span>
-  </div>
+    <!-- Email Section -->
+    <div class="email-section" id="emailSection">
+      <div style="margin-top: 20px;">
 
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-at fa-xs"></i> Email
+          </label>
+          <div class="input-wrap">
+            <input
+              type="email" id="emailInput" class="form-input"
+              placeholder="admin@hidayatulamin.id"
+              autocomplete="email"
+              onkeydown="if(event.key==='Enter') doEmailLogin()">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-lock fa-xs"></i> Password
+          </label>
+          <div class="input-wrap">
+            <input
+              type="password" id="passInput" class="form-input has-icon"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              onkeydown="if(event.key==='Enter') doEmailLogin()">
+            <button class="input-action" onclick="togglePass()" title="Lihat password">
+              <i class="fas fa-eye" id="passEyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button class="btn-submit" id="emailBtn" onclick="doEmailLogin()">
+          <i class="fas fa-sign-in-alt"></i>
+          <span id="emailBtnText">Masuk</span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Footer badges -->
+    <div class="footer">
+      <span class="badge badge-green">Firebase</span>
+      <span class="badge badge-purple">Pi Network</span>
+      <span class="badge badge-gold">SGT Token</span>
+      <span class="badge badge-blue">Testnet</span>
+    </div>
+
+  </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// STATE & INIT
+// ═══════════════════════════════════════════════
 const inPiBrowser = !!window.Pi;
 let piReady       = false;
 let emailShown    = false;
+let _redirecting  = false;
 
-// ═══════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════
-// Flag agar tidak redirect ganda
-let _redirecting = false;
+// FIX: Bersihkan semua session lama saat halaman login dibuka
+// Ini mencegah loop redirect
+localStorage.removeItem('piUser');
+localStorage.removeItem('currentUser');
+sessionStorage.clear();
+
+// FIX: Matikan Firebase auth listener di halaman login
+// Kita tangani redirect sendiri di sini
+const _auth = firebase.auth();
+const _db   = firebase.firestore();
+
+// Sign out senyap agar onAuthStateChanged tidak trigger redirect
+_auth.signOut().catch(() => {});
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Tampilkan notice jika bukan Pi Browser
   if (!inPiBrowser) {
-    document.getElementById('notPiBrowser').classList.add('show');
+    document.getElementById('piNotice').classList.add('show');
     document.getElementById('piBtn').disabled = true;
-    document.getElementById('piBtnText').innerHTML = '<i class="fas fa-ban" style="margin-right:6px;"></i>Hanya tersedia di Pi Browser';
+    document.getElementById('piBtnText').innerHTML =
+      '<i class="fas fa-ban" style="opacity:.6;margin-right:4px;"></i>Hanya tersedia di Pi Browser';
+  } else {
+    initPiSdk();
   }
-
-  // Hapus session Pi lama agar tidak loop
-  // Session hanya dipakai di halaman lain, bukan untuk auto-redirect di login
-  localStorage.removeItem('piUser');
-
-  // Init Pi SDK
-  initPiSdk();
 });
 
 function initPiSdk() {
@@ -506,20 +560,21 @@ function initPiSdk() {
       if (typeof window.Pi === 'undefined') throw new Error('Pi not defined');
       window.Pi.init({ version: '2.0', sandbox: true });
       piReady = true;
-      console.log('✅ Pi SDK ready (sandbox: true)');
+      console.log('✅ Pi SDK ready');
     } catch(e) {
-      if (attempts < 10) setTimeout(tryInit, 500);
+      if (attempts < 15) setTimeout(tryInit, 400);
+      else console.warn('Pi SDK gagal init setelah beberapa percobaan');
     }
   };
   tryInit();
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // PI LOGIN
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════
 async function doPiLogin() {
   if (!inPiBrowser) {
-    showAlert('error', 'Buka halaman ini di Pi Browser untuk login dengan Pi Network.');
+    showAlert('warning', 'Buka halaman ini di <strong>Pi Browser</strong> untuk login dengan Pi Network.');
     return;
   }
   if (!piReady) {
@@ -532,12 +587,11 @@ async function doPiLogin() {
     }
   }
 
-  setBtnLoading('piBtn', 'piBtnText', true, 'Menghubungkan ke Pi...');
+  setLoading('piBtn', 'piBtnText', true, 'Menghubungkan ke Pi...');
   clearAlert();
+  showLoader('Autentikasi Pi Network...');
 
   try {
-    // Authenticate Pi
-    showLoader('Memverifikasi akun Pi...');
     const authResult = await window.Pi.authenticate(
       ['username', 'payments', 'wallet_address'],
       handleIncompletePayment
@@ -547,158 +601,125 @@ async function doPiLogin() {
     const piUid    = user.uid;
     const piUser   = user.username;
 
-    showLoader('Mencari data akun...');
+    showLoader('Mencari data akun...', '@' + piUser);
 
-    // Cari user di Firestore berdasarkan piUid
-    let userDoc  = null;
-    let userRef  = null;
-    let isNewUser = false;
+    // Cari user di Firestore
+    let userDoc = null, userRef = null;
 
-    // Cari berdasarkan uid (field uid = piUid)
-    const snap1 = await db.collection('users').doc(piUid).get();
+    const snap1 = await _db.collection('users').doc(piUid).get();
     if (snap1.exists) {
-      userDoc = snap1.data();
-      userRef = db.collection('users').doc(piUid);
+      userDoc = snap1.data(); userRef = _db.collection('users').doc(piUid);
     } else {
-      // Fallback: cari berdasarkan piUid field atau piUsername
-      const snap2 = await db.collection('users')
-        .where('piUid', '==', piUid).limit(1).get();
-      if (!snap2.empty) {
-        userDoc = snap2.docs[0].data();
-        userRef = snap2.docs[0].ref;
-      } else {
-        const snap3 = await db.collection('users')
-          .where('piUsername', '==', piUser).limit(1).get();
-        if (!snap3.empty) {
-          userDoc = snap3.docs[0].data();
-          userRef = snap3.docs[0].ref;
-        }
+      const snap2 = await _db.collection('users').where('piUid', '==', piUid).limit(1).get();
+      if (!snap2.empty) { userDoc = snap2.docs[0].data(); userRef = snap2.docs[0].ref; }
+      else {
+        const snap3 = await _db.collection('users').where('piUsername', '==', piUser).limit(1).get();
+        if (!snap3.empty) { userDoc = snap3.docs[0].data(); userRef = snap3.docs[0].ref; }
       }
     }
 
     if (userDoc) {
-      // ── User lama ──
       if (userDoc.isActive === false) {
-        hideLoader();
-        setBtnLoading('piBtn', 'piBtnText', false);
+        hideLoader(); setLoading('piBtn', 'piBtnText', false);
         showAlert('error', 'Akun Anda telah dinonaktifkan. Hubungi administrator.');
         return;
       }
-
-      // Update info terbaru
       await userRef.update({
-        piUid,
-        piUsername:     piUser,
+        piUid, piUsername: piUser,
         wallet_address: user.wallet_address || userDoc.wallet_address || null,
-        lastLogin:      firebase.firestore.FieldValue.serverTimestamp(),
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
       }).catch(() => {});
-
       const role = userDoc.role || 'santri';
       saveSession(piUid, piUser, role);
-
       if (!_redirecting) {
         _redirecting = true;
-        showLoader(`Selamat datang, @${piUser}! Mengalihkan...`);
-        setTimeout(() => redirectByRole(role), 1000);
+        showLoader('Selamat datang! Mengalihkan...', '@' + piUser + ' · ' + role);
+        setTimeout(() => redirectByRole(role), 1200);
       }
-
     } else {
-      // ── User baru — daftarkan sebagai santri ──
-      isNewUser = true;
       showLoader('Membuat akun baru...');
-
       const newData = {
-        uid:            piUid,
-        piUid,
-        piUsername:     piUser,
-        username:       piUser,
-        displayName:    piUser,
-        nama:           piUser,
-        email:          piUser + '@pi.hidayatulamin.id',
+        uid: piUid, piUid, piUsername: piUser,
+        username: piUser, displayName: piUser, nama: piUser,
+        email: piUser + '@pi.hidayatulamin.id',
         wallet_address: user.wallet_address || null,
-        role:           'santri',
-        isActive:       true,
-        loginMethod:    'pi',
-        profileComplete: false,
-        createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
-        lastLogin:      firebase.firestore.FieldValue.serverTimestamp(),
+        role: 'santri', isActive: true,
+        loginMethod: 'pi', profileComplete: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
       };
-
-      await db.collection('users').doc(piUid).set(newData);
+      await _db.collection('users').doc(piUid).set(newData);
       saveSession(piUid, piUser, 'santri');
-
       if (!_redirecting) {
         _redirecting = true;
-        showLoader('Akun berhasil dibuat! Mengalihkan...');
-        setTimeout(() => redirectByRole('santri'), 1200);
+        showLoader('Akun baru berhasil dibuat!', 'Mengalihkan ke dashboard...');
+        setTimeout(() => redirectByRole('santri'), 1400);
       }
     }
-
   } catch(err) {
     hideLoader();
-    setBtnLoading('piBtn', 'piBtnText', false);
+    setLoading('piBtn', 'piBtnText', false);
     console.error('Pi login error:', err);
-    showAlert('error', err.message || 'Gagal login dengan Pi Network. Coba lagi.');
+    const msg = err.message || 'Gagal login dengan Pi Network.';
+    showAlert('error', msg.includes('cancelled') ? 'Login dibatalkan.' : msg);
+    _redirecting = false;
   }
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // EMAIL LOGIN
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════
 async function doEmailLogin() {
   const email = document.getElementById('emailInput').value.trim();
   const pass  = document.getElementById('passInput').value;
+  if (!email || !pass) { showAlert('error', 'Email dan password wajib diisi.'); return; }
 
-  if (!email || !pass) {
-    showAlert('error', 'Email dan password wajib diisi.');
-    return;
-  }
-
-  setBtnLoading('emailBtn', 'emailBtn', true, 'Masuk...');
+  setLoading('emailBtn', 'emailBtnText', true, 'Memverifikasi...');
   clearAlert();
   showLoader('Memverifikasi akun...');
 
   try {
-    const cred = await auth.signInWithEmailAndPassword(email, pass);
-    const snap = await db.collection('users').doc(cred.user.uid).get();
+    const cred = await _auth.signInWithEmailAndPassword(email, pass);
+    const snap = await _db.collection('users').doc(cred.user.uid).get();
 
     let role = 'santri';
     if (snap.exists) {
       const data = snap.data();
       if (data.isActive === false) {
-        await auth.signOut();
+        await _auth.signOut();
         hideLoader();
-        setBtnLoading('emailBtn', 'emailBtn', false, '<i class="fas fa-sign-in-alt" style="margin-right:8px;"></i>Masuk');
+        setLoading('emailBtn', 'emailBtnText', false, 'Masuk');
         showAlert('error', 'Akun Anda telah dinonaktifkan. Hubungi administrator.');
         return;
       }
       role = data.role || 'santri';
-      await db.collection('users').doc(cred.user.uid).update({
+      await _db.collection('users').doc(cred.user.uid).update({
         lastLogin: firebase.firestore.FieldValue.serverTimestamp()
       }).catch(() => {});
     }
 
-    showLoader(`Selamat datang! Mengalihkan ke dashboard...`);
-    setTimeout(() => redirectByRole(role), 800);
+    showLoader('Selamat datang!', 'Mengalihkan ke dashboard ' + role + '...');
+    setTimeout(() => redirectByRole(role), 900);
 
   } catch(err) {
     hideLoader();
-    setBtnLoading('emailBtn', 'emailBtn', false, '<i class="fas fa-sign-in-alt" style="margin-right:8px;"></i>Masuk');
+    setLoading('emailBtn', 'emailBtnText', false, 'Masuk');
     const msgs = {
       'auth/user-not-found':     'Email tidak terdaftar.',
       'auth/wrong-password':     'Password salah.',
       'auth/invalid-email':      'Format email tidak valid.',
       'auth/too-many-requests':  'Terlalu banyak percobaan. Coba lagi nanti.',
       'auth/invalid-credential': 'Email atau password salah.',
+      'auth/user-disabled':      'Akun ini dinonaktifkan.',
     };
     showAlert('error', msgs[err.code] || err.message || 'Login gagal. Coba lagi.');
   }
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // HELPERS
-// ═══════════════════════════════════════════
-const LOGIN_ROLE_MAP = {
+// ═══════════════════════════════════════════════
+const ROLE_MAP = {
   admin:  'dashboard-admin.html',
   ustadz: 'dashboard-ustadz.html',
   santri: 'dashboard-santri.html',
@@ -706,14 +727,11 @@ const LOGIN_ROLE_MAP = {
 };
 
 function redirectByRole(role) {
-  const dest = LOGIN_ROLE_MAP[role] || 'dashboard-santri.html';
-  window.location.href = dest;
+  window.location.href = ROLE_MAP[role] || 'dashboard-santri.html';
 }
 
 function saveSession(uid, username, role) {
-  localStorage.setItem('piUser', JSON.stringify({
-    uid, username, role, ts: Date.now()
-  }));
+  localStorage.setItem('piUser', JSON.stringify({ uid, username, role, ts: Date.now() }));
 }
 
 async function handleIncompletePayment(payment) {
@@ -730,62 +748,55 @@ async function handleIncompletePayment(payment) {
 function toggleEmail() {
   emailShown = !emailShown;
   const section = document.getElementById('emailSection');
-  const btn     = document.getElementById('toggleEmailBtn');
+  const text    = document.getElementById('toggleEmailText');
   if (emailShown) {
     section.classList.add('show');
-    btn.innerHTML = '<i class="fas fa-times" style="margin-right:5px;"></i>Sembunyikan';
-    setTimeout(() => document.getElementById('emailInput').focus(), 100);
+    text.textContent = 'Sembunyikan';
+    document.getElementById('toggleEmailBtn').querySelector('i').className = 'fas fa-times fa-sm';
+    setTimeout(() => document.getElementById('emailInput').focus(), 120);
   } else {
     section.classList.remove('show');
-    btn.innerHTML = '<i class="fas fa-envelope" style="margin-right:5px;"></i>Masuk dengan Email';
+    text.textContent = 'Masuk dengan Email';
+    document.getElementById('toggleEmailBtn').querySelector('i').className = 'fas fa-envelope fa-sm';
   }
 }
 
 function togglePass() {
   const inp  = document.getElementById('passInput');
   const icon = document.getElementById('passEyeIcon');
-  if (inp.type === 'password') {
-    inp.type = 'text';
-    icon.className = 'fas fa-eye-slash';
-  } else {
-    inp.type = 'password';
-    icon.className = 'fas fa-eye';
-  }
+  inp.type   = inp.type === 'password' ? 'text' : 'password';
+  icon.className = inp.type === 'text' ? 'fas fa-eye-slash' : 'fas fa-eye';
 }
 
-function showAlert(type, msg) {
+function showAlert(type, html) {
   const box = document.getElementById('alertBox');
   const txt = document.getElementById('alertMsg');
   box.className = `alert ${type} show`;
-  txt.textContent = msg;
+  txt.innerHTML = html;
+  // Update icon
+  const icon = box.querySelector('.alert-icon');
+  const icons = { error: 'fa-exclamation-circle', success: 'fa-check-circle', info: 'fa-info-circle', warning: 'fa-triangle-exclamation' };
+  if (icon) icon.className = `alert-icon fas ${icons[type] || 'fa-info-circle'}`;
 }
 
-function clearAlert() {
-  document.getElementById('alertBox').className = 'alert';
-}
+function clearAlert() { document.getElementById('alertBox').className = 'alert'; }
 
-function showLoader(text) {
+function showLoader(text, sub) {
   document.getElementById('loaderText').textContent = text || 'Memuat...';
-  document.getElementById('loaderOverlay').classList.add('show');
+  document.getElementById('loaderSub').textContent  = sub || '';
+  document.getElementById('loader').classList.add('show');
 }
+function hideLoader() { document.getElementById('loader').classList.remove('show'); }
 
-function hideLoader() {
-  document.getElementById('loaderOverlay').classList.remove('show');
-}
-
-function setBtnLoading(btnId, textId, loading, text) {
-  const btn = document.getElementById(btnId);
+function setLoading(btnId, textId, loading, text) {
+  const btn  = document.getElementById(btnId);
+  const span = document.getElementById(textId);
   if (!btn) return;
   btn.disabled = loading;
-  if (textId === btnId) {
-    btn.innerHTML = loading
-      ? `<i class="fas fa-spinner spin" style="margin-right:8px;"></i>${text || 'Memuat...'}`
-      : (text || btn.innerHTML);
-  } else {
-    const el = document.getElementById(textId);
-    if (el) el.innerHTML = loading
-      ? `<i class="fas fa-spinner spin"></i> ${text || 'Memuat...'}`
-      : '<i class="fas fa-mobile-alt"></i> Masuk dengan Pi Network';
+  if (span && text) {
+    span.innerHTML = loading
+      ? `<i class="spin-icon fas fa-circle-notch"></i> ${text}`
+      : text;
   }
 }
 </script>
