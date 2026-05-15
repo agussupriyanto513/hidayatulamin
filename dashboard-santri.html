@@ -9,6 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
 <script src="auth.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
@@ -375,15 +376,18 @@ tr:hover td{background:var(--g50)}
   .rs-right{text-align:center}
   .sgt-hero-actions{grid-template-columns:1fr 1fr}
   .wmodal{border-radius:20px 20px 0 0}
+  .topbar{padding:10px 14px}
+  .sc-val{font-size:20px}
+  table{font-size:11px}
 }
 @media(max-width:540px){
-  .stats-row{grid-template-columns:1fr 1fr}
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px}
   .field-row{grid-template-columns:1fr}
   .info-grid{grid-template-columns:1fr}
   .juz-grid{grid-template-columns:repeat(5,1fr)}
   .sgt-grid{grid-template-columns:1fr 1fr}
   .sc{padding:12px 14px}
-  .sc-val{font-size:20px}
+  .sc-val{font-size:18px}
   .greeting{padding:16px}
   .gr-txt h3{font-size:17px}
   .sgt-equiv-row{flex-direction:column}
@@ -392,12 +396,22 @@ tr:hover td{background:var(--g50)}
   .profile-header{flex-direction:column;text-align:center}
   .profile-av{margin:0 auto}
   .chat-wrap{height:260px}
+  .tbl-wrap{-webkit-overflow-scrolling:touch}
+  .pay-method-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .pay-tab-row{gap:6px}
+  .pay-tab{font-size:11px;padding:8px 10px}
+  .wmodal{padding:16px 14px 28px}
 }
 @media(max-width:380px){
   .juz-cell{font-size:10px}
   .juz-grid{gap:4px}
   .content{padding:10px 10px calc(75px + env(safe-area-inset-bottom))}
   .stats-row{gap:8px}
+  .sc-val{font-size:16px}
+  .pay-method-grid{grid-template-columns:1fr 1fr}
+  .bottom-nav .bn-row{padding:0 4px}
+  .bn-item{min-width:0;padding:8px 4px}
+  .bn-item span{font-size:9px}
 }
 
 /* ═══ PEMBAYARAN FIAT ═══ */
@@ -2044,18 +2058,42 @@ function copyPaymentCode() {
 
 // ── Pi Payment ──
 async function piLoginForPayment() {
-  if (!window.Pi) { showToast('error','Pi Browser','Buka halaman ini di Pi Browser'); return; }
+  // Cek apakah Pi SDK tersedia (sudah di-load via script tag)
+  if (!window.Pi) {
+    showToast('error','Pi Browser','Buka halaman ini di Pi Browser');
+    return;
+  }
   try {
-    window.Pi.init({ version:'2.0', sandbox: true });
-    const auth = await window.Pi.authenticate(['username','payments'], ()=>{});
-    piPayUser = { uid: auth.user.uid, username: auth.user.username };
-    document.getElementById('piPayAvatar').textContent = piPayUser.username[0].toUpperCase();
-    document.getElementById('piPayUsername').textContent = '@' + piPayUser.username;
-    document.getElementById('piPayLoginArea').style.display = 'none';
-    document.getElementById('piPayUserArea').style.display = 'block';
-    showToast('success','Login Berhasil','@' + piPayUser.username + ' siap membayar');
+    // Gunakan Pi yang sudah di-init oleh auth.js — jangan init ulang
+    // Kalau belum di-init, init sekarang
+    try { window.Pi.init({ version:'2.0', sandbox: true }); } catch(e) { /* sudah di-init */ }
+
+    const result = await window.Pi.authenticate(['username','payments'], async (payment) => {
+      // Handle incomplete payment
+      try {
+        await fetch('/api/payments/cancel', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ paymentId: payment.identifier })
+        });
+      } catch(e) {}
+    });
+
+    piPayUser = { uid: result.user.uid, username: result.user.username };
+
+    const avatarEl = document.getElementById('piPayAvatar');
+    const userEl   = document.getElementById('piPayUsername');
+    const loginArea = document.getElementById('piPayLoginArea');
+    const userArea  = document.getElementById('piPayUserArea');
+
+    if (avatarEl) avatarEl.textContent = piPayUser.username[0].toUpperCase();
+    if (userEl)   userEl.textContent   = '@' + piPayUser.username;
+    if (loginArea) loginArea.style.display = 'none';
+    if (userArea)  userArea.style.display  = 'block';
+
+    showToast('success','Login Pi Berhasil','@' + piPayUser.username + ' siap membayar');
   } catch(e) {
-    showToast('error','Login Gagal', e.message || 'Buka di Pi Browser');
+    console.error('Pi login error:', e);
+    showToast('error','Login Pi Gagal', e.message || 'Coba lagi');
   }
 }
 
