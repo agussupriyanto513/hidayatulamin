@@ -1515,6 +1515,7 @@ async function submitPiPay() {
         {
           onReadyForServerApproval: async (paymentId) => {
             try {
+              // 1. Simpan ke Firestore dulu
               await db.collection('pi_donations').add({
                 paymentId,
                 donorPiUid:    waliPiUser.uid,
@@ -1530,10 +1531,38 @@ async function submitPiPay() {
                 createdAt:     firebase.firestore.FieldValue.serverTimestamp()
               });
             } catch(e) { console.error('Firestore save error:', e); }
+            try {
+              // 2. WAJIB: panggil backend untuk approve ke Pi Platform API
+              // Tanpa ini Pi SDK timeout dan batalkan pembayaran
+              const approveRes = await fetch('/api/payments/approve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentId })
+              });
+              if (!approveRes.ok) {
+                const errData = await approveRes.json().catch(() => ({}));
+                console.error('Approve failed:', errData);
+                // Jangan reject di sini — biarkan Pi SDK lanjut atau timeout sendiri
+              }
+            } catch(e) {
+              console.error('Approve fetch error:', e);
+            }
           },
           onReadyForServerCompletion: async (paymentId, txid) => {
             clearTimeout(timeoutId);
             try {
+              // 1. Panggil backend untuk complete ke Pi Platform API
+              const completeRes = await fetch('/api/payments/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentId, txid })
+              });
+              if (!completeRes.ok) {
+                console.error('Complete failed:', await completeRes.json().catch(() => ({})));
+              }
+            } catch(e) { console.error('Complete fetch error:', e); }
+            try {
+              // 2. Update status di Firestore
               const snap = await db.collection('pi_donations')
                 .where('paymentId','==',paymentId).limit(1).get();
               if (!snap.empty) {
@@ -1544,14 +1573,27 @@ async function submitPiPay() {
               }
               resolve({ txid });
             } catch(e) {
-              // Tetap resolve agar pembayaran dianggap berhasil meski Firestore gagal update
-              console.error('Completion update error:', e);
-              resolve({ txid });
+              console.error('Completion Firestore error:', e);
+              resolve({ txid }); // tetap resolve meski Firestore gagal
             }
           },
-          onCancel: (paymentId) => {
+          onCancel: async (paymentId) => {
             clearTimeout(timeoutId);
             console.log('Payment cancelled:', paymentId);
+            // Beritahu backend untuk cancel di Pi Platform API
+            try {
+              await fetch('/api/payments/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentId })
+              });
+              // Update status di Firestore
+              const snap = await db.collection('pi_donations')
+                .where('paymentId','==',paymentId).limit(1).get();
+              if (!snap.empty) {
+                await snap.docs[0].ref.update({ status: 'cancelled' }).catch(() => {});
+              }
+            } catch(e) { console.error('Cancel error:', e); }
             reject(new Error('Pembayaran dibatalkan oleh pengguna'));
           },
           onError: (err, payment) => {
