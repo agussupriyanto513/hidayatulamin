@@ -697,7 +697,7 @@ async function doEmailLogin() {
 // ═══════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════
-const ROLE_DASHBOARD = {
+const LOGIN_ROLE_MAP = {
   admin:  'dashboard-admin.html',
   ustadz: 'dashboard-ustadz.html',
   santri: 'dashboard-santri.html',
@@ -705,7 +705,7 @@ const ROLE_DASHBOARD = {
 };
 
 function redirectByRole(role) {
-  const dest = ROLE_DASHBOARD[role] || 'dashboard-santri.html';
+  const dest = LOGIN_ROLE_MAP[role] || 'dashboard-santri.html';
   window.location.href = dest;
 }
 
