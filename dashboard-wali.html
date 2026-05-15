@@ -404,7 +404,10 @@ tr:hover td{background:var(--g50)}
 
       <!-- RIWAYAT PEMBAYARAN PI -->
       <div class="card" style="margin-top:16px">
-        <div class="card-hd"><h4>Riwayat Bayar Pi</h4><span style="font-size:11px;color:var(--g400)" id="piPayCount">—</span></div>
+        <div class="card-hd">
+          <div><h4>Riwayat Bayar Pi</h4><span style="font-size:11px;color:var(--g400)" id="piPayCount">—</span></div>
+          <button onclick="loadPiPayHistory()" style="background:var(--acl);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--acc);cursor:pointer;display:flex;align-items:center;gap:5px"><i class="fas fa-sync-alt"></i> Refresh</button>
+        </div>
         <div id="piPayHistory">
           <div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
         </div>
@@ -1332,7 +1335,7 @@ function go(name, navEl) {
   if (name === 'hafalan') renderHafalan();
   if (name === 'nilai') setTimeout(() => renderNilai(), 50);
   if (name === 'absensi') renderAbsensi();
-  if (name === 'pembayaran') { renderPembayaran(); if (waliPiUser) loadPiPayHistory(); }
+  if (name === 'pembayaran') { renderPembayaran(); loadPiPayHistory(); }
   if (name === 'notifikasi') renderNotif();
   closeSb();
 }
@@ -1628,30 +1631,52 @@ async function loadPiPayHistory() {
   el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i><br>Memuat riwayat...</div>';
 
   try {
-    let docs = [];
+    let docsMap = {}; // pakai Map agar tidak duplikat
 
-    // Query 1: berdasarkan donorPiUid (Pi Network UID)
-    const piUidToSearch = waliPiUser?.uid;
-    if (piUidToSearch) {
+    // Query 1: berdasarkan paidByUid (Firebase UID) — SELALU dijalankan
+    try {
       const snap1 = await db.collection('pi_donations')
-        .where('donorPiUid', '==', piUidToSearch)
-        .orderBy('createdAt', 'desc').limit(10).get();
-      if (!snap1.empty) docs = snap1.docs;
+        .where('paidByUid', '==', currentUid)
+        .limit(20).get();
+      snap1.docs.forEach(d => { docsMap[d.id] = d; });
+    } catch(e) { console.warn('Query paidByUid error:', e); }
+
+    // Query 2: berdasarkan donorPiUid (Pi Network UID) — jika user sudah login Pi
+    const piUidToSearch = waliPiUser?.uid;
+    if (piUidToSearch && piUidToSearch !== currentUid) {
+      try {
+        const snap2 = await db.collection('pi_donations')
+          .where('donorPiUid', '==', piUidToSearch)
+          .limit(20).get();
+        snap2.docs.forEach(d => { docsMap[d.id] = d; });
+      } catch(e) { console.warn('Query donorPiUid error:', e); }
     }
 
-    // Fallback: berdasarkan paidByUid (Firebase UID) jika query pertama kosong
-    if (!docs.length) {
-      const snap2 = await db.collection('pi_donations')
-        .where('paidByUid', '==', currentUid)
-        .orderBy('createdAt', 'desc').limit(10).get();
-      if (!snap2.empty) docs = snap2.docs;
+    // Query 3: berdasarkan donorUsername (Pi username) — jika tersedia
+    const piUsername = waliPiUser?.username;
+    if (piUsername) {
+      try {
+        const snap3 = await db.collection('pi_donations')
+          .where('donorUsername', '==', piUsername)
+          .limit(20).get();
+        snap3.docs.forEach(d => { docsMap[d.id] = d; });
+      } catch(e) { console.warn('Query donorUsername error:', e); }
     }
+
+    // Gabungkan dan urutkan manual berdasarkan createdAt desc
+    let docs = Object.values(docsMap);
+    docs.sort((a, b) => {
+      const ta = a.data().createdAt?.toMillis?.() || 0;
+      const tb = b.data().createdAt?.toMillis?.() || 0;
+      return tb - ta;
+    });
+    docs = docs.slice(0, 20); // ambil 20 terbaru
 
     const count = docs.length;
     document.getElementById('piPayCount').textContent = count + ' transaksi';
 
     if (!count) {
-      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-receipt"></i><br>Belum ada riwayat pembayaran Pi</div>';
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-receipt" style="font-size:24px;display:block;margin-bottom:8px;opacity:.4"></i>Belum ada riwayat pembayaran Pi</div>';
       return;
     }
 
@@ -1662,14 +1687,16 @@ async function loadPiPayHistory() {
         : x.status === 'cancelled'
           ? '<span style="font-size:10px;font-weight:700;background:var(--rl);color:var(--r);padding:2px 8px;border-radius:20px">❌ Dibatalkan</span>'
           : '<span style="font-size:10px;font-weight:700;background:var(--wl);color:var(--w);padding:2px 8px;border-radius:20px">⏳ Pending</span>';
-      const time = x.createdAt ? new Date(x.createdAt.toDate()).toLocaleDateString('id-ID') : '—';
+      const time = x.createdAt ? new Date(x.createdAt.toDate()).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}) : '—';
+      const label = x.progLabel || x.program || '—';
+      const donor = x.donorUsername ? `<span style="font-size:10px;color:var(--g400)">@${x.donorUsername} · </span>` : '';
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--g50);border-radius:10px;margin-bottom:8px;border:1px solid var(--g200)">
-        <div style="width:34px;height:34px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;flex-shrink:0">π</div>
+        <div style="width:34px;height:34px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;flex-shrink:0;font-size:16px">π</div>
         <div style="flex:1;min-width:0">
-          <p style="font-size:12px;font-weight:700;color:var(--ink2)">${x.progLabel||x.program||'—'}</p>
-          <p style="font-size:10px;color:var(--g400)">${time}</p>
+          <p style="font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</p>
+          <p style="font-size:10px;color:var(--g400)">${donor}${time}</p>
         </div>
-        <div style="text-align:right">
+        <div style="text-align:right;flex-shrink:0">
           <p style="font-size:13px;font-weight:800;color:#8b5cf6">${x.amount} π</p>
           ${status}
         </div>
@@ -1677,7 +1704,7 @@ async function loadPiPayHistory() {
     }).join('');
   } catch(e) {
     console.error('loadPiPayHistory error:', e);
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-circle-exclamation"></i><br>Gagal memuat riwayat</div>';
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-circle-exclamation"></i><br>Gagal memuat riwayat. Coba refresh halaman.</div>';
   }
 }
 
