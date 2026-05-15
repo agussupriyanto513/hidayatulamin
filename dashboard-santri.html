@@ -2169,10 +2169,10 @@ async function submitPiPayment() {
           },
         },
         {
-          // ── Step 1: Pi siap, simpan ke Firestore & approve ──
+          // ── Step 1: Pi siap → simpan ke Firestore lalu approve via backend ──
           onReadyForServerApproval: async (paymentId) => {
             try {
-              // Simpan record pembayaran ke Firestore
+              // 1a. Simpan record pembayaran ke Firestore
               await db.collection('pi_payments').doc(paymentId).set({
                 paymentId,
                 santriId:   currentUid,
@@ -2186,31 +2186,58 @@ async function submitPiPayment() {
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
               });
 
-              // Approve langsung dari client (tanpa backend server)
-              // Pi SDK butuh approve dipanggil — untuk app tanpa server, kita approve via Pi SDK sendiri
-              // Catatan: untuk production sebaiknya pakai backend, tapi ini langsung resolve di client
-              console.log('Payment approved (client-side):', paymentId);
+              // 1b. Panggil backend /api/payments/approve agar Pi tidak timeout
+              const approveRes = await fetch('/api/payments/approve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentId }),
+              });
+
+              if (!approveRes.ok) {
+                const errData = await approveRes.json().catch(() => ({}));
+                throw new Error(errData.error || 'Approve gagal (server)');
+              }
+
+              // 1c. Update status di Firestore jadi approved
+              await db.collection('pi_payments').doc(paymentId).update({
+                status:     'approved',
+                approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+              });
+
+              console.log('Payment approved via server:', paymentId);
             } catch(e) {
               console.error('onReadyForServerApproval error:', e);
-              // Jangan reject — biarkan flow lanjut agar Pi tidak stuck
+              // Reject agar UI tidak stuck
+              reject(new Error('Approve gagal: ' + e.message));
             }
           },
 
-          // ── Step 2: Transaksi selesai di blockchain ──
+          // ── Step 2: Blockchain selesai → complete via backend ──
           onReadyForServerCompletion: async (paymentId, txid) => {
             try {
-              // Update status di Firestore
+              // 2a. Panggil backend /api/payments/complete
+              const completeRes = await fetch('/api/payments/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentId, txid }),
+              });
+
+              if (!completeRes.ok) {
+                const errData = await completeRes.json().catch(() => ({}));
+                throw new Error(errData.error || 'Complete gagal (server)');
+              }
+
+              // 2b. Update status di Firestore jadi completed
               await db.collection('pi_payments').doc(paymentId).update({
                 status:      'completed',
                 txid,
                 completedAt: firebase.firestore.FieldValue.serverTimestamp(),
               });
 
-              // Update status tagihan yang dibayar jadi 'lunas'
+              // 2c. Update status tagihan jadi lunas
               const batch = db.batch();
               for (const t of pending) {
                 if (t.id && !t.id.startsWith('tag00')) {
-                  // Data real dari Firestore
                   const ref = db.collection('tagihan').doc(t.id);
                   batch.update(ref, {
                     status:    'lunas',
@@ -2223,7 +2250,7 @@ async function submitPiPayment() {
               }
               await batch.commit();
 
-              // Update tampilan lokal
+              // 2d. Update tampilan lokal
               allTagihan.forEach(t => {
                 if (pending.find(p => p.id === t.id)) t.status = 'lunas';
               });
@@ -2239,13 +2266,18 @@ async function submitPiPayment() {
           },
 
           onCancel: (paymentId) => {
-            // Update status jadi cancelled
+            // Catat cancel di Firestore & backend
             if (currentUid && typeof db !== 'undefined') {
               db.collection('pi_payments').doc(paymentId).update({
-                status: 'cancelled',
+                status:      'cancelled',
                 cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
               }).catch(() => {});
             }
+            fetch('/api/payments/cancel', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paymentId }),
+            }).catch(() => {});
             reject(new Error('Pembayaran dibatalkan oleh pengguna'));
           },
 
