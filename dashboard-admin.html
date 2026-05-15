@@ -806,8 +806,8 @@ tr:hover td{background:var(--g50)}
         </div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>Donatur Pi</th><th>Program</th><th>Jumlah</th><th>Status</th><th>TxID</th><th>Waktu</th></tr></thead>
-            <tbody id="piDonTable"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
+            <thead><tr><th>Donatur Pi</th><th>Program</th><th>Jumlah</th><th>Status</th><th>TxID</th><th>Waktu</th><th>Aksi</th></tr></thead>
+            <tbody id="piDonTable"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -824,6 +824,18 @@ tr:hover td{background:var(--g50)}
         <div class="modal-ft" id="wdDetailFt"></div>
       </div>
     </div>
+    <!-- MODAL APPROVE PI DONATION -->
+    <div class="modal-bg" id="piApproveModal" onclick="if(event.target===this)closePiApproveModal()">
+      <div class="modal" style="max-width:460px">
+        <div class="modal-hd">
+          <h3><span style="font-size:16px;font-weight:900;color:#8b5cf6;margin-right:8px">π</span>Konfirmasi Approve Donasi Pi</h3>
+          <button class="modal-close" onclick="closePiApproveModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="piApproveBody"></div>
+        <div class="modal-ft" id="piApproveFt"></div>
+      </div>
+    </div>
+
     <!-- ════ PI WHITELIST SECTION ════ -->
     <div class="section" id="sec-whitelist">
       <div class="sec-hd">
@@ -2347,15 +2359,23 @@ function renderPiDonTable() {
     return true;
   });
   if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--g400)">Tidak ada data</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--g400)">Tidak ada data</td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(x => {
-    const status = x.status === 'completed'
+    const isPending = x.status !== 'completed';
+    const status = !isPending
       ? '<span class="chip chip-aktif">✅ Selesai</span>'
       : '<span class="chip" style="background:var(--wl);color:var(--w)">⏳ Pending</span>';
     const txid   = x.txid ? `<span style="font-size:10px;font-family:monospace;color:var(--g400)" title="${x.txid}">${x.txid.slice(0,10)}...</span>` : '—';
     const time   = x.completedAt ? new Date(x.completedAt.toDate()).toLocaleString('id-ID') : (x.createdAt ? new Date(x.createdAt.toDate()).toLocaleString('id-ID') : '—');
+    const aksi   = isPending
+      ? `<button onclick="openPiApproveModal('${escHtml(x.id)}')"
+           style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s"
+           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+           <i class="fas fa-check"></i> Approve
+         </button>`
+      : `<span style="font-size:11px;color:var(--g400)">—</span>`;
     return `<tr>
       <td><div class="u-cell"><div class="u-av-sm" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff">${(x.donorUsername||'?')[0].toUpperCase()}</div><div class="u-det"><div class="u-nm">@${escHtml(x.donorUsername||'anonymous')}</div></div></div></td>
       <td>${escHtml(x.progLabel||x.program||'—')}</td>
@@ -2363,8 +2383,82 @@ function renderPiDonTable() {
       <td>${status}</td>
       <td>${txid}</td>
       <td style="font-size:11px;color:var(--g500)">${time}</td>
+      <td>${aksi}</td>
     </tr>`;
   }).join('');
+}
+
+// ── Pi Donation Approve Modal ──────────────────────────────────
+function openPiApproveModal(docId) {
+  const x = piDonAllData.find(d => d.id === docId);
+  if (!x) return;
+  const time = x.createdAt ? new Date(x.createdAt.toDate()).toLocaleString('id-ID') : '—';
+  document.getElementById('piApproveBody').innerHTML = `
+    <div style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-radius:10px;padding:16px;margin-bottom:14px;border:1.5px solid #ddd6fe">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff">π</div>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#1e293b">@${escHtml(x.donorUsername||'anonymous')}</div>
+          <div style="font-size:11px;color:#64748b">${escHtml(x.progLabel||x.program||'—')}</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-size:22px;font-weight:900;color:#8b5cf6">${parseFloat(x.amount)||0} π</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;font-size:12px">
+        <div style="display:flex;justify-content:space-between"><span style="color:#64748b">Payment ID</span><span style="font-family:monospace;color:#334155;font-size:11px">${escHtml(x.paymentId||x.id||'—')}</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:#64748b">Waktu</span><span style="color:#334155">${time}</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:#64748b">Status saat ini</span><span style="background:#fef3c7;color:#d97706;padding:2px 8px;border-radius:20px;font-weight:700">⏳ Pending</span></div>
+      </div>
+    </div>
+    <div style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:9px;padding:12px;font-size:12px;color:#92400e;line-height:1.6">
+      <i class="fas fa-exclamation-triangle" style="margin-right:6px"></i>
+      Approve akan mengubah status donasi menjadi <b>Completed</b> di Firestore. Pastikan pembayaran Pi sudah benar-benar diterima sebelum approve.
+    </div>`;
+  document.getElementById('piApproveFt').innerHTML = `
+    <button class="btn-sec" onclick="closePiApproveModal()">Batal</button>
+    <button id="piApproveConfirmBtn" onclick="confirmPiApprove('${escHtml(docId)}')"
+      style="padding:8px 18px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border:none;border-radius:var(--rdm);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit">
+      <i class="fas fa-check"></i> Ya, Approve Sekarang
+    </button>`;
+  document.getElementById('piApproveModal').classList.add('open');
+}
+
+function closePiApproveModal() {
+  document.getElementById('piApproveModal').classList.remove('open');
+}
+
+async function confirmPiApprove(docId) {
+  const btn = document.getElementById('piApproveConfirmBtn');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+  try {
+    await ensureFreshToken();
+    await db.collection('pi_donations').doc(docId).update({
+      status:      'completed',
+      approvedBy:  currentAdminUid || 'admin',
+      approvedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    // Update local cache
+    const local = piDonAllData.find(d => d.id === docId);
+    if (local) { local.status = 'completed'; local.approvedBy = currentAdminUid || 'admin'; }
+    closePiApproveModal();
+    updatePiDonStats();
+    renderPiDonByProg();
+    renderPiTopDonors();
+    renderPiDonTable();
+    // Update badge
+    const pending = piDonAllData.filter(x => x.status === 'pending').length;
+    const badge = document.getElementById('piDonBadge');
+    if (badge) { badge.style.display = pending > 0 ? '' : 'none'; badge.textContent = pending; }
+    showToast('success', 'Donasi Disetujui', 'Status pembayaran Pi berhasil diubah ke Completed');
+  } catch(e) {
+    showToast('error', 'Gagal Approve', e.message || 'Terjadi kesalahan');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> Ya, Approve Sekarang';
+  }
 }
 
 // ════ END PI DONATIONS ════
