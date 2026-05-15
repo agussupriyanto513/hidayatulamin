@@ -169,11 +169,8 @@ class HidayatulaminAuth {
     const page = this._currentPage();
     if (PUBLIC_PAGES.includes(page)) return;
 
-    if (page === 'login.html') {
-      const dest = ROLE_DASHBOARD[this.currentUserData?.role] || 'dashboard-santri.html';
-      window.location.href = dest;
-      return;
-    }
+    // Jangan redirect jika di halaman login
+    if (page === 'login.html') return;
 
     const allowedPage = ROLE_DASHBOARD[this.currentUserData?.role];
     const adminOnly   = ['data-pengguna.html', 'keuangan.html'];
@@ -193,7 +190,9 @@ class HidayatulaminAuth {
 
   _redirectIfPrivate() {
     const page = this._currentPage();
-    if (!PUBLIC_PAGES.includes(page) && page !== 'login.html') {
+    // Jangan redirect jika sudah di login page
+    if (page === 'login.html') return;
+    if (!PUBLIC_PAGES.includes(page)) {
       window.location.href = 'login.html';
     }
   }

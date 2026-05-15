@@ -8,6 +8,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+<!-- Skip auth redirect di halaman login -->
+<script>
+  // Beritahu auth.js bahwa kita di halaman login — jangan redirect
+  window._isLoginPage = true;
+  // Hapus piUser lama agar tidak ada auto-redirect
+  try { localStorage.removeItem('piUser'); } catch(e) {}
+</script>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -471,6 +478,9 @@ let emailShown    = false;
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
+// Flag agar tidak redirect ganda
+let _redirecting = false;
+
 document.addEventListener('DOMContentLoaded', () => {
   // Tampilkan notice jika bukan Pi Browser
   if (!inPiBrowser) {
@@ -479,28 +489,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('piBtnText').innerHTML = '<i class="fas fa-ban" style="margin-right:6px;"></i>Hanya tersedia di Pi Browser';
   }
 
-  // Cek jika sudah login sebelumnya via Pi (localStorage session)
-  checkExistingSession();
+  // Hapus session Pi lama agar tidak loop
+  // Session hanya dipakai di halaman lain, bukan untuk auto-redirect di login
+  localStorage.removeItem('piUser');
 
   // Init Pi SDK
   initPiSdk();
 });
-
-function checkExistingSession() {
-  try {
-    const raw = localStorage.getItem('piUser');
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    const age = Date.now() - (data.ts || 0);
-    // Session valid 8 jam
-    if (age < 8 * 60 * 60 * 1000 && data.role && data.uid) {
-      showLoader('Melanjutkan sesi sebelumnya...');
-      setTimeout(() => redirectByRole(data.role), 800);
-    } else {
-      localStorage.removeItem('piUser');
-    }
-  } catch(e) {}
-}
 
 function initPiSdk() {
   if (!inPiBrowser) return;
@@ -601,8 +596,11 @@ async function doPiLogin() {
       const role = userDoc.role || 'santri';
       saveSession(piUid, piUser, role);
 
-      showLoader(`Selamat datang, @${piUser}! Mengalihkan...`);
-      setTimeout(() => redirectByRole(role), 1000);
+      if (!_redirecting) {
+        _redirecting = true;
+        showLoader(`Selamat datang, @${piUser}! Mengalihkan...`);
+        setTimeout(() => redirectByRole(role), 1000);
+      }
 
     } else {
       // ── User baru — daftarkan sebagai santri ──
@@ -629,8 +627,11 @@ async function doPiLogin() {
       await db.collection('users').doc(piUid).set(newData);
       saveSession(piUid, piUser, 'santri');
 
-      showLoader('Akun berhasil dibuat! Mengalihkan...');
-      setTimeout(() => redirectByRole('santri'), 1200);
+      if (!_redirecting) {
+        _redirecting = true;
+        showLoader('Akun berhasil dibuat! Mengalihkan...');
+        setTimeout(() => redirectByRole('santri'), 1200);
+      }
     }
 
   } catch(err) {
