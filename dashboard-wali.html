@@ -1493,9 +1493,11 @@ async function submitPiPay() {
 
   const memo = `${typeLabel.replace(/[^\w\s\-]/g, '')} — Hidayatulamin`;
 
+  // Timeout 90 detik — Pi SDK kadang tidak merespons
+  const PAYMENT_TIMEOUT_MS = 90000;
+
   try {
     // PENTING: Re-authenticate dengan scope 'payments' sebelum createPayment
-    // Ini yang menyebabkan error "Cannot create payment without payments scope"
     const freshAuth = await window.Pi.authenticate(['username','payments'], async (incompletePay) => {
       console.log('Incomplete payment during payment:', incompletePay.identifier);
     });
@@ -1503,6 +1505,11 @@ async function submitPiPay() {
     waliPiUser.username = freshAuth.user.username;
 
     await new Promise((resolve, reject) => {
+      // Timeout guard: tolak jika Pi SDK tidak merespons dalam 90 detik
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Waktu habis (timeout). Silakan coba lagi atau hubungi admin jika Pi sudah terpotong.'));
+      }, PAYMENT_TIMEOUT_MS);
+
       window.Pi.createPayment(
         { amount: amt, memo, metadata: { type: type.value, note, donorPiUid: waliPiUser.uid, role: 'wali' } },
         {
@@ -1525,6 +1532,7 @@ async function submitPiPay() {
             } catch(e) { console.error('Firestore save error:', e); }
           },
           onReadyForServerCompletion: async (paymentId, txid) => {
+            clearTimeout(timeoutId);
             try {
               const snap = await db.collection('pi_donations')
                 .where('paymentId','==',paymentId).limit(1).get();
@@ -1542,10 +1550,12 @@ async function submitPiPay() {
             }
           },
           onCancel: (paymentId) => {
+            clearTimeout(timeoutId);
             console.log('Payment cancelled:', paymentId);
             reject(new Error('Pembayaran dibatalkan oleh pengguna'));
           },
           onError: (err, payment) => {
+            clearTimeout(timeoutId);
             console.error('Pi payment error:', err, payment);
             reject(new Error(err?.message || 'Terjadi kesalahan saat pembayaran Pi'));
           }
@@ -1558,42 +1568,58 @@ async function submitPiPay() {
     setTimeout(() => loadPiPayHistory(), 800);
   } catch(e) {
     console.error('submitPiPay error:', e);
-    showToast('error','Pembayaran Gagal', e.message || 'Coba lagi');
+    // Pesan khusus untuk timeout
+    const isTimeout = e.message && e.message.includes('timeout');
+    showToast('error', isTimeout ? 'Waktu Habis' : 'Pembayaran Gagal', e.message || 'Coba lagi');
+  } finally {
+    // Selalu kembalikan tombol ke kondisi normal
+    btn.disabled = false;
+    btn.innerHTML = '<span style="font-size:16px;font-weight:900">π</span> Bayar dengan Pi';
   }
-
-  btn.disabled = false;
-  btn.innerHTML = '<span style="font-size:16px;font-weight:900">π</span> Bayar dengan Pi';
 }
 
 async function loadPiPayHistory() {
   const el = document.getElementById('piPayHistory');
   if (!el) return;
   if (!currentUid) return;
-  try {
-    // Query berdasarkan piUid kalau ada, atau fallback ke donorPiUid = uid firebase
-    const piUidToSearch = waliPiUser?.uid || 'none';
-    let snap = await db.collection('pi_donations')
-      .where('donorPiUid','==', piUidToSearch)
-      .orderBy('createdAt','desc').limit(10).get();
 
-    // Fallback: cari berdasarkan uid firebase jika belum ada dengan piUid
-    if (snap.empty && currentUid) {
-      snap = await db.collection('pi_donations')
-        .where('paidByUid','==', currentUid)
-        .orderBy('createdAt','desc').limit(10).get().catch(()=>({empty:true,docs:[]}));
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i><br>Memuat riwayat...</div>';
+
+  try {
+    let docs = [];
+
+    // Query 1: berdasarkan donorPiUid (Pi Network UID)
+    const piUidToSearch = waliPiUser?.uid;
+    if (piUidToSearch) {
+      const snap1 = await db.collection('pi_donations')
+        .where('donorPiUid', '==', piUidToSearch)
+        .orderBy('createdAt', 'desc').limit(10).get();
+      if (!snap1.empty) docs = snap1.docs;
     }
 
-    const count = snap.size || snap.docs?.length || 0;
+    // Fallback: berdasarkan paidByUid (Firebase UID) jika query pertama kosong
+    if (!docs.length) {
+      const snap2 = await db.collection('pi_donations')
+        .where('paidByUid', '==', currentUid)
+        .orderBy('createdAt', 'desc').limit(10).get();
+      if (!snap2.empty) docs = snap2.docs;
+    }
+
+    const count = docs.length;
     document.getElementById('piPayCount').textContent = count + ' transaksi';
+
     if (!count) {
       el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-receipt"></i><br>Belum ada riwayat pembayaran Pi</div>';
       return;
     }
-    el.innerHTML = snap.docs.map(d => {
+
+    el.innerHTML = docs.map(d => {
       const x = d.data();
       const status = x.status === 'completed'
         ? '<span style="font-size:10px;font-weight:700;background:var(--pl);color:var(--p);padding:2px 8px;border-radius:20px">✅ Selesai</span>'
-        : '<span style="font-size:10px;font-weight:700;background:var(--wl);color:var(--w);padding:2px 8px;border-radius:20px">⏳ Pending</span>';
+        : x.status === 'cancelled'
+          ? '<span style="font-size:10px;font-weight:700;background:var(--rl);color:var(--r);padding:2px 8px;border-radius:20px">❌ Dibatalkan</span>'
+          : '<span style="font-size:10px;font-weight:700;background:var(--wl);color:var(--w);padding:2px 8px;border-radius:20px">⏳ Pending</span>';
       const time = x.createdAt ? new Date(x.createdAt.toDate()).toLocaleDateString('id-ID') : '—';
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--g50);border-radius:10px;margin-bottom:8px;border:1px solid var(--g200)">
         <div style="width:34px;height:34px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;flex-shrink:0">π</div>
@@ -1608,7 +1634,8 @@ async function loadPiPayHistory() {
       </div>`;
     }).join('');
   } catch(e) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Gagal memuat</div>';
+    console.error('loadPiPayHistory error:', e);
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-circle-exclamation"></i><br>Gagal memuat riwayat</div>';
   }
 }
 
