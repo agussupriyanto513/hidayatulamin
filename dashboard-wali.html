@@ -60,7 +60,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
 
 /* TOPBAR */
-.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .tb-l{display:flex;align-items:center;gap:10px}
 .menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
 .menu-btn:hover{background:var(--pl);color:var(--p)}
@@ -213,10 +213,27 @@ tr:hover td{background:var(--g50)}
   .two-col{grid-template-columns:1fr}
   .content{padding:12px 12px 80px}
   .bottom-nav{display:block}
+  .greeting{flex-direction:column;align-items:flex-start;gap:10px;padding:16px}
+  .gr-date{text-align:left}
+  .gd-num{font-size:28px}
+  .santri-cards{grid-template-columns:1fr}
+  .modal{max-width:100% !important;margin:0 8px}
+  .modal-body{max-height:calc(85vh - 120px)}
+  .tbl-hd{flex-direction:column;align-items:flex-start}
 }
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr}
   .sgt-grid{grid-template-columns:1fr 1fr}
+  .sc-val{font-size:20px}
+  .greeting{padding:14px}
+  .gr-txt h3{font-size:16px}
+  .topbar{padding:8px 12px}
+  .pg-ttl h2{font-size:15px}
+  .content{padding:10px 10px 80px}
+  .modal-bg{padding:4px}
+  .modal{border-radius:18px 18px 0 0;max-height:92vh;margin:0}
+  .modal-bg.open{align-items:flex-end}
+  .modal-body{max-height:calc(92vh - 120px)}
 }
 </style>
 </head>
@@ -604,52 +621,6 @@ tr:hover td{background:var(--g50)}
         </div>
       </div>
     </div>
-    <!-- MODAL CAIRKAN IDR -->
-    <div class="modal-bg" id="mdlCairIdr" onclick="closeModalOut(event,'mdlCairIdr')">
-      <div class="modal">
-        <div class="modal-hd"><h3>Cairkan SGT → Rupiah</h3><button class="modal-close" onclick="closeModal('mdlCairIdr')"><i class="fas fa-times"></i></button></div>
-        <div class="modal-body">
-          <div style="background:var(--pl);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--pd)">
-            <b>Kurs:</b> 1.000 SGT = Rp 100.000 &nbsp;|&nbsp; <b>Saldo:</b> <span id="mdlIdrBal">—</span> SGT
-          </div>
-          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Jumlah SGT yang dicairkan</label>
-          <input type="number" id="cairIdrAmt" min="1000" step="1000" placeholder="Min. 1.000 SGT" oninput="calcIdr()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;margin-bottom:10px">
-          <div style="background:var(--g50);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--g600);margin-bottom:10px">
-            Anda akan menerima: <b style="color:var(--p);font-size:14px" id="idrResult">Rp 0</b>
-          </div>
-          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">No. Rekening / Tujuan Transfer</label>
-          <input type="text" id="cairIdrDest" placeholder="Contoh: BCA 1234567890 a/n Nama" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px">
-        </div>
-        <div class="modal-ft">
-          <button class="btn-sec" onclick="closeModal('mdlCairIdr')">Batal</button>
-          <button class="btn-p" onclick="submitCair('idr')"><i class="fas fa-paper-plane"></i> Ajukan</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL CAIRKAN PI -->
-    <div class="modal-bg" id="mdlCairPi" onclick="closeModalOut(event,'mdlCairPi')">
-      <div class="modal">
-        <div class="modal-hd"><h3>Cairkan SGT → Pi Coin</h3><button class="modal-close" onclick="closeModal('mdlCairPi')"><i class="fas fa-times"></i></button></div>
-        <div class="modal-body">
-          <div style="background:var(--bl);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
-            <b>Kurs:</b> 500 SGT = 1 π &nbsp;|&nbsp; <b>Saldo:</b> <span id="mdlPiBal">—</span> SGT
-          </div>
-          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Jumlah SGT yang dicairkan</label>
-          <input type="number" id="cairPiAmt" min="500" step="500" placeholder="Min. 500 SGT" oninput="calcPi()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;margin-bottom:10px">
-          <div style="background:var(--g50);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--g600);margin-bottom:10px">
-            Anda akan menerima: <b style="color:var(--b);font-size:14px" id="piResult">0 π</b>
-          </div>
-          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Username Pi Network</label>
-          <input type="text" id="cairPiDest" placeholder="Contoh: @username_pi" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px">
-        </div>
-        <div class="modal-ft">
-          <button class="btn-sec" onclick="closeModal('mdlCairPi')">Batal</button>
-          <button class="btn-p" onclick="submitCair('pi')"><i class="fas fa-paper-plane"></i> Ajukan</button>
-        </div>
-      </div>
-    </div>
-
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -1493,20 +1464,36 @@ async function submitPiPay() {
 
   const memo = `${typeLabel.replace(/[^\w\s\-]/g, '')} — Hidayatulamin`;
 
+  // Timeout 3 menit — Pi Browser terkadang butuh waktu
+  const PI_TIMEOUT_MS = 3 * 60 * 1000;
+
   try {
-    // PENTING: Re-authenticate dengan scope 'payments' sebelum createPayment
-    // Ini yang menyebabkan error "Cannot create payment without payments scope"
-    const freshAuth = await window.Pi.authenticate(['username','payments'], async (incompletePay) => {
-      console.log('Incomplete payment during payment:', incompletePay.identifier);
-    });
+    // Re-authenticate dengan scope 'payments' sebelum createPayment
+    let freshAuth;
+    try {
+      freshAuth = await Promise.race([
+        window.Pi.authenticate(['username','payments'], async (incompletePay) => {
+          console.log('Incomplete payment found:', incompletePay?.identifier);
+        }),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('Autentikasi Pi timeout. Pastikan buka di Pi Browser.')), 30000))
+      ]);
+    } catch(authErr) {
+      throw new Error(authErr.message || 'Gagal autentikasi Pi. Buka di Pi Browser dan coba lagi.');
+    }
     waliPiUser.uid = freshAuth.user.uid;
     waliPiUser.username = freshAuth.user.username;
 
     await new Promise((resolve, reject) => {
+      // Timeout keseluruhan transaksi
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Transaksi timeout (3 menit). Cek riwayat — mungkin berhasil. Jika belum, coba lagi.'));
+      }, PI_TIMEOUT_MS);
+
       window.Pi.createPayment(
         { amount: amt, memo, metadata: { type: type.value, note, donorPiUid: waliPiUser.uid, role: 'wali' } },
         {
           onReadyForServerApproval: async (paymentId) => {
+            // Simpan ke Firestore — jika gagal tetap lanjut (Pi sudah approve)
             try {
               await db.collection('pi_donations').add({
                 paymentId,
@@ -1522,9 +1509,14 @@ async function submitPiPay() {
                 status:        'pending',
                 createdAt:     firebase.firestore.FieldValue.serverTimestamp()
               });
-            } catch(e) { console.error('Firestore save error:', e); }
+            } catch(e) {
+              // Firestore gagal tapi pembayaran tetap berjalan
+              console.warn('Firestore approval save error (non-fatal):', e);
+            }
+            // PENTING: tidak reject/resolve di sini — tunggu completion
           },
           onReadyForServerCompletion: async (paymentId, txid) => {
+            clearTimeout(timeoutId);
             try {
               const snap = await db.collection('pi_donations')
                 .where('paymentId','==',paymentId).limit(1).get();
@@ -1533,19 +1525,36 @@ async function submitPiPay() {
                   status:'completed', txid,
                   completedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+              } else {
+                // Dokumen belum ada (race condition), buat baru langsung completed
+                await db.collection('pi_donations').add({
+                  paymentId, txid,
+                  donorPiUid:    waliPiUser.uid,
+                  donorUsername: waliPiUser.username,
+                  paidByUid:     currentUid,
+                  amount:        amt,
+                  memo,
+                  program:       type.value,
+                  progLabel:     typeLabel,
+                  note:          note || '—',
+                  paidByRole:    'wali',
+                  status:        'completed',
+                  createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+                  completedAt:   firebase.firestore.FieldValue.serverTimestamp()
+                });
               }
-              resolve({ txid });
             } catch(e) {
-              // Tetap resolve agar pembayaran dianggap berhasil meski Firestore gagal update
-              console.error('Completion update error:', e);
-              resolve({ txid });
+              console.warn('Completion update error (non-fatal):', e);
             }
+            resolve({ txid });
           },
           onCancel: (paymentId) => {
+            clearTimeout(timeoutId);
             console.log('Payment cancelled:', paymentId);
             reject(new Error('Pembayaran dibatalkan oleh pengguna'));
           },
           onError: (err, payment) => {
+            clearTimeout(timeoutId);
             console.error('Pi payment error:', err, payment);
             reject(new Error(err?.message || 'Terjadi kesalahan saat pembayaran Pi'));
           }
@@ -1558,7 +1567,13 @@ async function submitPiPay() {
     setTimeout(() => loadPiPayHistory(), 800);
   } catch(e) {
     console.error('submitPiPay error:', e);
-    showToast('error','Pembayaran Gagal', e.message || 'Coba lagi');
+    // Pesan timeout lebih informatif
+    const isTimeout = e.message && e.message.includes('timeout');
+    showToast(
+      isTimeout ? 'warn' : 'error',
+      isTimeout ? 'Perhatian' : 'Pembayaran Gagal',
+      e.message || 'Coba lagi'
+    );
   }
 
   btn.disabled = false;

@@ -58,7 +58,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
 
 /* TOPBAR */
-.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .tb-l{display:flex;align-items:center;gap:10px}
 .menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
 .menu-btn:hover{background:var(--pl);color:var(--p)}
@@ -246,12 +246,32 @@ tr:hover td{background:var(--g50)}
   .two-col{grid-template-columns:1fr}
   .content{padding:12px 12px 80px}
   .bottom-nav{display:block}
+  .greeting{flex-direction:column;align-items:flex-start;gap:10px;padding:16px}
+  .gr-date{text-align:left}
+  .gd-num{font-size:28px}
+  .modal{max-width:100% !important;margin:0 8px}
+  .modal-body{max-height:calc(85vh - 130px)}
+  .tbl-hd{flex-direction:column;align-items:flex-start}
+  .tbl-acts{flex-wrap:wrap;width:100%}
+  .s-box input{width:100%}
 }
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr}
   .qa-row{grid-template-columns:1fr 1fr}
   .field-row{grid-template-columns:1fr}
   .abs-grid{grid-template-columns:repeat(3,1fr)}
+  .sc-val{font-size:20px}
+  .greeting{padding:14px}
+  .gr-txt h3{font-size:16px}
+  .topbar{padding:8px 12px;gap:8px}
+  .pg-ttl h2{font-size:15px}
+  .content{padding:10px 10px 80px}
+  .modal-bg{padding:4px}
+  .modal{border-radius:18px 18px 0 0;max-height:92vh;margin:0}
+  .modal-bg.open{align-items:flex-end}
+  .modal-body{max-height:calc(92vh - 130px)}
+  .logout-btn span{display:none}
+  .qa-row{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -655,121 +675,9 @@ tr:hover td{background:var(--g50)}
         </div>
       </div>
     </div>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative;z-index:1">
-          <div class="sgt-coin">₴</div>
-          <div style="flex:1">
-            <p style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:1px">Saldo SGT Anda</p>
-            <p style="font-size:28px;font-weight:900;color:#fcd34d;line-height:1.2" id="sgtBal">— SGT</p>
-          </div>
-          <button onclick="loadSGT(currentUid)" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:7px 10px;color:#fff;cursor:pointer;font-size:12px"><i class="fas fa-sync-alt" id="sgtRefIco"></i></button>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
-          <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center">
-            <div style="font-size:13px;font-weight:900;color:#fcd34d" id="sgtEarned">0</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:600">Total Didapat</div>
-          </div>
-          <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center">
-            <div style="font-size:13px;font-weight:900;color:#fcd34d" id="sgtSpent">0</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:600">Digunakan</div>
-          </div>
-          <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center">
-            <div style="font-size:13px;font-weight:900;color:#fcd34d" id="sgtTxCount">0</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:600">Transaksi</div>
-          </div>
-        </div>
-        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:9px 12px;font-size:11px;color:rgba(255,255,255,.65)">
-          <i class="fas fa-info-circle" style="margin-right:6px;color:#fcd34d"></i>
-          SGT diberikan sebagai reward kontribusi mengajar. Total supply: 1 Miliar SGT.
-        </div>
-      </div>
+ 
 
-      <!-- Aksi Cepat -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <button onclick="openModal('mdlCairIdr')" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#065f46,#0db87a);border:none;border-radius:var(--rd);padding:14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700">
-          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px"><i class="fas fa-money-bill-wave"></i></div>
-          <div style="text-align:left"><div>Cairkan ke</div><div style="font-size:11px;font-weight:600;opacity:.85">Rupiah (IDR)</div></div>
-        </button>
-        <button onclick="openModal('mdlCairPi')" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1e3a8a,#2d7ef5);border:none;border-radius:var(--rd);padding:14px;color:#fff;cursor:pointer;font-size:13px;font-weight:700">
-          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px">π</div>
-          <div style="text-align:left"><div>Cairkan ke</div><div style="font-size:11px;font-weight:600;opacity:.85">Pi Coin</div></div>
-        </button>
-      </div>
-
-      <!-- Sagatama Mart -->
-      <a href="https://sagatama-mart.vercel.app" target="_blank" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:2px solid var(--acc);border-radius:var(--rd);padding:14px;text-decoration:none;transition:var(--tr);margin-bottom:14px" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-        <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--acc),#7c3aed);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px"><i class="fas fa-shopping-bag"></i></div>
-        <div style="flex:1"><p style="font-weight:800;color:var(--ink2);font-size:13px">Belanja di Sagatama Mart</p><p style="font-size:11px;color:var(--g500)">Tukarkan SGT untuk reward</p></div>
-        <i class="fas fa-chevron-right" style="color:var(--acc)"></i>
-      </a>
-
-      <!-- Riwayat Transaksi -->
-      <div style="background:#fff;border-radius:var(--rd);border:1px solid var(--g100);overflow:hidden;box-shadow:var(--sh-sm)">
-        <div style="padding:14px 16px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between">
-          <div><h4 style="font-size:14px;font-weight:700">Riwayat Transaksi</h4><p style="font-size:11px;color:var(--g500)" id="sgtTxSub">—</p></div>
-        </div>
-        <div id="sgtTxList" style="padding:8px 0;min-height:60px">
-          <div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
-        </div>
-      </div>
-
-      <!-- Riwayat Pencairan -->
-      <div style="background:#fff;border-radius:var(--rd);border:1px solid var(--g100);overflow:hidden;box-shadow:var(--sh-sm);margin-top:14px">
-        <div style="padding:14px 16px;border-bottom:1px solid var(--g100)">
-          <h4 style="font-size:14px;font-weight:700">Riwayat Pencairan</h4>
-          <p style="font-size:11px;color:var(--g500)">Status permintaan pencairan SGT</p>
-        </div>
-        <div id="sgtWdList" style="padding:8px 0;min-height:60px">
-          <div style="text-align:center;padding:30px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL CAIRKAN IDR -->
-    <div class="modal-bg" id="mdlCairIdr" onclick="closeModalOut(event,'mdlCairIdr')">
-      <div class="modal">
-        <div class="modal-hd"><h3>Cairkan SGT → Rupiah</h3><button class="modal-close" onclick="closeModal('mdlCairIdr')"><i class="fas fa-times"></i></button></div>
-        <div class="modal-body">
-          <div style="background:var(--pl);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--pd)">
-            <b>Kurs:</b> 1.000 SGT = Rp 100.000 &nbsp;|&nbsp; <b>Saldo:</b> <span id="mdlIdrBal">—</span> SGT
-          </div>
-          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Jumlah SGT yang dicairkan</label>
-          <input type="number" id="cairIdrAmt" min="1000" step="1000" placeholder="Min. 1.000 SGT" oninput="calcIdr()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;margin-bottom:10px">
-          <div style="background:var(--g50);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--g600);margin-bottom:10px">
-            Anda akan menerima: <b style="color:var(--p);font-size:14px" id="idrResult">Rp 0</b>
-          </div>
-          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">No. Rekening / Tujuan Transfer</label>
-          <input type="text" id="cairIdrDest" placeholder="Contoh: BCA 1234567890 a/n Nama" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px">
-        </div>
-        <div class="modal-ft">
-          <button class="btn-sec" onclick="closeModal('mdlCairIdr')">Batal</button>
-          <button class="btn-p" onclick="submitCair('idr')"><i class="fas fa-paper-plane"></i> Ajukan</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL CAIRKAN PI -->
-    <div class="modal-bg" id="mdlCairPi" onclick="closeModalOut(event,'mdlCairPi')">
-      <div class="modal">
-        <div class="modal-hd"><h3>Cairkan SGT → Pi Coin</h3><button class="modal-close" onclick="closeModal('mdlCairPi')"><i class="fas fa-times"></i></button></div>
-        <div class="modal-body">
-          <div style="background:var(--bl);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
-            <b>Kurs:</b> 500 SGT = 1 π &nbsp;|&nbsp; <b>Saldo:</b> <span id="mdlPiBal">—</span> SGT
-          </div>
-          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Jumlah SGT yang dicairkan</label>
-          <input type="number" id="cairPiAmt" min="500" step="500" placeholder="Min. 500 SGT" oninput="calcPi()" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;margin-bottom:10px">
-          <div style="background:var(--g50);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--g600);margin-bottom:10px">
-            Anda akan menerima: <b style="color:var(--b);font-size:14px" id="piResult">0 π</b>
-          </div>
-          <label style="font-size:12px;font-weight:600;color:var(--g600);display:block;margin-bottom:6px">Username Pi Network</label>
-          <input type="text" id="cairPiDest" placeholder="Contoh: @username_pi" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px">
-        </div>
-        <div class="modal-ft">
-          <button class="btn-sec" onclick="closeModal('mdlCairPi')">Batal</button>
-          <button class="btn-p" onclick="submitCair('pi')"><i class="fas fa-paper-plane"></i> Ajukan</button>
-        </div>
-      </div>
-    </div>
-
+  
   </div><!-- /content -->
 </div><!-- /main -->
 
