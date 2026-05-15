@@ -1130,68 +1130,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('iznStart').value = new Date().toISOString().split('T')[0];
   document.body.style.visibility = 'hidden';
 
-  if (typeof HA !== 'undefined') {
-    HA.requireAuth('santri', (user, data) => { bootDashboard(user, data); });
-    return;
-  }
-
-  await new Promise(r => setTimeout(r, 600));
-
-  auth.onAuthStateChanged(async user => {
-    if (user) {
-      if (dashboardReady && user.uid === currentUidVerified) return;
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          const age = Date.now() - (sess.ts||0);
-          const MAX = 8*3600*1000;
-          if ((sess.role === 'santri' || sess.role === 'admin') && sess.uid === user.uid && age < MAX) {
-            bootDashboard(user, null); return;
-          }
-        } catch(e) {}
-      }
-      try {
-        await ensureFreshToken();
-        const doc = await db.collection('users').doc(user.uid).get();
-        const role = doc.exists ? doc.data().role : null;
-        if (role === 'santri' || role === 'admin') {
-          if (role === 'santri') localStorage.setItem('currentUser', JSON.stringify({uid:user.uid,role:'santri',ts:Date.now()}));
-          bootDashboard(user, doc.exists ? doc.data() : null);
-        } else {
-          await auth.signOut();
-          localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
-          document.body.style.visibility = ''; window.location.href = 'login.html';
-        }
-      } catch(e) {
-        console.warn('Firestore verify:', e.code, e.message);
-        bootDashboard(user, null);
-      }
-      return;
-    }
-    // user null
-    if (dashboardReady) {
-      await new Promise(r => setTimeout(r, 800));
-      if (auth.currentUser) return;
-    } else {
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          const validRole = sess.role === 'santri' || sess.role === 'admin';
-          if (validRole && Date.now() - (sess.ts||0) < 8*3600*1000) {
-            await new Promise(r => setTimeout(r, 1500));
-            if (auth.currentUser) return;
-          }
-        } catch(e) {}
-      }
-    }
-    if (!auth.currentUser) {
-      localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
-      document.body.style.visibility = ''; window.location.href = 'login.html';
-    }
+  HA.requireAuth(['santri', 'admin'], (user, data) => {
+    bootDashboard(user, data);
   });
 });
+
 
 function initSantri(){
   const d=santriData;
@@ -1830,9 +1773,7 @@ function updateDate(){
 // ════ LOGOUT ════
 async function handleLogout() {
   if (!confirm('Yakin logout?')) return;
-  await auth.signOut().catch(() => {});
-  localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser'); localStorage.removeItem('piAuthUser');
-  window.location.href = 'login.html';
+  await HA.logout();
 }
 function goBackToAdmin() { window.location.href = 'dashboard-admin.html'; }
 

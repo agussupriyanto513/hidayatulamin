@@ -1,7 +1,7 @@
 // ==========================================
-// HIDAYATULAMIN - AUTHENTICATION MODULE v3.2
+// HIDAYATULAMIN - AUTHENTICATION MODULE v4.0
 // Firebase Config + Role-based Auth + Pi Network
-// FIX: Login loop resolved — guard tidak berjalan di login.html
+// v4.0: Centralized auth guard — satu pola untuk semua dashboard
 // ==========================================
 
 const firebaseConfig = {
@@ -21,14 +21,11 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
-// ── PENTING: Aktifkan persistence agar session tidak hilang setelah redirect ──
-// Ini yang menyebabkan login loop — tanpa ini Firebase lupa session setiap halaman baru
+// ── WAJIB: Aktifkan persistence agar session tidak hilang saat pindah halaman ──
 db.enablePersistence({ synchronizeTabs: true }).catch(err => {
   if (err.code === 'failed-precondition') {
-    // Multiple tabs terbuka — gunakan memory persistence saja
-    console.warn('Firestore persistence: multiple tabs open');
+    console.warn('Firestore persistence: multiple tabs — pakai memory');
   } else if (err.code === 'unimplemented') {
-    // Browser tidak support (Safari lama, dll)
     console.warn('Firestore persistence: browser tidak support');
   }
 });
@@ -40,78 +37,162 @@ const ROLE_DASHBOARD = {
   wali:   'dashboard-wali.html'
 };
 
-// Halaman yang boleh diakses tanpa login
 const PUBLIC_PAGES = ['login.html', 'transparansi.html', 'donasi.html', 'pi-donasi.html', 'index.html', ''];
 
+// ══════════════════════════════════════════════════════
+// FUNGSI UTAMA YANG DIPAKAI SEMUA DASHBOARD
+// Ganti onAuthStateChanged di masing-masing dashboard dengan:
+//   HA.requireAuth('role', callback)
+// ══════════════════════════════════════════════════════
+window.HA = {
+
+  // ── Fungsi utama guard: pastikan user login & punya role yang benar ──
+  requireAuth(allowedRoles, onSuccess) {
+    const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+
+    // Tunggu Firebase Auth selesai restore session dari IndexedDB
+    // unsubscribe setelah pertama kali dipanggil agar tidak loop
+    let resolved = false;
+    const unsub = auth.onAuthStateChanged(async (user) => {
+      if (resolved) return;
+
+      if (user) {
+        // Ada Firebase user — verifikasi role via Firestore
+        try {
+          const snap = await db.collection('users').doc(user.uid).get();
+          const data = snap.exists ? snap.data() : null;
+          const role = data?.role;
+
+          if (roles.includes(role) || roles.includes('admin') && role === 'admin') {
+            resolved = true;
+            unsub();
+            // Simpan session ringkas agar Pi flow juga bisa pakai
+            _saveSession(user.uid, role, data);
+            if (typeof onSuccess === 'function') onSuccess(user, data);
+          } else {
+            // Role salah — arahkan ke dashboard yang benar
+            resolved = true;
+            unsub();
+            const dest = ROLE_DASHBOARD[role] || 'login.html';
+            window.location.href = dest;
+          }
+        } catch (e) {
+          // Firestore gagal (permission / network) — percayai Firebase Auth saja
+          console.warn('HA.requireAuth Firestore error:', e.code, e.message);
+          const sess = _getSession();
+          if (sess && roles.includes(sess.role)) {
+            resolved = true;
+            unsub();
+            if (typeof onSuccess === 'function') onSuccess(user, sess);
+          } else {
+            // Tidak bisa verifikasi role → redirect ke login
+            resolved = true;
+            unsub();
+            window.location.href = 'login.html';
+          }
+        }
+        return;
+      }
+
+      // user null — mungkin Firebase Auth masih restore dari IndexedDB
+      // Tunggu maksimal 2.5 detik sebelum benar-benar redirect
+      await new Promise(r => setTimeout(r, 2500));
+
+      if (auth.currentUser) return; // sudah restore, biarkan onAuthStateChanged fire lagi
+
+      // Cek Pi session sebagai fallback
+      const piSess = _getPiSession();
+      if (piSess && roles.includes(piSess.role)) {
+        resolved = true;
+        unsub();
+        if (typeof onSuccess === 'function') onSuccess({ uid: piSess.uid }, piSess);
+        return;
+      }
+
+      // Benar-benar tidak ada session — redirect ke login
+      resolved = true;
+      unsub();
+      window.location.href = 'login.html';
+    });
+  },
+
+  // ── Logout ──
+  async logout() {
+    try {
+      await auth.signOut();
+      _clearSession();
+      window.location.href = 'login.html';
+    } catch(e) {
+      window.location.href = 'login.html';
+    }
+  },
+
+  // ── Helpers ──
+  isLoggedIn()  { return !!auth.currentUser || !!_getPiSession(); },
+  getRole()     { return _getSession()?.role || null; },
+  isAdmin()     { return this.getRole() === 'admin'; },
+  isUstadz()    { return this.getRole() === 'ustadz'; },
+  isSantri()    { return this.getRole() === 'santri'; },
+  isWali()      { return this.getRole() === 'wali'; },
+  isPiBrowser() { return !!window.Pi; },
+};
+
+// ══════════════════════════════════════════════════════
+// SESSION HELPERS (internal)
+// ══════════════════════════════════════════════════════
+function _saveSession(uid, role, data) {
+  try {
+    sessionStorage.setItem('haSession', JSON.stringify({
+      uid, role,
+      nama: data?.nama || data?.displayName || data?.username || '',
+      ts: Date.now()
+    }));
+  } catch(e) {}
+}
+
+function _getSession() {
+  try {
+    const raw = sessionStorage.getItem('haSession') || localStorage.getItem('haSession');
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (Date.now() - s.ts > 8 * 3600 * 1000) return null;
+    return s;
+  } catch(e) { return null; }
+}
+
+function _getPiSession() {
+  try {
+    const raw = localStorage.getItem('piUser');
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (Date.now() - (s.ts || 0) > 8 * 3600 * 1000) { localStorage.removeItem('piUser'); return null; }
+    return s;
+  } catch(e) { return null; }
+}
+
+function _clearSession() {
+  try {
+    sessionStorage.removeItem('haSession');
+    sessionStorage.removeItem('currentUser');
+    localStorage.removeItem('piUser');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('haSession');
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════
+// CLASS HidayatulaminAuth (untuk Pi Network & fitur lain)
+// ══════════════════════════════════════════════════════
 class HidayatulaminAuth {
   constructor() {
-    this.auth    = firebase.auth();
-    this.db      = firebase.firestore();
+    this.auth    = auth;
+    this.db      = db;
     this.Pi      = window.Pi || null;
     this.piReady = false;
     this.currentUser     = null;
     this.currentUserData = null;
     this._piAccessToken  = null;
-
-    this._init();
-  }
-
-  _currentPage() {
-    return window.location.pathname.split('/').pop() || 'index.html';
-  }
-
-  _isLoginPage() {
-    const page = this._currentPage();
-    return page === 'login.html' || page === '' || page === 'index.html';
-  }
-
-  async _init() {
-    await this._initPiSDK();
-
-    // FIX v3.2: Jika di halaman login, JANGAN pasang guard apapun.
-    // Biarkan login.html menangani redirect sendiri.
-    if (this._isLoginPage()) {
-      console.log('✅ HidayatulaminAuth v3.2 — mode login page, guard dinonaktifkan');
-      window.dispatchEvent(new CustomEvent('authReady', {
-        detail: { user: null, data: null }
-      }));
-      return;
-    }
-
-    // Halaman non-login: pasang guard normal
-    this.auth.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        this.currentUser = firebaseUser;
-        try {
-          const snap = await this.db.collection('users').doc(firebaseUser.uid).get();
-          this.currentUserData = snap.exists ? snap.data() : null;
-        } catch(e) {
-          console.warn('Gagal ambil data user:', e.message);
-        }
-        this._populateSidebar();
-        this._guardPage();
-      } else {
-        // Tidak ada Firebase user — cek Pi session
-        const piUser = this._getPiUser();
-        if (piUser) {
-          this.currentUser = { uid: piUser.uid, email: piUser.username + '@pi.hidayatulamin.id' };
-          this.currentUserData = piUser;
-          this._populateSidebar();
-          this._guardPage();
-        } else {
-          // Tidak ada session sama sekali — redirect ke login
-          this.currentUser     = null;
-          this.currentUserData = null;
-          this._redirectIfPrivate();
-        }
-      }
-
-      window.dispatchEvent(new CustomEvent('authReady', {
-        detail: { user: this.currentUser, data: this.currentUserData }
-      }));
-    });
-
-    console.log('✅ HidayatulaminAuth v3.2 siap');
+    this._initPiSDK();
   }
 
   async _initPiSDK() {
@@ -124,62 +205,14 @@ class HidayatulaminAuth {
           else if (attempts >= 10) { clearInterval(interval); resolve(); }
         }, 200);
       });
-    } else {
-      this.Pi = window.Pi;
-    }
+    } else { this.Pi = window.Pi; }
 
     if (!this.Pi) { console.warn('⚠️ Pi SDK tidak ditemukan'); return; }
-
     try {
       this.Pi.init({ version: "2.0", sandbox: true });
       this.piReady = true;
       console.log('✅ Pi SDK siap (sandbox: true)');
-    } catch (e) {
-      console.error('❌ Pi SDK gagal init:', e);
-    }
-  }
-
-  _guardPage() {
-    if (this._isLoginPage()) return;
-
-    const page      = this._currentPage();
-    const role      = this.currentUserData?.role;
-    const allowedPage = ROLE_DASHBOARD[role];
-    const adminOnly   = ['data-pengguna.html', 'keuangan.html'];
-    const staffOnly   = ['absensi.html', 'akademik.html', 'perizinan-santri.html', 'info-santri.html'];
-
-    if (PUBLIC_PAGES.includes(page)) return;
-
-    if (adminOnly.includes(page) && role !== 'admin') {
-      alert('⛔ Akses ditolak. Hanya Admin.');
-      window.location.href = allowedPage || 'login.html';
-      return;
-    }
-
-    if (staffOnly.includes(page) && !['admin','ustadz'].includes(role)) {
-      alert('⛔ Akses ditolak.');
-      window.location.href = allowedPage || 'login.html';
-    }
-  }
-
-  _redirectIfPrivate() {
-    const page = this._currentPage();
-    if (this._isLoginPage()) return;
-    if (!PUBLIC_PAGES.includes(page)) {
-      window.location.href = 'login.html';
-    }
-  }
-
-  _populateSidebar() {
-    const d = this.currentUserData;
-    if (!d) return;
-    const nama = d.nama || d.username || d.displayName || 'Pengguna';
-    const role = d.role || '-';
-    document.querySelectorAll('.u-name,.u-nm,.u-inf .u-name').forEach(el => el.textContent = nama);
-    document.querySelectorAll('.u-role,.u-rl').forEach(el => el.textContent = role.charAt(0).toUpperCase() + role.slice(1));
-    document.querySelectorAll('.u-av').forEach(el => {
-      if (!el.querySelector('img')) el.textContent = nama.charAt(0).toUpperCase();
-    });
+    } catch(e) { console.error('❌ Pi SDK gagal init:', e); }
   }
 
   async loginWithEmail(email, password) {
@@ -189,29 +222,7 @@ class HidayatulaminAuth {
         lastLogin: firebase.firestore.FieldValue.serverTimestamp()
       }).catch(() => {});
       return { success: true };
-    } catch (e) {
-      return { success: false, error: this._errMsg(e.code) };
-    }
-  }
-
-  async registerWithEmail(email, password, extraData = {}) {
-    try {
-      const cred = await this.auth.createUserWithEmailAndPassword(email, password);
-      const uid  = cred.user.uid;
-      await this.db.collection('users').doc(uid).set({
-        uid, email,
-        nama:        extraData.nama || '',
-        role:        extraData.role || 'santri',
-        loginMethod: 'email',
-        createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
-        lastLogin:   firebase.firestore.FieldValue.serverTimestamp(),
-        ...extraData
-      });
-      await cred.user.sendEmailVerification();
-      return { success: true };
-    } catch (e) {
-      return { success: false, error: this._errMsg(e.code) };
-    }
+    } catch(e) { return { success: false, error: this._errMsg(e.code) }; }
   }
 
   async loginWithPi() {
@@ -225,20 +236,16 @@ class HidayatulaminAuth {
       const scopes     = ['username', 'payments', 'wallet_address'];
       const authResult = await this.Pi.authenticate(scopes, this._handleIncompletePiPayment.bind(this));
       const { user, accessToken } = authResult;
-
       this._piAccessToken = accessToken;
 
       const userRef  = this.db.collection('users').doc(user.uid);
       const userSnap = await userRef.get();
-
       const baseData = {
-        uid:            user.uid,
-        username:       user.username,
-        displayName:    user.username,
+        uid: user.uid, username: user.username, displayName: user.username,
         wallet_address: user.wallet_address || null,
-        loginMethod:    'pi',
-        lastLogin:      firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+        loginMethod: 'pi',
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       };
 
       if (userSnap.exists) {
@@ -247,11 +254,9 @@ class HidayatulaminAuth {
       } else {
         const newData = {
           ...baseData,
-          email:           user.username + '@pi.hidayatulamin.id',
-          nama:            user.username,
-          role:            'santri',
-          isActive:        true,
-          createdAt:       firebase.firestore.FieldValue.serverTimestamp(),
+          email: user.username + '@pi.hidayatulamin.id',
+          nama: user.username, role: 'santri', isActive: true,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           profileComplete: false,
         };
         await userRef.set(newData);
@@ -259,26 +264,21 @@ class HidayatulaminAuth {
       }
 
       localStorage.setItem('piUser', JSON.stringify({
-        uid:      user.uid,
-        username: user.username,
-        role:     this.currentUserData.role,
-        ts:       Date.now(),
+        uid: user.uid, username: user.username,
+        role: this.currentUserData.role, ts: Date.now(),
       }));
-
-      this.currentUser = { uid: user.uid, email: user.username + '@pi.hidayatulamin.id' };
-      this._populateSidebar();
-
+      this.currentUser = { uid: user.uid };
       return { success: true, isNewUser: !userSnap.exists, user, data: this.currentUserData };
-    } catch (e) {
+    } catch(e) {
       console.error('❌ Pi auth error:', e);
       return { success: false, error: e.message || 'Pi auth gagal' };
     }
   }
 
   async donasiPi(amount, program = 'umum', memo = 'Donasi Pesantren Hidayatulamin') {
-    if (!this.piReady)      return { success: false, error: 'Pi SDK tidak tersedia' };
-    const piUser = this._getPiUser();
-    if (!piUser)            return { success: false, error: 'Harus login dengan Pi Network dulu' };
+    if (!this.piReady) return { success: false, error: 'Pi SDK tidak tersedia' };
+    const piUser = _getPiSession();
+    if (!piUser) return { success: false, error: 'Harus login dengan Pi Network dulu' };
 
     return new Promise((resolve) => {
       this.Pi.createPayment(
@@ -287,16 +287,12 @@ class HidayatulaminAuth {
           onReadyForServerApproval: async (paymentId) => {
             try {
               await this.db.collection('pi_donations').add({
-                paymentId,
-                donorPiUid:    piUser.uid,
-                donorUsername: piUser.username,
-                amount, program, memo,
-                status:    'pending',
+                paymentId, donorPiUid: piUser.uid, donorUsername: piUser.username,
+                amount, program, memo, status: 'pending',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
               });
               const r = await fetch('/api/payments/approve', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ paymentId }),
               });
               if (!r.ok) throw new Error('Approve gagal');
@@ -305,8 +301,7 @@ class HidayatulaminAuth {
           onReadyForServerCompletion: async (paymentId, txid) => {
             try {
               const r = await fetch('/api/payments/complete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ paymentId, txid }),
               });
               if (!r.ok) throw new Error('Complete gagal');
@@ -316,8 +311,7 @@ class HidayatulaminAuth {
           onCancel: async (paymentId) => {
             try {
               await fetch('/api/payments/cancel', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ paymentId }),
               });
             } catch(e) {}
@@ -332,39 +326,20 @@ class HidayatulaminAuth {
   }
 
   async _handleIncompletePiPayment(payment) {
-    console.warn('⚠️ Incomplete payment:', payment.identifier);
     try {
       const snap = await this.db.collection('pi_donations')
         .where('paymentId', '==', payment.identifier).limit(1).get();
       if (!snap.empty && snap.docs[0].data().status === 'pending') {
         await snap.docs[0].ref.update({
-          status:      'cancelled',
+          status: 'cancelled',
           cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
-          cancelNote:  'Auto-cancelled: incomplete payment',
+          cancelNote: 'Auto-cancelled: incomplete payment',
         });
       }
       await this.db.collection('pi_incomplete').doc(payment.identifier).set({
-        payment,
-        resolvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        resolution: 'auto-cancelled',
+        payment, resolvedAt: firebase.firestore.FieldValue.serverTimestamp(), resolution: 'auto-cancelled',
       }, { merge: true });
-    } catch(e) {
-      console.error('Handle incomplete error:', e);
-    }
-  }
-
-  _getPiUser() {
-    if (this.currentUserData?.loginMethod === 'pi') {
-      return { uid: this.currentUserData.uid, username: this.currentUserData.username || this.currentUserData.displayName, role: this.currentUserData.role };
-    }
-    try {
-      const raw = localStorage.getItem('piUser');
-      if (!raw) return null;
-      const data = JSON.parse(raw);
-      const age  = Date.now() - (data.ts || 0);
-      if (age > 8 * 60 * 60 * 1000) { localStorage.removeItem('piUser'); return null; }
-      return data;
-    } catch(e) { return null; }
+    } catch(e) { console.error('Handle incomplete error:', e); }
   }
 
   async getSgtBalance(walletAddress) {
@@ -372,40 +347,16 @@ class HidayatulaminAuth {
     return snap.exists ? snap.data().balance : 0;
   }
 
-  async logout() {
-    try {
-      await this.auth.signOut();
-      this._piAccessToken  = null;
-      this.currentUser     = null;
-      this.currentUserData = null;
-      localStorage.removeItem('piUser');
-      localStorage.removeItem('currentUser');
-      sessionStorage.removeItem('currentUser');
-      window.location.href = 'login.html';
-      return { success: true };
-    } catch (e) {
-      return { success: false, error: e.message };
-    }
-  }
-
-  isLoggedIn() { return !!this.currentUser || !!this._getPiUser(); }
-  getRole()    { return this.currentUserData?.role || this._getPiUser()?.role || null; }
-  isAdmin()    { return this.getRole() === 'admin'; }
-  isUstadz()   { return this.getRole() === 'ustadz'; }
-  isSantri()   { return this.getRole() === 'santri'; }
-  isWali()     { return this.getRole() === 'wali'; }
-  isPiBrowser(){ return !!window.Pi; }
+  async logout() { return HA.logout(); }
 
   async updateProfile(data) {
-    if (!this.currentUser) return { success: false, error: 'Belum login' };
+    if (!auth.currentUser) return { success: false, error: 'Belum login' };
     try {
       data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
-      await this.db.collection('users').doc(this.currentUser.uid).update(data);
+      await this.db.collection('users').doc(auth.currentUser.uid).update(data);
       this.currentUserData = { ...this.currentUserData, ...data };
       return { success: true };
-    } catch (e) {
-      return { success: false, error: e.message };
-    }
+    } catch(e) { return { success: false, error: e.message }; }
   }
 
   _errMsg(code) {
@@ -425,9 +376,10 @@ class HidayatulaminAuth {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (typeof firebase === 'undefined' || !firebase.apps.length) {
+  if (typeof firebase === 'undefined') {
     console.error('❌ Firebase SDK belum dimuat sebelum auth.js');
     return;
   }
   window.Auth = new HidayatulaminAuth();
+  console.log('✅ HidayatulaminAuth v4.0 siap — HA.requireAuth() tersedia');
 });

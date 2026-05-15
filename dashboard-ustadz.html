@@ -822,31 +822,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hfDate').value  = new Date().toISOString().split('T')[0];
   const ed = document.getElementById('earnDate'); if(ed) ed.value = new Date().toISOString().split('T')[0];
 
-  if (typeof HA !== 'undefined') {
-    HA.requireAuth('ustadz', (user, data) => {
-      currentUid = user.uid;
-      const nm = data?.namaLengkap || data?.name || user.email;
-      setEl('greetName', nm); setEl('uName', nm); setEl('uAv', nm[0]?.toUpperCase()||'U');
-      loadData(user.uid);
-    });
-  } else {
-    auth.onAuthStateChanged(async user => {
-      if (!user) {
-        // Tunggu sebentar — Firebase mungkin masih restore session dari IndexedDB
-        await new Promise(r => setTimeout(r, 1500));
-        if (auth.currentUser) return; // sudah restore, abaikan
-        window.location.href='login.html'; return;
-      }
-      try {
-        const doc = await db.collection('users').doc(user.uid).get();
-        if (!doc.exists || doc.data().role !== 'ustadz') { await auth.signOut(); window.location.href='login.html'; return; }
-        currentUid = user.uid;
-        const nm = doc.data().displayName || user.email;
-        setEl('greetName', nm); setEl('uName', nm); setEl('uAv', nm[0]?.toUpperCase()||'U');
-        loadData(user.uid);
-      } catch(e) { console.error(e); }
-    });
-  }
+  HA.requireAuth('ustadz', (user, data) => {
+    currentUid = user.uid;
+    const nm = data?.namaLengkap || data?.nama || data?.name || user.email;
+    setEl('greetName', nm); setEl('uName', nm); setEl('uAv', nm[0]?.toUpperCase()||'U');
+    loadData(user.uid);
+  });
 });
 
 // ════ LOAD DATA ════
@@ -1398,7 +1379,7 @@ function updateDate(){
 }
 
 // ════ LOGOUT ════
-async function handleLogout(){if(!confirm('Yakin logout?'))return;await auth.signOut().catch(()=>{});sessionStorage.removeItem('currentUser');window.location.href='login.html'}
+async function handleLogout(){if(!confirm('Yakin logout?'))return;await HA.logout();}
 
 // ════ TOAST ════
 function showToast(type,title,msg){

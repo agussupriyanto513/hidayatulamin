@@ -878,74 +878,31 @@ const DEMO_NOTIF=[
 // ════ AUTH ════
 document.addEventListener('DOMContentLoaded', () => {
   updateDate();
-  initDashPiSDK(); // inisialisasi Pi SDK di background
+  initDashPiSDK();
 
-  // Tunggu event authReady dari auth.js
-  window.addEventListener('authReady', async ({ detail }) => {
-    const user = detail.user;
-    const data = detail.data;
-
-    if (!user) {
-      // Cek apakah ada session Pi yang valid
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          const age = Date.now() - (sess.ts || 0);
-          if (sess.role === 'wali' && age < 8*60*60*1000) {
-            // Session Pi masih valid, lanjutkan dengan data terbatas
-            currentUid = sess.uid;
-            const nm = sess.piUsername || sess.email || 'Wali';
-            setEl('greetName', nm);
-            setEl('uName', nm);
-            setEl('uAv', (nm[0]||'W').toUpperCase());
-            // Set waliPiUser jika login via Pi
-            if (sess.authMethod === 'pi_network' && sess.piUsername) {
-              waliPiUser = { uid: sess.uid, username: sess.piUsername };
-            }
-            await loadWaliData(sess.uid);
-            return;
-          }
-        } catch(e) {}
-      }
-      window.location.href = 'login.html';
-      return;
-    }
-
-    // Cek role — wali bisa login dengan email atau Pi
-    if (data?.role && data.role !== 'wali') {
-      await firebase.auth().signOut().catch(() => {});
-      sessionStorage.removeItem('currentUser');
-      localStorage.removeItem('currentUser');
-      window.location.href = 'login.html';
-      return;
-    }
-
+  HA.requireAuth('wali', (user, data) => {
     currentUid = user.uid;
     waliData = data;
-
-    // Ambil nama dari berbagai sumber
-    const nm = data?.namaLengkap || data?.nama || data?.displayName || data?.piUsername || user.email;
+    const nm = data?.namaLengkap || data?.nama || data?.displayName || data?.username || user.email || 'Wali';
     setEl('greetName', nm);
     setEl('uName', nm);
     setEl('uAv', (nm[0]||'W').toUpperCase());
 
     // Restore Pi user dari session jika login via Pi
-    const raw = localStorage.getItem('piAuthUser');
-    if (raw) {
-      try {
+    try {
+      const raw = localStorage.getItem('piUser');
+      if (raw) {
         const piSess = JSON.parse(raw);
-        const age = Date.now() - (piSess.ts || 0);
-        if (piSess.username && age < 8*60*60*1000) {
+        if (piSess.username && Date.now() - (piSess.ts||0) < 8*3600*1000) {
           waliPiUser = { uid: piSess.uid || user.uid, username: piSess.username };
-          console.log('Pi user restored:', waliPiUser.username);
         }
-      } catch(e) {}
-    }
+      }
+    } catch(e) {}
 
     loadWaliData(user.uid);
   });
 });
+
 
 // ════ LOAD DATA ════
 async function loadWaliData(uid){
@@ -1671,7 +1628,7 @@ function updateDate(){
 }
 
 // ════ LOGOUT ════
-async function handleLogout(){if(!confirm('Yakin logout?'))return;await firebase.auth().signOut().catch(()=>{});sessionStorage.removeItem('currentUser');window.location.href='login.html'}
+async function handleLogout(){if(!confirm('Yakin logout?'))return;await HA.logout();}
 
 // ════ TOAST ════
 function showToast(type,title,msg){

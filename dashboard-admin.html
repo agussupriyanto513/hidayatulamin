@@ -1074,103 +1074,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initNotif();
   document.body.style.visibility = 'hidden';
 
-  if (typeof HA !== 'undefined') {
-    HA.requireAuth('admin', (user, data) => {
-      const name = data?.namaLengkap || data?.name || data?.displayName || user.email;
-      bootDashboard(user, name);
-    });
-    return;
-  }
-
-  // Tunggu Firebase Auth restore session dari IndexedDB (async persistence)
-  await new Promise(resolve => setTimeout(resolve, 600));
-
-  auth.onAuthStateChanged(async user => {
-    // ── Kasus 1: user ada ──────────────────────────────────────────
-    if (user) {
-      // Kalau dashboard sudah di-boot sebelumnya (token refresh normal), abaikan saja
-      if (dashboardReady && user.uid === currentAdminUid) return;
-
-      // Cek session localStorage dulu — hindari round-trip Firestore yang tidak perlu
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          const age  = Date.now() - (sess.ts || 0);
-          const MAX  = 8 * 60 * 60 * 1000; // 8 jam
-          if (sess.role === 'admin' && sess.uid === user.uid && age < MAX) {
-            bootDashboard(user, user.displayName || user.email);
-            return;
-          }
-        } catch(e) { /* session rusak, lanjut ke Firestore */ }
-      }
-
-      // Verifikasi via Firestore
-      try {
-        const doc = await db.collection('users').doc(user.uid).get();
-        if (doc.exists && doc.data().role === 'admin') {
-          const d = doc.data();
-          const name = d.displayName || d.namaLengkap || user.email;
-          localStorage.setItem('currentUser', JSON.stringify({
-            uid: user.uid, role: 'admin',
-            authMethod: d.authMethod || 'email', ts: Date.now()
-          }));
-          bootDashboard(user, name);
-        } else {
-          // Bukan admin → logout dan balik ke login
-          await auth.signOut();
-          localStorage.removeItem('currentUser');
-          sessionStorage.removeItem('currentUser');
-          document.body.style.visibility = '';
-          window.location.href = 'login.html';
-        }
-      } catch(e) {
-        // permission-denied atau network error → jangan redirect,
-        // percayai Firebase Auth yang sudah valid
-        bootDashboard(user, user.displayName || user.email);
-      }
-      return;
-    }
-
-    // ── Kasus 2: user null ────────────────────────────────────────
-    // Bisa terjadi karena:
-    //   a) Token refresh sesaat (false null) — ditangani dengan re-check
-    //   b) createUser dengan secondary app lalu secondaryAuth.signOut()
-    //      → TIDAK boleh redirect, karena main app admin masih login
-    //   c) Logout sungguhan
-
-    // Jika sedang proses buat user baru (secondary signOut), abaikan
-    if (_creatingUser) return;
-
-    // Jika dashboard sudah ready, ini kemungkinan false-null dari secondary app sign-out
-    // atau token refresh → tunggu sebentar lalu re-check
-    if (dashboardReady) {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      if (auth.currentUser) return; // auth sudah kembali, abaikan
-      // Masih null setelah wait → logout sungguhan
-    } else {
-      // Dashboard belum ready tapi user null → cek apakah session masih ada
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          const age  = Date.now() - (sess.ts || 0);
-          if (sess.role === 'admin' && age < 8 * 60 * 60 * 1000) {
-            // Session masih valid → mungkin Firebase Auth masih restore, tunggu lebih lama
-            await new Promise(resolve => setTimeout(resolve, 1200));
-            if (auth.currentUser) return; // Auth sudah restore
-          }
-        } catch(e) { /* lanjut redirect */ }
-      }
-    }
-
-    // Benar-benar tidak ada user → bersihkan dan redirect
-    if (!auth.currentUser) {
-      localStorage.removeItem('currentUser');
-      sessionStorage.removeItem('currentUser');
-      document.body.style.visibility = '';
-      window.location.href = 'login.html';
-    }
+  HA.requireAuth('admin', (user, data) => {
+    const name = data?.namaLengkap || data?.name || data?.displayName || user.email;
+    bootDashboard(user, name);
   });
 });
 
@@ -1645,11 +1551,7 @@ function updateDate() {
 // ════ LOGOUT ════
 async function handleLogout() {
   if (!confirm('Yakin ingin logout?')) return;
-  await auth.signOut().catch(()=>{});
-  sessionStorage.removeItem('currentUser');
-  localStorage.removeItem('currentUser');
-  localStorage.removeItem('piAuthUser');
-  window.location.href = 'login.html';
+  await HA.logout();
 }
 
 // ════ TOAST ════
