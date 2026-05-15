@@ -526,19 +526,14 @@ let piReady       = false;
 let emailShown    = false;
 let _redirecting  = false;
 
-// FIX: Bersihkan semua session lama saat halaman login dibuka
-// Ini mencegah loop redirect
+// Bersihkan Pi session lama saat halaman login dibuka
+// JANGAN hapus currentUser — biarkan Firebase Auth yang manage sendiri
 localStorage.removeItem('piUser');
-localStorage.removeItem('currentUser');
-sessionStorage.clear();
+sessionStorage.removeItem('currentUser');
 
-// FIX: Matikan Firebase auth listener di halaman login
-// Kita tangani redirect sendiri di sini
+// Referensi Firebase dari auth.js
 const _auth = firebase.auth();
 const _db   = firebase.firestore();
-
-// Sign out senyap agar onAuthStateChanged tidak trigger redirect
-_auth.signOut().catch(() => {});
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!inPiBrowser) {

@@ -21,6 +21,18 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
+// ── PENTING: Aktifkan persistence agar session tidak hilang setelah redirect ──
+// Ini yang menyebabkan login loop — tanpa ini Firebase lupa session setiap halaman baru
+db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+  if (err.code === 'failed-precondition') {
+    // Multiple tabs terbuka — gunakan memory persistence saja
+    console.warn('Firestore persistence: multiple tabs open');
+  } else if (err.code === 'unimplemented') {
+    // Browser tidak support (Safari lama, dll)
+    console.warn('Firestore persistence: browser tidak support');
+  }
+});
+
 const ROLE_DASHBOARD = {
   admin:  'dashboard-admin.html',
   ustadz: 'dashboard-ustadz.html',
