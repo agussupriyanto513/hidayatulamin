@@ -425,7 +425,13 @@ tr:hover td{background:var(--g50)}
 
       <!-- RIWAYAT PEMBAYARAN PI -->
       <div class="card" style="margin-top:16px">
-        <div class="card-hd"><h4>Riwayat Bayar Pi</h4><span style="font-size:11px;color:var(--g400)" id="piPayCount">—</span></div>
+        <div class="card-hd">
+          <h4>Riwayat Bayar Pi</h4>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--g400)" id="piPayCount">—</span>
+            <button onclick="loadPiPayHistory()" style="background:var(--acl);border:none;border-radius:7px;padding:4px 10px;font-size:11px;color:var(--acc);font-weight:700;cursor:pointer"><i class="fas fa-sync-alt"></i> Refresh</button>
+          </div>
+        </div>
         <div id="piPayHistory">
           <div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>
         </div>
@@ -911,16 +917,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Restore Pi user dari session jika login via Pi
     try {
-      const raw = localStorage.getItem('piUser');
+      // PERBAIKAN: Gunakan key 'piAuthUser' (konsisten dengan saat menyimpan)
+      const raw = localStorage.getItem('piAuthUser');
       if (raw) {
         const piSess = JSON.parse(raw);
-        if (piSess.username && Date.now() - (piSess.ts||0) < 8*3600*1000) {
+        const age = Date.now() - (piSess.ts || 0);
+        if (piSess.username && age < 8*60*60*1000) {
           waliPiUser = { uid: piSess.uid || user.uid, username: piSess.username };
+          // Tampilkan user Pi langsung tanpa perlu login ulang
+          showWaliPiUser();
         }
       }
     } catch(e) {}
 
     loadWaliData(user.uid);
+    // PERBAIKAN: Load riwayat Pi segera setelah auth berhasil
+    setTimeout(() => loadPiPayHistory(), 1200);
   });
 });
 
@@ -1379,9 +1391,11 @@ function initDashPiSDK() {
     attempts++;
     try {
       if (typeof window.Pi === 'undefined') throw new Error('Pi not loaded');
-      window.Pi.init({ version: '2.0', sandbox: false });
+      // PERBAIKAN: sandbox:true untuk development, ganti ke false saat production
+      // scopes harus dideklarasikan di init agar payments scope aktif
+      window.Pi.init({ version: '2.0', sandbox: true });
       waliPiSDKReady = true;
-      console.log('Dashboard Pi SDK ready');
+      console.log('Dashboard Pi SDK ready (sandbox mode)');
     } catch(e) {
       if (attempts < 15) setTimeout(tryInit, 600);
     }
@@ -1394,7 +1408,7 @@ function initWaliPiSDK() {
   if (waliPiSDKReady) return true;
   if (!window.Pi) { showToast('warn','Pi SDK','Buka halaman ini di Pi Browser'); return false; }
   try {
-    window.Pi.init({ version: '2.0', sandbox: false });
+    window.Pi.init({ version: '2.0', sandbox: true });
     waliPiSDKReady = true;
     return true;
   } catch(e) {
@@ -1430,7 +1444,8 @@ async function waliPiLogin() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghubungkan...';
   try {
-    // Hanya gunakan scope 'username' dan 'payments' — wallet_address tidak valid di Pi SDK
+    // PERBAIKAN: Pastikan scope 'payments' ada — ini yang menyebabkan error
+    // "Cannot create a payment without 'payments' scope"
     const scopes = ['username', 'payments'];
     const result = await window.Pi.authenticate(scopes, (payment) => {
       // Incomplete payment handler — TIDAK boleh async, jalankan di background
@@ -1632,33 +1647,55 @@ async function submitPiPay() {
 async function loadPiPayHistory() {
   const el = document.getElementById('piPayHistory');
   if (!el) return;
-  if (!currentUid) return;
+  // PERBAIKAN: Tunggu currentUid tersedia, retry jika belum
+  if (!currentUid) {
+    setTimeout(() => loadPiPayHistory(), 1000);
+    return;
+  }
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px"><i class="fas fa-spinner fa-spin"></i> Memuat riwayat...</div>';
   try {
-    // Cari berdasarkan paidByUid (uid Firebase) — tidak butuh composite index
     let docs = [];
 
+    // Cari berdasarkan paidByUid (uid Firebase) — tidak butuh composite index
     const snapByUid = await db.collection('pi_donations')
       .where('paidByUid','==', currentUid)
       .get().catch(()=>null);
     if (snapByUid && !snapByUid.empty) {
-      snapByUid.forEach(d => docs.push(d.data()));
+      snapByUid.forEach(d => docs.push({...d.data(), _docId: d.id}));
     }
 
-    // Juga cari berdasarkan donorPiUid jika waliPiUser ada dan berbeda
-    if (waliPiUser?.uid && waliPiUser.uid !== currentUid) {
+    // PERBAIKAN: Selalu cari juga berdasarkan donorPiUid jika waliPiUser ada
+    if (waliPiUser?.uid) {
       const snapByPi = await db.collection('pi_donations')
         .where('donorPiUid','==', waliPiUser.uid)
         .get().catch(()=>null);
       if (snapByPi && !snapByPi.empty) {
         snapByPi.forEach(d => {
-          const data = d.data();
-          // Hindari duplikat
-          if (!docs.find(x => x.paymentId === data.paymentId)) docs.push(data);
+          const data = {...d.data(), _docId: d.id};
+          // Hindari duplikat berdasarkan paymentId atau docId
+          if (!docs.find(x => x.paymentId === data.paymentId || x._docId === data._docId)) {
+            docs.push(data);
+          }
         });
       }
     }
 
-    // Sort di client — terbaru di atas, tidak perlu Firestore index
+    // PERBAIKAN: Juga cari berdasarkan donorUsername jika login Pi
+    if (waliPiUser?.username) {
+      const snapByUsername = await db.collection('pi_donations')
+        .where('donorUsername','==', waliPiUser.username)
+        .get().catch(()=>null);
+      if (snapByUsername && !snapByUsername.empty) {
+        snapByUsername.forEach(d => {
+          const data = {...d.data(), _docId: d.id};
+          if (!docs.find(x => x.paymentId === data.paymentId || x._docId === data._docId)) {
+            docs.push(data);
+          }
+        });
+      }
+    }
+
+    // Sort di client — terbaru di atas
     docs.sort((a, b) => {
       const ta = a.createdAt?.toDate?.()?.getTime() || 0;
       const tb = b.createdAt?.toDate?.()?.getTime() || 0;
@@ -1676,11 +1713,12 @@ async function loadPiPayHistory() {
     }
 
     const stMap = {
-      completed: { bg:'var(--pl)', color:'var(--p)',  ico:'✅', lbl:'Selesai'  },
-      approved:  { bg:'var(--bl)', color:'var(--b)',  ico:'⏳', lbl:'Diproses' },
-      pending:   { bg:'var(--wl)', color:'var(--w)',  ico:'⏳', lbl:'Pending'  },
-      cancelled: { bg:'var(--rl)', color:'var(--r)',  ico:'❌', lbl:'Dibatalkan'},
-      error:     { bg:'var(--rl)', color:'var(--r)',  ico:'⚠️', lbl:'Error'    },
+      completed:          { bg:'var(--pl)', color:'var(--p)',  ico:'✅', lbl:'Selesai'   },
+      approved:           { bg:'var(--bl)', color:'var(--b)',  ico:'⏳', lbl:'Diproses'  },
+      pending:            { bg:'var(--wl)', color:'var(--w)',  ico:'⏳', lbl:'Pending'   },
+      incomplete_handled: { bg:'var(--bl)', color:'var(--b)',  ico:'🔄', lbl:'Diproses'  },
+      cancelled:          { bg:'var(--rl)', color:'var(--r)',  ico:'❌', lbl:'Dibatalkan' },
+      error:              { bg:'var(--rl)', color:'var(--r)',  ico:'⚠️', lbl:'Error'     },
     };
 
     el.innerHTML = docs.map(x => {
@@ -1703,7 +1741,7 @@ async function loadPiPayHistory() {
 
   } catch(e) {
     console.error('loadPiPayHistory error:', e);
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Gagal memuat riwayat</div>';
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--g400);font-size:13px">Gagal memuat riwayat — <button onclick="loadPiPayHistory()" style="color:var(--p);border:none;background:none;cursor:pointer;font-weight:700">Coba lagi</button></div>';
   }
 }
 
