@@ -1,8 +1,1 @@
-export default function handler(req, res) {
-  // Mainnet key — jika env variable ada, pakai itu. Fallback ke hardcoded.
-  const key = process.env.VALIDATION_KEY_MAINNET
-    || '00d94321bb63bd0095131e94b07c387219eaec5252de852d4465de49df16db25f58c3a90d73293f95eac80fd9b0d884a2645d97435073397747510686ddbba4b';
-
-  res.setHeader('Content-Type', 'text/plain');
-  res.status(200).send(key);
-}
+00d94321bb63bd0095131e94b07c387219eaec5252de852d4465de49df16db25f58c3a90d73293f95eac80fd9b0d884a2645d97435073397747510686ddbba4b
