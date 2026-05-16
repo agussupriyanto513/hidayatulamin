@@ -15,10 +15,10 @@
     },
     {
       "src": "/validation-key.txt",
-      "dest": "/api/validation-key.js"
+      "dest": "/validation-key.txt"
     },
     {
-      "src": "/",
+      "src": "^/$",
       "dest": "/login.html"
     }
   ]
