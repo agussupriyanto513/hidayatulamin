@@ -1,1 +1,13 @@
+{
+  "name": "Hidayatulamin",
+  "description": "Website resmi Yayasan Pendidikan Hidayatulamin Sagatama — portal beasiswa, bantuan sosial, dan layanan yayasan berbasis Pi Network.",
+  "app_url": "https://hidayatulamin.vercel.app",
+  "developer": {
+    "name": "Yayasan Pendidikan Hidayatulamin Sagatama",
+    "email": "agussupriyantosaragih@gmail.com"
+  },
+  "categories": ["education", "social"],
+  "privacy_policy_url": "https://hidayatulamin.vercel.app/privacy-policy-hidayatulamin.html",
+  "terms_of_service_url": "https://hidayatulamin.vercel.app/privacy-policy-hidayatulamin.html"
+}
 
