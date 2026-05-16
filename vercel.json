@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": ".",
   "rewrites": [
     { "source": "/api/payments/approve", "destination": "/api/payments/approve.js" },
     { "source": "/api/payments/complete", "destination": "/api/payments/complete.js" },
