@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy & Terms of Service — Hidayatulamin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #0F766E;
+    --accent-light: #CCFBF1;
+    --accent-dark: #134E4A;
+    --gold: #D97706;
+    --gold-light: #FEF3C7;
+    --text: #1C1917;
+    --text-muted: #78716C;
+    --border: #E7E5E4;
+    --bg: #FAFAF9;
+    --white: #FFFFFF;
+    --radius: 16px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 15px; }
+  .site-header { background: var(--white); border-bottom: 1px solid var(--border); padding: 18px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+  .logo-mark { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: 700; }
+  .logo-text { font-weight: 600; font-size: 16px; }
+  .logo-sub { font-size: 12px; color: var(--text-muted); }
+  .hero { background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 100%); color: white; padding: 60px 24px 48px; text-align: center; }
+  .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(26px, 5vw, 42px); font-weight: 400; margin-bottom: 12px; line-height: 1.2; }
+  .hero p { font-size: 15px; opacity: 0.85; max-width: 520px; margin: 0 auto 20px; }
+  .hero-badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 5px 14px; border-radius: 99px; font-size: 12px; font-weight: 500; }
+  .lang-toggle { display: flex; justify-content: center; gap: 0; margin: 28px auto 0; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 4px; width: fit-content; }
+  .lang-btn { padding: 8px 20px; border: none; border-radius: 7px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; transition: all 0.2s; background: transparent; color: rgba(255,255,255,0.7); }
+  .lang-btn.active { background: white; color: var(--accent-dark); }
+  .toc { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 24px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+  .toc::-webkit-scrollbar { display: none; }
+  .toc-inner { display: inline-flex; max-width: 900px; margin: 0 auto; }
+  .toc-link { padding: 14px 16px; font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; display: inline-block; }
+  .toc-link:hover, .toc-link.active-section { color: var(--accent); border-bottom-color: var(--accent); }
+  .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  .meta-bar { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 32px; font-size: 13px; color: var(--text-muted); }
+  .meta-bar span strong { color: var(--text); }
+  .section-label { display: inline-flex; align-items: center; gap: 8px; background: var(--accent-light); color: var(--accent-dark); padding: 5px 14px; border-radius: 99px; font-size: 12px; font-weight: 600; margin-bottom: 28px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .article-title { font-family: 'DM Serif Display', serif; font-size: clamp(22px, 4vw, 32px); font-weight: 400; margin-bottom: 8px; line-height: 1.25; }
+  .article-desc { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .clause { margin-bottom: 24px; padding: 20px 24px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); border-left: 4px solid var(--accent); }
+  .clause-num { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+  .clause h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+  .clause p, .clause ul { font-size: 14px; color: #44403C; line-height: 1.75; }
+  .clause ul { margin-top: 8px; padding-left: 18px; }
+  .clause ul li { margin-bottom: 5px; }
+  .highlight-box { background: var(--gold-light); border: 1px solid #FDE68A; border-left: 4px solid var(--gold); border-radius: var(--radius); padding: 18px 22px; margin-bottom: 24px; }
+  .highlight-box p { font-size: 14px; color: #78350F; line-height: 1.7; }
+  .highlight-box strong { color: #451A03; }
+  .doc-divider { border: none; border-top: 2px dashed var(--border); margin: 48px 0; }
+  .contact-section { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; text-align: center; margin-top: 48px; }
+  .contact-section h3 { font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400; margin-bottom: 8px; }
+  .contact-section p { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; }
+  .contact-link { display: inline-block; background: var(--accent); color: white; padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; text-decoration: none; }
+  .contact-link:hover { background: var(--accent-dark); }
+  .site-footer { background: var(--white); border-top: 1px solid var(--border); padding: 24px; text-align: center; font-size: 12px; color: var(--text-muted); }
+  @media (max-width: 600px) { .meta-bar { flex-direction: column; gap: 8px; } .clause { padding: 16px; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo-mark">H</div>
+  <div>
+    <div class="logo-text">Hidayatulamin</div>
+    <div class="logo-sub">Yayasan Pendidikan Hidayatulamin Sagatama</div>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>Privacy Policy &<br>Terms of Service</h1>
+  <p>How we protect your data and the rules that govern use of the Hidayatulamin website.</p>
+  <div class="hero-badges">
+    <span class="badge">🕌 Yayasan Pendidikan Hidayatulamin Sagatama</span>
+    <span class="badge">🌐 Pi Network Connected</span>
+    <span class="badge">📅 Effective: April 2026</span>
+  </div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('en')">English</button>
+    <button class="lang-btn" onclick="setLang('id')">Bahasa Indonesia</button>
+  </div>
+</div>
+
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#privacy" class="toc-link active-section">Privacy Policy</a>
+    <a href="#tos" class="toc-link">Terms of Service</a>
+    <a href="#contact" class="toc-link">Contact</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="meta-bar">
+    <span><strong>App:</strong> Hidayatulamin</span>
+    <span><strong>URL:</strong> hidayatulamin.vercel.app</span>
+    <span><strong>Firebase:</strong> hidayatulamin</span>
+    <span><strong>Operator:</strong> Yayasan Pendidikan Hidayatulamin Sagatama</span>
+    <span><strong>Last updated:</strong> April 24, 2026</span>
+  </div>
+
+  <!-- ENGLISH -->
+  <div id="lang-en">
+    <div id="privacy">
+      <span class="section-label">🔒 Document 1 of 2</span>
+      <h2 class="article-title">Privacy Policy</h2>
+      <p class="article-desc">This Privacy Policy explains how the Hidayatulamin website ("we", "our", "the Site") collects, uses, and protects your information in connection with Yayasan Hidayatulamin Sagatama's programs and the Pi Network ecosystem.</p>
+      <div class="highlight-box">
+        <p><strong>Summary:</strong> We collect only the minimum data needed to operate this site and its social programs. Your Pi identity is used solely for authentication. Application data for scholarships and social assistance is kept confidential and used only for program administration.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 1</div>
+        <h3>Information We Collect</h3>
+        <p>When you use the Hidayatulamin website, we may collect:</p>
+        <ul>
+          <li><strong>Pi Network identity:</strong> Your Pi username and Pi UID, provided by the Pi SDK upon authentication.</li>
+          <li><strong>Program applications:</strong> Name, contact details, and supporting information submitted for scholarships or social assistance programs.</li>
+          <li><strong>Firebase (hidayatulamin project):</strong> Data stored in Firestore including submitted applications, program participation records, and user preferences.</li>
+          <li><strong>Device & usage data:</strong> Browser type, device, pages visited — collected anonymously to improve performance.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 2</div>
+        <h3>How We Use Your Information</h3>
+        <ul>
+          <li>To authenticate your identity via Pi Network SDK for member features.</li>
+          <li>To process and administer scholarship and social assistance applications.</li>
+          <li>To communicate with applicants regarding program status and updates.</li>
+          <li>To connect your account across the Sagatama ecosystem apps (Sagatama Mart, Ecosystem).</li>
+          <li>To improve the website and its programs.</li>
+          <li>To comply with applicable Indonesian laws and Pi Network platform policies.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 3</div>
+        <h3>Data Storage and Security</h3>
+        <p>Your data is stored in Google Firebase (project: <strong>hidayatulamin</strong>). We apply Firestore security rules to restrict data access to authorized personnel only. All data transmission uses HTTPS encryption. Program application data is accessible only to designated foundation administrators.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 4</div>
+        <h3>Third-Party Services</h3>
+        <ul>
+          <li><strong>Pi Network / Minepi.com</strong> — user authentication via Pi SDK.</li>
+          <li><strong>Google Firebase (hidayatulamin)</strong> — database, authentication, and hosting.</li>
+          <li><strong>Vercel</strong> — app hosting and deployment.</li>
+        </ul>
+        <p style="margin-top:10px;">We do not share program application data with any third parties outside those listed above.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 5</div>
+        <h3>Your Rights</h3>
+        <ul>
+          <li><strong>Access</strong> the personal data we hold about you.</li>
+          <li><strong>Correct</strong> inaccurate information in your applications or profile.</li>
+          <li><strong>Delete</strong> your data by contacting us directly.</li>
+          <li><strong>Withdraw</strong> from programs at any time without penalty.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 6</div>
+        <h3>Sensitive Program Data</h3>
+        <p>Information submitted for scholarship or social assistance applications (including financial or family situation details) is treated as sensitive data. It is used solely for program evaluation, kept confidential, and not shared outside the foundation's administrative team.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 7</div>
+        <h3>Changes to This Policy</h3>
+        <p>We may update this Privacy Policy periodically. The effective date at the top of this page reflects the most recent update. Continued use of the site constitutes acceptance of the revised policy.</p>
+      </div>
+    </div>
+
+    <hr class="doc-divider">
+
+    <div id="tos">
+      <span class="section-label">📋 Document 2 of 2</span>
+      <h2 class="article-title">Terms of Service</h2>
+      <p class="article-desc">These Terms govern your use of the Hidayatulamin website. By accessing this site, you agree to these Terms.</p>
+      <div class="highlight-box">
+        <p><strong>Note:</strong> The Hidayatulamin website is the official web presence of Yayasan Hidayatulamin Sagatama, a non-profit foundation in Indonesia. Some features require Pi Network authentication. The foundation's social programs (scholarships, Bantuan Sosial) are subject to their own eligibility criteria.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 1</div>
+        <h3>Acceptance of Terms</h3>
+        <p>By using this site, you confirm you are at least 18 years of age (or the legal majority age in your jurisdiction) and agree to these Terms in full. For social program applications, additional eligibility criteria apply as stated in each program's description.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 2</div>
+        <h3>Description of Service</h3>
+        <p>The Hidayatulamin website provides:</p>
+        <ul>
+          <li>Foundation profile, mission, and program information.</li>
+          <li>Scholarship and social assistance (Bantuan Sosial) application portals.</li>
+          <li>Pi Network-authenticated member access to foundation services.</li>
+          <li>Navigation and links to the broader Sagatama ecosystem.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 3</div>
+        <h3>Pi Network Authentication</h3>
+        <p>Certain features of this site require authentication via Pi Network. Your Pi credentials are managed entirely by Pi Network. You must have a valid, verified Pi Network account to access authenticated features. Sharing credentials or misrepresenting your identity is strictly prohibited.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 4</div>
+        <h3>Social Programs (Scholarship & Bantuan Sosial)</h3>
+        <p>Applications to foundation programs are subject to:</p>
+        <ul>
+          <li>Eligibility criteria as defined by Yayasan Hidayatulamin Sagatama for each program cycle.</li>
+          <li>Truthful and complete information — submission of false information will result in disqualification.</li>
+          <li>Foundation decisions on program awards are final and at the sole discretion of the foundation.</li>
+          <li>Program benefits, amounts, and availability may change each cycle.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 5</div>
+        <h3>Prohibited Conduct</h3>
+        <ul>
+          <li>Submitting false or fraudulent program applications.</li>
+          <li>Impersonating another person or organization.</li>
+          <li>Using the site to collect or harvest other users' data.</li>
+          <li>Attempting to gain unauthorized access to the foundation's systems.</li>
+          <li>Using the site for commercial purposes without written permission.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 6</div>
+        <h3>Intellectual Property</h3>
+        <p>All content on this site — including the Hidayatulamin name, foundation logo, program descriptions, and written content — is the property of Yayasan Hidayatulamin Sagatama. Reproduction or distribution requires written permission.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 7</div>
+        <h3>Limitation of Liability</h3>
+        <p>The Hidayatulamin website and Yayasan Hidayatulamin Sagatama are not liable for any indirect or consequential damages arising from use of this site, including inability to access program applications due to technical issues or Pi Network downtime.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Article 8</div>
+        <h3>Governing Law</h3>
+        <p>These Terms are governed by the laws of the Republic of Indonesia. Disputes shall be resolved through good-faith negotiation and, if unresolved, through competent Indonesian courts.</p>
+      </div>
+    </div>
+  </div><!-- end lang-en -->
+
+  <!-- BAHASA INDONESIA -->
+  <div id="lang-id" style="display:none">
+    <div>
+      <span class="section-label">🔒 Dokumen 1 dari 2</span>
+      <h2 class="article-title">Kebijakan Privasi</h2>
+      <p class="article-desc">Kebijakan Privasi ini menjelaskan bagaimana website Hidayatulamin mengumpulkan, menggunakan, dan melindungi informasi Anda dalam hubungannya dengan program Yayasan Hidayatulamin Sagatama dan ekosistem Pi Network.</p>
+      <div class="highlight-box">
+        <p><strong>Ringkasan:</strong> Kami hanya mengumpulkan data minimum yang diperlukan. Identitas Pi Anda digunakan hanya untuk autentikasi. Data pendaftaran beasiswa dan bantuan sosial dijaga kerahasiaannya dan hanya digunakan untuk administrasi program.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 1</div>
+        <h3>Informasi yang Kami Kumpulkan</h3>
+        <ul>
+          <li><strong>Identitas Pi Network:</strong> Username Pi dan Pi UID Anda, diberikan oleh Pi SDK saat autentikasi.</li>
+          <li><strong>Data pendaftaran program:</strong> Nama, kontak, dan informasi pendukung yang diserahkan untuk beasiswa atau bantuan sosial.</li>
+          <li><strong>Firebase (proyek hidayatulamin):</strong> Data tersimpan di Firestore termasuk pendaftaran, catatan partisipasi program, dan preferensi pengguna.</li>
+          <li><strong>Data perangkat & penggunaan:</strong> Jenis browser, perangkat, halaman yang dikunjungi — dikumpulkan secara anonim.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 2</div>
+        <h3>Cara Kami Menggunakan Informasi</h3>
+        <ul>
+          <li>Mengautentikasi identitas Anda via Pi Network SDK.</li>
+          <li>Memproses dan mengelola pendaftaran beasiswa dan bantuan sosial.</li>
+          <li>Berkomunikasi dengan pemohon mengenai status program.</li>
+          <li>Menghubungkan akun Anda di seluruh aplikasi ekosistem Sagatama.</li>
+          <li>Mematuhi hukum Indonesia dan kebijakan Pi Network.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 3</div>
+        <h3>Penyimpanan dan Keamanan Data</h3>
+        <p>Data Anda disimpan di Google Firebase (proyek: <strong>hidayatulamin</strong>). Kami menerapkan aturan keamanan Firestore untuk membatasi akses hanya bagi personel yang berwenang. Data pendaftaran program hanya dapat diakses oleh administrator yayasan yang ditunjuk.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 4</div>
+        <h3>Layanan Pihak Ketiga</h3>
+        <ul>
+          <li><strong>Pi Network / Minepi.com</strong> — autentikasi pengguna.</li>
+          <li><strong>Google Firebase (hidayatulamin)</strong> — database, autentikasi, dan hosting.</li>
+          <li><strong>Vercel</strong> — hosting aplikasi.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 5</div>
+        <h3>Hak-Hak Anda</h3>
+        <ul>
+          <li><strong>Mengakses</strong> data pribadi yang kami simpan.</li>
+          <li><strong>Mengoreksi</strong> informasi yang tidak akurat.</li>
+          <li><strong>Menghapus</strong> data Anda dengan menghubungi kami.</li>
+          <li><strong>Menarik diri</strong> dari program kapan saja tanpa penalti.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 6</div>
+        <h3>Data Program Sensitif</h3>
+        <p>Informasi yang diserahkan untuk beasiswa atau bantuan sosial (termasuk kondisi keuangan atau keluarga) diperlakukan sebagai data sensitif. Digunakan hanya untuk evaluasi program, dijaga kerahasiaannya, dan tidak dibagikan di luar tim administrasi yayasan.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 7</div>
+        <h3>Perubahan Kebijakan</h3>
+        <p>Kami dapat memperbarui Kebijakan Privasi ini secara berkala. Penggunaan situs yang berkelanjutan merupakan penerimaan atas kebijakan yang direvisi.</p>
+      </div>
+    </div>
+
+    <hr class="doc-divider">
+
+    <div>
+      <span class="section-label">📋 Dokumen 2 dari 2</span>
+      <h2 class="article-title">Syarat & Ketentuan Penggunaan</h2>
+      <p class="article-desc">Syarat ini mengatur penggunaan website Hidayatulamin. Dengan mengakses situs ini, Anda menyetujui Syarat ini.</p>
+      <div class="highlight-box">
+        <p><strong>Catatan:</strong> Website Hidayatulamin adalah kehadiran web resmi Yayasan Hidayatulamin Sagatama, yayasan nirlaba di Indonesia. Beberapa fitur memerlukan autentikasi Pi Network. Program sosial yayasan tunduk pada kriteria kelayakan masing-masing.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 1</div>
+        <h3>Penerimaan Syarat</h3>
+        <p>Dengan menggunakan situs ini, Anda mengonfirmasi berusia minimal 18 tahun dan menyetujui Syarat ini. Untuk pendaftaran program sosial, kriteria kelayakan tambahan berlaku sesuai deskripsi masing-masing program.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 2</div>
+        <h3>Deskripsi Layanan</h3>
+        <ul>
+          <li>Profil yayasan, misi, dan informasi program.</li>
+          <li>Portal pendaftaran beasiswa dan bantuan sosial.</li>
+          <li>Akses anggota terotentikasi Pi Network ke layanan yayasan.</li>
+          <li>Navigasi ke ekosistem Sagatama yang lebih luas.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 3</div>
+        <h3>Autentikasi Pi Network</h3>
+        <p>Fitur tertentu memerlukan autentikasi via Pi Network. Kredensial Pi Anda dikelola sepenuhnya oleh Pi Network. Berbagi kredensial atau menyalahgunakan identitas dilarang keras.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 4</div>
+        <h3>Program Sosial (Beasiswa & Bantuan Sosial)</h3>
+        <ul>
+          <li>Tunduk pada kriteria kelayakan yang ditetapkan Yayasan Hidayatulamin Sagatama per siklus program.</li>
+          <li>Informasi harus benar dan lengkap — data palsu mengakibatkan diskualifikasi.</li>
+          <li>Keputusan yayasan terkait penghargaan program bersifat final.</li>
+          <li>Manfaat, jumlah, dan ketersediaan program dapat berubah setiap siklus.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 5</div>
+        <h3>Perilaku yang Dilarang</h3>
+        <ul>
+          <li>Mengajukan pendaftaran program yang palsu atau curang.</li>
+          <li>Menyamar sebagai orang atau organisasi lain.</li>
+          <li>Mengumpulkan data pengguna lain melalui situs.</li>
+          <li>Mencoba akses tidak sah ke sistem yayasan.</li>
+          <li>Menggunakan situs untuk tujuan komersial tanpa izin tertulis.</li>
+        </ul>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 6</div>
+        <h3>Kekayaan Intelektual</h3>
+        <p>Semua konten — termasuk nama Hidayatulamin, logo yayasan, deskripsi program, dan konten tertulis — adalah milik Yayasan Hidayatulamin Sagatama. Reproduksi memerlukan izin tertulis.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 7</div>
+        <h3>Batasan Tanggung Jawab</h3>
+        <p>Website Hidayatulamin dan Yayasan Hidayatulamin Sagatama tidak bertanggung jawab atas kerugian tidak langsung yang timbul dari penggunaan situs ini, termasuk ketidakmampuan mengakses pendaftaran program karena masalah teknis.</p>
+      </div>
+      <div class="clause">
+        <div class="clause-num">Pasal 8</div>
+        <h3>Hukum yang Berlaku</h3>
+        <p>Syarat ini diatur oleh hukum Republik Indonesia. Perselisihan diselesaikan melalui negosiasi itikad baik dan, jika tidak terselesaikan, melalui pengadilan Indonesia yang berwenang.</p>
+      </div>
+    </div>
+  </div><!-- end lang-id -->
+
+  <div id="contact" class="contact-section">
+    <h3>Questions or Requests?</h3>
+    <p>For privacy requests, data deletion, or any concerns, contact us:</p>
+    <a href="mailto:agussupriyantosaragih@gmail.com" class="contact-link">agussupriyantosaragih@gmail.com</a>
+    <p style="margin-top:16px; font-size:12px; color:var(--text-muted);">Yayasan Pendidikan Hidayatulamin Sagatama · Indonesia<br>hidayatulamin.vercel.app</p>
+  </div>
+</div>
+
+<footer class="site-footer">
+  © 2026 Yayasan Pendidikan Hidayatulamin Sagatama. All rights reserved. &nbsp;·&nbsp;
+  <a href="https://hidayatulamin.vercel.app" style="color:var(--accent); text-decoration:none;">hidayatulamin.vercel.app</a>
+</footer>
+
+<script>
+  function setLang(lang) {
+    document.getElementById('lang-en').style.display = lang === 'en' ? '' : 'none';
+    document.getElementById('lang-id').style.display = lang === 'id' ? '' : 'none';
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.trim() === (lang === 'en' ? 'English' : 'Bahasa Indonesia'));
+    });
+  }
+</script>
+</body>
+</html>
