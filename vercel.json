@@ -14,6 +14,10 @@
       "dest": "/api/payments/cancel.js"
     },
     {
+      "src": "/validation-key.txt",
+      "dest": "/api/validation-key.js"
+    },
+    {
       "src": "/",
       "dest": "/login.html"
     }
