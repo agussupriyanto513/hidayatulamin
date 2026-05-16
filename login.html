@@ -553,7 +553,7 @@ function initPiSdk() {
     attempts++;
     try {
       if (typeof window.Pi === 'undefined') throw new Error('Pi not defined');
-      window.Pi.init({ version: '2.0', sandbox: true });
+      window.Pi.init({ version: '2.0', sandbox: false });
       piReady = true;
       console.log('✅ Pi SDK ready');
     } catch(e) {
@@ -574,7 +574,7 @@ async function doPiLogin() {
   }
   if (!piReady) {
     try {
-      window.Pi.init({ version: '2.0', sandbox: true });
+      window.Pi.init({ version: '2.0', sandbox: false });
       piReady = true;
     } catch(e) {
       showAlert('error', 'Pi SDK belum siap. Pastikan kamu membuka halaman ini di Pi Browser.');

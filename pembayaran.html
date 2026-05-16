@@ -835,8 +835,8 @@ function initPiSDK() {
   }
 
   try {
-    const isSandbox = !window.location.hostname.includes('hidayatulamin.com')
-                   || window.location.hostname === 'localhost';
+    // MAINNET: sandbox hanya untuk localhost development
+    const isSandbox = window.location.hostname === 'localhost';
     window.Pi.init({ version:'2.0', sandbox: isSandbox });
     piSDKReady = true;
     dot.classList.add('ready');

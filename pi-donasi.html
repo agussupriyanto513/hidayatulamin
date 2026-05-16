@@ -352,11 +352,8 @@ function initPiSDK() {
     return false;
   }
   try {
-    // FIX: sandbox = true kecuali di domain produksi resmi
-    // vercel.app = staging/dev → sandbox: true
-    // hidayatulamin.com = produksi → sandbox: false
-    const isSandbox = !window.location.hostname.includes('hidayatulamin.com')
-                   || window.location.hostname === 'localhost';
+    // MAINNET: sandbox hanya untuk localhost development
+    const isSandbox = window.location.hostname === 'localhost';
     window.Pi.init({ version: '2.0', sandbox: isSandbox });
     piSDKReady = true;
     console.log('✅ Pi SDK siap | sandbox:', isSandbox);
