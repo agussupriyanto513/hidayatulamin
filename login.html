@@ -511,7 +511,7 @@ body {
       <span class="badge badge-green">Firebase</span>
       <span class="badge badge-purple">Pi Network</span>
       <span class="badge badge-gold">SGT Token</span>
-      <span class="badge badge-blue">Testnet</span>
+      <span class="badge badge-blue">Mainnet</span>
     </div>
 
   </div>
@@ -521,7 +521,10 @@ body {
 // ═══════════════════════════════════════════════
 // STATE & INIT
 // ═══════════════════════════════════════════════
-const inPiBrowser = !!window.Pi;
+const inPiBrowser = !!window.Pi || 
+  navigator.userAgent.includes('PiBrowser') || 
+  window.location.hostname.includes('pinet.pi') ||
+  window.location.hostname.includes('minepi.com');
 let piReady       = false;
 let emailShown    = false;
 let _redirecting  = false;
