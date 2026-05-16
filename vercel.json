@@ -1,25 +1,11 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/api/payments/approve",
-      "dest": "/api/payments/approve.js"
-    },
-    {
-      "src": "/api/payments/complete",
-      "dest": "/api/payments/complete.js"
-    },
-    {
-      "src": "/api/payments/cancel",
-      "dest": "/api/payments/cancel.js"
-    },
-    {
-      "src": "/validation-key.txt",
-      "dest": "/validation-key.txt"
-    },
-    {
-      "src": "^/$",
-      "dest": "/login.html"
-    }
+  "rewrites": [
+    { "source": "/api/payments/approve", "destination": "/api/payments/approve.js" },
+    { "source": "/api/payments/complete", "destination": "/api/payments/complete.js" },
+    { "source": "/api/payments/cancel", "destination": "/api/payments/cancel.js" }
+  ],
+  "redirects": [
+    { "source": "/", "destination": "/login.html", "permanent": false }
   ]
 }
