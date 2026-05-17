@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Admin | Hidayatulamin Sagatama</title>
+<title>Dashboard Admin | Hidayatullah Amin</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -227,7 +227,7 @@ tr:hover td{background:var(--g50)}
 .t-msg p{font-size:11px;color:var(--g500)}
 
 /* ═══ QUICK ACTIONS ═══ */
-.qa-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.qa-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
 .qa-card{background:var(--white);border-radius:var(--rd);padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:var(--tr);border:1px solid var(--g100);text-decoration:none;color:inherit}
 .qa-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md);border-color:var(--p)}
 .qa-card.prim{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;border:none}
@@ -347,17 +347,13 @@ tr:hover td{background:var(--g50)}
   .sgt-stats{grid-template-columns:1fr 1fr}
   .alloc-grid{grid-template-columns:1fr}
 }
-/* ═══ SGT Chart ═══ */
-#sgtPieChart { max-height: 180px; }
-/* ═══ User count badge ═══ */
-.count-badge { font-size:10px; background:var(--g100); color:var(--g600); padding:2px 8px; border-radius:20px; font-weight:700; margin-left:8px; }
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr}
   .content{padding:12px}
   .field-row{grid-template-columns:1fr}
   .alloc-grid{grid-template-columns:1fr}
   .sgt-stats{grid-template-columns:1fr 1fr}
-  .qa-row{grid-template-columns:1fr 1fr}
+  .qa-row{grid-template-columns:1fr}
   .welcome{flex-direction:column;gap:12px}
   .welcome-date{text-align:left}
   .tbl-acts{flex-direction:column}
@@ -457,14 +453,14 @@ tr:hover td{background:var(--g50)}
           <div class="sc-lbl">Total Ustadz</div><div class="sc-sub">Aktif mengajar</div>
         </div>
         <div class="stat-card o">
-          <div class="sc-top"><div class="sc-ico o"><i class="fas fa-user-friends"></i></div><div class="sc-trend flat"><i class="fas fa-minus" style="font-size:9px"></i> Stabil</div></div>
-          <div class="sc-val" id="statWali"><i class="fas fa-spinner fa-spin" style="font-size:18px;color:var(--g300)"></i></div>
-          <div class="sc-lbl">Total Wali</div><div class="sc-sub">Terdaftar aktif</div>
-        </div>
-        <div class="stat-card v">
-          <div class="sc-top"><div class="sc-ico v"><i class="fas fa-calendar-check"></i></div><div class="sc-trend flat"><i class="fas fa-minus" style="font-size:9px"></i> Stabil</div></div>
+          <div class="sc-top"><div class="sc-ico o"><i class="fas fa-calendar-check"></i></div><div class="sc-trend flat"><i class="fas fa-minus" style="font-size:9px"></i> Stabil</div></div>
           <div class="sc-val" id="statKehadiran">94%</div>
           <div class="sc-lbl">Kehadiran</div><div class="sc-sub">Rata-rata minggu ini</div>
+        </div>
+        <div class="stat-card v">
+          <div class="sc-top"><div class="sc-ico v"><i class="fas fa-book-quran"></i></div><div class="sc-trend flat"><i class="fas fa-minus" style="font-size:9px"></i> Stabil</div></div>
+          <div class="sc-val" id="statHafalan">4.5</div>
+          <div class="sc-lbl">Rata-rata Hafalan</div><div class="sc-sub">Semua kelas (Juz)</div>
         </div>
       </div>
 
@@ -477,14 +473,6 @@ tr:hover td{background:var(--g50)}
           <div class="qa-ico" style="background:var(--bl);color:var(--b)"><i class="fas fa-users-cog"></i></div>
           <div class="qa-txt"><h4>Kelola Data Santri</h4><p>Lihat dan edit semua data santri</p></div>
         </a>
-        <a class="qa-card" onclick="switchSection('pencairan', document.getElementById('navPencairan'))">
-          <div class="qa-ico" style="background:var(--wl);color:var(--w)"><i class="fas fa-hand-holding-usd"></i></div>
-          <div class="qa-txt"><h4>Pencairan SGT</h4><p id="qaPencairanSub">Lihat permintaan pencairan</p></div>
-        </a>
-        <a class="qa-card" onclick="switchSection('earnreq', document.getElementById('navEarnReq'))">
-          <div class="qa-ico" style="background:var(--acl);color:var(--acc)"><i class="fas fa-paper-plane"></i></div>
-          <div class="qa-txt"><h4>Pengajuan Reward</h4><p id="qaEarnSub">Review reward dari ustadz & wali</p></div>
-        </a>
       </div>
 
       <div class="two-col">
@@ -492,20 +480,14 @@ tr:hover td{background:var(--g50)}
           <div class="card-head"><div><h4>Grafik Kehadiran Santri</h4><p>Data 7 hari terakhir</p></div><select style="font-size:11px;border:1px solid var(--g200);border-radius:8px;padding:4px 8px;font-family:inherit" onchange="updateChart(this.value)"><option value="week">7 Hari</option><option value="month">30 Hari</option></select></div>
           <div class="chart-wrap"><canvas id="chartKehadiran"></canvas></div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="card">
-            <div class="card-head"><h4>Hafalan per Kelas</h4></div>
-            <div class="prog-list" id="hafalanList">
-              <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas A</span><span class="prog-val">5.1 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:85%"></div></div></div>
-              <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas B</span><span class="prog-val">4.5 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:75%"></div></div></div>
-              <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas C</span><span class="prog-val">3.8 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:63%"></div></div></div>
-              <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas D</span><span class="prog-val">4.2 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:70%"></div></div></div>
-              <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas E</span><span class="prog-val">6.0 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head"><h4>User Terbaru</h4><span class="card-link" onclick="switchSection('users',document.querySelector('[onclick*=users]'))">Lihat Semua →</span></div>
-            <div id="recentUserList"><div style="text-align:center;padding:20px;color:var(--g400)"><i class="fas fa-spinner fa-spin"></i></div></div>
+        <div class="card">
+          <div class="card-head"><h4>Hafalan per Kelas</h4></div>
+          <div class="prog-list" id="hafalanList">
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas A</span><span class="prog-val">5.1 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:85%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas B</span><span class="prog-val">4.5 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:75%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas C</span><span class="prog-val">3.8 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:63%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas D</span><span class="prog-val">4.2 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:70%"></div></div></div>
+            <div class="prog-item"><div class="prog-row"><span class="prog-name">Kelas E</span><span class="prog-val">6.0 juz</span></div><div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div></div>
           </div>
         </div>
       </div>
@@ -515,18 +497,14 @@ tr:hover td{background:var(--g50)}
     <div class="section" id="sec-users">
       <div class="sec-hd">
         <div><h3>Kelola User</h3><p>Semua pengguna sistem yang terdaftar</p></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn-p" style="background:linear-gradient(135deg,#047857,#059669)" onclick="exportUsersCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
-          <button class="btn-p" onclick="openModal()"><i class="fas fa-user-plus"></i> Buat User</button>
-        </div>
+        <button class="btn-p" onclick="openModal()"><i class="fas fa-user-plus"></i> Buat User</button>
       </div>
       <div class="tbl-section">
         <div class="tbl-head">
-          <div class="tbl-title"><h4>Daftar User</h4><p id="userTableSub">Klik icon untuk aksi</p></div>
+          <div class="tbl-title"><h4>Daftar User</h4><p>Klik icon untuk aksi</p></div>
           <div class="tbl-acts">
             <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchUser" placeholder="Cari nama / email..." oninput="filterUsers()"></div>
             <select id="filterRole" onchange="filterUsers()" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit"><option value="">Semua Role</option><option value="admin">Admin</option><option value="ustadz">Ustadz</option><option value="wali">Wali</option><option value="santri">Santri</option></select>
-            <select id="filterStatus" onchange="filterUsers()" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit"><option value="">Semua Status</option><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select>
           </div>
         </div>
         <div class="tbl-wrap">
@@ -1117,24 +1095,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ════ SECTION SWITCH ════
 function switchSection(name, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  const sec = document.getElementById('sec-' + name);
-  if (!sec) { console.warn('[switchSection] section not found:', name); return; }
-  sec.classList.add('active');
+  document.getElementById('sec-' + name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
-  const titles = {
-    dashboard:'Dashboard Admin', users:'Kelola User',
-    sgt:'Manajemen SGT Token', pencairan:'Pencairan SGT',
-    earnreq:'Pengajuan Reward SGT', 'pi-donations':'Manajemen Donasi Pi',
-    whitelist:'Whitelist Pi Network'
-  };
+  const titles = {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token',pencairan:'Pencairan SGT',earnreq:'Pengajuan Reward SGT','pi-donations':'Manajemen Donasi Pi'};
   setEl('pgTitle', titles[name] || 'Dashboard');
-  if (name === 'users')         loadAllUsers();
-  if (name === 'sgt')           { renderAllocGrid(); loadMartStats(); renderDistLog(); loadSgtStats(); }
-  if (name === 'pi-donations')  loadPiDonations();
-  if (name === 'pencairan')     { loadFonnteConfig(); loadWithdrawals(); }
-  if (name === 'earnreq')       loadEarnRequests();
-  if (name === 'whitelist')     loadWhitelist();
+  if (name === 'users') loadAllUsers();
+  if (name === 'sgt') { renderAllocGrid(); loadMartStats(); renderDistLog(); }
+  if (name === 'pi-donations') loadPiDonations();
   closeSidebar();
 }
 
@@ -1151,125 +1119,34 @@ async function ensureFreshToken() {
 
 async function loadDashboardData() {
   try {
-    const [santriSnap, ustadzSnap, waliSnap, adminSnap] = await Promise.all([
+    const [santriSnap, ustadzSnap] = await Promise.all([
       db.collection('users').where('role','==','santri').where('isActive','==',true).get(),
-      db.collection('users').where('role','==','ustadz').where('isActive','==',true).get(),
-      db.collection('users').where('role','==','wali').where('isActive','==',true).get(),
-      db.collection('users').where('role','==','admin').where('isActive','==',true).get(),
+      db.collection('users').where('role','==','ustadz').where('isActive','==',true).get()
     ]);
-    animNum('statSantri',  santriSnap.size);
-    animNum('statUstadz',  ustadzSnap.size);
-    animNum('statWali',    waliSnap.size);
-    animNum('statAdmin',   adminSnap.size);
+    animNum('statSantri', santriSnap.size);
+    animNum('statUstadz', ustadzSnap.size);
 
-    // Load recent users
-    const recentSnap = await db.collection('users').orderBy('createdAt','desc').limit(50).get();
+    // Load recent users for welcome screen
+    const recentSnap = await db.collection('users').limit(10).get();
     allUsers = recentSnap.docs.map(d => ({id:d.id,...d.data()}));
-    renderRecentUsers();
-  } catch(e) { console.error('[loadDashboardData]', e); }
+  } catch(e) { }
   initChart();
   renderAllocGrid();
   loadMartStats();
-  loadSgtStats();
-  // Load badge counts
+  // Load badge count pengajuan reward pending
   db.collection('sgt_earn_requests').where('status','==','pending').get()
     .then(s=>{ earnAllData = s.docs.map(d=>({id:d.id,...d.data()})); updateEarnBadge(); })
     .catch(()=>{});
-  db.collection('withdrawals').where('status','==','pending').get()
-    .then(s=>{ updatePendingBadgeCount(s.size); })
-    .catch(()=>{});
-  // Load notifikasi real dari Firestore (3 terbaru)
-  loadRealtimeNotif();
-}
-
-function updatePendingBadgeCount(count) {
-  const badge = document.getElementById('pendingBadge');
-  if (!badge) return;
-  if (count > 0) { badge.textContent = count; badge.style.display = 'inline-flex'; }
-  else badge.style.display = 'none';
-  const sub = document.getElementById('qaPencairanSub');
-  if (sub) sub.textContent = count > 0 ? `${count} menunggu approval` : 'Tidak ada yang pending';
-}
-
-async function loadRealtimeNotif() {
-  try {
-    const snap = await db.collection('sgt_earn_requests').where('status','==','pending').orderBy('createdAt','desc').limit(5).get();
-    const notifs = snap.docs.map(d => {
-      const data = d.data();
-      return {
-        ico:'fa-paper-plane', bg:'#f0ebff', clr:'#8b5cf6',
-        text:`Pengajuan reward dari ${data.userName||'—'}: ${data.type||''}`,
-        time: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}) : '—',
-        unread: true
-      };
-    });
-    // Gabungkan dengan notif statis
-    const combined = [...notifs, ...NOTIF_DATA].slice(0, 6);
-    renderNotifList(combined);
-    const notifDot = document.getElementById('notifDot');
-    if (notifDot) notifDot.style.display = combined.some(n=>n.unread) ? 'block':'none';
-  } catch(e) { /* gunakan notif statis */ }
-}
-
-function renderNotifList(notifs) {
-  const list = document.getElementById('notifList');
-  if (!list) return;
-  list.innerHTML = notifs.map(n => `<div class="notif-item ${n.unread?'unread':''}">
-    <div class="n-ico" style="background:${n.bg};color:${n.clr}"><i class="fas ${n.ico}"></i></div>
-    <div class="n-body"><p>${n.text}</p><span>${n.time}</span></div>
-  </div>`).join('');
-}
-
-function renderRecentUsers() {
-  // render 5 user terbaru di dashboard (jika ada elemen)
-  const el = document.getElementById('recentUserList');
-  if (!el || !allUsers.length) return;
-  el.innerHTML = allUsers.slice(0,5).map(u => {
-    const c = ROLE_COLORS[u.role] || {bg:'#f1f5f9',txt:'#64748b',lbl:'—'};
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--g100)">
-      <div style="width:32px;height:32px;border-radius:9px;background:${c.bg};color:${c.txt};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">${(u.displayName||'U')[0]}</div>
-      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.displayName||'Unknown'}</div><div style="font-size:10px;color:var(--g400)">${u.email||''}</div></div>
-      <span style="background:${c.bg};color:${c.txt};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">${c.lbl}</span>
-    </div>`;
-  }).join('');
-}
-
-async function loadSgtStats() {
-  try {
-    const sgtSnap = await db.collection('sgt').get();
-    let total = 0;
-    sgtSnap.forEach(d => total += (d.data().balance || 0));
-    const circEl = document.getElementById('sgtCirculating');
-    if (circEl) circEl.textContent = fmtSGT(total) + ' SGT';
-    const issuedEl = document.getElementById('sgtIssued');
-    if (issuedEl) {
-      const txSnap = await db.collection('sgt_transactions').where('type','==','distribute').get();
-      let issued = 0;
-      txSnap.forEach(d => issued += (d.data().amount || 0));
-      issuedEl.textContent = fmtSGT(issued) + ' SGT';
-      const reserveEl = document.getElementById('sgtReserve');
-      if (reserveEl) reserveEl.textContent = fmtSGT(1_000_000_000 - issued) + ' SGT';
-    }
-  } catch(e) {}
 }
 
 async function loadAllUsers() {
   document.getElementById('usersTable').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i></td></tr>';
   try {
     await ensureFreshToken();
-    const snap = await db.collection('users').orderBy('createdAt','desc').get();
+    const snap = await db.collection('users').get();
     allUsers = snap.docs.map(d => ({id:d.id,...d.data()}));
     renderUsersTable(allUsers);
-  } catch(e) {
-    // fallback tanpa orderBy jika index belum ada
-    try {
-      const snap = await db.collection('users').get();
-      allUsers = snap.docs.map(d => ({id:d.id,...d.data()}));
-      renderUsersTable(allUsers);
-    } catch(e2) {
-      showToast('error','Gagal','Gagal memuat data user: ' + e2.message);
-    }
-  }
+  } catch(e) { showToast('error','Gagal','Gagal memuat data user: ' + e.message); }
 }
 
 // ════ USERS TABLE ════
@@ -1282,19 +1159,18 @@ const ROLE_COLORS = {
 
 function renderUsersTable(users) {
   const tbody = document.getElementById('usersTable');
-  setEl('userTableSub', `${users.length} dari ${allUsers.length} user`);
   if (!users.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--g400)"><i class="fas fa-inbox" style="font-size:36px;display:block;margin-bottom:8px;opacity:.3"></i>Belum ada user</td></tr>'; return; }
   tbody.innerHTML = users.map(u => {
     const c = ROLE_COLORS[u.role] || ROLE_COLORS.admin;
     const date = u.createdAt?.toDate?.()?.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) || '—';
     const active = u.isActive !== false;
     return `<tr>
-      <td><div class="u-cell"><div class="u-av-sm" style="background:${c.bg};color:${c.txt}">${(u.displayName||'U')[0]}</div><div class="u-det"><div class="u-nm">${escHtml(u.displayName||'Unknown')}</div><div class="u-em">${escHtml(u.email||'')}</div></div></div></td>
+      <td><div class="u-cell"><div class="u-av-sm" style="background:${c.bg};color:${c.txt}">${(u.displayName||'U')[0]}</div><div class="u-det"><div class="u-nm">${u.displayName||'Unknown'}</div><div class="u-em">${u.email||''}</div></div></div></td>
       <td><span class="chip chip-${u.role}">${c.lbl}</span></td>
       <td><span class="chip ${active?'chip-aktif':'chip-nonaktif'}">${active?'Aktif':'Nonaktif'}</span></td>
       <td style="font-size:11px;color:var(--g500)">${date}</td>
       <td><div class="act-btns">
-        <button class="act-btn v" onclick="viewUser('${u.id}')" title="Buka Portal"><i class="fas fa-external-link-alt"></i></button>
+        <button class="act-btn v" onclick="viewUser('${u.id}')" title="Lihat Portal"><i class="fas fa-eye"></i></button>
         <button class="act-btn ${active?'d':'v'}" onclick="toggleUser('${u.id}','${active}')" title="${active?'Nonaktifkan':'Aktifkan'}"><i class="fas ${active?'fa-ban':'fa-check'}"></i></button>
       </div></td>
     </tr>`;
@@ -1302,41 +1178,18 @@ function renderUsersTable(users) {
 }
 
 function filterUsers() {
-  const q      = document.getElementById('searchUser').value.toLowerCase();
-  const role   = document.getElementById('filterRole').value;
-  const status = document.getElementById('filterStatus').value;
-  const filtered = allUsers.filter(u => {
-    const active = u.isActive !== false;
-    const matchQ      = !q      || (u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q);
-    const matchRole   = !role   || u.role === role;
-    const matchStatus = !status || (status === 'aktif' ? active : !active);
-    return matchQ && matchRole && matchStatus;
-  });
-  setEl('userTableSub', `${filtered.length} dari ${allUsers.length} user`);
+  const q = document.getElementById('searchUser').value.toLowerCase();
+  const role = document.getElementById('filterRole').value;
+  const filtered = allUsers.filter(u =>
+    (!q || (u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)) &&
+    (!role || u.role === role)
+  );
   renderUsersTable(filtered);
 }
 
-function exportUsersCSV() {
-  if (!allUsers.length) { showToast('warn','Tidak Ada Data','Load data user terlebih dahulu'); return; }
-  const headers = ['Nama','Email','Role','Status','Bergabung'];
-  const rows = allUsers.map(u => {
-    const active = u.isActive !== false;
-    const date = u.createdAt?.toDate?.()?.toLocaleDateString('id-ID') || '—';
-    return [u.displayName||'', u.email||'', u.role||'', active?'Aktif':'Nonaktif', date];
-  });
-  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = `users-hidayatulamin-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click(); URL.revokeObjectURL(url);
-  showToast('success','Export Berhasil',`${allUsers.length} user diekspor ke CSV`);
-}
-  const u = allUsers.find(x => x.id === uid);
-  if (u) {
-    const pages = {admin:'dashboard-admin.html',ustadz:'dashboard-ustadz.html',santri:'dashboard-santri.html',wali:'dashboard-wali.html'};
-    if (pages[u.role]) window.open(pages[u.role],'_blank');
-  }
+window.viewUser = role => {
+  const u = allUsers.find(x => x.id === role);
+  if (u) { const pages = {admin:'dashboard-admin.html',ustadz:'dashboard-ustadz.html',santri:'dashboard-santri.html',wali:'dashboard-wali.html'}; if(pages[u.role]) window.open(pages[u.role],'_blank'); }
 };
 
 window.toggleUser = async (uid, isActive) => {
@@ -1599,11 +1452,17 @@ async function doDistribute() {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // ── 4. Refresh tampilan ──
+    // ── 4. Update log localStorage (untuk tampilan log distribusi) ──
+    const issued = parseInt(localStorage.getItem('sgt_issued')||'0');
+    localStorage.setItem('sgt_issued', (issued+amount).toString());
+    const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
+    log.unshift({ target, toName: userData.displayName||target, amount, note, date: new Date().toISOString() });
+    localStorage.setItem('sgt_log', JSON.stringify(log.slice(0,100)));
+
     document.getElementById('distTarget').value='';
     document.getElementById('distAmount').value='';
     document.getElementById('distNote').value='';
-    renderAllocGrid(); renderDistLog(); loadSgtStats();
+    renderAllocGrid(); renderDistLog();
     showToast('success','SGT Terkirim!',`${amount.toLocaleString()} SGT → ${userData.displayName||target}`);
   } catch(e) {
     if (e.code === 'permission-denied') {
@@ -1617,55 +1476,25 @@ async function doDistribute() {
   }
 }
 
-async function renderDistLog() {
+function renderDistLog() {
+  const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
   const tbody = document.getElementById('distLog');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--g400)"><i class="fas fa-spinner fa-spin"></i></td></tr>';
-  try {
-    const snap = await db.collection('sgt_transactions').where('type','==','distribute').orderBy('createdAt','desc').limit(10).get();
-    if (!snap.size) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--g400)">Belum ada distribusi</td></tr>'; return; }
-    tbody.innerHTML = snap.docs.map(d => {
-      const l = d.data();
-      const dateStr = l.createdAt?.toDate ? l.createdAt.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '—';
-      return `<tr>
-        <td><strong>${escHtml(l.toName||l.toEmail||'—')}</strong><br><span style="font-size:11px;color:var(--g500)">${escHtml(l.toEmail||'—')}</span></td>
-        <td><span style="font-weight:700;color:var(--sgtd)">${(l.amount||0).toLocaleString('id-ID')} SGT</span></td>
-        <td style="color:var(--g500)">${escHtml(l.note||'—')}</td>
-        <td style="font-size:11px;color:var(--g400)">${dateStr}</td>
-      </tr>`;
-    }).join('');
-  } catch(e) {
-    // fallback ke localStorage jika Firestore gagal
-    const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
-    if (!log.length) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--g400)">Belum ada distribusi</td></tr>'; return; }
-    tbody.innerHTML = log.slice(0,10).map(l => `<tr>
-      <td><strong>${l.toName||l.target}</strong><br><span style="font-size:11px;color:var(--g500)">${l.target}</span></td>
-      <td><span style="font-weight:700;color:var(--sgtd)">${(l.amount||0).toLocaleString()||0} SGT</span></td>
-      <td style="color:var(--g500)">${l.note}</td>
-      <td style="font-size:11px;color:var(--g400)">${new Date(l.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</td>
-    </tr>`).join('');
-  }
+  if (!log.length) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--g400)">Belum ada distribusi</td></tr>'; return; }
+  tbody.innerHTML = log.slice(0,10).map(l => `<tr>
+    <td><strong>${l.toName||l.target}</strong><br><span style="font-size:11px;color:var(--g500)">${l.target}</span></td>
+    <td><span style="font-weight:700;color:var(--sgtd)">${l.amount?.toLocaleString()||0} SGT</span></td>
+    <td style="color:var(--g500)">${l.note}</td>
+    <td style="font-size:11px;color:var(--g400)">${new Date(l.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</td>
+  </tr>`).join('');
 }
 
-async function loadMartStats() {
-  try {
-    const [txSnap, memberSnap] = await Promise.all([
-      db.collection('sgt_transactions').where('type','==','earn').get(),
-      db.collection('sgt').get()
-    ]);
-    let sgt = 0;
-    txSnap.forEach(d => sgt += (d.data().amount || 0));
-    setEl('martTx',     txSnap.size.toLocaleString());
-    setEl('martSgt',    fmtSGT(sgt) + ' SGT');
-    setEl('martMember', memberSnap.size.toLocaleString());
-  } catch(e) {
-    // fallback localStorage
-    let tx=0,sgt=0; const members=new Set();
-    try { for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith('sgt_transactions_')){const txs=JSON.parse(localStorage.getItem(k)||'[]');tx+=txs.length;txs.forEach(t=>{if(t.type==='earn')sgt+=t.amount||0;if(t.userId)members.add(t.userId);}); }} }catch(e2){}
-    setEl('martTx',    tx.toLocaleString());
-    setEl('martSgt',   fmtSGT(sgt)+' SGT');
-    setEl('martMember', members.size.toLocaleString());
-  }
+function loadMartStats() {
+  let tx=0,sgt=0; const members=new Set();
+  try { for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith('sgt_transactions_')){const txs=JSON.parse(localStorage.getItem(k)||'[]');tx+=txs.length;txs.forEach(t=>{if(t.type==='earn')sgt+=t.amount||0;if(t.userId)members.add(t.userId);}); }} }catch(e){}
+  setEl('martTx',    tx.toLocaleString());
+  setEl('martSgt',   fmtSGT(sgt)+' SGT');
+  setEl('martMember', members.size.toLocaleString());
 }
 
 // ════ NOTIFICATIONS ════
@@ -1677,9 +1506,13 @@ const NOTIF_DATA = [
 ];
 
 function initNotif() {
-  renderNotifList(NOTIF_DATA);
-  const notifDot = document.getElementById('notifDot');
-  if (notifDot) notifDot.style.display = NOTIF_DATA.some(n=>n.unread) ? 'block' : 'none';
+  const list = document.getElementById('notifList');
+  if (!list) return;
+  list.innerHTML = NOTIF_DATA.map(n => `<div class="notif-item ${n.unread?'unread':''}">
+    <div class="n-ico" style="background:${n.bg};color:${n.clr}"><i class="fas ${n.ico}"></i></div>
+    <div class="n-body"><p>${n.text}</p><span>${n.time}</span></div>
+  </div>`).join('');
+  document.getElementById('notifDot').style.display = NOTIF_DATA.some(n=>n.unread) ? 'block' : 'none';
 }
 
 function toggleNotif() {
@@ -1751,7 +1584,15 @@ const WD_IDR_PER_SGT = 100;
 let wdAllData    = [];   // semua withdrawal dari Firestore
 let wdFilter_    = 'all';
 
-// switchSection sudah lengkap di atas — patch duplikat dihapus
+// ── Patch switchSection agar handle 'pencairan' ──
+const _origSwitchSection = switchSection;
+switchSection = function(name, el) {
+  _origSwitchSection(name, el);
+  const titles = {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token',pencairan:'Pencairan SGT',earnreq:'Pengajuan Reward SGT'};
+  setEl('pgTitle', titles[name] || 'Dashboard');
+  if (name === 'pencairan') { loadFonnteConfig(); loadWithdrawals(); }
+  if (name === 'earnreq') { loadEarnRequests(); }
+};
 
 // ── Load dari Firestore koleksi `withdrawals` ──
 async function loadWithdrawals() {
@@ -2042,8 +1883,7 @@ function openWdDetail(wdId) {
 
 function closeWdDetailModal() { document.getElementById('wdDetailModal').classList.remove('open'); }
 function closeWdModal(e) { if(e.target.id==='wdDetailModal') closeWdDetailModal(); }
-// ════ HELPER — escHtml (XSS prevention) ════
-function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ── Fonnte WA Config ──
 function saveFonnteConfig() {
@@ -2302,8 +2142,6 @@ function updateEarnBadge() {
   if (!badge) return;
   if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline-flex'; }
   else badge.style.display = 'none';
-  const sub = document.getElementById('qaEarnSub');
-  if (sub) sub.textContent = pending > 0 ? `${pending} menunggu review` : 'Review reward dari ustadz & wali';
 }
 
 function earnFilter(f) {
@@ -2943,7 +2781,15 @@ async function confirmDeleteWl() {
   }
 }
 
-// Whitelist load sudah dihandle di switchSection utama
+// ── Hook ke switchSection ───────────────────────────────────────
+// Patch switchSection agar load whitelist saat section dibuka
+const _origSwitch = typeof switchSection === 'function' ? switchSection : null;
+if (_origSwitch) {
+  window.switchSection = function(name, el) {
+    _origSwitch(name, el);
+    if (name === 'whitelist' && wlAllData.length === 0) loadWhitelist();
+  };
+}
 
 // ════ END PI WHITELIST ════
 
