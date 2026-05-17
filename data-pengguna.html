@@ -177,23 +177,42 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 .empty-state i{font-size:48px;display:block;margin-bottom:12px;opacity:.3}
 .empty-state p{font-size:13px}
 
+/* ── BACK BUTTON ── */
+.back-btn{width:36px;height:36px;border:1.5px solid var(--g200);background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;color:var(--g500);text-decoration:none;transition:var(--tr);flex-shrink:0;box-shadow:var(--sh-sm)}
+.back-btn:hover{background:var(--pl);color:var(--p);border-color:var(--p)}
+
 /* RESPONSIVE */
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.on{transform:translateX(0)}
   .main{margin-left:0!important}
   .menu-btn{display:flex!important}
-  .stats-row{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:1fr 1fr}
   .field-row{grid-template-columns:1fr}
-  .search-box input{width:150px}
+  .search-box input{width:120px}
   .tab-btn{font-size:12px;padding:8px 10px}
+  .topbar{padding:8px 14px;flex-wrap:wrap;gap:8px}
+  .tb-l{flex:1;min-width:0}
+  .tb-r{flex-wrap:wrap;gap:6px}
+  .tb-r .btn-p{font-size:12px;padding:7px 10px}
+  .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
 }
 @media(min-width:769px){
   .sidebar{transform:translateX(0)!important}
   .sidebar.off{transform:translateX(0)!important}
 }
 @media(max-width:480px){
-  .content{padding:12px}
+  .content{padding:10px}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .pg-ttl h2{font-size:15px}
+  .tab-btn span{font-size:11px}
+  .search-box{width:100%}
+  .search-box input{width:100%}
+}
+@media(max-width:400px){
+  .stats-row{grid-template-columns:1fr}
+  .content{padding:8px}
+  .tab-bar{flex-wrap:wrap}
 }
 </style>
 </head>
@@ -240,7 +259,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
   <header class="topbar">
     <div class="tb-l">
       <button class="menu-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
-      <a href="dashboard-admin.html" title="Kembali ke Dashboard" style="width:36px;height:36px;border:none;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:all .2s;text-decoration:none;flex-shrink:0" onmouseover="this.style.background='var(--pl)';this.style.color='var(--p)'" onmouseout="this.style.background='#fff';this.style.color='var(--g500)'"><i class="fas fa-arrow-left"></i></a>
+      <a href="dashboard-admin.html" class="back-btn" title="Kembali ke Dashboard"><i class="fas fa-arrow-left"></i></a>
       <div class="pg-ttl"><h2>Data Pengguna</h2><p id="pgDate">Memuat...</p></div>
     </div>
     <div class="tb-r">

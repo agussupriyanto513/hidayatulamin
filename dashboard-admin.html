@@ -346,10 +346,12 @@ tr:hover td{background:var(--g50)}
   .field-row{grid-template-columns:1fr}
   .sgt-stats{grid-template-columns:1fr 1fr}
   .alloc-grid{grid-template-columns:1fr}
+  .topbar{padding:8px 14px;flex-wrap:wrap}
+  .tb-right{flex-wrap:wrap;gap:4px}
 }
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr}
-  .content{padding:12px}
+  .content{padding:10px}
   .field-row{grid-template-columns:1fr}
   .alloc-grid{grid-template-columns:1fr}
   .sgt-stats{grid-template-columns:1fr 1fr}
@@ -360,8 +362,16 @@ tr:hover td{background:var(--g50)}
   .search-box{width:100%}
   .search-box input{width:100%}
   .wd-stats{grid-template-columns:1fr 1fr}
-  .modal{margin:8px}
+  .modal{margin:8px;max-width:calc(100% - 16px)!important}
   .notif-panel{width:90vw;right:-10px}
+}
+@media(max-width:400px){
+  .stats-row{grid-template-columns:1fr}
+  .content{padding:8px}
+  .pg-title h2{font-size:15px}
+  .welcome-txt h3{font-size:16px}
+  .wd-num{font-size:28px}
+  .qa-row{grid-template-columns:1fr}
 }
 /* ═══ PI DONATIONS PANEL ═══ */
 .pi-prog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}

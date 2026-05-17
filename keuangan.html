@@ -189,18 +189,40 @@ tr:hover td{background:var(--g50)}
 .prog-fill.warn{background:linear-gradient(90deg,var(--w),#b45309)}
 .prog-fill.danger{background:linear-gradient(90deg,var(--r),#b91c1c)}
 
+/* ── BACK BUTTON ── */
+.back-btn{width:36px;height:36px;border:1.5px solid var(--g200);background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;color:var(--g500);text-decoration:none;transition:var(--tr);flex-shrink:0;box-shadow:var(--sh-sm)}
+.back-btn:hover{background:var(--pl);color:var(--p);border-color:var(--p)}
+
+/* ── RESPONSIVE ── */
 @media(max-width:900px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
   .main{margin-left:0}
-  .menu-btn{display:flex}
+  .menu-btn{display:flex!important}
   .stats-row{grid-template-columns:1fr 1fr}
   .two-col{grid-template-columns:1fr}
   .fh-grid{grid-template-columns:1fr}
 }
+@media(max-width:768px){
+  .topbar{padding:8px 14px;flex-wrap:wrap;gap:8px}
+  .tb-l{flex:1;min-width:0}
+  .tb-r{flex-wrap:wrap;gap:6px}
+  .tb-r .btn-p{font-size:12px;padding:7px 12px}
+  .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
+  .field-row{grid-template-columns:1fr}
+}
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr}
-  .content{padding:12px}
+  .content{padding:10px}
+  .pg-ttl h2{font-size:15px}
+  .pg-ttl p{font-size:10px}
+  .finance-hero{padding:16px}
+}
+@media(max-width:400px){
+  .stats-row{grid-template-columns:1fr}
+  .topbar{padding:8px 10px}
+  .content{padding:8px}
+  .btn-p,.btn-sec{font-size:12px;padding:7px 10px}
   .field-row{grid-template-columns:1fr}
 }
 </style>
@@ -242,6 +264,7 @@ tr:hover td{background:var(--g50)}
   <header class="topbar">
     <div class="tb-l">
       <button class="menu-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <a href="dashboard-admin.html" class="back-btn" title="Kembali ke Dashboard"><i class="fas fa-arrow-left"></i></a>
       <div class="pg-ttl"><h2>Manajemen Keuangan</h2><p id="pgDate">Memuat...</p></div>
     </div>
     <div class="tb-r">

@@ -218,6 +218,10 @@ select.form-control{cursor:pointer}
 .toast.warning{background:#78350f;color:#fcd34d;border-left:3px solid var(--w)}
 .toast.info{background:#1e3a5f;color:#93c5fd;border-left:3px solid var(--b)}
 
+/* ── BACK BUTTON ── */
+.back-btn{width:36px;height:36px;border:1.5px solid var(--g200);background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;color:var(--g500);text-decoration:none;transition:var(--tr);flex-shrink:0;box-shadow:var(--sh-sm)}
+.back-btn:hover{background:var(--pl);color:var(--p);border-color:var(--p)}
+
 /* RESPONSIVE */
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%)}
@@ -226,11 +230,24 @@ select.form-control{cursor:pointer}
   .menu-btn{display:flex!important}
   .stats-row{grid-template-columns:repeat(2,1fr)}
   .form-grid{grid-template-columns:1fr}
+  .topbar{padding:8px 14px;flex-wrap:wrap;gap:8px}
+  .tb-l{flex:1;min-width:0}
+  .tb-r{flex-wrap:wrap;gap:6px}
+  .tb-r .btn-p{font-size:12px;padding:7px 10px}
+  .modal{margin:0 8px;max-width:calc(100% - 16px)!important;max-height:95vh}
 }
 @media(max-width:480px){
   .stats-row{grid-template-columns:1fr 1fr}
+  .content{padding:10px}
   .filter-bar{flex-direction:column;align-items:stretch}
   .filter-bar select,.filter-bar input,.search-box,.search-box input{width:100%}
+  .pg-ttl h2{font-size:15px}
+  .pg-ttl p{display:none}
+}
+@media(max-width:400px){
+  .stats-row{grid-template-columns:1fr}
+  .content{padding:8px}
+  .btn-p{font-size:12px;padding:7px 10px}
 }
 </style>
 </head>
@@ -279,6 +296,7 @@ select.form-control{cursor:pointer}
   <div class="topbar">
     <div class="tb-l">
       <button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <a href="dashboard-admin.html" class="back-btn" title="Kembali ke Dashboard"><i class="fas fa-arrow-left"></i></a>
       <div class="pg-ttl">
         <h2>Perizinan Santri</h2>
         <p>Manajemen izin keluar & kepulangan santri</p>

@@ -171,6 +171,10 @@ tr:hover td{background:var(--g50)}
 .kelas-tab:hover{border-color:var(--acc);color:var(--acc)}
 .kelas-tab.active{background:var(--acc);color:#fff;border-color:var(--acc)}
 
+/* ── BACK BUTTON ── */
+.back-btn{width:36px;height:36px;border:1.5px solid var(--g200);background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;color:var(--g500);text-decoration:none;transition:var(--tr);flex-shrink:0;box-shadow:var(--sh-sm)}
+.back-btn:hover{background:var(--pl);color:var(--p);border-color:var(--p)}
+
 /* RESPONSIVE */
 @media(max-width:900px){.two-col{grid-template-columns:1fr}}
 @media(max-width:768px){
@@ -180,8 +184,24 @@ tr:hover td{background:var(--g50)}
   .menu-btn{display:flex!important}
   .stats-row{grid-template-columns:1fr 1fr}
   .haf-grid{grid-template-columns:repeat(3,1fr)}
+  .topbar{padding:8px 14px;flex-wrap:wrap;gap:8px}
+  .tb-l{flex:1;min-width:0}
+  .tb-r{flex-wrap:wrap;gap:6px}
+  .tb-r .btn-p{font-size:12px;padding:7px 10px}
+  .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
 }
-@media(max-width:480px){.content{padding:12px}.stats-row{grid-template-columns:1fr}}
+@media(max-width:480px){
+  .content{padding:10px}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .pg-ttl h2{font-size:15px}
+  .tab-btn{font-size:12px;padding:8px 10px}
+  .tab-btn span{display:none}
+}
+@media(max-width:400px){
+  .stats-row{grid-template-columns:1fr}
+  .content{padding:8px}
+  .haf-grid{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
@@ -223,6 +243,7 @@ tr:hover td{background:var(--g50)}
   <header class="topbar">
     <div class="tb-l">
       <button class="menu-btn" onclick="toggleSb()"><i class="fas fa-bars"></i></button>
+      <a href="dashboard-admin.html" class="back-btn" title="Kembali ke Dashboard"><i class="fas fa-arrow-left"></i></a>
       <div class="pg-ttl"><h2>Akademik & Hafalan</h2><p id="pgDate">Memuat...</p></div>
     </div>
     <div class="tb-r">
