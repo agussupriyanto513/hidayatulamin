@@ -277,7 +277,7 @@ select.form-control{cursor:pointer}
     <span class="sb-lbl">Keuangan</span>
     <a class="ni" href="keuangan.html"><i class="fas fa-wallet"></i> Keuangan</a>
     <a class="ni" href="transparansi.html"><i class="fas fa-chart-bar"></i> Transparansi</a>
-    <a class="ni" href="donasi.html"><i class="fas fa-hand-holding-heart"></i> Donasi</a>
+    <a class="ni" href="pi-donasi.html"><i class="fas fa-hand-holding-heart"></i> Donasi</a>
   </nav>
   <div class="sb-foot">
     <div class="u-tile" onclick="doLogout()">
@@ -522,30 +522,43 @@ select.form-control{cursor:pointer}
 </div>
 
 <script>
-// db dan auth sudah tersedia via auth.js — tidak perlu dideklarasikan ulang
+// ── CONFIG (sama dengan file lain) ──
+const FIREBASE_CONFIG = window.__firebaseConfig || null;
 
-let currentUser, currentRole;
+let db, auth, currentUser, currentRole;
 let allData = [], filtered = [], activities = [];
 let currentPage = 1, perPage = 15;
 let editId = null, activeTab = 'semua';
 
 // ── INIT ──
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Auth guard via auth.js
+  if (window.initApp) {
+    await window.initApp(['admin', 'ustadz']);
+  } else {
+    // Fallback: ambil dari sessionStorage
+    const raw = sessionStorage.getItem('currentUser');
+    if (!raw) { window.location.href = 'login.html'; return; }
+    const sess = JSON.parse(raw);
+    currentRole = sess.role;
+  }
+
+  // Firestore
+  if (firebase.apps.length) {
+    db = firebase.firestore();
+    auth = firebase.auth();
+    auth.onAuthStateChanged(u => {
+      if (u) {
+        currentUser = u;
+        loadUserInfo(u.uid);
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+  }
+
   initKamarOptions();
   setDefaultDates();
-
-  auth.onAuthStateChanged(async u => {
-    if (!u) { window.location.href = 'login.html'; return; }
-    currentUser = u;
-    const doc = await db.collection('users').doc(u.uid).get().catch(() => null);
-    if (!doc?.exists || !['admin','ustadz'].includes(doc.data().role)) {
-      auth.signOut();
-      window.location.href = 'login.html';
-      return;
-    }
-    currentRole = doc.data().role;
-    loadUserInfo(u.uid);
-  });
 });
 
 function setDefaultDates() {
@@ -984,8 +997,9 @@ function hideLoader() { document.getElementById('overlay').classList.remove('sho
 // ── LOGOUT ──
 async function doLogout() {
   if (!confirm('Keluar dari sistem?')) return;
-  await auth.signOut().catch(()=>{});
+  if (auth) await auth.signOut().catch(()=>{});
   sessionStorage.clear();
+  localStorage.removeItem('currentUser');
   window.location.href = 'login.html';
 }
 </script>
