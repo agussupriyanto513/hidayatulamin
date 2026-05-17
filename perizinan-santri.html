@@ -522,43 +522,30 @@ select.form-control{cursor:pointer}
 </div>
 
 <script>
-// ── CONFIG (sama dengan file lain) ──
-const FIREBASE_CONFIG = window.__firebaseConfig || null;
+// db dan auth sudah tersedia via auth.js — tidak perlu dideklarasikan ulang
 
-let db, auth, currentUser, currentRole;
+let currentUser, currentRole;
 let allData = [], filtered = [], activities = [];
 let currentPage = 1, perPage = 15;
 let editId = null, activeTab = 'semua';
 
 // ── INIT ──
-document.addEventListener('DOMContentLoaded', async () => {
-  // Auth guard via auth.js
-  if (window.initApp) {
-    await window.initApp(['admin', 'ustadz']);
-  } else {
-    // Fallback: ambil dari sessionStorage
-    const raw = sessionStorage.getItem('currentUser');
-    if (!raw) { window.location.href = 'login.html'; return; }
-    const sess = JSON.parse(raw);
-    currentRole = sess.role;
-  }
-
-  // Firestore
-  if (firebase.apps.length) {
-    db = firebase.firestore();
-    auth = firebase.auth();
-    auth.onAuthStateChanged(u => {
-      if (u) {
-        currentUser = u;
-        loadUserInfo(u.uid);
-      } else {
-        window.location.href = 'login.html';
-      }
-    });
-  }
-
+document.addEventListener('DOMContentLoaded', () => {
   initKamarOptions();
   setDefaultDates();
+
+  auth.onAuthStateChanged(async u => {
+    if (!u) { window.location.href = 'login.html'; return; }
+    currentUser = u;
+    const doc = await db.collection('users').doc(u.uid).get().catch(() => null);
+    if (!doc?.exists || !['admin','ustadz'].includes(doc.data().role)) {
+      auth.signOut();
+      window.location.href = 'login.html';
+      return;
+    }
+    currentRole = doc.data().role;
+    loadUserInfo(u.uid);
+  });
 });
 
 function setDefaultDates() {
@@ -997,9 +984,8 @@ function hideLoader() { document.getElementById('overlay').classList.remove('sho
 // ── LOGOUT ──
 async function doLogout() {
   if (!confirm('Keluar dari sistem?')) return;
-  if (auth) await auth.signOut().catch(()=>{});
+  await auth.signOut().catch(()=>{});
   sessionStorage.clear();
-  localStorage.removeItem('currentUser');
   window.location.href = 'login.html';
 }
 </script>
