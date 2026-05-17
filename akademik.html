@@ -194,13 +194,13 @@ tr:hover td{background:var(--g50)}
   .content{padding:10px}
   .stats-row{grid-template-columns:1fr 1fr}
   .pg-ttl h2{font-size:15px}
-  .tab-btn{font-size:12px;padding:8px 10px}
-  .tab-btn span{display:none}
+  .tab-btn{font-size:12px;padding:8px 8px}
 }
 @media(max-width:400px){
   .stats-row{grid-template-columns:1fr}
   .content{padding:8px}
   .haf-grid{grid-template-columns:1fr 1fr}
+  .btn-p{font-size:12px;padding:7px 10px}
 }
 </style>
 </head>
@@ -380,7 +380,7 @@ tr:hover td{background:var(--g50)}
 
 <script>
 // Firebase auth & db sudah tersedia via auth.js
-db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+// enablePersistence sudah dipanggil di auth.js — tidak perlu dipanggil lagi di sini
 
 let allNilai=[], allHafalan=[], allSantri=[];
 let chartNilaiInst=null, chartHafalanInst=null;

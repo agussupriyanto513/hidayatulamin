@@ -175,7 +175,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
   .schedule-grid{grid-template-columns:repeat(2,1fr)}
   .topbar{padding:8px 14px;flex-wrap:wrap;gap:8px}
   .tb-l{flex:1;min-width:0}
-  .tb-r,.topbar>div:last-child{flex-wrap:wrap;gap:6px}
+  .topbar>div:last-child{flex-wrap:wrap;gap:6px}
   .topbar .btn-p{font-size:12px;padding:7px 10px}
   .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
 }
@@ -183,11 +183,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
   .content{padding:10px}
   .schedule-grid{grid-template-columns:1fr}
   .pg-ttl h2{font-size:15px}
-  .topbar .btn-p span, .topbar .btn-p:last-child span{display:none}
 }
 @media(max-width:400px){
   .content{padding:8px}
-  .topbar{flex-wrap:wrap}
 }
 </style>
 </head>
@@ -354,7 +352,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 
 <script>
 // Firebase auth & db sudah tersedia via auth.js
-db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+// enablePersistence sudah dipanggil di auth.js — tidak perlu dipanggil lagi di sini
 
 const HARI = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const TODAY_IDX = [0,1,2,3,4,5][(new Date().getDay()+6)%7] ?? -1;
