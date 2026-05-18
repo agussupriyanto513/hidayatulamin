@@ -530,7 +530,6 @@ let emailShown    = false;
 let _redirecting  = false;
 
 // Bersihkan Pi session lama saat halaman login dibuka
-// JANGAN hapus currentUser — biarkan Firebase Auth yang manage sendiri
 localStorage.removeItem('piUser');
 sessionStorage.removeItem('currentUser');
 
@@ -568,7 +567,7 @@ function initPiSdk() {
 }
 
 // ═══════════════════════════════════════════════
-// PI LOGIN
+// PI LOGIN — FIXED: try-catch per query + fallback aman
 // ═══════════════════════════════════════════════
 async function doPiLogin() {
   if (!inPiBrowser) {
@@ -601,32 +600,72 @@ async function doPiLogin() {
 
     showLoader('Mencari data akun...', '@' + piUser);
 
-    // Cari user di Firestore
     let userDoc = null, userRef = null;
 
-    const snap1 = await _db.collection('users').doc(piUid).get();
-    if (snap1.exists) {
-      userDoc = snap1.data(); userRef = _db.collection('users').doc(piUid);
-    } else {
-      const snap2 = await _db.collection('users').where('piUid', '==', piUid).limit(1).get();
-      if (!snap2.empty) { userDoc = snap2.docs[0].data(); userRef = snap2.docs[0].ref; }
-      else {
+    // ✅ FIX 1: Selalu coba doc(piUid) dulu — ini paling aman & tidak butuh query
+    try {
+      const snap1 = await _db.collection('users').doc(piUid).get();
+      if (snap1.exists) {
+        userDoc = snap1.data();
+        userRef = _db.collection('users').doc(piUid);
+        console.log('✅ User ditemukan via doc ID');
+      }
+    } catch(e) {
+      console.warn('⚠️ Gagal baca doc(piUid):', e.code, e.message);
+    }
+
+    // ✅ FIX 2: Fallback query where('piUid') — wrapped try-catch agar tidak crash
+    if (!userDoc) {
+      try {
+        const snap2 = await _db.collection('users').where('piUid', '==', piUid).limit(1).get();
+        if (!snap2.empty) {
+          userDoc = snap2.docs[0].data();
+          userRef = snap2.docs[0].ref;
+          console.log('✅ User ditemukan via piUid query');
+        }
+      } catch(e) {
+        // Kemungkinan permission denied karena rules belum diupdate
+        // Tidak crash, lanjut ke fallback berikutnya
+        console.warn('⚠️ Query piUid gagal (permission/index):', e.code, e.message);
+      }
+    }
+
+    // ✅ FIX 3: Fallback query where('piUsername') — wrapped try-catch
+    if (!userDoc) {
+      try {
         const snap3 = await _db.collection('users').where('piUsername', '==', piUser).limit(1).get();
-        if (!snap3.empty) { userDoc = snap3.docs[0].data(); userRef = snap3.docs[0].ref; }
+        if (!snap3.empty) {
+          userDoc = snap3.docs[0].data();
+          userRef = snap3.docs[0].ref;
+          console.log('✅ User ditemukan via piUsername query');
+        }
+      } catch(e) {
+        console.warn('⚠️ Query piUsername gagal (permission/index):', e.code, e.message);
       }
     }
 
     if (userDoc) {
+      // Akun sudah ada
       if (userDoc.isActive === false) {
-        hideLoader(); setLoading('piBtn', 'piBtnText', false);
+        hideLoader();
+        setLoading('piBtn', 'piBtnText', false);
         showAlert('error', 'Akun Anda telah dinonaktifkan. Hubungi administrator.');
         return;
       }
-      await userRef.update({
-        piUid, piUsername: piUser,
-        wallet_address: user.wallet_address || userDoc.wallet_address || null,
-        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-      }).catch(() => {});
+
+      // ✅ FIX 4: update() dibungkus try-catch agar jika gagal tidak block login
+      try {
+        await userRef.update({
+          piUid,
+          piUsername: piUser,
+          wallet_address: user.wallet_address || userDoc.wallet_address || null,
+          lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      } catch(e) {
+        // Update gagal (mungkin rules update belum diizinkan) — tapi login tetap lanjut
+        console.warn('⚠️ Update lastLogin gagal:', e.code, e.message);
+      }
+
       const role = userDoc.role || 'santri';
       saveSession(piUid, piUser, role);
       if (!_redirecting) {
@@ -634,19 +673,38 @@ async function doPiLogin() {
         showLoader('Selamat datang! Mengalihkan...', '@' + piUser + ' · ' + role);
         setTimeout(() => redirectByRole(role), 1200);
       }
+
     } else {
+      // ✅ FIX 5: Buat akun baru — pakai piUid sebagai doc ID (paling aman)
       showLoader('Membuat akun baru...');
       const newData = {
-        uid: piUid, piUid, piUsername: piUser,
-        username: piUser, displayName: piUser, nama: piUser,
+        uid: piUid,
+        piUid,
+        piUsername: piUser,
+        username: piUser,
+        displayName: piUser,
+        nama: piUser,
         email: piUser + '@pi.hidayatulamin.id',
         wallet_address: user.wallet_address || null,
-        role: 'santri', isActive: true,
-        loginMethod: 'pi', profileComplete: false,
+        role: 'santri',
+        isActive: true,
+        loginMethod: 'pi',
+        profileComplete: false,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
       };
-      await _db.collection('users').doc(piUid).set(newData);
+
+      try {
+        await _db.collection('users').doc(piUid).set(newData);
+      } catch(e) {
+        hideLoader();
+        setLoading('piBtn', 'piBtnText', false);
+        console.error('❌ Gagal buat akun baru:', e.code, e.message);
+        showAlert('error', 'Gagal membuat akun: ' + (e.message || 'Permission denied. Hubungi administrator.'));
+        _redirecting = false;
+        return;
+      }
+
       saveSession(piUid, piUser, 'santri');
       if (!_redirecting) {
         _redirecting = true;
@@ -654,10 +712,11 @@ async function doPiLogin() {
         setTimeout(() => redirectByRole('santri'), 1400);
       }
     }
+
   } catch(err) {
     hideLoader();
     setLoading('piBtn', 'piBtnText', false);
-    console.error('Pi login error:', err);
+    console.error('❌ Pi login error:', err);
     const msg = err.message || 'Gagal login dengan Pi Network.';
     showAlert('error', msg.includes('cancelled') ? 'Login dibatalkan.' : msg);
     _redirecting = false;
@@ -771,7 +830,6 @@ function showAlert(type, html) {
   const txt = document.getElementById('alertMsg');
   box.className = `alert ${type} show`;
   txt.innerHTML = html;
-  // Update icon
   const icon = box.querySelector('.alert-icon');
   const icons = { error: 'fa-exclamation-circle', success: 'fa-check-circle', info: 'fa-info-circle', warning: 'fa-triangle-exclamation' };
   if (icon) icon.className = `alert-icon fas ${icons[type] || 'fa-info-circle'}`;
