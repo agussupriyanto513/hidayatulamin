@@ -567,7 +567,7 @@ function initPiSdk() {
 }
 
 // ═══════════════════════════════════════════════
-// PI LOGIN — FIXED: try-catch per query + fallback aman
+// PI LOGIN — FIXED v2: role dari pi_whitelist + piUsername lookup
 // ═══════════════════════════════════════════════
 async function doPiLogin() {
   if (!inPiBrowser) {
@@ -595,57 +595,89 @@ async function doPiLogin() {
     );
 
     const { user } = authResult;
-    const piUid    = user.uid;
-    const piUser   = user.username;
+    const piUid  = user.uid;
+    const piUser = user.username.toLowerCase().trim();
 
     showLoader('Mencari data akun...', '@' + piUser);
 
     let userDoc = null, userRef = null;
 
-    // ✅ FIX 1: Selalu coba doc(piUid) dulu — ini paling aman & tidak butuh query
+    // ── LANGKAH 1: Cari by doc(piUid) ──
+    // Berlaku untuk user yang sudah pernah login sebelumnya
+    // (piUid sudah tersimpan sebagai doc ID)
     try {
       const snap1 = await _db.collection('users').doc(piUid).get();
       if (snap1.exists) {
         userDoc = snap1.data();
         userRef = _db.collection('users').doc(piUid);
-        console.log('✅ User ditemukan via doc ID');
+        console.log('✅ User ditemukan via doc(piUid)');
       }
     } catch(e) {
-      console.warn('⚠️ Gagal baca doc(piUid):', e.code, e.message);
+      console.warn('⚠️ Gagal baca doc(piUid):', e.code);
     }
 
-    // ✅ FIX 2: Fallback query where('piUid') — wrapped try-catch agar tidak crash
+    // ── LANGKAH 2: Cari by field piUid ──
+    // Berlaku jika doc ID bukan piUid tapi field piUid sudah diisi
     if (!userDoc) {
       try {
         const snap2 = await _db.collection('users').where('piUid', '==', piUid).limit(1).get();
         if (!snap2.empty) {
           userDoc = snap2.docs[0].data();
           userRef = snap2.docs[0].ref;
-          console.log('✅ User ditemukan via piUid query');
+          console.log('✅ User ditemukan via where(piUid)');
         }
       } catch(e) {
-        // Kemungkinan permission denied karena rules belum diupdate
-        // Tidak crash, lanjut ke fallback berikutnya
-        console.warn('⚠️ Query piUid gagal (permission/index):', e.code, e.message);
+        console.warn('⚠️ Query piUid gagal:', e.code);
       }
     }
 
-    // ✅ FIX 3: Fallback query where('piUsername') — wrapped try-catch
+    // ── LANGKAH 3: Cari by piUsername ──
+    // PENTING: ini jalur utama untuk admin/ustadz yang didaftarkan lewat dashboard
+    // karena doc ID mereka = Firebase UID, bukan piUid
     if (!userDoc) {
       try {
         const snap3 = await _db.collection('users').where('piUsername', '==', piUser).limit(1).get();
         if (!snap3.empty) {
           userDoc = snap3.docs[0].data();
           userRef = snap3.docs[0].ref;
-          console.log('✅ User ditemukan via piUsername query');
+          console.log('✅ User ditemukan via where(piUsername)');
         }
       } catch(e) {
-        console.warn('⚠️ Query piUsername gagal (permission/index):', e.code, e.message);
+        console.warn('⚠️ Query piUsername gagal:', e.code);
       }
     }
 
+    // ── LANGKAH 4: Cek pi_whitelist ──
+    // Ambil role resmi dari whitelist (lebih dipercaya dari userDoc.role)
+    // Doc ID whitelist = piUsername
+    let whitelistRole = null;
+    let isBlocked     = false;
+    try {
+      const wlSnap = await _db.collection('pi_whitelist').doc(piUser).get();
+      if (wlSnap.exists) {
+        const wlData = wlSnap.data();
+        isBlocked    = wlData.isBlocked === true;
+        const roles  = wlData.allowedRoles || [];
+        // Ambil role tertinggi: admin > ustadz > santri
+        if (roles.includes('admin'))  whitelistRole = 'admin';
+        else if (roles.includes('ustadz')) whitelistRole = 'ustadz';
+        else if (roles.length > 0)    whitelistRole = roles[0];
+        console.log('✅ Whitelist ditemukan, role:', whitelistRole, 'blocked:', isBlocked);
+      }
+    } catch(e) {
+      console.warn('⚠️ Gagal baca pi_whitelist:', e.code);
+    }
+
+    // Blokir jika ada di whitelist tapi isBlocked = true
+    if (isBlocked) {
+      hideLoader();
+      setLoading('piBtn', 'piBtnText', false);
+      showAlert('error', 'Akun Pi Anda diblokir. Hubungi administrator.');
+      return;
+    }
+
     if (userDoc) {
-      // Akun sudah ada
+      // ── User sudah terdaftar ──
       if (userDoc.isActive === false) {
         hideLoader();
         setLoading('piBtn', 'piBtnText', false);
@@ -653,20 +685,30 @@ async function doPiLogin() {
         return;
       }
 
-      // ✅ FIX 4: update() dibungkus try-catch agar jika gagal tidak block login
-      try {
-        await userRef.update({
-          piUid,
-          piUsername: piUser,
-          wallet_address: user.wallet_address || userDoc.wallet_address || null,
-          lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-        });
-      } catch(e) {
-        // Update gagal (mungkin rules update belum diizinkan) — tapi login tetap lanjut
-        console.warn('⚠️ Update lastLogin gagal:', e.code, e.message);
+      // Tentukan role final:
+      // Prioritaskan whitelist (lebih terpercaya) jika ada,
+      // fallback ke userDoc.role
+      const role = whitelistRole || userDoc.role || 'santri';
+
+      // Update doc: simpan piUid, sinkron role dari whitelist jika berubah
+      const updatePayload = {
+        piUid,
+        piUsername: piUser,
+        wallet_address: user.wallet_address || userDoc.wallet_address || null,
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      // Sinkron role jika whitelist bilang beda (misal admin set role di dashboard)
+      if (whitelistRole && whitelistRole !== userDoc.role) {
+        updatePayload.role = whitelistRole;
+        console.log(`🔄 Role disinkron: ${userDoc.role} → ${whitelistRole}`);
       }
 
-      const role = userDoc.role || 'santri';
+      try {
+        await userRef.update(updatePayload);
+      } catch(e) {
+        console.warn('⚠️ Update user gagal:', e.code);
+      }
+
       saveSession(piUid, piUser, role);
       if (!_redirecting) {
         _redirecting = true;
@@ -675,7 +717,22 @@ async function doPiLogin() {
       }
 
     } else {
-      // ✅ FIX 5: Buat akun baru — pakai piUid sebagai doc ID (paling aman)
+      // ── User belum terdaftar sama sekali ──
+
+      // Jika ada di whitelist tapi belum punya akun
+      // (admin daftarkan username saja, belum bikin akun Firebase)
+      // → TOLAK, minta admin lengkapi dulu
+      if (whitelistRole && (whitelistRole === 'admin' || whitelistRole === 'ustadz')) {
+        hideLoader();
+        setLoading('piBtn', 'piBtnText', false);
+        showAlert('warning',
+          `Username <strong>@${piUser}</strong> terdaftar sebagai <strong>${whitelistRole}</strong> ` +
+          `tapi akun belum dibuat lengkap. Hubungi administrator untuk menyelesaikan pendaftaran.`
+        );
+        return;
+      }
+
+      // Buat akun santri baru (user umum, bukan privileged)
       showLoader('Membuat akun baru...');
       const newData = {
         uid: piUid,
