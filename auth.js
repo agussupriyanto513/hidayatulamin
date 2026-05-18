@@ -1,7 +1,8 @@
 // ==========================================
-// HIDAYATULAMIN - AUTHENTICATION MODULE v4.0
+// HIDAYATULAMIN - AUTHENTICATION MODULE v4.1
 // Firebase Config + Role-based Auth + Pi Network
-// v4.0: Centralized auth guard — satu pola untuk semua dashboard
+// v4.1: Fix Pi login di dashboard — anonymous sign-in agar
+//       auth.currentUser tidak null & Firestore rules terpenuhi
 // ==========================================
 
 const firebaseConfig = {
@@ -50,42 +51,42 @@ window.HA = {
   requireAuth(allowedRoles, onSuccess) {
     const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
-    // Tunggu Firebase Auth selesai restore session dari IndexedDB
-    // unsubscribe setelah pertama kali dipanggil agar tidak loop
     let resolved = false;
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (resolved) return;
 
       if (user) {
-        // Ada Firebase user — verifikasi role via Firestore
+        // ── Ada Firebase user (email login ATAU anonymous dari Pi flow) ──
         try {
-          const snap = await db.collection('users').doc(user.uid).get();
+          // Untuk anonymous user hasil Pi flow, uid aslinya adalah piUid
+          // yang sudah kita simpan di _getPiSession().uid
+          const piSess   = _getPiSession();
+          const lookupUid = (user.isAnonymous && piSess?.uid) ? piSess.uid : user.uid;
+
+          const snap = await db.collection('users').doc(lookupUid).get();
           const data = snap.exists ? snap.data() : null;
           const role = data?.role;
 
-          if (roles.includes(role) || roles.includes('admin') && role === 'admin') {
+          if (data && roles.includes(role)) {
             resolved = true;
             unsub();
-            // Simpan session ringkas agar Pi flow juga bisa pakai
-            _saveSession(user.uid, role, data);
-            if (typeof onSuccess === 'function') onSuccess(user, data);
+            _saveSession(lookupUid, role, data);
+            // Kembalikan uid asli Pi (bukan anonymous UID) ke callback
+            if (typeof onSuccess === 'function') onSuccess({ uid: lookupUid, isAnonymous: user.isAnonymous }, data);
           } else {
-            // Role salah — arahkan ke dashboard yang benar
+            // Role tidak cocok → arahkan ke dashboard yang sesuai
             resolved = true;
             unsub();
-            const dest = ROLE_DASHBOARD[role] || 'login.html';
-            window.location.href = dest;
+            window.location.href = ROLE_DASHBOARD[role] || 'login.html';
           }
         } catch (e) {
-          // Firestore gagal (permission / network) — percayai Firebase Auth saja
           console.warn('HA.requireAuth Firestore error:', e.code, e.message);
           const sess = _getSession();
           if (sess && roles.includes(sess.role)) {
             resolved = true;
             unsub();
-            if (typeof onSuccess === 'function') onSuccess(user, sess);
+            if (typeof onSuccess === 'function') onSuccess({ uid: sess.uid }, sess);
           } else {
-            // Tidak bisa verifikasi role → redirect ke login
             resolved = true;
             unsub();
             window.location.href = 'login.html';
@@ -94,22 +95,47 @@ window.HA = {
         return;
       }
 
-      // user null — mungkin Firebase Auth masih restore dari IndexedDB
-      // Tunggu maksimal 2.5 detik sebelum benar-benar redirect
+      // ── user null — tunggu dulu, mungkin Firebase Auth masih restore ──
       await new Promise(r => setTimeout(r, 2500));
+      if (auth.currentUser) return; // sudah restore, biarkan callback fire lagi
 
-      if (auth.currentUser) return; // sudah restore, biarkan onAuthStateChanged fire lagi
-
-      // Cek Pi session sebagai fallback
+      // ── Tidak ada Firebase session — cek Pi session ──
       const piSess = _getPiSession();
       if (piSess && roles.includes(piSess.role)) {
-        resolved = true;
-        unsub();
-        if (typeof onSuccess === 'function') onSuccess({ uid: piSess.uid }, piSess);
+        // Ada Pi session valid → sign in anonymous agar auth.currentUser tidak null
+        // Ini penting karena Firestore rules butuh request.auth != null
+        try {
+          console.log('🔑 Pi session ditemukan, sign in anonymous untuk Firestore access...');
+          await auth.signInAnonymously();
+          // onAuthStateChanged akan fire lagi dengan user anonymous
+          // dan akan dihandle di blok `if (user)` di atas
+          return;
+        } catch (e) {
+          console.warn('⚠️ Anonymous sign-in gagal:', e.code);
+          // Fallback: coba panggil callback langsung dengan data dari Firestore
+          // (bisa karena rules sudah allow read loginMethod==pi tanpa auth)
+          try {
+            const snap = await db.collection('users').doc(piSess.uid).get();
+            const data = snap.exists ? snap.data() : piSess;
+            const role = data?.role || piSess.role;
+            if (roles.includes(role)) {
+              resolved = true;
+              unsub();
+              if (typeof onSuccess === 'function') onSuccess({ uid: piSess.uid }, data);
+              return;
+            }
+          } catch(e2) {
+            console.warn('⚠️ Fallback Firestore read gagal:', e2.code);
+          }
+          // Jika semua gagal, redirect login
+          resolved = true;
+          unsub();
+          window.location.href = 'login.html';
+        }
         return;
       }
 
-      // Benar-benar tidak ada session — redirect ke login
+      // Benar-benar tidak ada session
       resolved = true;
       unsub();
       window.location.href = 'login.html';
@@ -119,10 +145,16 @@ window.HA = {
   // ── Logout ──
   async logout() {
     try {
+      // Hapus anonymous user dari Firebase Auth (bukan akun permanen)
+      const user = auth.currentUser;
+      if (user?.isAnonymous) {
+        await user.delete().catch(() => {});
+      }
       await auth.signOut();
       _clearSession();
       window.location.href = 'login.html';
     } catch(e) {
+      _clearSession();
       window.location.href = 'login.html';
     }
   },
