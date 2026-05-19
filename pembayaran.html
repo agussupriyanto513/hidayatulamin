@@ -389,9 +389,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
   <!-- ═══ PANEL PI ═══ -->
   <div class="pay-panel active" id="panel-pi">
     <div class="pi-panel">
-      <div class="pi-sdk-status">
-        <div class="pi-sdk-dot" id="piSdkDot"></div>
-        <span id="piSdkStatus">Mendeteksi Pi Browser...</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div class="pi-sdk-status" style="margin-bottom:0">
+          <div class="pi-sdk-dot" id="piSdkDot"></div>
+          <span id="piSdkStatus">Mendeteksi Pi Browser...</span>
+        </div>
+        <div style="background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.3);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;color:#c4b5fd;display:flex;align-items:center;gap:5px" id="piRateBadge">
+          <span style="font-size:13px;font-weight:900">π</span>
+          <span id="piRateBadgeTxt">1 π = Memuat...</span>
+        </div>
       </div>
 
       <!-- User sudah login Pi -->
@@ -709,21 +715,41 @@ let piUser        = null;  // Pi Network user { uid, username }
 let piSDKReady    = false;
 let payHistory    = [];    // cache riwayat
 
-// SPP Rates
-const SPP_RATES = {
-  spp_bulan: { pi: 15,  rp: 500000,  sgt: 100, label: 'SPP Bulanan' },
-  spp:       { pi: 15,  rp: 500000,  sgt: 100, label: 'SPP Bulanan' },
-  spp_tahun: { pi: 150, rp: 5500000, sgt: 800, label: 'SPP Tahunan' },
-  uang_makan:{ pi: 8,   rp: 250000,  sgt: 80,  label: 'Uang Makan' },
-  seragam:   { pi: 10,  rp: 300000,  sgt: 50,  label: 'Seragam / Baju' },
-  kitab:     { pi: 6,   rp: 180000,  sgt: 40,  label: 'Kitab / Buku' },
-  kegiatan:  { pi: 5,   rp: 150000,  sgt: 40,  label: 'Kegiatan / Ekskul' },
-  wisuda:    { pi: 20,  rp: 600000,  sgt: 100, label: 'Wisuda / Acara' },
-  donasi:    { pi: 5,   rp: 0,       sgt: 30,  label: 'Donasi Yayasan' },
+// SPP Rates — nilai Rp tetap, Pi dihitung dinamis dari pi_rate Firestore
+const SPP_RATES_RP = {
+  spp_bulan: { rp: 500000,   sgt: 100, label: 'SPP Bulanan' },
+  spp:       { rp: 500000,   sgt: 100, label: 'SPP Bulanan' },
+  spp_tahun: { rp: 5500000,  sgt: 800, label: 'SPP Tahunan' },
+  uang_makan:{ rp: 250000,   sgt: 80,  label: 'Uang Makan' },
+  seragam:   { rp: 300000,   sgt: 50,  label: 'Seragam / Baju' },
+  kitab:     { rp: 180000,   sgt: 40,  label: 'Kitab / Buku' },
+  kegiatan:  { rp: 150000,   sgt: 40,  label: 'Kegiatan / Ekskul' },
+  wisuda:    { rp: 600000,   sgt: 100, label: 'Wisuda / Acara' },
+  donasi:    { rp: 0,        sgt: 30,  label: 'Donasi Yayasan' },
 };
 const PI_EXTRA_SGT = 50;  // bonus SGT ekstra kalau pakai Pi
-// State pilihan jenis pembayaran Pi (diset lewat selectPiType)
-let _piSelected = { type:'spp_bulan', label:'SPP Bulanan', pi:15, rp:500000, sgt:150 };
+
+// Pi rate dari Firestore (default 100 juta sampai data dimuat)
+let _piRatePerPi = 100000000;
+
+// Hitung jumlah Pi dari Rp menggunakan rate aktif (dibulatkan 4 desimal)
+function calcPiAmt(rp) {
+  if (!rp || rp <= 0) return 0;
+  return Math.round((rp / _piRatePerPi) * 10000) / 10000;
+}
+
+// Buat SPP_RATES dinamis berdasarkan _piRatePerPi
+function buildSPPRates() {
+  const out = {};
+  for (const [k, v] of Object.entries(SPP_RATES_RP)) {
+    out[k] = { ...v, pi: calcPiAmt(v.rp) };
+  }
+  return out;
+}
+let SPP_RATES = buildSPPRates();
+
+// State pilihan jenis pembayaran Pi
+let _piSelected = { type:'spp_bulan', label:'SPP Bulanan', pi: calcPiAmt(500000), rp:500000, sgt:150 };
 
 // Akun bank pesantren (bisa dikonfig dari Firestore nanti)
 const BANK_ACCOUNTS = {
@@ -776,6 +802,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initPiSDK();
 
   // Load all data
+  // Load Pi rate dari Firestore terlebih dahulu agar harga Pi sinkron
+  await loadPiRateFromFirestore();
+
   await Promise.all([
     loadTagihan(),
     loadSGTBalance(),
@@ -888,6 +917,69 @@ function selectMethod(method, el) {
 // ════════════════════════════════════════
 // PI NETWORK
 // ════════════════════════════════════════
+// ════════════════════════════════════════
+// PI RATE LOADER
+// ════════════════════════════════════════
+async function loadPiRateFromFirestore() {
+  try {
+    const snap = await db.collection('config').doc('pi_rate').get();
+    if (snap.exists) {
+      const d = snap.data();
+      _piRatePerPi = d.rateRp || 100000000;
+    }
+  } catch(e) {
+    console.warn('[loadPiRateFromFirestore] Gagal load, pakai default:', e.message);
+  }
+  // Rebuild rates dengan rate baru
+  SPP_RATES = buildSPPRates();
+  // Update state default
+  _piSelected.pi  = calcPiAmt(_piSelected.rp);
+  // Render ulang kartu Pi type
+  renderPiTypeCards();
+  // Update display
+  updatePiAmt();
+  // Update rate badge di panel Pi
+  const badge = document.getElementById('piRateBadgeTxt');
+  if (badge) badge.textContent = '1 π = Rp ' + _piRatePerPi.toLocaleString('id-ID');
+}
+
+function renderPiTypeCards() {
+  const grid = document.getElementById('piPayTypeGrid');
+  if (!grid) return;
+  const items = [
+    { type:'spp_bulan',  emoji:'💳', label:'SPP Bulanan',     rp:500000   },
+    { type:'spp_tahun',  emoji:'📋', label:'SPP Tahunan',     rp:5500000  },
+    { type:'seragam',    emoji:'👕', label:'Seragam / Baju',  rp:300000   },
+    { type:'uang_makan', emoji:'🍽️', label:'Uang Makan',      rp:250000   },
+    { type:'kitab',      emoji:'📖', label:'Kitab / Buku',    rp:180000   },
+    { type:'kegiatan',   emoji:'🏃', label:'Kegiatan / Ekskul',rp:150000  },
+    { type:'wisuda',     emoji:'🎓', label:'Wisuda / Acara',  rp:600000   },
+    { type:'donasi',     emoji:'🤲', label:'Donasi Yayasan',  rp:0        },
+  ];
+  const sgt = { spp_bulan:150, spp_tahun:850, seragam:100, uang_makan:130, kitab:90, kegiatan:90, wisuda:150, donasi:80 };
+
+  grid.innerHTML = items.map((item, idx) => {
+    const pi   = calcPiAmt(item.rp);
+    const piDisplay = item.rp > 0 ? pi + ' π' : '— π';
+    const rpDisplay = item.rp > 0 ? '≈ Rp ' + item.rp.toLocaleString('id-ID') : 'Bebas / Sukarela';
+    const isActive  = idx === 0 ? ' active' : '';
+    const sg = sgt[item.type] || 80;
+    return `<div class="pi-type-card${isActive}" onclick="selectPiType(this,'${item.type}','${item.label}',${pi},${item.rp},${sg})" data-val="${item.type}">
+      <div class="pi-type-ico">${item.emoji}</div>
+      <div class="pi-type-name">${item.label}</div>
+      <div class="pi-type-pi">${piDisplay}</div>
+      <div class="pi-type-rp">${rpDisplay}</div>
+    </div>`;
+  }).join('');
+
+  // Pastikan state default sinkron dengan item pertama
+  if (items.length > 0) {
+    const first = items[0];
+    const pi0   = calcPiAmt(first.rp);
+    _piSelected = { type: first.type, label: first.label, pi: pi0, rp: first.rp, sgt: sgt[first.type] || 80 };
+  }
+}
+
 function initPiSDK() {
   const dot = document.getElementById('piSdkDot');
   const txt = document.getElementById('piSdkStatus');

@@ -379,6 +379,11 @@ tr:hover td{background:var(--g50)}
 .pi-prog-val{font-size:12px;font-weight:700;color:#8b5cf6}
 .pi-prog-bar{height:6px;background:var(--g100);border-radius:20px;overflow:hidden;margin-bottom:12px}
 .pi-prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#8b5cf6,#6d28d9)}
+
+/* ═══ PI RATE SECTION ═══ */
+.pi-rate-shortcut{padding:6px 10px;border:1.5px solid rgba(139,92,246,.3);background:rgba(139,92,246,.06);border-radius:8px;font-size:11px;font-weight:700;color:#8b5cf6;cursor:pointer;transition:var(--tr);font-family:inherit}
+.pi-rate-shortcut:hover{background:rgba(139,92,246,.18);transform:translateY(-1px)}
+@media(max-width:768px){#sec-pi-rate .two-col-rate{grid-template-columns:1fr !important}}
 </style>
 <body>
 
@@ -411,6 +416,7 @@ tr:hover td{background:var(--g50)}
     <a class="nav-item" id="navEarnReq" onclick="switchSection('earnreq',this)"><i class="fas fa-paper-plane" style="color:#8b5cf6"></i><span style="color:#8b5cf6;font-weight:700">Pengajuan Reward</span><span class="nav-badge" id="earnBadge" style="display:none;background:#8b5cf6">0</span></a>
     <a class="nav-item" id="navPiDon" onclick="switchSection('pi-donations',this)" style="background:rgba(109,40,217,.1);border-color:rgba(109,40,217,.2)"><span style="font-size:14px;font-weight:900;color:#8b5cf6;width:16px;text-align:center">π</span><span style="color:#8b5cf6;font-weight:700">Donasi Pi</span><span class="nav-badge" id="piDonBadge" style="display:none;background:#8b5cf6">0</span></a>
     <a class="nav-item" id="navWhitelist" onclick="switchSection('whitelist',this)" style="background:rgba(13,184,122,.08);border-color:rgba(13,184,122,.2)"><i class="fas fa-shield-alt" style="color:var(--p)"></i><span style="color:var(--p);font-weight:700">Whitelist Pi</span><span class="nav-badge" id="whitelistBadge" style="display:none;background:var(--p)">0</span></a>
+    <a class="nav-item" id="navPiRate" onclick="switchSection('pi-rate',this)" style="background:rgba(109,40,217,.08);border-color:rgba(109,40,217,.2)"><i class="fas fa-coins" style="color:#8b5cf6"></i><span style="color:#8b5cf6;font-weight:700">Harga Pi (Rate)</span></a>
     <a href="https://sagatama-mart.vercel.app" target="_blank" class="nav-item" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)"><i class="fas fa-shopping-bag" style="color:var(--acc)"></i><span style="color:var(--acc);font-weight:700">Sagatama Mart</span><i class="fas fa-external-link-alt" style="font-size:9px;color:var(--acc);margin-left:auto"></i></a>
   </nav>
   <div class="sb-foot">
@@ -991,6 +997,112 @@ tr:hover td{background:var(--g50)}
       </div>
     </div>
 
+
+    <!-- ════ PI RATE SECTION ════ -->
+    <div class="section" id="sec-pi-rate">
+      <div class="sec-hd">
+        <div>
+          <h3><span style="font-size:22px;font-weight:900;color:#8b5cf6;margin-right:8px">π</span>Pengaturan Harga Pi Network</h3>
+          <p>Patokan kurs 1 Pi = Rp ... yang digunakan seluruh menu pembayaran secara sinkron</p>
+        </div>
+      </div>
+
+      <!-- Banner info -->
+      <div style="background:linear-gradient(135deg,#1a0040,#2d1b69,#4c1d95);border-radius:var(--rd);padding:20px 24px;margin-bottom:20px;color:#fff;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-30px;right:-30px;font-size:120px;font-weight:900;color:rgba(255,255,255,.04);line-height:1;pointer-events:none">π</div>
+        <div style="position:relative;z-index:1;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="width:52px;height:52px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;flex-shrink:0">π</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.5);margin-bottom:4px">Rate Aktif Saat Ini</div>
+            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+              <span style="font-size:13px;color:rgba(255,255,255,.6)">1 π =</span>
+              <span style="font-size:32px;font-weight:900;color:#c4b5fd" id="piRateDisplay">Memuat...</span>
+            </div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px" id="piRateUpdatedAt">Terakhir diubah: —</div>
+          </div>
+          <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px 16px;text-align:center;min-width:100px">
+            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Status</div>
+            <div id="piRateStatusChip" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#4ade80"><span style="width:8px;height:8px;background:#4ade80;border-radius:50%;display:inline-block"></span>Aktif</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form atur rate -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <!-- Kartu set rate baru -->
+        <div class="card" style="border:2px solid rgba(139,92,246,.2)">
+          <div class="card-head">
+            <div><h4 style="color:var(--acc)"><i class="fas fa-edit" style="margin-right:8px"></i>Ubah Rate Pi</h4><p>Set patokan baru, langsung sinkron ke semua pembayaran</p></div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label style="font-size:11px;font-weight:700;color:var(--g500);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Nilai 1 π dalam Rupiah</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="position:relative;flex:1">
+                <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--g500)">Rp</span>
+                <input type="number" id="piRateInput" min="1000" max="10000000000" step="1000"
+                  style="width:100%;padding:11px 12px 11px 36px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:14px;font-family:inherit;font-weight:700;transition:var(--tr);outline:none"
+                  placeholder="100000000"
+                  oninput="previewPiRate()">
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--g400);margin-top:5px">Contoh: 100000000 = Rp 100.000.000 per Pi</div>
+          </div>
+
+          <!-- Shortcut buttons -->
+          <div style="margin-bottom:14px">
+            <div style="font-size:11px;font-weight:700;color:var(--g500);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Pilih Cepat</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button onclick="setPiRateShortcut(50000000)"  class="pi-rate-shortcut">Rp 50 jt</button>
+              <button onclick="setPiRateShortcut(100000000)" class="pi-rate-shortcut">Rp 100 jt</button>
+              <button onclick="setPiRateShortcut(150000000)" class="pi-rate-shortcut">Rp 150 jt</button>
+              <button onclick="setPiRateShortcut(200000000)" class="pi-rate-shortcut">Rp 200 jt</button>
+              <button onclick="setPiRateShortcut(314159265)" class="pi-rate-shortcut">Rp 314 jt</button>
+            </div>
+          </div>
+
+          <!-- Preview kalkulasi -->
+          <div id="piRatePreview" style="background:rgba(139,92,246,.06);border:1.5px dashed rgba(139,92,246,.3);border-radius:var(--rdm);padding:14px;margin-bottom:16px;display:none">
+            <div style="font-size:11px;font-weight:700;color:#8b5cf6;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px"><i class="fas fa-calculator" style="margin-right:6px"></i>Preview Harga Pembayaran</div>
+            <div id="piRatePreviewItems" style="display:flex;flex-direction:column;gap:6px"></div>
+          </div>
+
+          <button id="btnSavePiRate" onclick="savePiRate()" style="width:100%;padding:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:var(--rdm);color:#fff;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr);font-family:inherit">
+            <span style="font-size:16px;font-weight:900">π</span>
+            <span id="btnSavePiRateTxt">Simpan &amp; Aktifkan Rate</span>
+          </button>
+
+          <div style="margin-top:10px;padding:10px 12px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--rdm);font-size:11px;color:#92400e;display:flex;gap:8px;align-items:flex-start">
+            <i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-top:1px;flex-shrink:0"></i>
+            <span>Rate yang disimpan akan <strong>langsung berlaku</strong> di halaman pembayaran. Semua nominal Pi dihitung ulang otomatis.</span>
+          </div>
+        </div>
+
+        <!-- Kartu riwayat perubahan rate -->
+        <div class="card">
+          <div class="card-head">
+            <div><h4><i class="fas fa-history" style="margin-right:8px;color:var(--p)"></i>Riwayat Perubahan</h4><p>Log setiap perubahan rate oleh admin</p></div>
+          </div>
+          <div id="piRateHistory" style="display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto">
+            <div style="text-align:center;padding:24px;color:var(--g400)"><i class="fas fa-spinner fa-spin" style="font-size:20px;display:block;margin-bottom:8px"></i>Memuat riwayat...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel preview semua harga Pi -->
+      <div class="tbl-section">
+        <div class="tbl-head">
+          <div class="tbl-title"><h4><i class="fas fa-table" style="margin-right:8px;color:#8b5cf6"></i>Preview Semua Harga Pembayaran Pi</h4><p id="piRateTblSub">Berdasarkan rate aktif</p></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Jenis Pembayaran</th><th>Harga (Rp)</th><th>Rate Aktif</th><th>Harga (π)</th><th>SGT Bonus</th></tr></thead>
+            <tbody id="piRatePriceTable"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--g400)"><i class="fas fa-spinner fa-spin"></i> Memuat...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- ════ END PI RATE SECTION ════ -->
 </div><!-- /main -->
 
 <!-- MODAL BUAT USER -->
@@ -2802,6 +2914,181 @@ if (_origSwitch) {
 }
 
 // ════ END PI WHITELIST ════
+
+// ════ PI RATE ADMIN ════
+// Dokumen Firestore: config/pi_rate
+// Field: rateRp (number), updatedAt (timestamp), updatedBy (string)
+
+const PI_PAYMENT_ITEMS = [
+  { type:'spp_bulan',  label:'SPP Bulanan',      rp:500000,   sgt:100 },
+  { type:'spp_tahun',  label:'SPP Tahunan',       rp:5500000,  sgt:800 },
+  { type:'seragam',    label:'Seragam / Baju',    rp:300000,   sgt:50  },
+  { type:'uang_makan', label:'Uang Makan',        rp:250000,   sgt:80  },
+  { type:'kitab',      label:'Kitab / Buku',      rp:180000,   sgt:40  },
+  { type:'kegiatan',   label:'Kegiatan / Ekskul', rp:150000,   sgt:40  },
+  { type:'wisuda',     label:'Wisuda / Acara',    rp:600000,   sgt:100 },
+  { type:'donasi',     label:'Donasi Yayasan',    rp:0,        sgt:30  },
+];
+
+let _currentPiRate = 100000000; // default 100 juta
+
+async function loadPiRate() {
+  try {
+    const snap = await db.collection('config').doc('pi_rate').get();
+    if (snap.exists) {
+      const d = snap.data();
+      _currentPiRate = d.rateRp || 100000000;
+      const formatted = 'Rp ' + _currentPiRate.toLocaleString('id-ID');
+      setEl('piRateDisplay', formatted);
+      if (d.updatedAt) {
+        const dt = d.updatedAt.toDate ? d.updatedAt.toDate() : new Date(d.updatedAt);
+        setEl('piRateUpdatedAt', 'Terakhir diubah: ' + dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) + (d.updatedBy ? ' oleh ' + d.updatedBy : ''));
+      }
+    } else {
+      setEl('piRateDisplay', 'Rp ' + _currentPiRate.toLocaleString('id-ID'));
+      setEl('piRateUpdatedAt', 'Belum pernah diset — menggunakan default');
+    }
+    document.getElementById('piRateInput').value = _currentPiRate;
+    renderPiRatePriceTable(_currentPiRate);
+    setEl('piRateTblSub', '1 π = Rp ' + _currentPiRate.toLocaleString('id-ID'));
+    await loadPiRateHistory();
+  } catch(e) {
+    console.error('[loadPiRate]', e);
+    setEl('piRateDisplay', 'Gagal memuat');
+  }
+}
+
+async function loadPiRateHistory() {
+  const el = document.getElementById('piRateHistory');
+  try {
+    const snap = await db.collection('config_history')
+      .where('docId','==','pi_rate')
+      .orderBy('changedAt','desc').limit(20).get();
+    if (snap.empty) {
+      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--g400);font-size:12px"><i class="fas fa-history" style="display:block;font-size:24px;margin-bottom:8px;opacity:.3"></i>Belum ada riwayat perubahan</div>';
+      return;
+    }
+    el.innerHTML = snap.docs.map(d => {
+      const data = d.data();
+      const dt = data.changedAt?.toDate ? data.changedAt.toDate() : new Date();
+      const dateStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      const oldVal = data.oldRateRp ? 'Rp ' + Number(data.oldRateRp).toLocaleString('id-ID') : '—';
+      const newVal = 'Rp ' + Number(data.newRateRp).toLocaleString('id-ID');
+      return \`<div style="background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:12px;position:relative">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:4px"><span style="font-size:16px;font-weight:900;color:#8b5cf6;margin-right:6px">π</span>\${escHtml(newVal)}</div>
+            <div style="font-size:10px;color:var(--g400)">Sebelumnya: \${escHtml(oldVal)}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:10px;color:var(--g400)">\${escHtml(dateStr)}</div>
+            <div style="font-size:10px;font-weight:700;color:var(--g600);margin-top:2px">\${escHtml(data.changedBy || 'admin')}</div>
+          </div>
+        </div>
+      </div>\`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--g400);padding:16px">Tidak dapat memuat riwayat.</div>';
+  }
+}
+
+function renderPiRatePriceTable(rate) {
+  const tbody = document.getElementById('piRatePriceTable');
+  if (!rate || rate <= 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--r)">Rate tidak valid</td></tr>'; return; }
+  tbody.innerHTML = PI_PAYMENT_ITEMS.map(item => {
+    const piAmt = item.rp > 0 ? (item.rp / rate).toFixed(4) : '—';
+    const piDisplay = item.rp > 0 ? Number(piAmt) + ' π' : 'Sukarela';
+    const rpDisplay = item.rp > 0 ? 'Rp ' + item.rp.toLocaleString('id-ID') : 'Sukarela';
+    return \`<tr>
+      <td><span style="font-weight:600;color:var(--ink2)">\${escHtml(item.label)}</span></td>
+      <td style="color:var(--g600)">\${rpDisplay}</td>
+      <td style="color:#8b5cf6;font-weight:700">1 π = Rp \${rate.toLocaleString('id-ID')}</td>
+      <td style="font-weight:800;color:#8b5cf6;font-size:14px">\${piDisplay}</td>
+      <td><span style="background:var(--sgtl);color:var(--sgt);padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700">+\${item.sgt} SGT</span></td>
+    </tr>\`;
+  }).join('');
+}
+
+function previewPiRate() {
+  const val = parseInt(document.getElementById('piRateInput').value) || 0;
+  const previewDiv = document.getElementById('piRatePreview');
+  const itemsDiv = document.getElementById('piRatePreviewItems');
+  if (!val || val < 1000) { previewDiv.style.display = 'none'; return; }
+  previewDiv.style.display = 'block';
+  itemsDiv.innerHTML = PI_PAYMENT_ITEMS.filter(i => i.rp > 0).map(item => {
+    const pi = (item.rp / val).toFixed(4);
+    return \`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(139,92,246,.1)">
+      <span style="color:var(--g600)">\${escHtml(item.label)}</span>
+      <span style="font-weight:800;color:#8b5cf6">\${Number(pi)} π <span style="font-size:10px;color:rgba(139,92,246,.5)">(Rp \${item.rp.toLocaleString('id-ID')})</span></span>
+    </div>\`;
+  }).join('');
+}
+
+function setPiRateShortcut(val) {
+  document.getElementById('piRateInput').value = val;
+  previewPiRate();
+}
+
+async function savePiRate() {
+  const val = parseInt(document.getElementById('piRateInput').value) || 0;
+  if (!val || val < 1000) { showToast('warn','Rate tidak valid','Masukkan nilai minimal Rp 1.000'); return; }
+
+  const btn = document.getElementById('btnSavePiRate');
+  const txt = document.getElementById('btnSavePiRateTxt');
+  btn.disabled = true;
+  txt.textContent = 'Menyimpan...';
+
+  try {
+    const adminSnap = await db.collection('users').doc(currentAdminUid).get();
+    const adminName = adminSnap.exists ? (adminSnap.data().displayName || 'admin') : 'admin';
+
+    // Simpan riwayat dulu
+    await db.collection('config_history').add({
+      docId: 'pi_rate',
+      oldRateRp: _currentPiRate,
+      newRateRp: val,
+      changedBy: adminName,
+      changedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // Update config utama
+    await db.collection('config').doc('pi_rate').set({
+      rateRp: val,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: adminName,
+    });
+
+    _currentPiRate = val;
+    const formatted = 'Rp ' + val.toLocaleString('id-ID');
+    setEl('piRateDisplay', formatted);
+    setEl('piRateUpdatedAt', 'Baru saja diubah oleh ' + adminName);
+    setEl('piRateTblSub', '1 π = ' + formatted);
+    renderPiRatePriceTable(val);
+    await loadPiRateHistory();
+    showToast('success','Rate Disimpan!','1 π = ' + formatted + ' · Semua pembayaran Pi sudah sinkron.');
+  } catch(e) {
+    console.error('[savePiRate]', e);
+    showToast('error','Gagal menyimpan', e.message || 'Coba lagi');
+  } finally {
+    btn.disabled = false;
+    txt.textContent = 'Simpan & Aktifkan Rate';
+  }
+}
+
+// ── Patch switchSection untuk load pi-rate ──
+(function() {
+  const _orig = typeof switchSection === 'function' ? switchSection : null;
+  if (_orig) {
+    const prevPatch = window.switchSection;
+    window.switchSection = function(name, el) {
+      prevPatch(name, el);
+      if (name === 'pi-rate') loadPiRate();
+    };
+  }
+})();
+
+// ════ END PI RATE ADMIN ════
+
 
 </script>
 </body>
