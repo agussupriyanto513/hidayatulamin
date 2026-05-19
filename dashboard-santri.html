@@ -414,6 +414,23 @@ tr:hover td{background:var(--g50)}
   .bn-item span{font-size:9px}
 }
 
+/* ═══ PI TYPE CARDS ═══ */
+.pi-type-card{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 10px;cursor:pointer;transition:all .2s ease;text-align:center;position:relative}
+.pi-type-card:hover{border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.12);transform:translateY(-2px)}
+.pi-type-card.active{border-color:#8b5cf6;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(109,40,217,.15));box-shadow:0 0 0 3px rgba(139,92,246,.2)}
+.pi-type-card.active::after{content:'✓';position:absolute;top:6px;right:8px;font-size:10px;font-weight:900;color:#c4b5fd}
+.pi-type-ico{font-size:22px;margin-bottom:5px;line-height:1}
+.pi-type-name{font-size:11px;font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3}
+.pi-type-pi{font-size:15px;font-weight:900;color:#c4b5fd;line-height:1}
+.pi-type-rp{font-size:9px;color:rgba(255,255,255,.35);margin-top:2px}
+.pi-amt-display{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--rdm);padding:14px;text-align:center;margin-bottom:14px}
+.pi-amt-val{font-size:28px;font-weight:900;color:#c4b5fd;line-height:1}
+.pi-amt-desc{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px}
+.sgt-bonus-bar-pi{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:12px;color:#fbbf24}
+.pi-note-input{width:100%;padding:10px 14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:var(--rdm);color:#fff;font-family:inherit;font-size:13px;margin-bottom:14px;outline:none;transition:var(--tr)}
+.pi-note-input::placeholder{color:rgba(255,255,255,.3)}
+.pi-note-input:focus{border-color:#8b5cf6;background:rgba(255,255,255,.1)}
+
 /* ═══ PEMBAYARAN FIAT ═══ */
 .pay-method-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .pay-method-btn{background:var(--white);border:2px solid var(--g200);border-radius:var(--rdm);padding:14px;cursor:pointer;transition:var(--tr);text-align:center;font-family:inherit}
@@ -984,38 +1001,122 @@ tr:hover td{background:var(--g50)}
 
       <!-- TAB: PI PAYMENT -->
       <div id="payTab-pi" style="display:none">
-        <div style="background:linear-gradient(135deg,#1a0040,#3d0099,#6d28d9);border-radius:var(--rd);padding:18px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden">
+        <div style="background:linear-gradient(135deg,#1a0040,#2d1b69,#4c1d95);border-radius:var(--rd);padding:18px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden">
           <div style="position:absolute;right:-10px;top:-20px;font-size:80px;font-weight:900;color:rgba(255,255,255,.05);pointer-events:none">π</div>
           <div style="position:relative;z-index:1">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+
+            <!-- Header -->
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
               <div style="width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0">π</div>
               <div>
-                <p style="font-size:14px;font-weight:800;color:#fff">Bayar SPP via Pi Network</p>
-                <p style="font-size:11px;color:rgba(255,255,255,.55)">Pi Browser · Testnet aktif</p>
+                <p style="font-size:14px;font-weight:800;color:#fff">Bayar via Pi Network</p>
+                <p style="font-size:11px;color:rgba(255,255,255,.55)" id="piSdkStatusDash">Mendeteksi Pi Browser...</p>
               </div>
             </div>
-            <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:12px;margin-bottom:12px">
-              <p style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:4px">Kurs: 1 π ≈ Rp 50.000 · SPP Rp 200.000 = 4 π</p>
-              <div id="piPaymentRate" style="font-size:16px;font-weight:900;color:#fcd34d">— π untuk tagihan aktif</div>
-            </div>
-            <div id="piPayArea">
-              <div id="piPayLoginArea">
-                <p style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:10px;text-align:center"><i class="fas fa-info-circle" style="color:#a78bfa"></i> Login Pi Network untuk membayar</p>
-                <button style="width:100%;padding:12px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px" onclick="piLoginForPayment()">
-                  <span style="font-size:16px;font-weight:900">π</span> Login dengan Pi Network
-                </button>
+
+            <!-- User card Pi (muncul setelah login) -->
+            <div id="piDashUserCard" style="display:none;align-items:center;gap:10px;background:rgba(255,255,255,.1);border-radius:10px;padding:10px;margin-bottom:14px">
+              <div style="width:34px;height:34px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:13px;flex-shrink:0" id="piDashAvatar">?</div>
+              <div style="flex:1">
+                <p style="font-size:13px;font-weight:700;color:#fff" id="piDashUsername">—</p>
+                <p style="font-size:10px;color:rgba(255,255,255,.4)">Pioneer Pi Network ✓</p>
               </div>
-              <div id="piPayUserArea" style="display:none">
-                <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);border-radius:10px;padding:10px;margin-bottom:10px">
-                  <div style="width:34px;height:34px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:13px;flex-shrink:0" id="piPayAvatar">?</div>
-                  <div style="flex:1"><p style="font-size:13px;font-weight:700;color:#fff" id="piPayUsername">—</p><p style="font-size:10px;color:rgba(255,255,255,.4)">Pioneer Pi Network ✓</p></div>
-                  <button onclick="piPayLogout()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:11px">Ganti</button>
-                </div>
-                <button id="btnPiPay" style="width:100%;padding:13px;background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;transition:var(--tr)" onclick="submitPiPayment()">
-                  <span style="font-size:18px;font-weight:900">π</span> Bayar SPP Sekarang
-                </button>
+              <button onclick="piDashLogout()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:11px">Ganti</button>
+            </div>
+
+            <!-- PILIH JENIS PEMBAYARAN -->
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);margin-bottom:10px">Pilih Jenis Pembayaran</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px" id="piDashTypeGrid">
+
+              <div class="pi-type-card active" onclick="selectDashPiType(this,'spp_bulan','SPP Bulanan',15,500000,150)" data-val="spp_bulan">
+                <div class="pi-type-ico">💳</div>
+                <div class="pi-type-name">SPP Bulanan</div>
+                <div class="pi-type-pi">15 π</div>
+                <div class="pi-type-rp">≈ Rp 500.000</div>
+              </div>
+
+              <div class="pi-type-card" onclick="selectDashPiType(this,'spp_tahun','SPP Tahunan',150,5500000,800)" data-val="spp_tahun">
+                <div class="pi-type-ico">📋</div>
+                <div class="pi-type-name">SPP Tahunan</div>
+                <div class="pi-type-pi">150 π</div>
+                <div class="pi-type-rp">≈ Rp 5.500.000</div>
+              </div>
+
+              <div class="pi-type-card" onclick="selectDashPiType(this,'seragam','Seragam / Baju',10,300000,50)" data-val="seragam">
+                <div class="pi-type-ico">👕</div>
+                <div class="pi-type-name">Seragam / Baju</div>
+                <div class="pi-type-pi">10 π</div>
+                <div class="pi-type-rp">≈ Rp 300.000</div>
+              </div>
+
+              <div class="pi-type-card" onclick="selectDashPiType(this,'uang_makan','Uang Makan',8,250000,80)" data-val="uang_makan">
+                <div class="pi-type-ico">🍽️</div>
+                <div class="pi-type-name">Uang Makan</div>
+                <div class="pi-type-pi">8 π</div>
+                <div class="pi-type-rp">≈ Rp 250.000</div>
+              </div>
+
+              <div class="pi-type-card" onclick="selectDashPiType(this,'kitab','Kitab / Buku',6,180000,40)" data-val="kitab">
+                <div class="pi-type-ico">📖</div>
+                <div class="pi-type-name">Kitab / Buku</div>
+                <div class="pi-type-pi">6 π</div>
+                <div class="pi-type-rp">≈ Rp 180.000</div>
+              </div>
+
+              <div class="pi-type-card" onclick="selectDashPiType(this,'kegiatan','Kegiatan / Ekskul',5,150000,40)" data-val="kegiatan">
+                <div class="pi-type-ico">🏃</div>
+                <div class="pi-type-name">Kegiatan / Ekskul</div>
+                <div class="pi-type-pi">5 π</div>
+                <div class="pi-type-rp">≈ Rp 150.000</div>
+              </div>
+
+              <div class="pi-type-card" onclick="selectDashPiType(this,'wisuda','Wisuda / Acara',20,600000,100)" data-val="wisuda">
+                <div class="pi-type-ico">🎓</div>
+                <div class="pi-type-name">Wisuda / Acara</div>
+                <div class="pi-type-pi">20 π</div>
+                <div class="pi-type-rp">≈ Rp 600.000</div>
+              </div>
+
+              <div class="pi-type-card" onclick="selectDashPiType(this,'donasi','Donasi Yayasan',5,0,30)" data-val="donasi">
+                <div class="pi-type-ico">🤲</div>
+                <div class="pi-type-name">Donasi Yayasan</div>
+                <div class="pi-type-pi">5 π</div>
+                <div class="pi-type-rp">Bebas / Sukarela</div>
+              </div>
+
+            </div>
+
+            <!-- Display jumlah yang dipilih -->
+            <div class="pi-amt-display">
+              <div class="pi-amt-val"><span id="piDashAmtVal">15</span> <span style="font-size:16px;font-weight:900">π</span></div>
+              <div class="pi-amt-desc" id="piDashAmtDesc">≈ Rp 500.000 · SPP Bulanan</div>
+            </div>
+
+            <!-- Bonus SGT -->
+            <div class="sgt-bonus-bar-pi">
+              <span style="font-size:16px;flex-shrink:0">₴</span>
+              <div>
+                <span style="font-size:11px;color:rgba(255,255,255,.5)">Bonus SGT didapat: </span>
+                <span style="font-weight:800;font-size:14px" id="piDashSgtBonus">+200 SGT</span>
+                <span style="font-size:11px;color:rgba(255,255,255,.4)"> (termasuk +50 SGT Pi bonus)</span>
               </div>
             </div>
+
+            <!-- Catatan -->
+            <input type="text" class="pi-note-input" id="piDashNote" placeholder="Catatan (misal: atas nama Ahmad Fauzi, bulan Mei)">
+
+            <!-- Login atau bayar -->
+            <div id="piDashLoginArea">
+              <button style="width:100%;padding:12px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:var(--tr)" id="btnPiDashLogin" onclick="piDashLogin()">
+                <span style="font-size:16px;font-weight:900">π</span> Login Pi untuk Bayar
+              </button>
+            </div>
+            <div id="piDashPayArea" style="display:none">
+              <button id="btnPiPay" style="width:100%;padding:13px;background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;transition:var(--tr)" onclick="submitPiPayment()">
+                <span style="font-size:18px;font-weight:900">π</span> <span id="btnPiPayTxt">Bayar 15 π Sekarang</span>
+              </button>
+            </div>
+
           </div>
         </div>
         <div class="card">
@@ -1922,7 +2023,6 @@ async function loadTagihan() {
 
   renderTagihan();
   updatePayBanner();
-  updatePiPayRate();
 }
 
 function renderTagihan() {
@@ -2096,6 +2196,32 @@ function copyPaymentCode() {
 }
 
 // ── Pi Payment ──
+
+// State pilihan jenis pembayaran Pi di dashboard
+const PI_EXTRA_SGT = 50;  // bonus SGT ekstra pakai Pi
+let _dashPiSelected = { type:'spp_bulan', label:'SPP Bulanan', pi:15, rp:500000, sgt:150 };
+
+function selectDashPiType(el, type, label, pi, rp, sgt) {
+  document.querySelectorAll('#piDashTypeGrid .pi-type-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  _dashPiSelected = { type, label, pi, rp, sgt };
+  document.getElementById('piDashAmtVal').textContent  = pi;
+  document.getElementById('piDashAmtDesc').textContent = rp
+    ? '≈ Rp ' + rp.toLocaleString('id-ID') + ' · ' + label
+    : label + ' (sukarela)';
+  document.getElementById('piDashSgtBonus').textContent = '+' + (sgt + PI_EXTRA_SGT) + ' SGT';
+  const btnTxt = document.getElementById('btnPiPayTxt');
+  if (btnTxt) btnTxt.textContent = 'Bayar ' + pi + ' π Sekarang';
+}
+
+function piDashLogin() {
+  piLoginForPayment(); // reuse fungsi yang sudah ada
+}
+
+function piDashLogout() {
+  piPayLogout(); // reuse
+}
+
 async function piLoginForPayment() {
   // Pi SDK hanya berjalan di Pi Browser
   if (!window.Pi) {
@@ -2109,59 +2235,42 @@ async function piLoginForPayment() {
       window.Pi.init({ version: '2.0', sandbox: false });
       window._piInited = true;
     } catch(e) {
-      // Sudah di-init sebelumnya, lanjut saja
       window._piInited = true;
     }
   }
 
-  const btnLogin = document.getElementById('btnPiLogin');
+  const btnLogin = document.getElementById('btnPiDashLogin');
   if (btnLogin) { btnLogin.disabled = true; btnLogin.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghubungkan...'; }
 
   try {
     const result = await window.Pi.authenticate(
       ['username', 'payments'],
-      // Handler untuk pembayaran yang tertunda (incomplete) dari sesi sebelumnya.
-      // WAJIB diselesaikan agar Pi Network tidak block transaksi baru.
-      // Callback ini TIDAK boleh async — jalankan di background.
       (incompletePayment) => {
         if (!incompletePayment) return;
         const pid = incompletePayment.identifier;
         console.log('Incomplete payment ditemukan, menyelesaikan:', pid);
-
-        // Selesaikan payment lama di background
         (async () => {
           try {
-            // Cek status di Firestore dulu
             let firestoreStatus = null;
             if (currentUid && typeof db !== 'undefined') {
               const snap = await db.collection('pi_payments').doc(pid).get().catch(() => null);
               firestoreStatus = snap?.exists ? snap.data()?.status : null;
             }
-
-            // Jika sudah approved atau pending_approval → coba complete
-            // Jika belum approved sama sekali → approve dulu baru complete
             if (!firestoreStatus || firestoreStatus === 'pending_approval') {
-              // Approve dulu
-              const approveRes = await fetch('/api/payments/approve', {
+              await fetch('/api/payments/approve', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ paymentId: pid }),
               });
-              console.log('Incomplete payment approved:', pid, approveRes.status);
             }
-
-            // Simpan/update ke Firestore
             if (currentUid && typeof db !== 'undefined') {
               db.collection('pi_payments').doc(pid).set({
-                paymentId: pid,
-                santriId: currentUid,
+                paymentId: pid, santriId: currentUid,
                 status: 'incomplete_handled',
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
               }, { merge: true }).catch(() => {});
             }
-          } catch(e) {
-            console.warn('Gagal menyelesaikan incomplete payment:', e.message);
-          }
+          } catch(e) { console.warn('Gagal menyelesaikan incomplete payment:', e.message); }
         })();
       }
     );
@@ -2170,41 +2279,47 @@ async function piLoginForPayment() {
 
     piPayUser = { uid: result.user.uid, username: result.user.username };
 
-    const avatarEl  = document.getElementById('piPayAvatar');
-    const userEl    = document.getElementById('piPayUsername');
-    const loginArea = document.getElementById('piPayLoginArea');
-    const userArea  = document.getElementById('piPayUserArea');
+    // Update UI login/user area
+    const loginArea = document.getElementById('piDashLoginArea');
+    const userCard  = document.getElementById('piDashUserCard');
+    const payArea   = document.getElementById('piDashPayArea');
+    const avatarEl  = document.getElementById('piDashAvatar');
+    const userEl    = document.getElementById('piDashUsername');
 
-    if (avatarEl)  avatarEl.textContent  = piPayUser.username[0].toUpperCase();
-    if (userEl)    userEl.textContent    = '@' + piPayUser.username;
-    if (loginArea) loginArea.style.display = 'none';
-    if (userArea)  userArea.style.display  = 'block';
+    if (loginArea)  loginArea.style.display  = 'none';
+    if (userCard)   userCard.style.display    = 'flex';
+    if (payArea)    payArea.style.display     = 'block';
+    if (avatarEl)   avatarEl.textContent      = piPayUser.username[0].toUpperCase();
+    if (userEl)     userEl.textContent        = '@' + piPayUser.username;
 
     showToast('success', 'Login Pi Berhasil', '@' + piPayUser.username + ' siap membayar');
   } catch(e) {
     console.error('Pi login error:', e);
-    const msg = e.message || 'Gagal terhubung ke Pi Network';
-    showToast('error', 'Login Pi Gagal', msg);
+    showToast('error', 'Login Pi Gagal', e.message || 'Gagal terhubung ke Pi Network');
   } finally {
-    if (btnLogin) { btnLogin.disabled = false; btnLogin.innerHTML = '<i class="fas fa-circle" style="color:#a5b4fc"></i> Hubungkan Akun Pi'; }
+    if (btnLogin) { btnLogin.disabled = false; btnLogin.innerHTML = '<span style="font-size:16px;font-weight:900">π</span> Login Pi untuk Bayar'; }
   }
 }
 
 function piPayLogout() {
   piPayUser = null;
-  document.getElementById('piPayLoginArea').style.display = 'block';
-  document.getElementById('piPayUserArea').style.display = 'none';
+  const loginArea = document.getElementById('piDashLoginArea');
+  const userCard  = document.getElementById('piDashUserCard');
+  const payArea   = document.getElementById('piDashPayArea');
+  if (loginArea)  loginArea.style.display  = 'block';
+  if (userCard)   userCard.style.display    = 'none';
+  if (payArea)    payArea.style.display     = 'none';
 }
 
 async function submitPiPayment() {
   if (!piPayUser) { showToast('warn', 'Login Pi', 'Login Pi Network dulu'); return; }
 
-  const pending = allTagihan.filter(t => t.status !== 'lunas');
-  if (!pending.length) { showToast('info', 'Sudah Lunas', 'Tidak ada tagihan yang perlu dibayar'); return; }
+  const { type, label, pi: piAmt, rp, sgt } = _dashPiSelected;
+  if (!piAmt || piAmt <= 0) { showToast('error', 'Jumlah Error', 'Pilih jenis pembayaran terlebih dahulu'); return; }
 
-  const total = pending.reduce((s, t) => s + (t.jumlah || 0), 0);
-  const piAmt = parseFloat((total / IDR_PER_PI).toFixed(4));
-  if (piAmt <= 0) { showToast('error', 'Jumlah Error', 'Jumlah pembayaran tidak valid'); return; }
+  const note     = document.getElementById('piDashNote')?.value.trim() || '';
+  const memo     = label + ' - Hidayatulamin' + (note ? ' - ' + note : '');
+  const totalSgt = sgt + PI_EXTRA_SGT;
 
   const btn = document.getElementById('btnPiPay');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...'; }
@@ -2214,12 +2329,15 @@ async function submitPiPayment() {
       window.Pi.createPayment(
         {
           amount:   piAmt,
-          memo:     'Pembayaran SPP Yayasan Hidayatulamin',
+          memo,
           metadata: {
             santriId:    currentUid,
             santriNama:  santriData?.nama || '',
-            totalIdr:    total,
-            tagihanIds:  pending.map(t => t.id),
+            type,
+            typeLabel:   label,
+            nominalRp:   rp,
+            sgtBonus:    totalSgt,
+            note,
           },
         },
         {
@@ -2241,8 +2359,12 @@ async function submitPiPayment() {
                   santriNis:  santriData?.nis  || '—',
                   piUsername: piPayUser.username,
                   amount:     piAmt,
-                  totalIdr:   total,
-                  tagihanIds: pending.map(t => t.id),
+                  type,
+                  typeLabel:  label,
+                  nominalRp:  rp,
+                  sgtBonus:   totalSgt,
+                  memo,
+                  note,
                   status:    'pending_approval',
                   createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 }).catch(e => console.warn('Firestore set error (non-fatal):', e.message));
@@ -2300,31 +2422,33 @@ async function submitPiPayment() {
                   completedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 });
 
-                // Update tagihan jadi lunas
-                const batch = db.batch();
-                for (const t of pending) {
-                  if (t.id && !t.id.startsWith('tag00')) {
-                    const ref = db.collection('tagihan').doc(t.id);
-                    batch.update(ref, {
-                      status:    'lunas',
-                      paidAt:    firebase.firestore.FieldValue.serverTimestamp(),
-                      paymentId,
-                      txid,
-                      metode:   'Pi Network',
-                    });
-                  }
-                }
-                await batch.commit();
+                // Catat sebagai spp_payment agar history tampil
+                db.collection('spp_payments').add({
+                  paymentId,
+                  santriId:   currentUid,
+                  payerId:    currentUid,
+                  payerRole:  'santri',
+                  piUsername: piPayUser.username,
+                  method:     'pi_network',
+                  type,
+                  typeLabel:  label,
+                  nominal:    piAmt,
+                  nominalRp:  rp,
+                  sgtBonus:   totalSgt,
+                  memo,
+                  note,
+                  status:     'lunas',
+                  txid,
+                  bulanKey:   `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`,
+                  completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  createdAt:  firebase.firestore.FieldValue.serverTimestamp(),
+                }).catch(() => {});
 
                 // Update tampilan lokal
-                allTagihan.forEach(t => {
-                  if (pending.find(p => p.id === t.id)) t.status = 'lunas';
-                });
                 renderTagihan();
                 updatePayBanner();
-                updatePiPayRate();
 
-                resolve({ success: true, txid, paymentId });
+                resolve({ success: true, txid, paymentId, sgt: totalSgt });
               } catch(e) {
                 console.error('Complete background error:', e);
                 reject(e);
@@ -2357,7 +2481,7 @@ async function submitPiPayment() {
     });
 
     showToast('success', '✅ Pembayaran Pi Berhasil!',
-      piAmt.toFixed(4) + ' π telah dikirim. Tagihan sudah diperbarui.');
+      piAmt + ' π · ' + label + ' telah dikirim. Jazakumullah khairan! 🤲');
 
     // Refresh data tagihan dari Firestore
     setTimeout(() => loadTagihan(), 1500);
@@ -2368,7 +2492,7 @@ async function submitPiPayment() {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<span style="font-size:18px;font-weight:900">π</span> Bayar SPP Sekarang';
+      btn.innerHTML = `<span style="font-size:18px;font-weight:900">π</span><span id="btnPiPayTxt">Bayar ${_dashPiSelected.pi} π Sekarang</span>`;
     }
   }
 }
