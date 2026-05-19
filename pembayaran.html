@@ -413,63 +413,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
       <!-- Pilih jenis pembayaran — kartu -->
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);margin-bottom:10px">Pilih Jenis Pembayaran</div>
       <div id="piPayTypeGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-
-        <div class="pi-type-card active" onclick="selectPiType(this,'spp_bulan','SPP Bulanan',15,500000,150)" data-val="spp_bulan">
-          <div class="pi-type-ico">💳</div>
-          <div class="pi-type-name">SPP Bulanan</div>
-          <div class="pi-type-pi">15 π</div>
-          <div class="pi-type-rp">≈ Rp 500.000</div>
+        <!-- Diisi dinamis oleh renderPiTypeCards() berdasarkan pi_rate Firestore -->
+        <div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:12px">
+          <i class="fas fa-spinner fa-spin"></i> Memuat harga...
         </div>
-
-        <div class="pi-type-card" onclick="selectPiType(this,'spp_tahun','SPP Tahunan',150,5500000,800)" data-val="spp_tahun">
-          <div class="pi-type-ico">📋</div>
-          <div class="pi-type-name">SPP Tahunan</div>
-          <div class="pi-type-pi">150 π</div>
-          <div class="pi-type-rp">≈ Rp 5.500.000</div>
-        </div>
-
-        <div class="pi-type-card" onclick="selectPiType(this,'seragam','Seragam / Baju',10,300000,50)" data-val="seragam">
-          <div class="pi-type-ico">👕</div>
-          <div class="pi-type-name">Seragam / Baju</div>
-          <div class="pi-type-pi">10 π</div>
-          <div class="pi-type-rp">≈ Rp 300.000</div>
-        </div>
-
-        <div class="pi-type-card" onclick="selectPiType(this,'uang_makan','Uang Makan',8,250000,80)" data-val="uang_makan">
-          <div class="pi-type-ico">🍽️</div>
-          <div class="pi-type-name">Uang Makan</div>
-          <div class="pi-type-pi">8 π</div>
-          <div class="pi-type-rp">≈ Rp 250.000</div>
-        </div>
-
-        <div class="pi-type-card" onclick="selectPiType(this,'kitab','Kitab / Buku',6,180000,40)" data-val="kitab">
-          <div class="pi-type-ico">📖</div>
-          <div class="pi-type-name">Kitab / Buku</div>
-          <div class="pi-type-pi">6 π</div>
-          <div class="pi-type-rp">≈ Rp 180.000</div>
-        </div>
-
-        <div class="pi-type-card" onclick="selectPiType(this,'kegiatan','Kegiatan / Ekskul',5,150000,40)" data-val="kegiatan">
-          <div class="pi-type-ico">🏃</div>
-          <div class="pi-type-name">Kegiatan / Ekskul</div>
-          <div class="pi-type-pi">5 π</div>
-          <div class="pi-type-rp">≈ Rp 150.000</div>
-        </div>
-
-        <div class="pi-type-card" onclick="selectPiType(this,'wisuda','Wisuda / Acara',20,600000,100)" data-val="wisuda">
-          <div class="pi-type-ico">🎓</div>
-          <div class="pi-type-name">Wisuda / Acara</div>
-          <div class="pi-type-pi">20 π</div>
-          <div class="pi-type-rp">≈ Rp 600.000</div>
-        </div>
-
-        <div class="pi-type-card" onclick="selectPiType(this,'donasi','Donasi Yayasan',5,0,30)" data-val="donasi">
-          <div class="pi-type-ico">🤲</div>
-          <div class="pi-type-name">Donasi Yayasan</div>
-          <div class="pi-type-pi">5 π</div>
-          <div class="pi-type-rp">Bebas / Sukarela</div>
-        </div>
-
       </div>
 
       <!-- Display jumlah yang dipilih -->
@@ -926,17 +873,26 @@ async function loadPiRateFromFirestore() {
     if (snap.exists) {
       const d = snap.data();
       _piRatePerPi = d.rateRp || 100000000;
+    } else {
+      console.info('[Pi Rate] Dokumen config/pi_rate belum ada, pakai default 100 juta');
     }
   } catch(e) {
-    console.warn('[loadPiRateFromFirestore] Gagal load, pakai default:', e.message);
+    // Jika permission denied, pakai nilai default — kartu tetap tampil
+    console.warn('[loadPiRateFromFirestore] Gagal load (' + e.code + '), pakai default Rp 100.000.000');
   }
-  // Rebuild rates dengan rate baru
+  // Rebuild rates dengan rate baru/default
   SPP_RATES = buildSPPRates();
-  // Update state default
-  _piSelected.pi  = calcPiAmt(_piSelected.rp);
-  // Render ulang kartu Pi type
+  // Update state default ke item pertama (SPP Bulanan)
+  _piSelected = {
+    type: 'spp_bulan',
+    label: 'SPP Bulanan',
+    pi: calcPiAmt(500000),
+    rp: 500000,
+    sgt: 150
+  };
+  // Render kartu Pi type dengan harga dinamis
   renderPiTypeCards();
-  // Update display
+  // Update display amount & tombol
   updatePiAmt();
   // Update rate badge di panel Pi
   const badge = document.getElementById('piRateBadgeTxt');
