@@ -944,41 +944,46 @@ async function loadPiRateFromFirestore() {
 }
 
 function renderPiTypeCards() {
-  const grid = document.getElementById('piPayTypeGrid');
+  var grid = document.getElementById('piPayTypeGrid');
   if (!grid) return;
-  const items = [
-    { type:'spp_bulan',  emoji:'💳', label:'SPP Bulanan',     rp:500000   },
-    { type:'spp_tahun',  emoji:'📋', label:'SPP Tahunan',     rp:5500000  },
-    { type:'seragam',    emoji:'👕', label:'Seragam / Baju',  rp:300000   },
-    { type:'uang_makan', emoji:'🍽️', label:'Uang Makan',      rp:250000   },
-    { type:'kitab',      emoji:'📖', label:'Kitab / Buku',    rp:180000   },
-    { type:'kegiatan',   emoji:'🏃', label:'Kegiatan / Ekskul',rp:150000  },
-    { type:'wisuda',     emoji:'🎓', label:'Wisuda / Acara',  rp:600000   },
-    { type:'donasi',     emoji:'🤲', label:'Donasi Yayasan',  rp:0        },
+  var items = [
+    { type:'spp_bulan',  emoji:'💳', label:'SPP Bulanan',      rp:500000   },
+    { type:'spp_tahun',  emoji:'📋', label:'SPP Tahunan',       rp:5500000  },
+    { type:'seragam',    emoji:'👕', label:'Seragam / Baju',    rp:300000   },
+    { type:'uang_makan', emoji:'🍽️', label:'Uang Makan',        rp:250000   },
+    { type:'kitab',      emoji:'📖', label:'Kitab / Buku',      rp:180000   },
+    { type:'kegiatan',   emoji:'🏃', label:'Kegiatan / Ekskul', rp:150000   },
+    { type:'wisuda',     emoji:'🎓', label:'Wisuda / Acara',    rp:600000   },
+    { type:'donasi',     emoji:'🤲', label:'Donasi Yayasan',    rp:0        },
   ];
-  const sgt = { spp_bulan:150, spp_tahun:850, seragam:100, uang_makan:130, kitab:90, kegiatan:90, wisuda:150, donasi:80 };
+  var sgtMap = { spp_bulan:150, spp_tahun:850, seragam:100, uang_makan:130, kitab:90, kegiatan:90, wisuda:150, donasi:80 };
 
-  grid.innerHTML = items.map((item, idx) => {
-    const pi   = calcPiAmt(item.rp);
-    const piDisplay = item.rp > 0 ? pi + ' π' : '— π';
-    const rpDisplay = item.rp > 0 ? '≈ Rp ' + item.rp.toLocaleString('id-ID') : 'Bebas / Sukarela';
-    const isActive  = idx === 0 ? ' active' : '';
-    const sg = sgt[item.type] || 80;
-    return `<div class="pi-type-card${isActive}" onclick="selectPiType(this,'${item.type}','${item.label}',${pi},${item.rp},${sg})" data-val="${item.type}">
-      <div class="pi-type-ico">${item.emoji}</div>
-      <div class="pi-type-name">${item.label}</div>
-      <div class="pi-type-pi">${piDisplay}</div>
-      <div class="pi-type-rp">${rpDisplay}</div>
-    </div>`;
-  }).join('');
+  var html = '';
+  items.forEach(function(item, idx) {
+    var pi = calcPiAmt(item.rp);
+    var piDisplay = item.rp > 0 ? pi + ' π' : '— π';
+    var rpDisplay = item.rp > 0 ? '≈ Rp ' + item.rp.toLocaleString('id-ID') : 'Bebas / Sukarela';
+    var isActive  = idx === 0 ? ' active' : '';
+    var sg = sgtMap[item.type] || 80;
+    var onclick = "selectPiType(this,'" + item.type + "','" + item.label + "'," + pi + "," + item.rp + "," + sg + ")";
+    html += '<div class="pi-type-card' + isActive + '" onclick="' + onclick + '" data-val="' + item.type + '">' +
+      '<div class="pi-type-ico">' + item.emoji + '</div>' +
+      '<div class="pi-type-name">' + item.label + '</div>' +
+      '<div class="pi-type-pi">' + piDisplay + '</div>' +
+      '<div class="pi-type-rp">' + rpDisplay + '</div>' +
+    '</div>';
+  });
+  grid.innerHTML = html;
 
-  // Pastikan state default sinkron dengan item pertama
+  // Sinkronkan state default dengan item pertama
   if (items.length > 0) {
-    const first = items[0];
-    const pi0   = calcPiAmt(first.rp);
-    _piSelected = { type: first.type, label: first.label, pi: pi0, rp: first.rp, sgt: sgt[first.type] || 80 };
+    var first = items[0];
+    var pi0 = calcPiAmt(first.rp);
+    var sg0 = sgtMap[first.type] || 80;
+    _piSelected = { type: first.type, label: first.label, pi: pi0, rp: first.rp, sgt: sg0 };
   }
 }
+
 
 function initPiSDK() {
   const dot = document.getElementById('piSdkDot');

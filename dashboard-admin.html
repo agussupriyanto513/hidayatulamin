@@ -2916,8 +2916,6 @@ if (_origSwitch) {
 // ════ END PI WHITELIST ════
 
 // ════ PI RATE ADMIN ════
-// Dokumen Firestore: config/pi_rate
-// Field: rateRp (number), updatedAt (timestamp), updatedBy (string)
 
 const PI_PAYMENT_ITEMS = [
   { type:'spp_bulan',  label:'SPP Bulanan',      rp:500000,   sgt:100 },
@@ -2930,25 +2928,27 @@ const PI_PAYMENT_ITEMS = [
   { type:'donasi',     label:'Donasi Yayasan',    rp:0,        sgt:30  },
 ];
 
-let _currentPiRate = 100000000; // default 100 juta
+let _currentPiRate = 100000000;
 
 async function loadPiRate() {
   try {
-    const snap = await db.collection('config').doc('pi_rate').get();
+    var snap = await db.collection('config').doc('pi_rate').get();
     if (snap.exists) {
-      const d = snap.data();
+      var d = snap.data();
       _currentPiRate = d.rateRp || 100000000;
-      const formatted = 'Rp ' + _currentPiRate.toLocaleString('id-ID');
+      var formatted = 'Rp ' + _currentPiRate.toLocaleString('id-ID');
       setEl('piRateDisplay', formatted);
       if (d.updatedAt) {
-        const dt = d.updatedAt.toDate ? d.updatedAt.toDate() : new Date(d.updatedAt);
-        setEl('piRateUpdatedAt', 'Terakhir diubah: ' + dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) + (d.updatedBy ? ' oleh ' + d.updatedBy : ''));
+        var dt = d.updatedAt.toDate ? d.updatedAt.toDate() : new Date(d.updatedAt);
+        var byStr = d.updatedBy ? ' oleh ' + d.updatedBy : '';
+        setEl('piRateUpdatedAt', 'Terakhir diubah: ' + dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) + byStr);
       }
     } else {
       setEl('piRateDisplay', 'Rp ' + _currentPiRate.toLocaleString('id-ID'));
       setEl('piRateUpdatedAt', 'Belum pernah diset — menggunakan default');
     }
-    document.getElementById('piRateInput').value = _currentPiRate;
+    var inp = document.getElementById('piRateInput');
+    if (inp) inp.value = _currentPiRate;
     renderPiRatePriceTable(_currentPiRate);
     setEl('piRateTblSub', '1 π = Rp ' + _currentPiRate.toLocaleString('id-ID'));
     await loadPiRateHistory();
@@ -2959,69 +2959,88 @@ async function loadPiRate() {
 }
 
 async function loadPiRateHistory() {
-  const el = document.getElementById('piRateHistory');
+  var el = document.getElementById('piRateHistory');
+  if (!el) return;
   try {
-    const snap = await db.collection('config_history')
+    var snap = await db.collection('config_history')
       .where('docId','==','pi_rate')
       .orderBy('changedAt','desc').limit(20).get();
     if (snap.empty) {
-      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--g400);font-size:12px"><i class="fas fa-history" style="display:block;font-size:24px;margin-bottom:8px;opacity:.3"></i>Belum ada riwayat perubahan</div>';
+      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--g400);font-size:12px">' +
+        '<i class="fas fa-history" style="display:block;font-size:24px;margin-bottom:8px;opacity:.3"></i>' +
+        'Belum ada riwayat perubahan</div>';
       return;
     }
-    el.innerHTML = snap.docs.map(d => {
-      const data = d.data();
-      const dt = data.changedAt?.toDate ? data.changedAt.toDate() : new Date();
-      const dateStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      const oldVal = data.oldRateRp ? 'Rp ' + Number(data.oldRateRp).toLocaleString('id-ID') : '—';
-      const newVal = 'Rp ' + Number(data.newRateRp).toLocaleString('id-ID');
-      return \`<div style="background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:12px;position:relative">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <div>
-            <div style="font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:4px"><span style="font-size:16px;font-weight:900;color:#8b5cf6;margin-right:6px">π</span>\${escHtml(newVal)}</div>
-            <div style="font-size:10px;color:var(--g400)">Sebelumnya: \${escHtml(oldVal)}</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:10px;color:var(--g400)">\${escHtml(dateStr)}</div>
-            <div style="font-size:10px;font-weight:700;color:var(--g600);margin-top:2px">\${escHtml(data.changedBy || 'admin')}</div>
-          </div>
-        </div>
-      </div>\`;
-    }).join('');
+    var html = '';
+    snap.docs.forEach(function(doc) {
+      var data = doc.data();
+      var dt = data.changedAt && data.changedAt.toDate ? data.changedAt.toDate() : new Date();
+      var dateStr = dt.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      var oldVal = data.oldRateRp ? 'Rp ' + Number(data.oldRateRp).toLocaleString('id-ID') : '—';
+      var newVal = 'Rp ' + Number(data.newRateRp).toLocaleString('id-ID');
+      var who = escHtml(data.changedBy || 'admin');
+      html += '<div style="background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:12px;margin-bottom:8px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+          '<div>' +
+            '<div style="font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:4px">' +
+              '<span style="font-size:16px;font-weight:900;color:#8b5cf6;margin-right:6px">π</span>' +
+              escHtml(newVal) +
+            '</div>' +
+            '<div style="font-size:10px;color:var(--g400)">Sebelumnya: ' + escHtml(oldVal) + '</div>' +
+          '</div>' +
+          '<div style="text-align:right;flex-shrink:0">' +
+            '<div style="font-size:10px;color:var(--g400)">' + escHtml(dateStr) + '</div>' +
+            '<div style="font-size:10px;font-weight:700;color:var(--g600);margin-top:2px">' + who + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    el.innerHTML = html;
   } catch(e) {
     el.innerHTML = '<div style="font-size:12px;color:var(--g400);padding:16px">Tidak dapat memuat riwayat.</div>';
   }
 }
 
 function renderPiRatePriceTable(rate) {
-  const tbody = document.getElementById('piRatePriceTable');
-  if (!rate || rate <= 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--r)">Rate tidak valid</td></tr>'; return; }
-  tbody.innerHTML = PI_PAYMENT_ITEMS.map(item => {
-    const piAmt = item.rp > 0 ? (item.rp / rate).toFixed(4) : '—';
-    const piDisplay = item.rp > 0 ? Number(piAmt) + ' π' : 'Sukarela';
-    const rpDisplay = item.rp > 0 ? 'Rp ' + item.rp.toLocaleString('id-ID') : 'Sukarela';
-    return \`<tr>
-      <td><span style="font-weight:600;color:var(--ink2)">\${escHtml(item.label)}</span></td>
-      <td style="color:var(--g600)">\${rpDisplay}</td>
-      <td style="color:#8b5cf6;font-weight:700">1 π = Rp \${rate.toLocaleString('id-ID')}</td>
-      <td style="font-weight:800;color:#8b5cf6;font-size:14px">\${piDisplay}</td>
-      <td><span style="background:var(--sgtl);color:var(--sgt);padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700">+\${item.sgt} SGT</span></td>
-    </tr>\`;
-  }).join('');
+  var tbody = document.getElementById('piRatePriceTable');
+  if (!tbody) return;
+  if (!rate || rate <= 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--r)">Rate tidak valid</td></tr>';
+    return;
+  }
+  var html = '';
+  PI_PAYMENT_ITEMS.forEach(function(item) {
+    var piAmt = item.rp > 0 ? (item.rp / rate).toFixed(4) : '—';
+    var piDisplay = item.rp > 0 ? Number(piAmt) + ' π' : 'Sukarela';
+    var rpDisplay = item.rp > 0 ? 'Rp ' + item.rp.toLocaleString('id-ID') : 'Sukarela';
+    html += '<tr>' +
+      '<td><span style="font-weight:600;color:var(--ink2)">' + escHtml(item.label) + '</span></td>' +
+      '<td style="color:var(--g600)">' + rpDisplay + '</td>' +
+      '<td style="color:#8b5cf6;font-weight:700">1 π = Rp ' + rate.toLocaleString('id-ID') + '</td>' +
+      '<td style="font-weight:800;color:#8b5cf6;font-size:14px">' + piDisplay + '</td>' +
+      '<td><span style="background:var(--sgtl);color:var(--sgt);padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700">+' + item.sgt + ' SGT</span></td>' +
+    '</tr>';
+  });
+  tbody.innerHTML = html;
 }
 
 function previewPiRate() {
-  const val = parseInt(document.getElementById('piRateInput').value) || 0;
-  const previewDiv = document.getElementById('piRatePreview');
-  const itemsDiv = document.getElementById('piRatePreviewItems');
+  var val = parseInt(document.getElementById('piRateInput').value) || 0;
+  var previewDiv = document.getElementById('piRatePreview');
+  var itemsDiv = document.getElementById('piRatePreviewItems');
   if (!val || val < 1000) { previewDiv.style.display = 'none'; return; }
   previewDiv.style.display = 'block';
-  itemsDiv.innerHTML = PI_PAYMENT_ITEMS.filter(i => i.rp > 0).map(item => {
-    const pi = (item.rp / val).toFixed(4);
-    return \`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(139,92,246,.1)">
-      <span style="color:var(--g600)">\${escHtml(item.label)}</span>
-      <span style="font-weight:800;color:#8b5cf6">\${Number(pi)} π <span style="font-size:10px;color:rgba(139,92,246,.5)">(Rp \${item.rp.toLocaleString('id-ID')})</span></span>
-    </div>\`;
-  }).join('');
+  var html = '';
+  PI_PAYMENT_ITEMS.filter(function(i){ return i.rp > 0; }).forEach(function(item) {
+    var pi = (item.rp / val).toFixed(4);
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(139,92,246,.1)">' +
+      '<span style="color:var(--g600)">' + escHtml(item.label) + '</span>' +
+      '<span style="font-weight:800;color:#8b5cf6">' + Number(pi) + ' π ' +
+        '<span style="font-size:10px;color:rgba(139,92,246,.5)">(Rp ' + item.rp.toLocaleString('id-ID') + ')</span>' +
+      '</span>' +
+    '</div>';
+  });
+  itemsDiv.innerHTML = html;
 }
 
 function setPiRateShortcut(val) {
@@ -3030,19 +3049,18 @@ function setPiRateShortcut(val) {
 }
 
 async function savePiRate() {
-  const val = parseInt(document.getElementById('piRateInput').value) || 0;
+  var val = parseInt(document.getElementById('piRateInput').value) || 0;
   if (!val || val < 1000) { showToast('warn','Rate tidak valid','Masukkan nilai minimal Rp 1.000'); return; }
 
-  const btn = document.getElementById('btnSavePiRate');
-  const txt = document.getElementById('btnSavePiRateTxt');
+  var btn = document.getElementById('btnSavePiRate');
+  var txt = document.getElementById('btnSavePiRateTxt');
   btn.disabled = true;
   txt.textContent = 'Menyimpan...';
 
   try {
-    const adminSnap = await db.collection('users').doc(currentAdminUid).get();
-    const adminName = adminSnap.exists ? (adminSnap.data().displayName || 'admin') : 'admin';
+    var adminSnap = await db.collection('users').doc(currentAdminUid).get();
+    var adminName = adminSnap.exists ? (adminSnap.data().displayName || 'admin') : 'admin';
 
-    // Simpan riwayat dulu
     await db.collection('config_history').add({
       docId: 'pi_rate',
       oldRateRp: _currentPiRate,
@@ -3051,7 +3069,6 @@ async function savePiRate() {
       changedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 
-    // Update config utama
     await db.collection('config').doc('pi_rate').set({
       rateRp: val,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -3059,7 +3076,7 @@ async function savePiRate() {
     });
 
     _currentPiRate = val;
-    const formatted = 'Rp ' + val.toLocaleString('id-ID');
+    var formatted = 'Rp ' + val.toLocaleString('id-ID');
     setEl('piRateDisplay', formatted);
     setEl('piRateUpdatedAt', 'Baru saja diubah oleh ' + adminName);
     setEl('piRateTblSub', '1 π = ' + formatted);
@@ -3075,19 +3092,19 @@ async function savePiRate() {
   }
 }
 
-// ── Patch switchSection untuk load pi-rate ──
+// Patch switchSection agar load pi-rate saat section dibuka
 (function() {
-  const _orig = typeof switchSection === 'function' ? switchSection : null;
-  if (_orig) {
-    const prevPatch = window.switchSection;
+  var _prev = window.switchSection;
+  if (typeof _prev === 'function') {
     window.switchSection = function(name, el) {
-      prevPatch(name, el);
+      _prev(name, el);
       if (name === 'pi-rate') loadPiRate();
     };
   }
 })();
 
 // ════ END PI RATE ADMIN ════
+
 
 
 </script>
