@@ -1028,68 +1028,17 @@ tr:hover td{background:var(--g50)}
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);margin-bottom:10px">Pilih Jenis Pembayaran</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px" id="piDashTypeGrid">
 
-              <div class="pi-type-card active" onclick="selectDashPiType(this,'spp_bulan','SPP Bulanan',15,500000,150)" data-val="spp_bulan">
-                <div class="pi-type-ico">💳</div>
-                <div class="pi-type-name">SPP Bulanan</div>
-                <div class="pi-type-pi">15 π</div>
-                <div class="pi-type-rp">≈ Rp 500.000</div>
-              </div>
-
-              <div class="pi-type-card" onclick="selectDashPiType(this,'spp_tahun','SPP Tahunan',150,5500000,800)" data-val="spp_tahun">
-                <div class="pi-type-ico">📋</div>
-                <div class="pi-type-name">SPP Tahunan</div>
-                <div class="pi-type-pi">150 π</div>
-                <div class="pi-type-rp">≈ Rp 5.500.000</div>
-              </div>
-
-              <div class="pi-type-card" onclick="selectDashPiType(this,'seragam','Seragam / Baju',10,300000,50)" data-val="seragam">
-                <div class="pi-type-ico">👕</div>
-                <div class="pi-type-name">Seragam / Baju</div>
-                <div class="pi-type-pi">10 π</div>
-                <div class="pi-type-rp">≈ Rp 300.000</div>
-              </div>
-
-              <div class="pi-type-card" onclick="selectDashPiType(this,'uang_makan','Uang Makan',8,250000,80)" data-val="uang_makan">
-                <div class="pi-type-ico">🍽️</div>
-                <div class="pi-type-name">Uang Makan</div>
-                <div class="pi-type-pi">8 π</div>
-                <div class="pi-type-rp">≈ Rp 250.000</div>
-              </div>
-
-              <div class="pi-type-card" onclick="selectDashPiType(this,'kitab','Kitab / Buku',6,180000,40)" data-val="kitab">
-                <div class="pi-type-ico">📖</div>
-                <div class="pi-type-name">Kitab / Buku</div>
-                <div class="pi-type-pi">6 π</div>
-                <div class="pi-type-rp">≈ Rp 180.000</div>
-              </div>
-
-              <div class="pi-type-card" onclick="selectDashPiType(this,'kegiatan','Kegiatan / Ekskul',5,150000,40)" data-val="kegiatan">
-                <div class="pi-type-ico">🏃</div>
-                <div class="pi-type-name">Kegiatan / Ekskul</div>
-                <div class="pi-type-pi">5 π</div>
-                <div class="pi-type-rp">≈ Rp 150.000</div>
-              </div>
-
-              <div class="pi-type-card" onclick="selectDashPiType(this,'wisuda','Wisuda / Acara',20,600000,100)" data-val="wisuda">
-                <div class="pi-type-ico">🎓</div>
-                <div class="pi-type-name">Wisuda / Acara</div>
-                <div class="pi-type-pi">20 π</div>
-                <div class="pi-type-rp">≈ Rp 600.000</div>
-              </div>
-
-              <div class="pi-type-card" onclick="selectDashPiType(this,'donasi','Donasi Yayasan',5,0,30)" data-val="donasi">
-                <div class="pi-type-ico">🤲</div>
-                <div class="pi-type-name">Donasi Yayasan</div>
-                <div class="pi-type-pi">5 π</div>
-                <div class="pi-type-rp">Bebas / Sukarela</div>
+              <!-- Diisi dinamis oleh renderDashPiTypeCards() berdasarkan pi_rate Firestore -->
+              <div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:12px" id="piDashGridLoading">
+                <i class="fas fa-spinner fa-spin"></i> Memuat harga...
               </div>
 
             </div>
 
             <!-- Display jumlah yang dipilih -->
             <div class="pi-amt-display">
-              <div class="pi-amt-val"><span id="piDashAmtVal">15</span> <span style="font-size:16px;font-weight:900">π</span></div>
-              <div class="pi-amt-desc" id="piDashAmtDesc">≈ Rp 500.000 · SPP Bulanan</div>
+              <div class="pi-amt-val"><span id="piDashAmtVal">…</span> <span style="font-size:16px;font-weight:900">π</span></div>
+              <div class="pi-amt-desc" id="piDashAmtDesc">Memuat rate dari server…</div>
             </div>
 
             <!-- Bonus SGT -->
@@ -1113,7 +1062,7 @@ tr:hover td{background:var(--g50)}
             </div>
             <div id="piDashPayArea" style="display:none">
               <button id="btnPiPay" style="width:100%;padding:13px;background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;transition:var(--tr)" onclick="submitPiPayment()">
-                <span style="font-size:18px;font-weight:900">π</span> <span id="btnPiPayTxt">Bayar 15 π Sekarang</span>
+                <span style="font-size:18px;font-weight:900">π</span> <span id="btnPiPayTxt">Bayar π Sekarang</span>
               </button>
             </div>
 
@@ -1244,6 +1193,8 @@ async function bootDashboard(user, data) {
 
   document.body.style.visibility = '';
   initSantri();
+  // Load Pi rate dari Firestore agar harga Pi sinkron dengan rate admin
+  loadDashPiRate();
   // Load Pi donation stats (fire and forget)
   setTimeout(() => loadMyPiDonations(user.uid), 1000);
   // Real-time listener for data santri (SGT, nilai, dll)
@@ -2199,7 +2150,81 @@ function copyPaymentCode() {
 
 // State pilihan jenis pembayaran Pi di dashboard
 const PI_EXTRA_SGT = 50;  // bonus SGT ekstra pakai Pi
-let _dashPiSelected = { type:'spp_bulan', label:'SPP Bulanan', pi:15, rp:500000, sgt:150 };
+let _dashPiSelected = { type:'spp_bulan', label:'SPP Bulanan', pi:0, rp:500000, sgt:150 };
+let _dashPiRatePerPi = 100000000; // diisi dari Firestore
+
+// ── Pi Rate: load dari Firestore & render kartu dinamis ──
+function calcDashPiAmt(rp) {
+  if (!rp || rp <= 0) return 0;
+  return Math.round((rp / _dashPiRatePerPi) * 10000) / 10000;
+}
+
+async function loadDashPiRate() {
+  try {
+    const snap = await db.collection('config').doc('pi_rate').get();
+    if (snap.exists) {
+      const d = snap.data();
+      if (d.rateRp && d.rateRp > 0) {
+        _dashPiRatePerPi = d.rateRp;
+        console.info('[Dash Pi Rate] ✅ Rate dimuat: Rp ' + _dashPiRatePerPi.toLocaleString('id-ID') + ' per Pi');
+      }
+    } else {
+      console.info('[Dash Pi Rate] Dokumen belum ada, pakai default 100 juta');
+    }
+  } catch(e) {
+    console.warn('[Dash Pi Rate] ❌ Gagal load (' + (e.code||e.message) + '), pakai default');
+  }
+  renderDashPiTypeCards();
+}
+
+function renderDashPiTypeCards() {
+  const grid = document.getElementById('piDashTypeGrid');
+  if (!grid) return;
+
+  const items = [
+    { type:'spp_bulan',  emoji:'💳', label:'SPP Bulanan',      rp:500000,  sgt:150 },
+    { type:'spp_tahun',  emoji:'📋', label:'SPP Tahunan',       rp:5500000, sgt:800 },
+    { type:'seragam',    emoji:'👕', label:'Seragam / Baju',    rp:300000,  sgt:50  },
+    { type:'uang_makan', emoji:'🍽️', label:'Uang Makan',        rp:250000,  sgt:80  },
+    { type:'kitab',      emoji:'📖', label:'Kitab / Buku',      rp:180000,  sgt:40  },
+    { type:'kegiatan',   emoji:'🏃', label:'Kegiatan / Ekskul', rp:150000,  sgt:40  },
+    { type:'wisuda',     emoji:'🎓', label:'Wisuda / Acara',    rp:600000,  sgt:100 },
+    { type:'donasi',     emoji:'🤲', label:'Donasi Yayasan',    rp:0,       sgt:30  },
+  ];
+
+  let html = '';
+  items.forEach(function(item, idx) {
+    const pi = calcDashPiAmt(item.rp);
+    const piDisplay = item.rp > 0 ? pi + ' π' : '— π';
+    const rpDisplay = item.rp > 0 ? '≈ Rp ' + item.rp.toLocaleString('id-ID') : 'Bebas / Sukarela';
+    const isActive  = idx === 0 ? ' active' : '';
+    const onclick = "selectDashPiType(this,'" + item.type + "','" + item.label + "'," + pi + "," + item.rp + "," + item.sgt + ")";
+    html += '<div class="pi-type-card' + isActive + '" onclick="' + onclick + '" data-val="' + item.type + '">' +
+      '<div class="pi-type-ico">' + item.emoji + '</div>' +
+      '<div class="pi-type-name">' + item.label + '</div>' +
+      '<div class="pi-type-pi">' + piDisplay + '</div>' +
+      '<div class="pi-type-rp">' + rpDisplay + '</div>' +
+    '</div>';
+  });
+  grid.innerHTML = html;
+
+  // Update state & display untuk item pertama
+  const first = items[0];
+  const pi0 = calcDashPiAmt(first.rp);
+  _dashPiSelected = { type: first.type, label: first.label, pi: pi0, rp: first.rp, sgt: first.sgt };
+  const valEl = document.getElementById('piDashAmtVal');
+  const descEl = document.getElementById('piDashAmtDesc');
+  const btnEl  = document.getElementById('btnPiPayTxt');
+  const sgtEl  = document.getElementById('piDashSgtBonus');
+  if (valEl)  valEl.textContent  = pi0;
+  if (descEl) descEl.textContent = '≈ Rp ' + first.rp.toLocaleString('id-ID') + ' · ' + first.label;
+  if (btnEl)  btnEl.textContent  = 'Bayar ' + pi0 + ' π Sekarang';
+  if (sgtEl)  sgtEl.textContent  = '+' + (first.sgt + PI_EXTRA_SGT) + ' SGT';
+
+  // Update rate badge jika ada
+  const badge = document.getElementById('piRateBadgeTxt');
+  if (badge) badge.textContent = '1 π = Rp ' + _dashPiRatePerPi.toLocaleString('id-ID');
+}
 
 function selectDashPiType(el, type, label, pi, rp, sgt) {
   document.querySelectorAll('#piDashTypeGrid .pi-type-card').forEach(c => c.classList.remove('active'));
