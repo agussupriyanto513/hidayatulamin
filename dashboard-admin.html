@@ -1209,7 +1209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.body.style.visibility = 'hidden';
 
   HA.requireAuth('admin', (user, data) => {
-    const name = data?.namaLengkap || data?.name || data?.displayName || user.email;
+    const name = data?.namaLengkap || data?.name || data?.displayName || user?.email || user?.displayName || 'Admin';
     bootDashboard(user, name);
   });
 });
@@ -1242,11 +1242,14 @@ async function ensureFreshToken() {
 async function loadDashboardData() {
   try {
     const [santriSnap, ustadzSnap] = await Promise.all([
-      db.collection('users').where('role','==','santri').where('isActive','==',true).get(),
-      db.collection('users').where('role','==','ustadz').where('isActive','==',true).get()
+      db.collection('users').where('role','==','santri').get(),
+      db.collection('users').where('role','==','ustadz').get()
     ]);
-    animNum('statSantri', santriSnap.size);
-    animNum('statUstadz', ustadzSnap.size);
+    // Filter isActive di client agar tidak butuh composite index Firestore
+    const santriAktif = santriSnap.docs.filter(d => d.data().isActive !== false);
+    const ustadzAktif = ustadzSnap.docs.filter(d => d.data().isActive !== false);
+    animNum('statSantri', santriAktif.length);
+    animNum('statUstadz', ustadzAktif.length);
 
     // Load recent users for welcome screen
     const recentSnap = await db.collection('users').limit(10).get();
