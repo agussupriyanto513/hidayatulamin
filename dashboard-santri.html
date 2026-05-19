@@ -889,40 +889,28 @@ tr:hover td{background:var(--g50)}
     <div class="section" id="sec-pembayaran">
       <div style="margin-bottom:18px"><h3 style="font-size:18px;font-weight:700">Pembayaran</h3><p style="font-size:12px;color:var(--g500)">Bayar SPP dan tagihan pesantren via transfer, QRIS, atau Pi Network</p></div>
 
-      <!-- SHORTCUT KE HALAMAN PEMBAYARAN LENGKAP -->
-      <a href="pembayaran.html" style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:var(--rd);padding:16px 18px;margin-bottom:16px;text-decoration:none;border:1px solid rgba(255,255,255,.08)">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--g),var(--gd));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0"><i class="fas fa-credit-card" style="color:#fff"></i></div>
-          <div>
-            <p style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px">Pusat Pembayaran</p>
-            <p style="font-size:11px;color:rgba(255,255,255,.45)">Pi Network · QRIS · Transfer Bank · E-Wallet</p>
-          </div>
-        </div>
-        <i class="fas fa-arrow-right" style="color:rgba(255,255,255,.3);font-size:14px"></i>
-      </a>
-
       <!-- PILIH METODE CEPAT -->
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px">
-        <a href="pembayaran.html?method=pi" style="display:flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(109,40,217,.1));border:1.5px solid rgba(139,92,246,.3);border-radius:var(--rd);padding:14px;text-decoration:none">
+        <div onclick="switchPayTab('pi')" style="display:flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(109,40,217,.1));border:1.5px solid rgba(139,92,246,.3);border-radius:var(--rd);padding:14px;cursor:pointer">
           <span style="font-size:26px;font-weight:900;color:#8b5cf6;line-height:1">π</span>
           <span style="font-size:12px;font-weight:700;color:#8b5cf6">Pi Network</span>
           <span style="font-size:10px;color:rgba(139,92,246,.6);background:rgba(139,92,246,.12);padding:2px 8px;border-radius:10px">+50 SGT extra</span>
-        </a>
-        <a href="pembayaran.html?method=qris" style="display:flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(13,184,122,.12),rgba(5,150,105,.08));border:1.5px solid rgba(13,184,122,.3);border-radius:var(--rd);padding:14px;text-decoration:none">
+        </div>
+        <div onclick="switchPayTab('tagihan')" style="display:flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(13,184,122,.12),rgba(5,150,105,.08));border:1.5px solid rgba(13,184,122,.3);border-radius:var(--rd);padding:14px;cursor:pointer">
           <i class="fas fa-qrcode" style="font-size:24px;color:var(--g)"></i>
           <span style="font-size:12px;font-weight:700;color:var(--g)">QRIS</span>
           <span style="font-size:10px;color:rgba(13,184,122,.6);background:rgba(13,184,122,.1);padding:2px 8px;border-radius:10px">Scan & bayar</span>
-        </a>
-        <a href="pembayaran.html?method=bank" style="display:flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(45,126,245,.12),rgba(29,78,216,.08));border:1.5px solid rgba(45,126,245,.3);border-radius:var(--rd);padding:14px;text-decoration:none">
+        </div>
+        <div onclick="switchPayTab('tagihan')" style="display:flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(45,126,245,.12),rgba(29,78,216,.08));border:1.5px solid rgba(45,126,245,.3);border-radius:var(--rd);padding:14px;cursor:pointer">
           <i class="fas fa-university" style="font-size:22px;color:var(--b)"></i>
           <span style="font-size:12px;font-weight:700;color:var(--b)">Transfer Bank</span>
           <span style="font-size:10px;color:rgba(45,126,245,.6);background:rgba(45,126,245,.1);padding:2px 8px;border-radius:10px">BRI · BCA · BSI</span>
-        </a>
-        <a href="pembayaran.html?method=ewallet" style="display:flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(217,119,6,.08));border:1.5px solid rgba(245,158,11,.3);border-radius:var(--rd);padding:14px;text-decoration:none">
+        </div>
+        <div onclick="switchPayTab('tagihan')" style="display:flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(217,119,6,.08));border:1.5px solid rgba(245,158,11,.3);border-radius:var(--rd);padding:14px;cursor:pointer">
           <i class="fas fa-mobile-alt" style="font-size:22px;color:var(--w)"></i>
           <span style="font-size:12px;font-weight:700;color:var(--w)">E-Wallet</span>
           <span style="font-size:10px;color:rgba(245,158,11,.6);background:rgba(245,158,11,.1);padding:2px 8px;border-radius:10px">GoPay · OVO · DANA</span>
-        </a>
+        </div>
       </div>
       <div class="pay-summary-banner" id="payBanner">
         <div class="psb-left">
@@ -2021,6 +2009,9 @@ function switchPayTab(tab) {
     if (btn) btn.classList.toggle('active', t===tab);
   });
   if (tab==='riwayat') renderPayHist();
+  // Scroll ke area tabs supaya langsung kelihatan
+  const tabsEl = document.querySelector('.pay-tabs');
+  if (tabsEl) setTimeout(() => tabsEl.scrollIntoView({behavior:'smooth', block:'start'}), 50);
 }
 
 function renderPayHist() {
