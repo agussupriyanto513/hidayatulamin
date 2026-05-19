@@ -434,9 +434,10 @@ function bootDashboard(user, data) {
   if (dashboardReady) return;
   dashboardReady = true; currentUidVerified = user.uid;
   document.body.style.visibility = '';
-  const name = data?.namaLengkap || data?.displayName || data?.name || user.email;
+  // Pastikan name tidak undefined agar tidak crash di name[0]
+  const name = data?.namaLengkap || data?.displayName || data?.name || user?.email || user?.displayName || 'Admin';
   document.getElementById('uName').textContent = name;
-  document.getElementById('uAv').textContent   = name[0]?.toUpperCase() || 'A';
+  document.getElementById('uAv').textContent   = (name[0] || 'A').toUpperCase();
   loadAll();
 }
 
