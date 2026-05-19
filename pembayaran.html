@@ -101,6 +101,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 /* Pi card */
 .method-card.pi .method-ico{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
 .method-card.pi.active{border-color:#8b5cf6;background:linear-gradient(135deg,rgba(139,92,246,.04),rgba(109,40,217,.07))}
+
+/* Pi type cards — pilihan jenis pembayaran */
+.pi-type-card{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 10px;cursor:pointer;transition:all .2s ease;text-align:center;position:relative}
+.pi-type-card:hover{border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.12);transform:translateY(-2px)}
+.pi-type-card.active{border-color:#8b5cf6;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(109,40,217,.15));box-shadow:0 0 0 3px rgba(139,92,246,.2)}
+.pi-type-card.active::after{content:'✓';position:absolute;top:6px;right:8px;font-size:10px;font-weight:900;color:#c4b5fd}
+.pi-type-ico{font-size:22px;margin-bottom:5px;line-height:1}
+.pi-type-name{font-size:11px;font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3}
+.pi-type-pi{font-size:15px;font-weight:900;color:#c4b5fd;line-height:1}
+.pi-type-rp{font-size:9px;color:rgba(255,255,255,.35);margin-top:2px}
 /* QRIS card */
 .method-card.qris .method-ico{background:linear-gradient(135deg,var(--green),var(--green-d))}
 .method-card.qris.active{border-color:var(--green);background:linear-gradient(135deg,rgba(13,184,122,.04),rgba(5,150,105,.07))}
@@ -394,17 +404,69 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
         <button onclick="piLogout()" style="background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:12px">Ganti</button>
       </div>
 
-      <!-- Pilih jenis pembayaran -->
-      <label style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);display:block;margin-bottom:5px">Jenis Pembayaran</label>
-      <select class="pay-type-select" id="piPayType" onchange="updatePiAmt()">
-        <option value="spp_bulan" data-pi="15" data-rp="500000" data-sgt="150">💳 SPP Bulanan — 15 π (≈ Rp 500.000)</option>
-        <option value="spp_tahun" data-pi="150" data-rp="5500000" data-sgt="800">📋 SPP Tahunan — 150 π (≈ Rp 5.500.000)</option>
-        <option value="uang_makan" data-pi="8" data-rp="250000" data-sgt="80">🍽️ Uang Makan — 8 π (≈ Rp 250.000)</option>
-        <option value="seragam" data-pi="10" data-rp="300000" data-sgt="50">👕 Seragam — 10 π (≈ Rp 300.000)</option>
-        <option value="donasi" data-pi="5" data-rp="0" data-sgt="30">🤲 Donasi Yayasan — 5 π</option>
-      </select>
+      <!-- Pilih jenis pembayaran — kartu -->
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);margin-bottom:10px">Pilih Jenis Pembayaran</div>
+      <div id="piPayTypeGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
 
-      <!-- Display jumlah -->
+        <div class="pi-type-card active" onclick="selectPiType(this,'spp_bulan','SPP Bulanan',15,500000,150)" data-val="spp_bulan">
+          <div class="pi-type-ico">💳</div>
+          <div class="pi-type-name">SPP Bulanan</div>
+          <div class="pi-type-pi">15 π</div>
+          <div class="pi-type-rp">≈ Rp 500.000</div>
+        </div>
+
+        <div class="pi-type-card" onclick="selectPiType(this,'spp_tahun','SPP Tahunan',150,5500000,800)" data-val="spp_tahun">
+          <div class="pi-type-ico">📋</div>
+          <div class="pi-type-name">SPP Tahunan</div>
+          <div class="pi-type-pi">150 π</div>
+          <div class="pi-type-rp">≈ Rp 5.500.000</div>
+        </div>
+
+        <div class="pi-type-card" onclick="selectPiType(this,'seragam','Seragam / Baju',10,300000,50)" data-val="seragam">
+          <div class="pi-type-ico">👕</div>
+          <div class="pi-type-name">Seragam / Baju</div>
+          <div class="pi-type-pi">10 π</div>
+          <div class="pi-type-rp">≈ Rp 300.000</div>
+        </div>
+
+        <div class="pi-type-card" onclick="selectPiType(this,'uang_makan','Uang Makan',8,250000,80)" data-val="uang_makan">
+          <div class="pi-type-ico">🍽️</div>
+          <div class="pi-type-name">Uang Makan</div>
+          <div class="pi-type-pi">8 π</div>
+          <div class="pi-type-rp">≈ Rp 250.000</div>
+        </div>
+
+        <div class="pi-type-card" onclick="selectPiType(this,'kitab','Kitab / Buku',6,180000,40)" data-val="kitab">
+          <div class="pi-type-ico">📖</div>
+          <div class="pi-type-name">Kitab / Buku</div>
+          <div class="pi-type-pi">6 π</div>
+          <div class="pi-type-rp">≈ Rp 180.000</div>
+        </div>
+
+        <div class="pi-type-card" onclick="selectPiType(this,'kegiatan','Kegiatan / Ekskul',5,150000,40)" data-val="kegiatan">
+          <div class="pi-type-ico">🏃</div>
+          <div class="pi-type-name">Kegiatan / Ekskul</div>
+          <div class="pi-type-pi">5 π</div>
+          <div class="pi-type-rp">≈ Rp 150.000</div>
+        </div>
+
+        <div class="pi-type-card" onclick="selectPiType(this,'wisuda','Wisuda / Acara',20,600000,100)" data-val="wisuda">
+          <div class="pi-type-ico">🎓</div>
+          <div class="pi-type-name">Wisuda / Acara</div>
+          <div class="pi-type-pi">20 π</div>
+          <div class="pi-type-rp">≈ Rp 600.000</div>
+        </div>
+
+        <div class="pi-type-card" onclick="selectPiType(this,'donasi','Donasi Yayasan',5,0,30)" data-val="donasi">
+          <div class="pi-type-ico">🤲</div>
+          <div class="pi-type-name">Donasi Yayasan</div>
+          <div class="pi-type-pi">5 π</div>
+          <div class="pi-type-rp">Bebas / Sukarela</div>
+        </div>
+
+      </div>
+
+      <!-- Display jumlah yang dipilih -->
       <div class="pi-amt-display">
         <div class="pi-amt-val"><span id="piAmtVal">15</span> <span style="font-size:16px;font-weight:900">π</span></div>
         <div class="pi-amt-desc" id="piAmtDesc">≈ Rp 500.000 · SPP Bulanan</div>
@@ -421,7 +483,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
       </div>
 
       <!-- Catatan -->
-      <input type="text" class="pi-note-input" id="piNote" placeholder="Catatan (misal: atas nama Ahmad Fauzi)">
+      <input type="text" class="pi-note-input" id="piNote" placeholder="Catatan (misal: atas nama Ahmad Fauzi, bulan Mei)">
 
       <!-- Login atau bayar -->
       <div id="piActionArea">
@@ -649,13 +711,19 @@ let payHistory    = [];    // cache riwayat
 
 // SPP Rates
 const SPP_RATES = {
+  spp_bulan: { pi: 15,  rp: 500000,  sgt: 100, label: 'SPP Bulanan' },
   spp:       { pi: 15,  rp: 500000,  sgt: 100, label: 'SPP Bulanan' },
   spp_tahun: { pi: 150, rp: 5500000, sgt: 800, label: 'SPP Tahunan' },
   uang_makan:{ pi: 8,   rp: 250000,  sgt: 80,  label: 'Uang Makan' },
-  seragam:   { pi: 10,  rp: 300000,  sgt: 50,  label: 'Seragam' },
-  donasi:    { pi: 5,   rp: 0,       sgt: 30,  label: 'Donasi' },
+  seragam:   { pi: 10,  rp: 300000,  sgt: 50,  label: 'Seragam / Baju' },
+  kitab:     { pi: 6,   rp: 180000,  sgt: 40,  label: 'Kitab / Buku' },
+  kegiatan:  { pi: 5,   rp: 150000,  sgt: 40,  label: 'Kegiatan / Ekskul' },
+  wisuda:    { pi: 20,  rp: 600000,  sgt: 100, label: 'Wisuda / Acara' },
+  donasi:    { pi: 5,   rp: 0,       sgt: 30,  label: 'Donasi Yayasan' },
 };
 const PI_EXTRA_SGT = 50;  // bonus SGT ekstra kalau pakai Pi
+// State pilihan jenis pembayaran Pi (diset lewat selectPiType)
+let _piSelected = { type:'spp_bulan', label:'SPP Bulanan', pi:15, rp:500000, sgt:150 };
 
 // Akun bank pesantren (bisa dikonfig dari Firestore nanti)
 const BANK_ACCOUNTS = {
@@ -879,18 +947,30 @@ function piLogout() {
   document.getElementById('btnPiLogin').innerHTML = '<span style="font-size:16px;font-weight:900">π</span> Login Pi untuk Bayar';
 }
 
-function updatePiAmt() {
-  const sel  = document.getElementById('piPayType');
-  const opt  = sel.options[sel.selectedIndex];
-  const pi   = parseFloat(opt.dataset.pi) || 0;
-  const sgt  = parseInt(opt.dataset.sgt)  || 0;
-  const type = sel.value;
-  const rate = SPP_RATES[type] || {};
+function selectPiType(el, type, label, pi, rp, sgt) {
+  // hapus active dari semua kartu
+  document.querySelectorAll('.pi-type-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  // simpan state
+  _piSelected = { type, label, pi, rp, sgt };
+  // update display
+  document.getElementById('piAmtVal').textContent  = pi;
+  document.getElementById('piAmtDesc').textContent = rp
+    ? '≈ Rp ' + rp.toLocaleString('id-ID') + ' · ' + label
+    : label + ' (sukarela)';
+  document.getElementById('piSgtBonus').textContent = '+' + (sgt + PI_EXTRA_SGT) + ' SGT';
+  document.getElementById('btnPiPayTxt').textContent = 'Bayar ' + pi + ' π Sekarang';
+}
 
-  document.getElementById('piAmtVal').textContent   = pi;
-  document.getElementById('piAmtDesc').textContent  = `≈ ${rate.rp ? 'Rp '+rate.rp.toLocaleString('id-ID')+' · ' : ''}${rate.label||type}`;
-  document.getElementById('piSgtBonus').textContent = `+${sgt + PI_EXTRA_SGT} SGT`;
-  document.getElementById('btnPiPayTxt').textContent = `Bayar ${pi} π Sekarang`;
+function updatePiAmt() {
+  // backward-compat: baca dari _piSelected
+  const { pi, rp, label, sgt } = _piSelected;
+  document.getElementById('piAmtVal').textContent  = pi;
+  document.getElementById('piAmtDesc').textContent = rp
+    ? '≈ Rp ' + rp.toLocaleString('id-ID') + ' · ' + label
+    : label + ' (sukarela)';
+  document.getElementById('piSgtBonus').textContent = '+' + (sgt + PI_EXTRA_SGT) + ' SGT';
+  document.getElementById('btnPiPayTxt').textContent = 'Bayar ' + pi + ' π Sekarang';
 }
 
 async function handleIncompletePiPay(payment) {
@@ -908,12 +988,10 @@ async function handleIncompletePiPay(payment) {
 async function submitPiPayment() {
   if (!piUser) { showToast('error','Login Pi terlebih dahulu'); return; }
 
-  const sel     = document.getElementById('piPayType');
-  const type    = sel.value;
-  const opt     = sel.options[sel.selectedIndex];
-  const pi      = parseFloat(opt.dataset.pi) || 0;
-  const sgt     = parseInt(opt.dataset.sgt)  || 0;
-  const rate    = SPP_RATES[type] || {};
+  const type    = _piSelected.type;
+  const pi      = _piSelected.pi || 0;
+  const sgt     = _piSelected.sgt || 0;
+  const rate    = SPP_RATES[type] || { label: _piSelected.label };
   const note    = document.getElementById('piNote').value.trim();
   const memo    = `${rate.label||type} - Hidayatulamin ${note ? '- '+note : ''}`;
   const totalSgt = sgt + PI_EXTRA_SGT;
