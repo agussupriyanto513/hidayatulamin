@@ -421,8 +421,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 
       <!-- Display jumlah yang dipilih -->
       <div class="pi-amt-display">
-        <div class="pi-amt-val"><span id="piAmtVal">15</span> <span style="font-size:16px;font-weight:900">π</span></div>
-        <div class="pi-amt-desc" id="piAmtDesc">≈ Rp 500.000 · SPP Bulanan</div>
+        <div class="pi-amt-val"><span id="piAmtVal">…</span> <span style="font-size:16px;font-weight:900">π</span></div>
+        <div class="pi-amt-desc" id="piAmtDesc">Memuat rate dari server…</div>
       </div>
 
       <!-- Bonus SGT -->
@@ -685,6 +685,17 @@ function calcPiAmt(rp) {
   return Math.round((rp / _piRatePerPi) * 10000) / 10000;
 }
 
+// Debug helper: panggil cekPiRate() di console browser untuk verifikasi
+window.cekPiRate = function() {
+  console.group('%c[Pi Rate Debug]', 'color:#8b5cf6;font-weight:bold');
+  console.log('Rate aktif       :', 'Rp', _piRatePerPi.toLocaleString('id-ID'), 'per Pi');
+  console.log('SPP Bulanan (Rp) :', 'Rp', (500000).toLocaleString('id-ID'));
+  console.log('SPP Bulanan (Pi) :', calcPiAmt(500000), 'π');
+  console.log('SPP Tahunan (Pi) :', calcPiAmt(5500000), 'π');
+  console.log('Seragam (Pi)     :', calcPiAmt(300000), 'π');
+  console.groupEnd();
+};
+
 // Buat SPP_RATES dinamis berdasarkan _piRatePerPi
 function buildSPPRates() {
   const out = {};
@@ -809,7 +820,8 @@ async function loadTagihan() {
         setStatusBelum();
       }
     } else {
-      document.getElementById('tagSPP').textContent = 'Rp 500.000';
+      const sppRp = SPP_RATES_RP.spp_bulan ? SPP_RATES_RP.spp_bulan.rp : 500000;
+      document.getElementById('tagSPP').textContent = 'Rp ' + sppRp.toLocaleString('id-ID');
       document.getElementById('tagSPP').classList.add('red');
       setStatusBelum();
     }
@@ -868,35 +880,61 @@ function selectMethod(method, el) {
 // PI RATE LOADER
 // ════════════════════════════════════════
 async function loadPiRateFromFirestore() {
-  try {
-    const snap = await db.collection('config').doc('pi_rate').get();
-    if (snap.exists) {
-      const d = snap.data();
-      _piRatePerPi = d.rateRp || 100000000;
-    } else {
-      console.info('[Pi Rate] Dokumen config/pi_rate belum ada, pakai default 100 juta');
+  let loaded = false;
+  // Coba load dari Firestore (dengan retry sekali jika gagal)
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const snap = await db.collection('config').doc('pi_rate').get();
+      if (snap.exists) {
+        const d = snap.data();
+        const rateFromDB = d.rateRp;
+        if (rateFromDB && rateFromDB > 0) {
+          _piRatePerPi = rateFromDB;
+          loaded = true;
+          console.info('[Pi Rate] ✅ Berhasil load dari Firestore: Rp ' + _piRatePerPi.toLocaleString('id-ID') + ' per Pi (attempt ' + attempt + ')');
+        } else {
+          console.warn('[Pi Rate] ⚠️ Dokumen ada tapi rateRp kosong/nol, pakai default 100 juta');
+        }
+      } else {
+        console.info('[Pi Rate] ℹ️ Dokumen config/pi_rate belum ada, pakai default 100 juta');
+      }
+      break; // keluar loop jika tidak error
+    } catch(e) {
+      console.warn('[Pi Rate] ❌ Gagal load attempt ' + attempt + ' (' + (e.code||e.message) + ')');
+      if (attempt === 1) await new Promise(r => setTimeout(r, 1500)); // tunggu 1.5 detik sebelum retry
     }
-  } catch(e) {
-    // Jika permission denied, pakai nilai default — kartu tetap tampil
-    console.warn('[loadPiRateFromFirestore] Gagal load (' + e.code + '), pakai default Rp 100.000.000');
   }
+  if (!loaded) {
+    console.warn('[Pi Rate] Menggunakan fallback default: Rp ' + _piRatePerPi.toLocaleString('id-ID'));
+  }
+
   // Rebuild rates dengan rate baru/default
   SPP_RATES = buildSPPRates();
+
   // Update state default ke item pertama (SPP Bulanan)
+  const firstRp = SPP_RATES_RP.spp_bulan.rp;
   _piSelected = {
     type: 'spp_bulan',
     label: 'SPP Bulanan',
-    pi: calcPiAmt(500000),
-    rp: 500000,
+    pi: calcPiAmt(firstRp),
+    rp: firstRp,
     sgt: 150
   };
+
   // Render kartu Pi type dengan harga dinamis
   renderPiTypeCards();
   // Update display amount & tombol
   updatePiAmt();
+
   // Update rate badge di panel Pi
   const badge = document.getElementById('piRateBadgeTxt');
   if (badge) badge.textContent = '1 π = Rp ' + _piRatePerPi.toLocaleString('id-ID');
+
+  // Update info rate di semua elemen yang relevan
+  const rateInfoEls = document.querySelectorAll('.pi-rate-info-txt');
+  rateInfoEls.forEach(el => {
+    el.textContent = '1 π = Rp ' + _piRatePerPi.toLocaleString('id-ID');
+  });
 }
 
 function renderPiTypeCards() {
