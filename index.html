@@ -163,6 +163,14 @@
   .badge.purple { background: rgba(139,92,246,.15); color: #a78bfa; border: 1px solid rgba(139,92,246,.25); }
   .badge.amber  { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.25); }
 </style>
+<!-- Pi Network SDK -->
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<script>
+  // Init Pi SDK untuk App Studio verification
+  if (window.Pi) {
+    window.Pi.init({ version: '2.0', sandbox: false });
+  }
+</script>
 </head>
 <body>
 <div class="bg"></div>
