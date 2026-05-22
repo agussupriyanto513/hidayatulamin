@@ -63,7 +63,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
 .tb-l{display:flex;align-items:center;gap:10px}
-.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
+.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
 .menu-btn:hover{background:var(--pl);color:var(--p)}
 .pg-ttl h2{font-size:17px;font-weight:700;color:var(--ink2)}
 .pg-ttl p{font-size:11px;color:var(--g500)}
@@ -379,6 +379,13 @@ tr:hover td{background:var(--g50)}
   .topbar{padding:10px 14px}
   .sc-val{font-size:20px}
   table{font-size:11px}
+  /* Toast: jangan overflow kanan */
+  .toast-wrap{left:12px;right:12px;bottom:calc(70px + env(safe-area-inset-bottom))}
+  .toast{min-width:0;max-width:100%;width:100%}
+  /* Card padding lebih kecil agar konten tidak terpotong */
+  .card{padding:14px}
+  /* Pastikan tbl-wrap bisa scroll horizontal */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
 }
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr;gap:10px}
@@ -401,6 +408,8 @@ tr:hover td{background:var(--g50)}
   .pay-tab-row{gap:6px}
   .pay-tab{font-size:11px;padding:8px 10px}
   .wmodal{padding:16px 14px 28px}
+  /* Ringkasan card: pastikan konten tidak overflow */
+  #hafalanSummary > div{overflow:hidden}
 }
 @media(max-width:380px){
   .juz-cell{font-size:10px}
@@ -493,7 +502,7 @@ tr:hover td{background:var(--g50)}
 <div class="sb-ov" id="sbOv" onclick="closeSb()"></div>
 
 <!-- SIDEBAR -->
-<aside class="sidebar off" id="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sb-head">
     <div class="sb-logo"><i class="fas fa-star-and-crescent"></i></div>
     <div class="sb-brand"><h1>Hidayatullah</h1><p>Portal Santri</p></div>
@@ -1329,7 +1338,7 @@ function renderHafalanSummary(){
 }
 
 function sb(label,val,pct,clr){
-  return `<div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--g500);margin-bottom:4px"><span>${label}</span><strong style="color:${clr}">${val}</strong></div><div style="height:6px;background:var(--g100);border-radius:10px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${clr};border-radius:10px;transition:width .8s ease"></div></div></div>`;
+  return `<div><div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--g500);margin-bottom:4px;gap:8px"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</span><strong style="color:${clr};flex-shrink:0;white-space:nowrap">${val}</strong></div><div style="height:6px;background:var(--g100);border-radius:10px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${clr};border-radius:10px;transition:width .8s ease"></div></div></div>`;
 }
 
 function initChartHafBulan(){
@@ -1847,8 +1856,8 @@ function go(name,navEl){
 function setBn(n){document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));const el=document.getElementById('bn-'+n);if(el)el.classList.add('active');}
 
 // ════ SIDEBAR ════
-function toggleSb(){document.getElementById('sidebar').classList.toggle('off');document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOv').classList.toggle('show');}
-function closeSb(){if(window.innerWidth<=900){document.getElementById('sidebar').classList.add('off');document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOv').classList.remove('show');}}
+function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOv').classList.toggle('show');}
+function closeSb(){if(window.innerWidth<=900){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOv').classList.remove('show');}}
 
 // ════ DATE ════
 function updateDate(){

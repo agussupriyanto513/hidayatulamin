@@ -65,7 +65,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 
 /* TABS */
 .tab-bar{display:flex;gap:4px;background:var(--white);border:1px solid var(--g200);border-radius:var(--rd);padding:6px;margin-bottom:20px;box-shadow:var(--sh-sm);flex-wrap:wrap}
-.tab-btn{flex:1;min-width:120px;padding:10px 16px;border:none;border-radius:var(--rdm);font-family:inherit;font-size:13px;font-weight:600;color:var(--g500);background:transparent;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.tab-btn{flex:1;min-width:0;padding:10px 16px;border:none;border-radius:var(--rdm);font-family:inherit;font-size:13px;font-weight:600;color:var(--g500);background:transparent;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;overflow:hidden}
 .tab-btn:hover{background:var(--g50);color:var(--ink2)}
 .tab-btn.active{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;box-shadow:0 2px 8px rgba(13,184,122,.3)}
 .tab-btn.active.blue{background:linear-gradient(135deg,var(--b),#1a5fbb);box-shadow:0 2px 8px rgba(45,126,245,.3)}
@@ -203,9 +203,10 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
   /* Modal */
   .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
 
-  /* Tab bar: wrap dan ikon tersembunyi */
-  .tab-btn{font-size:12px;padding:8px 10px;min-width:0;flex:1}
-  .tab-btn i{display:none}
+  /* Tab bar: semua tab muat, ikon tampil, label teks disembunyikan */
+  .tab-btn{font-size:11px;padding:8px 6px;min-width:0;flex:1;gap:4px}
+  .tab-btn .tab-label{display:none}
+  .tab-btn i{display:inline-block!important;font-size:13px}
 
   /* Table header: susun vertikal */
   .tbl-head{flex-direction:column;align-items:flex-start;gap:10px}
