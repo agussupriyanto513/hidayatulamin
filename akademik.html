@@ -51,7 +51,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh}
 .topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .tb-l{display:flex;align-items:center;gap:10px}
-.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
+.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
 .menu-btn:hover{background:var(--pl);color:var(--p)}
 .pg-ttl h2{font-size:17px;font-weight:700;color:var(--ink2)}
 .pg-ttl p{font-size:11px;color:var(--g500)}
@@ -164,6 +164,7 @@ tr:hover td{background:var(--g50)}
 
 /* CHART */
 .chart-wrap{position:relative;height:220px}
+.btn-lbl{display:inline}
 
 /* KELAS SELECTOR */
 .kelas-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
@@ -184,17 +185,30 @@ tr:hover td{background:var(--g50)}
   .menu-btn{display:flex!important}
   .stats-row{grid-template-columns:1fr 1fr}
   .haf-grid{grid-template-columns:repeat(3,1fr)}
-  .topbar{padding:8px 14px;flex-wrap:wrap;gap:8px}
+  .topbar{padding:8px 14px;gap:8px}
   .tb-l{flex:1;min-width:0}
-  .tb-r{flex-wrap:wrap;gap:6px}
-  .tb-r .btn-p{font-size:12px;padding:7px 10px}
+  /* Tombol topbar: susun vertikal atau wrap */
+  .tb-r{flex-wrap:wrap;gap:4px}
+  .tb-r .btn-p{font-size:11px;padding:6px 10px;flex:1;justify-content:center}
   .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
+  /* Toast */
+  .toast-wrap{left:12px;right:12px;bottom:12px}
+  .toast{min-width:0;width:100%}
+}
+@media(min-width:769px){
+  .sidebar{transform:translateX(0)!important}
 }
 @media(max-width:480px){
   .content{padding:10px}
   .stats-row{grid-template-columns:1fr 1fr}
   .pg-ttl h2{font-size:15px}
-  .tab-btn{font-size:12px;padding:8px 8px}
+  .tab-btn{font-size:12px;padding:8px 6px}
+  .tab-btn i{display:none}
+  /* field-row jadi 1 kolom di modal */
+  .field-row{grid-template-columns:1fr}
+  /* Sembunyikan label teks tombol, tampilkan hanya ikon */
+  .btn-lbl{display:none}
+  .tb-r .btn-p{flex:0 0 auto;padding:8px 12px}
 }
 @media(max-width:400px){
   .stats-row{grid-template-columns:1fr}
@@ -207,7 +221,7 @@ tr:hover td{background:var(--g50)}
 <body>
 
 <div class="sb-ov" id="sbOv" onclick="closeSb()"></div>
-<aside class="sidebar off" id="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sb-head">
     <div class="sb-logo"><i class="fas fa-mosque"></i></div>
     <div class="sb-brand"><h1>Hidayatullah</h1><p>Admin Panel</p></div>
@@ -247,8 +261,8 @@ tr:hover td{background:var(--g50)}
       <div class="pg-ttl"><h2>Akademik & Hafalan</h2><p id="pgDate">Memuat...</p></div>
     </div>
     <div class="tb-r">
-      <button class="btn-p" onclick="openModal('nilai')"><i class="fas fa-plus"></i> Input Nilai</button>
-      <button class="btn-p purple" onclick="openModal('hafalan')" style="margin-left:6px"><i class="fas fa-plus"></i> Input Hafalan</button>
+      <button class="btn-p" onclick="openModal('nilai')"><i class="fas fa-plus"></i> <span class="btn-lbl">Input Nilai</span></button>
+      <button class="btn-p purple" onclick="openModal('hafalan')" style="margin-left:0"><i class="fas fa-plus"></i> <span class="btn-lbl">Input Hafalan</span></button>
     </div>
   </header>
 
@@ -594,8 +608,8 @@ function toast(type, msg) {
   document.getElementById('toastWrap').appendChild(el);
   setTimeout(()=>el.remove(),4000);
 }
-function toggleSb(){ document.getElementById('sidebar').classList.toggle('off'); document.getElementById('sbOv').classList.toggle('show'); }
-function closeSb(){ document.getElementById('sidebar').classList.add('off'); document.getElementById('sbOv').classList.remove('show'); }
+function toggleSb(){ document.getElementById('sidebar').classList.toggle('on'); document.getElementById('sbOv').classList.toggle('show'); }
+function closeSb(){ document.getElementById('sidebar').classList.remove('on'); document.getElementById('sbOv').classList.remove('show'); }
 async function handleLogout(){ await auth.signOut().catch(()=>{}); sessionStorage.removeItem('currentUser'); location.href='login.html'; }
 </script>
 </body>

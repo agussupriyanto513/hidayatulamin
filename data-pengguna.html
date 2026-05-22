@@ -56,7 +56,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
 .topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .tb-l{display:flex;align-items:center;gap:10px}
-.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
+.menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
 .menu-btn:hover{background:var(--pl);color:var(--p)}
 .pg-ttl h2{font-size:17px;font-weight:700;color:var(--ink2)}
 .pg-ttl p{font-size:11px;color:var(--g500)}
@@ -183,19 +183,40 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 
 /* RESPONSIVE */
 @media(max-width:768px){
+  /* Sidebar: sembunyikan secara default, tampilkan dengan class .on */
   .sidebar{transform:translateX(-100%)}
   .sidebar.on{transform:translateX(0)}
   .main{margin-left:0!important}
   .menu-btn{display:flex!important}
+
+  /* Stats: 2 kolom di tablet */
   .stats-row{grid-template-columns:1fr 1fr}
+
+  /* Form modal: 1 kolom */
   .field-row{grid-template-columns:1fr}
-  .search-box input{width:120px}
-  .tab-btn{font-size:12px;padding:8px 10px}
-  .topbar{padding:8px 14px;flex-wrap:wrap;gap:8px}
+
+  /* Topbar */
+  .topbar{padding:8px 14px;gap:8px}
   .tb-l{flex:1;min-width:0}
-  .tb-r{flex-wrap:wrap;gap:6px}
   .tb-r .btn-p{font-size:12px;padding:7px 10px}
+
+  /* Modal */
   .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
+
+  /* Tab bar: wrap dan ikon tersembunyi */
+  .tab-btn{font-size:12px;padding:8px 10px;min-width:0;flex:1}
+  .tab-btn i{display:none}
+
+  /* Table header: susun vertikal */
+  .tbl-head{flex-direction:column;align-items:flex-start;gap:10px}
+  .tbl-acts{width:100%;flex-wrap:wrap;gap:6px}
+  .search-box{flex:1;min-width:0}
+  .search-box input{width:100%}
+  .filter-sel{flex:1}
+
+  /* Toast */
+  .toast-wrap{left:12px;right:12px;bottom:12px}
+  .toast{min-width:0;width:100%}
 }
 @media(min-width:769px){
   .sidebar{transform:translateX(0)!important}
@@ -203,16 +224,16 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 }
 @media(max-width:480px){
   .content{padding:10px}
-  .stats-row{grid-template-columns:1fr 1fr}
+  /* Stats: 1 kolom di HP kecil */
+  .stats-row{grid-template-columns:1fr}
   .pg-ttl h2{font-size:15px}
-  .tab-btn span{font-size:11px}
-  .search-box{width:100%}
-  .search-box input{width:100%}
+  .tab-btn span.tab-label{display:none}
+  .tab-btn{padding:8px 6px}
+  .tab-btn i{display:inline!important}
 }
 @media(max-width:400px){
-  .stats-row{grid-template-columns:1fr}
   .content{padding:8px}
-  .tab-bar{flex-wrap:wrap}
+  .tab-bar{gap:2px}
 }
 </style>
 </head>
@@ -288,13 +309,13 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
     <!-- TABS -->
     <div class="tab-bar">
       <button class="tab-btn active" onclick="switchTab('santri',this)" id="tab-santri">
-        <i class="fas fa-user-graduate"></i> Santri <span class="tab-count" id="tc-santri">0</span>
+        <i class="fas fa-user-graduate"></i><span class="tab-label"> Santri</span> <span class="tab-count" id="tc-santri">0</span>
       </button>
       <button class="tab-btn blue" onclick="switchTab('ustadz',this)" id="tab-ustadz">
-        <i class="fas fa-chalkboard-teacher"></i> Ustadz <span class="tab-count" id="tc-ustadz">0</span>
+        <i class="fas fa-chalkboard-teacher"></i><span class="tab-label"> Ustadz</span> <span class="tab-count" id="tc-ustadz">0</span>
       </button>
       <button class="tab-btn amber" onclick="switchTab('wali',this)" id="tab-wali">
-        <i class="fas fa-user-friends"></i> Wali <span class="tab-count" id="tc-wali">0</span>
+        <i class="fas fa-user-friends"></i><span class="tab-label"> Wali</span> <span class="tab-count" id="tc-wali">0</span>
       </button>
     </div>
 
