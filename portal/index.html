@@ -824,6 +824,7 @@ const NAV={
     {s:'Utama'},{id:'dashboard',i:'🏠',l:'Dashboard'},
     {s:'Keuangan'},{id:'keuangan',i:'💰',l:'Keuangan'},{id:'donasi',i:'💚',l:'Donasi & Wakaf'},
     {s:'Akademik'},{id:'santri_list',i:'👥',l:'Data Santri'},{id:'rekap_absensi',i:'📊',l:'Rekap Absensi'},
+    {s:'Soal'},{id:'soal',i:'📋',l:'Bank Soal'},{id:'generate_soal',i:'🤖',l:'Generate AI'},
     {s:'Kelola'},{id:'pengumuman',i:'📢',l:'Pengumuman'},{id:'jadwal',i:'📅',l:'Jadwal'},
     {s:'Sistem'},{id:'pengaturan',i:'⚙️',l:'Pengaturan'},{id:'profil',i:'👤',l:'Profil'},
   ],
@@ -1824,7 +1825,17 @@ function soal(el){
     <div class="card">
       <div class="card-hd"><span>✏️</span> Tambah Soal Manual</div>
       <div class="row3">
-        <div class="fg"><label>Mata Pelajaran</label><select id="sq-mp">${mapels.map(m=>`<option>${m}</option>`).join('')}</select></div>
+        <div class="fg"><label>Mata Pelajaran</label>
+          <input type="text" id="sq-mp" list="sq-mp-list" placeholder="Pilih atau ketik mapel..." autocomplete="off">
+          <datalist id="sq-mp-list">
+            <option>Fiqih</option><option>Nahwu</option><option>Sharaf</option>
+            <option>Tafsir</option><option>Hadis</option><option>Akhlak</option>
+            <option>Aqidah</option><option>Tarikh Islam</option><option>Bahasa Arab</option>
+            <option>Bahasa Indonesia</option><option>Matematika</option>
+            <option>Al-Qur'an Tajwid</option><option>Tahfidz</option><option>Faraid</option>
+            <option>Ushul Fiqih</option><option>Mustholah Hadis</option>
+          </datalist>
+        </div>
         <div class="fg"><label>Jenis</label><select id="sq-tp"><option value="pg">Pilihan Ganda</option><option value="essay">Essay</option></select></div>
         <div class="fg"><label>Tingkat Kesulitan</label><select id="sq-tk"><option>Mudah</option><option selected>Sedang</option><option>Sulit</option></select></div>
       </div>
@@ -1904,7 +1915,17 @@ function generate_soal(el){
     <div class="card">
       <div class="card-hd"><span>🤖</span> Pengaturan Generate</div>
       <div class="row2">
-        <div class="fg"><label>Mata Pelajaran</label><select id="ai-mp"><option>Fiqih</option><option>Nahwu</option><option>Tafsir</option><option>Hadis</option><option>Akhlak</option><option>Aqidah</option></select></div>
+        <div class="fg"><label>Mata Pelajaran</label>
+          <input type="text" id="ai-mp" list="ai-mp-list" placeholder="Pilih atau ketik mapel..." autocomplete="off" value="Fiqih">
+          <datalist id="ai-mp-list">
+            <option>Fiqih</option><option>Nahwu</option><option>Sharaf</option>
+            <option>Tafsir</option><option>Hadis</option><option>Akhlak</option>
+            <option>Aqidah</option><option>Tarikh Islam</option><option>Bahasa Arab</option>
+            <option>Bahasa Indonesia</option><option>Matematika</option>
+            <option>Al-Qur'an Tajwid</option><option>Tahfidz</option><option>Faraid</option>
+            <option>Ushul Fiqih</option><option>Mustholah Hadis</option>
+          </datalist>
+        </div>
         <div class="fg"><label>Jumlah Soal</label><select id="ai-jml"><option value="5">5 soal</option><option value="10" selected>10 soal</option><option value="15">15 soal</option></select></div>
         <div class="fg"><label>Topik / Bab *</label><input type="text" id="ai-topik" placeholder="Cth: Thaharah, Shalat, Bab Mubtada..."></div>
         <div class="fg"><label>Tingkat</label><select id="ai-kls"><option>Ibtidaiyah (SD)</option><option selected>Tsanawiyah (SMP)</option><option>Aliyah (SMA)</option></select></div>
