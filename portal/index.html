@@ -1,1 +1,1277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Pesantren Hidayatul Amin</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--hijau:#1a5c3a;--hijau-mid:#2d7a50;--hijau-light:#e8f5ee;--emas:#c9a84c;--emas-light:#fdf6e3;--putih:#fff;--abu:#f7f8f7;--teks:#1a2118;--teks-2:#4a5c47;--teks-3:#8a9e85;--border:#dde8db;--merah:#c0392b;--merah-light:#fdf0ef;--biru:#1a4a8a;--biru-light:#eef3fc;--r:10px;--r-lg:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--abu);color:var(--teks);min-height:100vh}
 
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--hijau);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;transition:opacity .5s}
+#splash.out{opacity:0;pointer-events:none}
+.splash-ornament{width:110px;height:110px;border:2px solid rgba(201,168,76,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:18px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.3)}50%{box-shadow:0 0 0 16px rgba(201,168,76,0)}}
+.splash-icon{font-size:44px}
+.splash-title{font-family:'Amiri',serif;font-size:28px;color:var(--emas);text-align:center;margin-bottom:6px}
+.splash-sub{font-size:13px;color:rgba(255,255,255,.55);text-align:center;margin-bottom:36px}
+.login-box{background:rgba(255,255,255,.09);border:1px solid rgba(201,168,76,.22);border-radius:var(--r-lg);padding:26px;width:330px}
+.login-box h3{font-size:14px;font-weight:500;color:#fff;margin-bottom:16px;text-align:center}
+.fld{margin-bottom:12px}
+.fld label{font-size:11px;color:rgba(255,255,255,.55);display:block;margin-bottom:5px}
+.fld input,.fld select{width:100%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 12px;font-size:13px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;outline:none}
+.fld input::placeholder{color:rgba(255,255,255,.3)}
+.fld input:focus,.fld select:focus{border-color:rgba(201,168,76,.5)}
+.fld select option{background:#1a5c3a;color:#fff}
+.btn-login{width:100%;padding:11px;background:var(--emas);border:none;border-radius:8px;font-size:13px;font-weight:600;color:var(--hijau);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:4px;transition:opacity .2s}
+.btn-login:hover{opacity:.85}
+.btn-login:disabled{opacity:.5;cursor:not-allowed}
+.login-err{font-size:11px;color:#ff9a8a;margin-top:8px;text-align:center;min-height:16px;line-height:1.5}
+.login-note{font-size:10px;color:rgba(255,255,255,.3);text-align:center;margin-top:10px}
+
+/* APP */
+#app{display:none;height:100vh;overflow:hidden}
+#app.on{display:flex;flex-direction:column}
+.topnav{background:var(--hijau);padding:0 20px;display:flex;align-items:center;gap:12px;height:54px;flex-shrink:0}
+.topnav-logo{font-family:'Amiri',serif;font-size:18px;color:var(--emas);flex:1}
+.topnav-logo span{font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,.45);display:block;font-weight:300}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--emas);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--hijau);flex-shrink:0}
+.topnav-name{font-size:13px;color:#fff;font-weight:500}
+.topnav-role{font-size:10px;color:rgba(255,255,255,.45)}
+.btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 10px;font-size:11px;color:#fff;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif}
+
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:210px;background:var(--putih);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.nav-sec{padding:14px 14px 4px;font-size:10px;font-weight:600;color:var(--teks-3);text-transform:uppercase;letter-spacing:.06em}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:var(--teks-2);cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.nav-item:hover{background:var(--hijau-light);color:var(--hijau)}
+.nav-item.active{background:var(--hijau-light);color:var(--hijau);border-left-color:var(--hijau);font-weight:500}
+.nav-item .ico{width:18px;text-align:center}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* CARDS */
+.card{background:var(--putih);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:16px}
+.ct{font-size:13px;font-weight:600;color:var(--teks);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.stat{background:var(--abu);border-radius:var(--r);padding:14px;text-align:center}
+.stat-n{font-size:22px;font-weight:600;color:var(--hijau)}
+.stat-l{font-size:11px;color:var(--teks-3);margin-top:3px}
+
+/* FORM */
+.fg{margin-bottom:12px}
+.fg label{font-size:11px;font-weight:500;color:var(--teks-2);display:block;margin-bottom:4px}
+.fg input,.fg select,.fg textarea{width:100%;font-size:13px;padding:8px 11px;border:1px solid var(--border);border-radius:8px;background:var(--putih);color:var(--teks);font-family:'Plus Jakarta Sans',sans-serif;outline:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--hijau-mid)}
+.fg textarea{resize:vertical;min-height:64px}
+
+/* BUTTONS */
+.btn{font-size:12px;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--putih);color:var(--teks);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn:hover{background:var(--abu)}
+.btn.h{background:var(--hijau);color:#fff;border-color:var(--hijau)}
+.btn.h:hover{background:var(--hijau-mid)}
+.btn.e{background:var(--emas);color:var(--hijau);border-color:var(--emas);font-weight:600}
+.btn.r{background:var(--merah);color:#fff;border-color:var(--merah)}
+.btn.sm{font-size:11px;padding:5px 10px}
+
+/* BADGES */
+.bd{font-size:10px;padding:3px 8px;border-radius:999px;font-weight:500}
+.bh{background:var(--hijau-light);color:var(--hijau)}
+.be{background:var(--emas-light);color:#7a5c00}
+.br{background:var(--merah-light);color:var(--merah)}
+.bb{background:var(--biru-light);color:var(--biru)}
+.bg{background:#eee;color:#555}
+
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;font-weight:600;color:var(--teks-3);padding:6px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
+td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--teks)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--hijau-light)}
+
+/* NOTIF */
+.notif{padding:10px 14px;border-radius:var(--r);margin-bottom:10px;font-size:12px;display:flex;align-items:center;gap:8px}
+.nl{background:var(--emas-light);color:#7a5c00;border:1px solid #e8d080}
+.no{background:var(--hijau-light);color:var(--hijau);border:1px solid #9fd4b0}
+.ne{background:var(--merah-light);color:var(--merah);border:1px solid #f0b0a8}
+.ni{background:var(--biru-light);color:var(--biru);border:1px solid #a8c0e8}
+
+/* MISC */
+.prog{height:7px;background:var(--border);border-radius:999px;overflow:hidden;margin-top:4px}
+.prog-f{height:7px;border-radius:999px;background:var(--hijau-mid)}
+.spin{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--hijau);border-radius:50%;animation:spin .7s linear infinite;margin:48px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sh-t{font-size:15px;font-weight:600;color:var(--teks)}
+.sh-s{font-size:12px;color:var(--teks-3);margin-top:2px}
+.empty{text-align:center;padding:36px 20px;color:var(--teks-3);font-size:13px}
+.ei{font-size:32px;margin-bottom:10px}
+
+/* Pi badge */
+.pi-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:999px;background:#f5f0ff;color:#5c35cc;font-weight:600;border:1px solid #d4c4ff}
+</style>
+</head>
+<body>
+
+<!-- SPLASH / LOGIN -->
+<div id="splash">
+  <div class="splash-ornament"><div class="splash-icon">🕌</div></div>
+  <div class="splash-title">Hidayatul Amin</div>
+  <div class="splash-sub">Portal Pesantren Terpadu</div>
+  <div class="login-box">
+    <h3>Masuk ke Portal</h3>
+    <div class="fld"><label>Email</label><input type="email" id="li-email" placeholder="email@pesantren.id" autocomplete="email"></div>
+    <div class="fld"><label>Password</label><input type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password"></div>
+    <div class="fld"><label>Masuk sebagai</label>
+      <select id="li-role">
+        <option value="admin">Pimpinan / Admin</option>
+        <option value="ustadz">Ustadz / Guru</option>
+        <option value="santri">Santri</option>
+      </select>
+    </div>
+    <button class="btn-login" id="btn-li" onclick="doLogin()">Masuk</button>
+    <div class="login-err" id="li-err"></div>
+    <div class="login-note">Sistem terintegrasi dengan Pi Network Hidayatul Amin</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topnav">
+    <div class="topnav-logo">Hidayatul Amin <span>Portal Pesantren Terpadu</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="avatar" id="av">HA</div>
+      <div><div class="topnav-name" id="ap-name">—</div><div class="topnav-role" id="ap-role">—</div></div>
+      <div id="pi-tag" style="display:none"><span class="pi-badge">π Pi User</span></div>
+      <button class="btn-logout" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar" id="sb"></div>
+    <div class="content" id="ct"><div class="spin"></div></div>
+  </div>
+</div>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut,
+  createUserWithEmailAndPassword, signInAnonymously
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc,
+  collection, getDocs, query, where, orderBy, limit,
+  serverTimestamp, Timestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const cfg = {
+  apiKey:"AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+  authDomain:"hidayatulamin-e6f22.firebaseapp.com",
+  projectId:"hidayatulamin-e6f22",
+  storageBucket:"hidayatulamin-e6f22.firebasestorage.app",
+  messagingSenderId:"80743607267",
+  appId:"1:80743607267:web:f5f94165de021759958ed6"
+};
+
+const app   = initializeApp(cfg);
+const auth  = getAuth(app);
+const db    = getFirestore(app);
+
+// ── expose ke window ──
+window._auth  = auth;
+window._db    = db;
+window._fns   = { doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc,
+                  collection, getDocs, query, where, orderBy, limit,
+                  serverTimestamp, Timestamp, signOut };
+
+// ── helpers ──
+const today = () => new Date().toISOString().slice(0,10);
+const fmt   = n  => Number(n||0).toLocaleString('id-ID');
+const avg   = (...ns) => { const v=ns.filter(x=>x>0); return v.length?Math.round(v.reduce((a,b)=>a+b)/v.length):0; };
+const mutu  = n  => n>=90?'A':n>=80?'B':n>=70?'C':n>=60?'D':'E';
+window._today=today; window._fmt=fmt; window._avg=avg; window._mutu=mutu;
+
+// ──────────────────────────────────────────────
+// SEED DATA — hanya jika koleksi santri kosong
+// ──────────────────────────────────────────────
+async function seedIfEmpty() {
+  const {getDocs,collection:col,setDoc,doc:d} = window._fns;
+  const snap = await getDocs(col(db,'santri_portal'));
+  if (!snap.empty) return;
+  const santri = [
+    {id:'s001',nama:'Ahmad Fauzi',  kelas:'1A',wali:'Bapak Sunaryo',  hafalan:18,status:'aktif',loginMethod:'email'},
+    {id:'s002',nama:'Bilal Mustofa',kelas:'1A',wali:'Ibu Rahmawati', hafalan:12,status:'aktif',loginMethod:'email'},
+    {id:'s003',nama:'Dani Hidayat', kelas:'2B',wali:'Bapak Hendra',  hafalan:25,status:'aktif',loginMethod:'email'},
+    {id:'s004',nama:'Farid Ansori', kelas:'1A',wali:'Ibu Sulastri',  hafalan:8, status:'aktif',loginMethod:'email'},
+    {id:'s005',nama:'Hamzah Latif', kelas:'2B',wali:'Bapak Wahyu',   hafalan:22,status:'aktif',loginMethod:'email'},
+  ];
+  for(const s of santri) await setDoc(d(db,'santri_portal',s.id),{...s,createdAt:today()});
+
+  // nilai
+  const nilaiData = {
+    s001:{fiqih:{harian:85,uts:88,uas:90},nahwu:{harian:80,uts:82,uas:84}},
+    s002:{fiqih:{harian:75,uts:72,uas:78},nahwu:{harian:70,uts:68,uas:72}},
+    s003:{fiqih:{harian:90,uts:92,uas:88},nahwu:{harian:88,uts:90,uas:92}},
+    s004:{fiqih:{harian:60,uts:65,uas:70},nahwu:{harian:62,uts:60,uas:65}},
+    s005:{fiqih:{harian:88,uts:85,uas:87},nahwu:{harian:85,uts:83,uas:86}},
+  };
+  for(const [id,n] of Object.entries(nilaiData)) await setDoc(d(db,'nilai_portal',id),{...n,santriId:id,updatedAt:today()});
+
+  // absensi hari ini
+  const absDoc = {};
+  santri.forEach((s,i)=>{ absDoc[s.id]=i===2?'izin':i===3?'sakit':'hadir'; });
+  await setDoc(d(db,'absensi_portal',today()),{tanggal:today(),...absDoc});
+
+  // pengumuman
+  await setDoc(d(db,'pengumuman_portal','p001'),{judul:'Libur Idul Adha',isi:'Libur 3 hari mulai 15 Juni 2025.',tgl:today(),penulis:'Pimpinan',createdAt:today()});
+  await setDoc(d(db,'pengumuman_portal','p002'),{judul:'Ujian Akhir Semester',isi:'UAS 10–14 Juni 2025.',tgl:today(),penulis:'Tata Usaha',createdAt:today()});
+
+  // keuangan
+  await setDoc(d(db,'keuangan_portal','k001'),{jenis:'masuk',ket:'SPP Bulan Mei',nominal:2140000,tgl:today()});
+  await setDoc(d(db,'keuangan_portal','k002'),{jenis:'masuk',ket:'Donasi Pembangunan',nominal:5000000,tgl:today()});
+  await setDoc(d(db,'keuangan_portal','k003'),{jenis:'keluar',ket:'Listrik & Air',nominal:850000,tgl:today()});
+  await setDoc(d(db,'keuangan_portal','k004'),{jenis:'keluar',ket:'Gaji Ustadz',nominal:8500000,tgl:today()});
+}
+
+// ──────────────────────────────────────────────
+// AUTH — LOGIN
+// ──────────────────────────────────────────────
+window.doLogin = async function() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  const role  = document.getElementById('li-role').value;
+  const err   = document.getElementById('li-err');
+  const btn   = document.getElementById('btn-li');
+  err.textContent='';
+  if(!email||!pass){err.textContent='Email dan password wajib diisi.';return;}
+  btn.disabled=true; btn.textContent='Memproses...';
+
+  try {
+    let cred;
+    try {
+      cred = await signInWithEmailAndPassword(auth, email, pass);
+    } catch(e) {
+      if(['auth/user-not-found','auth/invalid-credential','auth/invalid-email'].includes(e.code)) {
+        // auto-register user baru
+        cred = await createUserWithEmailAndPassword(auth, email, pass);
+      } else throw e;
+    }
+
+    const uid  = cred.user.uid;
+    const nama = email.split('@')[0];
+
+    // cek apakah sudah ada di /users (dari sistem Pi)
+    const {doc:d,getDoc,setDoc} = window._fns;
+    const userSnap = await getDoc(d(db,'users',uid));
+
+    if(userSnap.exists()) {
+      // user Pi — ambil data yang ada, override role jika perlu
+      const data = userSnap.data();
+      window._cu = { uid, email, role: data.role||role, nama: data.nama||data.piUsername||nama, isPi: data.loginMethod==='pi' };
+    } else {
+      // user portal baru — simpan ke /users agar kompatibel dengan rules
+      await setDoc(d(db,'users',uid),{
+        uid, email, role, nama,
+        loginMethod:'email',
+        isActive:true,
+        createdAt:today(),
+      },{merge:true});
+      window._cu = { uid, email, role, nama, isPi:false };
+    }
+
+    await seedIfEmpty();
+    showApp();
+  } catch(e) {
+    let msg = e.message||e.code||'Login gagal';
+    if(e.code==='auth/wrong-password') msg='Password salah.';
+    if(e.code==='auth/too-many-requests') msg='Terlalu banyak percobaan. Tunggu beberapa menit.';
+    if(e.code==='auth/network-request-failed') msg='Tidak ada koneksi internet.';
+    err.textContent = msg;
+    btn.disabled=false; btn.textContent='Masuk';
+  }
+};
+
+window.doLogout = async function() {
+  try { await signOut(auth); } catch(e){}
+  window._cu = null;
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('app').style.display='none';
+  document.getElementById('splash').classList.remove('out');
+  document.getElementById('btn-li').disabled=false;
+  document.getElementById('btn-li').textContent='Masuk';
+};
+
+// ──────────────────────────────────────────────
+// SHOW APP
+// ──────────────────────────────────────────────
+function showApp() {
+  document.getElementById('splash').classList.add('out');
+  const appEl = document.getElementById('app');
+  appEl.style.display='flex'; appEl.classList.add('on');
+  const u = window._cu;
+  document.getElementById('av').textContent = u.nama.slice(0,2).toUpperCase();
+  document.getElementById('ap-name').textContent = u.nama;
+  document.getElementById('ap-role').textContent = {admin:'Pimpinan / Admin',ustadz:'Ustadz / Guru',santri:'Santri'}[u.role]||u.role;
+  if(u.isPi) document.getElementById('pi-tag').style.display='';
+  buildNav(u.role);
+  loadPage('dashboard');
+}
+
+// ──────────────────────────────────────────────
+// NAV
+// ──────────────────────────────────────────────
+const NAV = {
+  admin:[
+    {s:'Utama'},{id:'dashboard',i:'📊',l:'Dashboard'},{id:'keuangan',i:'💰',l:'Keuangan'},
+    {s:'Akademik'},{id:'santri_list',i:'🧕',l:'Data Santri'},{id:'rekap_absensi',i:'📊',l:'Rekap Absensi'},
+    {s:'Kelola'},{id:'pengumuman',i:'📢',l:'Pengumuman'},{id:'donasi',i:'💚',l:'Donasi & Wakaf'},
+    {s:'Sistem'},{id:'pengaturan',i:'⚙️',l:'Pengaturan'},{id:'profil',i:'👤',l:'Profil'},
+  ],
+  ustadz:[
+    {s:'Akademik'},{id:'dashboard',i:'📊',l:'Dashboard'},
+    {id:'nilai',i:'📝',l:'Input Nilai'},{id:'absensi',i:'✅',l:'Absensi'},
+    {id:'hafalan',i:'📖',l:'Setoran Hafalan'},
+    {s:'Soal'},{id:'soal',i:'📋',l:'Bank Soal'},{id:'generate_soal',i:'🤖',l:'Generate AI'},
+    {s:'Lainnya'},{id:'jadwal',i:'📅',l:'Jadwal'},{id:'pengumuman',i:'📢',l:'Pengumuman'},
+    {id:'pesan',i:'💬',l:'Pesan'},{id:'profil',i:'👤',l:'Profil'},
+  ],
+  santri:[
+    {s:'Belajarku'},{id:'dashboard',i:'📊',l:'Dashboard'},
+    {id:'nilai_santri',i:'📝',l:'Nilai Saya'},{id:'hafalan_santri',i:'📖',l:'Hafalan Saya'},
+    {id:'jadwal',i:'📅',l:'Jadwal'},
+    {s:'Lainnya'},{id:'spp',i:'💳',l:'Tagihan SPP'},
+    {id:'pesan',i:'💬',l:'Pesan'},{id:'profil',i:'👤',l:'Profil'},
+  ],
+};
+
+function buildNav(role) {
+  const items = NAV[role]||NAV.admin;
+  document.getElementById('sb').innerHTML = items.map(it=>
+    it.s ? `<div class="nav-sec">${it.s}</div>`
+    : `<div class="nav-item" id="nv-${it.id}" onclick="loadPage('${it.id}')"><span class="ico">${it.i}</span>${it.l}</div>`
+  ).join('');
+}
+
+function setNav(id) {
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  const el=document.getElementById('nv-'+id);
+  if(el)el.classList.add('active');
+}
+
+// ──────────────────────────────────────────────
+// LOAD PAGE ROUTER
+// ──────────────────────────────────────────────
+window.loadPage = async function(id) {
+  setNav(id);
+  const el = document.getElementById('ct');
+  el.innerHTML='<div class="spin"></div>';
+  const role = window._cu?.role||'admin';
+  const pages = {
+    dashboard, keuangan, santri_list, rekap_absensi, pengumuman, donasi, pengaturan, profil,
+    nilai, absensi, hafalan, soal, generate_soal, jadwal, pesan,
+    nilai_santri, hafalan_santri, spp, tambah_santri,
+  };
+  const fn=pages[id];
+  if(fn) await fn(el,role);
+  else el.innerHTML=`<div class="empty"><div class="ei">🚧</div>Halaman <strong>${id}</strong> sedang disiapkan.</div>`;
+};
+
+// ──────────────────────────────────────────────
+// HELPERS — Firestore CRUD
+// ──────────────────────────────────────────────
+async function getCol(col_name) {
+  const {getDocs,collection:col} = window._fns;
+  const snap = await getDocs(col(db,col_name));
+  const res = {};
+  snap.forEach(d=>{ res[d.id]=d.data(); });
+  return res;
+}
+async function getDocById(col_name,id) {
+  const {getDoc,doc:d}=window._fns;
+  const snap=await getDoc(d(db,col_name,id));
+  return snap.exists()?snap.data():null;
+}
+async function saveDoc(col_name,id,data) {
+  const {setDoc,doc:d}=window._fns;
+  await setDoc(d(db,col_name,id),{...data,updatedAt:today()},{merge:true});
+}
+async function addNew(col_name,data) {
+  const {addDoc,collection:col}=window._fns;
+  return await addDoc(col(db,col_name),{...data,createdAt:today()});
+}
+async function delDoc(col_name,id) {
+  const {deleteDoc,doc:d}=window._fns;
+  await deleteDoc(d(db,col_name,id));
+}
+
+function notifEl(id,type,msg){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const cls={ok:'no',err:'ne',load:'nl',info:'ni'}[type]||'ni';
+  el.innerHTML=`<div class="notif ${cls}">${msg}</div>`;
+}
+
+// ═══════════════════════════════════════════════
+// ██ HALAMAN-HALAMAN
+// ═══════════════════════════════════════════════
+
+// ── DASHBOARD ──
+async function dashboard(el, role) {
+  const [santriAll, nilaiAll, absenToday, keuAll, pengAll] = await Promise.all([
+    getCol('santri_portal'), getCol('nilai_portal'),
+    getDocById('absensi_portal',today()), getCol('keuangan_portal'), getCol('pengumuman_portal'),
+  ]);
+  const absen = absenToday||{};
+  const totalS = Object.keys(santriAll).length;
+  const hadir  = Object.entries(absen).filter(([k,v])=>k.startsWith('s')&&v==='hadir').length;
+  let allNilai=[],masuk=0,keluar=0;
+  Object.values(nilaiAll).forEach(n=>Object.entries(n).forEach(([k,v])=>{if(k!=='santriId'&&k!=='updatedAt'){const a=avg(v.harian,v.uts,v.uas);if(a)allNilai.push(a);}}));
+  Object.values(keuAll).forEach(k=>{if(k.jenis==='masuk')masuk+=k.nominal;else keluar+=k.nominal;});
+  const avgN=allNilai.length?Math.round(allNilai.reduce((a,b)=>a+b)/allNilai.length):0;
+  const pengList=Object.entries(pengAll).sort((a,b)=>b[1].tgl?.localeCompare(a[1].tgl)).slice(0,3);
+
+  const statsHtml={
+    admin:`<div class="g4">
+      <div class="stat"><div class="stat-n">${totalS}</div><div class="stat-l">Total Santri</div></div>
+      <div class="stat"><div class="stat-n">${hadir}/${totalS}</div><div class="stat-l">Hadir Hari Ini</div></div>
+      <div class="stat"><div class="stat-n">${avgN}</div><div class="stat-l">Rata-rata Nilai</div></div>
+      <div class="stat"><div class="stat-n" style="color:${masuk-keluar>=0?'var(--hijau)':'var(--merah)'}">Rp ${fmt(masuk-keluar)}</div><div class="stat-l">Saldo Bersih</div></div>
+    </div>`,
+    ustadz:`<div class="g3">
+      <div class="stat"><div class="stat-n">${totalS}</div><div class="stat-l">Total Santri</div></div>
+      <div class="stat"><div class="stat-n">${hadir}</div><div class="stat-l">Hadir Hari Ini</div></div>
+      <div class="stat"><div class="stat-n">${avgN}</div><div class="stat-l">Rata-rata Nilai</div></div>
+    </div>`,
+    santri:`<div class="g3">
+      <div class="stat"><div class="stat-n">${avgN||'—'}</div><div class="stat-l">Nilai Rata-rata</div></div>
+      <div class="stat"><div class="stat-n">${(santriAll['s001']?.hafalan||0)} juz</div><div class="stat-l">Capaian Hafalan</div></div>
+      <div class="stat"><div class="stat-n">${absen['s001']||'—'}</div><div class="stat-l">Status Hari Ini</div></div>
+    </div>`,
+  };
+
+  el.innerHTML=`
+    <div class="sh"><div><div class="sh-t">Dashboard</div><div class="sh-s">Selamat datang, ${window._cu.nama} — ${today()}</div></div></div>
+    ${statsHtml[role]||statsHtml.admin}
+    <div class="g2">
+      <div class="card"><div class="ct">📢 Pengumuman Terbaru</div>
+        ${pengList.length?pengList.map(([,p])=>`
+          <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+            <div style="font-size:13px;font-weight:500">${p.judul}</div>
+            <div style="font-size:11px;color:var(--teks-3);margin:2px 0">${p.tgl} — ${p.penulis}</div>
+            <div style="font-size:12px;color:var(--teks-2)">${p.isi}</div>
+          </div>`).join(''):'<div class="empty"><div class="ei">📭</div>Belum ada pengumuman.</div>'}
+      </div>
+      <div class="card"><div class="ct">🧕 Kehadiran Hari Ini</div>
+        ${Object.entries(santriAll).map(([id,s])=>{
+          const st=absen[id]||'belum';
+          const c=st==='hadir'?'bh':st==='izin'?'be':st==='sakit'?'bb':'br';
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px">${s.nama}</span><span class="bd ${c}">${st}</span></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ── NILAI ──
+async function nilai(el) {
+  const [santriAll, nilaiAll] = await Promise.all([getCol('santri_portal'),getCol('nilai_portal')]);
+  const mapels=['fiqih','nahwu','tafsir','hadis','akhlak'];
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Input Nilai Santri</div><button class="btn h" onclick="simpanNilai()">💾 Simpan Semua</button></div>
+    <div class="card"><div class="ct">⚙️ Filter</div>
+      <div class="g2">
+        <div class="fg"><label>Mata Pelajaran</label>
+          <select id="sel-mp" onchange="renderNT()">${mapels.map(m=>`<option value="${m}">${m[0].toUpperCase()+m.slice(1)}</option>`).join('')}</select>
+        </div>
+        <div class="fg"><label>Kelas</label>
+          <select id="sel-kls" onchange="renderNT()">
+            <option value="">Semua</option>
+            ${[...new Set(Object.values(santriAll).map(s=>s.kelas))].map(k=>`<option value="${k}">${k}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="nt-wrap"></div><div id="nf-notif"></div>`;
+
+  window._sL=santriAll; window._nL=nilaiAll;
+  window.renderNT=function(){
+    const mp=document.getElementById('sel-mp').value;
+    const kls=document.getElementById('sel-kls').value;
+    const f=Object.entries(santriAll).filter(([,s])=>!kls||s.kelas===kls);
+    document.getElementById('nt-wrap').innerHTML=`<div class="card"><div class="ct">📝 Nilai — ${mp.toUpperCase()}</div>
+      <div class="tw"><table><tr><th>Nama</th><th>Kelas</th><th>Harian</th><th>UTS</th><th>UAS</th><th>Rata-rata</th><th>Mutu</th></tr>
+      ${f.map(([id,s])=>{const n=(nilaiAll[id]||{})[mp]||{};const a=avg(n.harian,n.uts,n.uas);
+        return `<tr><td>${s.nama}</td><td>${s.kelas}</td>
+          <td><input type="number" id="nh-${id}" value="${n.harian||''}" min="0" max="100" style="width:56px;font-size:12px;padding:4px;border:1px solid var(--border);border-radius:6px;text-align:center"></td>
+          <td><input type="number" id="nu-${id}" value="${n.uts||''}" min="0" max="100" style="width:56px;font-size:12px;padding:4px;border:1px solid var(--border);border-radius:6px;text-align:center"></td>
+          <td><input type="number" id="na-${id}" value="${n.uas||''}" min="0" max="100" style="width:56px;font-size:12px;padding:4px;border:1px solid var(--border);border-radius:6px;text-align:center"></td>
+          <td><strong>${a||'—'}</strong></td>
+          <td><span class="bd ${a>=80?'bh':a>=70?'bb':a>=60?'be':'br'}">${a?mutu(a):'—'}</span></td></tr>`;}).join('')}
+      </table></div></div>`;
+  };
+  renderNT();
+
+  window.simpanNilai=async function(){
+    const mp=document.getElementById('sel-mp').value;
+    notifEl('nf-notif','load','⏳ Menyimpan ke Firestore...');
+    try {
+      for(const id of Object.keys(santriAll)){
+        const h=document.getElementById(`nh-${id}`);if(!h)continue;
+        const cur=(nilaiAll[id]||{});
+        cur[mp]={harian:+h.value||0,uts:+document.getElementById(`nu-${id}`).value||0,uas:+document.getElementById(`na-${id}`).value||0};
+        cur.santriId=id;
+        await saveDoc('nilai_portal',id,cur);
+      }
+      notifEl('nf-notif','ok','✅ Nilai berhasil disimpan!');
+    }catch(e){notifEl('nf-notif','err','❌ '+e.message);}
+    setTimeout(()=>{const n=document.getElementById('nf-notif');if(n)n.innerHTML='';},3000);
+  };
+}
+
+// ── ABSENSI ──
+async function absensi(el) {
+  const santriAll=await getCol('santri_portal');
+  const absen=await getDocById('absensi_portal',today())||{};
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Absensi — ${today()}</div><button class="btn h" onclick="simpanAbsen()">💾 Simpan</button></div>
+    <div id="ab-notif"></div>
+    <div class="card"><div class="ct">✅ Daftar Kehadiran</div>
+      <div class="tw"><table><tr><th>Nama</th><th>Kelas</th><th>Status</th><th>Keterangan</th></tr>
+      ${Object.entries(santriAll).map(([id,s])=>`<tr><td>${s.nama}</td><td>${s.kelas}</td>
+        <td><select id="ab-${id}" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--putih)">
+          <option value="hadir" ${absen[id]==='hadir'?'selected':''}>Hadir</option>
+          <option value="izin"  ${absen[id]==='izin' ?'selected':''}>Izin</option>
+          <option value="sakit" ${absen[id]==='sakit'?'selected':''}>Sakit</option>
+          <option value="alfa"  ${absen[id]==='alfa' ?'selected':''}>Alfa</option>
+        </select></td>
+        <td><input type="text" id="ak-${id}" placeholder="(opsional)" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;width:180px"></td>
+      </tr>`).join('')}
+      </table></div>
+    </div>
+    <div class="card"><div class="ct">📋 Rekap Hari Ini</div>
+      <div class="g4">
+        ${['hadir','izin','sakit','alfa'].map(st=>{const n=Object.keys(santriAll).filter(id=>absen[id]===st).length;
+          return `<div class="stat"><div class="stat-n" style="color:${st==='hadir'?'var(--hijau)':st==='alfa'?'var(--merah)':st==='sakit'?'var(--biru)':'var(--emas)'}">${n}</div><div class="stat-l">${st.charAt(0).toUpperCase()+st.slice(1)}</div></div>`;}).join('')}
+      </div>
+    </div>`;
+
+  window.simpanAbsen=async function(){
+    notifEl('ab-notif','load','⏳ Menyimpan...');
+    try{
+      const data={tanggal:today()};
+      Object.keys(santriAll).forEach(id=>{data[id]=document.getElementById(`ab-${id}`).value;});
+      await saveDoc('absensi_portal',today(),data);
+      notifEl('ab-notif','ok','✅ Absensi tersimpan!');
+    }catch(e){notifEl('ab-notif','err','❌ '+e.message);}
+    setTimeout(()=>{const n=document.getElementById('ab-notif');if(n)n.innerHTML='';},3000);
+  };
+}
+
+// ── REKAP ABSENSI ──
+async function rekap_absensi(el) {
+  const santriAll=await getCol('santri_portal');
+  const absenAll=await getCol('absensi_portal');
+  const tgls=Object.keys(absenAll).sort().reverse().slice(0,14);
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Rekap Absensi 14 Hari</div><button class="btn" onclick="loadPage('absensi')">← Absensi Hari Ini</button></div>
+    <div class="card">
+      <div style="overflow-x:auto"><table style="font-size:12px;width:100%;border-collapse:collapse">
+        <tr><th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;font-size:10px;color:var(--teks-3)">Nama</th>
+        ${tgls.map(t=>`<th style="padding:6px 4px;border-bottom:1px solid var(--border);font-size:9px;color:var(--teks-3);text-align:center">${t.slice(5)}</th>`).join('')}
+        <th style="padding:6px 8px;border-bottom:1px solid var(--border);font-size:10px;color:var(--teks-3)">%</th></tr>
+        ${Object.entries(santriAll).map(([id,s])=>{
+          const cells=tgls.map(t=>{const st=(absenAll[t]||{})[id]||'—';
+            const bg=st==='hadir'?'var(--hijau)':st==='izin'?'var(--emas)':st==='sakit'?'var(--biru)':st==='alfa'?'var(--merah)':'var(--border)';
+            const ic=st==='hadir'?'✓':st==='izin'?'I':st==='sakit'?'S':st==='alfa'?'A':'·';
+            return `<td style="text-align:center;padding:4px"><span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:${bg};color:${st==='—'?'var(--teks-3)':'#fff'};font-size:9px;font-weight:700;line-height:20px">${ic}</span></td>`;
+          }).join('');
+          const h=tgls.filter(t=>(absenAll[t]||{})[id]==='hadir').length;
+          const pct=tgls.length?Math.round(h/tgls.length*100):0;
+          return `<tr><td style="padding:5px 8px;font-weight:500;white-space:nowrap;border-bottom:1px solid var(--border)">${s.nama}</td>${cells}
+            <td style="padding:5px 8px;font-weight:600;color:${pct>=80?'var(--hijau)':pct>=60?'var(--emas)':'var(--merah)'};border-bottom:1px solid var(--border)">${pct}%</td></tr>`;
+        }).join('')}
+      </table></div>
+      <div style="display:flex;gap:12px;margin-top:12px;font-size:11px;color:var(--teks-3);flex-wrap:wrap">
+        ${[['var(--hijau)','Hadir'],['var(--emas)','Izin'],['var(--biru)','Sakit'],['var(--merah)','Alfa']].map(([c,l])=>
+          `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${c};margin-right:4px;vertical-align:middle"></span>${l}</span>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ── HAFALAN ──
+async function hafalan(el) {
+  const santriAll=await getCol('santri_portal');
+  const logAll=await getCol('hafalan_log');
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Setoran Hafalan</div></div>
+    <div class="g2">
+      <div class="card"><div class="ct">📖 Input Setoran</div>
+        <div class="fg"><label>Santri</label><select id="hf-id">${Object.entries(santriAll).map(([id,s])=>`<option value="${id}">${s.nama}</option>`).join('')}</select></div>
+        <div class="fg"><label>Surat / Halaman</label><input type="text" id="hf-sr" placeholder="Cth: Al-Kahfi 1–20"></div>
+        <div class="fg"><label>Jumlah Halaman</label><input type="number" id="hf-hl" value="1" min="1" max="20"></div>
+        <div class="fg"><label>Catatan Ustadz</label><textarea id="hf-ct" placeholder="Kualitas tajwid, komentar..."></textarea></div>
+        <button class="btn h" onclick="simpanHafalan()">💾 Simpan Setoran</button>
+        <div id="hf-notif" style="margin-top:8px"></div>
+      </div>
+      <div class="card"><div class="ct">📊 Capaian Santri</div>
+        ${Object.entries(santriAll).map(([,s])=>`
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+              <span>${s.nama}</span><span style="font-weight:500;color:var(--hijau)">${s.hafalan||0}/30 juz</span>
+            </div>
+            <div class="prog"><div class="prog-f" style="width:${Math.round((s.hafalan||0)/30*100)}%"></div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card"><div class="ct">📋 Riwayat Setoran Terbaru</div>
+      ${Object.entries(logAll).length?`<div class="tw"><table><tr><th>Santri</th><th>Surat</th><th>Halaman</th><th>Catatan</th><th>Tanggal</th></tr>
+        ${Object.entries(logAll).sort((a,b)=>b[1].createdAt?.localeCompare(a[1].createdAt)).slice(0,10).map(([,h])=>`
+          <tr><td>${(santriAll[h.santriId]||{}).nama||h.santriId}</td><td>${h.surat}</td><td>${h.halaman}</td><td style="color:var(--teks-3)">${h.catatan||'—'}</td><td>${h.createdAt||'—'}</td></tr>`).join('')}
+        </table></div>`:'<div class="empty"><div class="ei">📝</div>Belum ada riwayat.</div>'}
+    </div>`;
+
+  window.simpanHafalan=async function(){
+    const sid=document.getElementById('hf-id').value;
+    const surat=document.getElementById('hf-sr').value.trim();
+    const hal=parseInt(document.getElementById('hf-hl').value)||0;
+    const cat=document.getElementById('hf-ct').value.trim();
+    if(!surat){notifEl('hf-notif','err','❌ Isi surat/halaman!');return;}
+    notifEl('hf-notif','load','⏳ Menyimpan...');
+    try{
+      await addNew('hafalan_log',{santriId:sid,surat,halaman:hal,catatan:cat,tgl:today()});
+      const cur=santriAll[sid]?.hafalan||0;
+      await saveDoc('santri_portal',sid,{hafalan:Math.min(30,cur+hal)});
+      notifEl('hf-notif','ok','✅ Setoran tersimpan!');
+      setTimeout(()=>loadPage('hafalan'),1200);
+    }catch(e){notifEl('hf-notif','err','❌ '+e.message);}
+  };
+}
+
+// ── SOAL ──
+async function soal(el) {
+  const bankAll=await getCol('bank_soal');
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Bank Soal</div><button class="btn h" onclick="loadPage('generate_soal')">🤖 Generate AI</button></div>
+    <div class="card"><div class="ct">✏️ Tambah Soal Manual</div>
+      <div class="g2">
+        <div class="fg"><label>Mata Pelajaran</label><select id="sq-mp"><option>Fiqih</option><option>Nahwu</option><option>Tafsir</option><option>Hadis</option><option>Akhlak</option></select></div>
+        <div class="fg"><label>Jenis</label><select id="sq-tp"><option value="pg">Pilihan Ganda</option><option value="essay">Essay</option></select></div>
+      </div>
+      <div class="fg"><label>Pertanyaan *</label><textarea id="sq-q" rows="2" placeholder="Tulis pertanyaan..."></textarea></div>
+      <div id="sq-pg">
+        ${['A','B','C','D'].map(o=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:7px">
+          <span style="font-weight:600;color:var(--teks-2);width:16px">${o}</span>
+          <input type="text" id="sq-o${o}" placeholder="Pilihan ${o}" style="flex:1;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:8px">
+          <input type="radio" name="sqj" value="${o}" style="width:16px;height:16px"></div>`).join('')}
+        <div style="font-size:11px;color:var(--teks-3);margin-bottom:8px">🔘 Centang untuk jawaban benar</div>
+      </div>
+      <div class="fg"><label>Kunci / Rubrik</label><textarea id="sq-kj" rows="2" placeholder="PG: huruf jawaban. Essay: rubrik penilaian."></textarea></div>
+      <button class="btn h" onclick="simpanSoal()">💾 Simpan Soal</button>
+      <div id="sq-notif" style="margin-top:8px"></div>
+    </div>
+    <div class="card"><div class="ct">📚 Bank Soal (${Object.keys(bankAll).length} soal)</div>
+      ${Object.entries(bankAll).length?Object.entries(bankAll).map(([id,s])=>`
+        <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;gap:8px">
+            <div><span class="bd bh" style="margin-right:4px">${s.mapel}</span>
+              <span class="bd bg">${s.tipe==='pg'?'PG':'Essay'}</span>
+              ${s.sumber==='AI'?'<span class="bd bb" style="margin-left:4px">AI</span>':''}
+              <div style="font-size:13px;margin-top:6px">${s.pertanyaan}</div>
+              ${s.tipe==='pg'&&s.opsi?`<div style="font-size:11px;color:var(--teks-3);margin-top:3px">${(s.opsi||[]).map((o,i)=>`${['A','B','C','D'][i]}. ${o}`).join(' | ')}</div>`:''}
+              <div style="font-size:11px;color:var(--hijau);margin-top:2px">✓ Jawaban: ${s.jawaban}</div>
+            </div>
+            <button class="btn sm r" onclick="hapusSoal('${id}')">🗑</button>
+          </div>
+        </div>`).join(''):'<div class="empty"><div class="ei">📋</div>Bank soal masih kosong.</div>'}
+    </div>`;
+
+  window.simpanSoal=async function(){
+    const q=document.getElementById('sq-q').value.trim();
+    if(!q){notifEl('sq-notif','err','❌ Pertanyaan wajib diisi!');return;}
+    notifEl('sq-notif','load','⏳ Menyimpan...');
+    try{
+      const tp=document.getElementById('sq-tp').value;
+      const opsi=['A','B','C','D'].map(o=>document.getElementById(`sq-o${o}`)?.value||'');
+      const checked=document.querySelector('input[name=sqj]:checked');
+      const kj=document.getElementById('sq-kj').value.trim()||(checked?checked.value:'A');
+      await addNew('bank_soal',{mapel:document.getElementById('sq-mp').value,tipe:tp,pertanyaan:q,opsi,jawaban:kj,sumber:'manual'});
+      notifEl('sq-notif','ok','✅ Soal tersimpan!');
+      setTimeout(()=>loadPage('soal'),1000);
+    }catch(e){notifEl('sq-notif','err','❌ '+e.message);}
+  };
+  window.hapusSoal=async function(id){
+    if(!confirm('Hapus soal ini?'))return;
+    await delDoc('bank_soal',id);loadPage('soal');
+  };
+}
+
+// ── GENERATE SOAL AI ──
+async function generate_soal(el) {
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Generate Soal dengan AI</div><button class="btn" onclick="loadPage('soal')">← Bank Soal</button></div>
+    <div class="card"><div class="ct">🤖 Pengaturan Generate</div>
+      <div class="g2">
+        <div class="fg"><label>Mata Pelajaran</label><select id="ai-mp"><option>Fiqih</option><option>Nahwu</option><option>Tafsir</option><option>Hadis</option><option>Akhlak</option><option>Aqidah</option></select></div>
+        <div class="fg"><label>Jumlah Soal</label><select id="ai-jml"><option value="5">5 soal</option><option value="10" selected>10 soal</option><option value="15">15 soal</option></select></div>
+        <div class="fg"><label>Topik / Bab *</label><input type="text" id="ai-topik" placeholder="Cth: Thaharah, Shalat Fardhu, Bab Mubtada..."></div>
+        <div class="fg"><label>Tingkat</label><select id="ai-kls"><option>Ibtidaiyah (SD)</option><option>Tsanawiyah (SMP)</option><option>Aliyah (SMA)</option></select></div>
+      </div>
+      <div class="fg"><label>Instruksi Tambahan</label><textarea id="ai-ins" placeholder="Cth: sertakan dalil, gunakan bahasa sederhana..."></textarea></div>
+      <button class="btn h" id="ai-btn" onclick="runAI()">✨ Generate dengan AI</button>
+      <div id="ai-notif" style="margin-top:8px"></div>
+    </div>
+    <div id="ai-hasil" style="display:none">
+      <div class="sh" style="margin-top:4px">
+        <div class="sh-t">Hasil Generate</div>
+        <button class="btn h" onclick="simpanSemuaAI()">💾 Simpan Semua ke Bank Soal</button>
+      </div>
+      <div id="ai-list"></div>
+    </div>`;
+
+  window._aiData=[];
+  window.runAI=async function(){
+    const topik=document.getElementById('ai-topik').value.trim();
+    if(!topik){notifEl('ai-notif','err','❌ Isi topik!');return;}
+    const mp=document.getElementById('ai-mp').value;
+    const jml=document.getElementById('ai-jml').value;
+    const kls=document.getElementById('ai-kls').value;
+    const ins=document.getElementById('ai-ins').value.trim();
+    const btn=document.getElementById('ai-btn');
+    btn.disabled=true; btn.textContent='⏳ Membuat soal...';
+    notifEl('ai-notif','load',`🤖 AI menyusun ${jml} soal ${mp} tentang "${topik}"...`);
+    try{
+      const prompt=`Kamu adalah ustadz berpengalaman di pesantren Indonesia. Buatkan ${jml} soal pilihan ganda untuk mata pelajaran ${mp}, topik: "${topik}", tingkat ${kls}.${ins?' Instruksi: '+ins:''}
+
+Jawab HANYA dengan JSON array valid, tanpa teks lain, tanpa markdown:
+[{"pertanyaan":"...","opsi":["A. ...","B. ...","C. ...","D. ..."],"jawaban":"A","pembahasan":"..."}]`;
+
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+      });
+      const data=await resp.json();
+      let txt=(data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
+      const arr=JSON.parse(txt);
+      window._aiData=arr.map(s=>({...s,mapel:mp}));
+      document.getElementById('ai-list').innerHTML=arr.map((s,i)=>`
+        <div class="card" style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+            <span class="bd bh">Soal ${i+1} — ${mp}</span>
+            <button class="btn sm" onclick="simpanSatuAI(${i})">💾 Simpan</button>
+          </div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:8px">${s.pertanyaan}</div>
+          ${s.opsi.map((o,j)=>`<div style="font-size:12px;padding:5px 10px;border-radius:6px;margin-bottom:3px;background:${o.startsWith(s.jawaban)?'var(--hijau-light)':'var(--abu)'};color:${o.startsWith(s.jawaban)?'var(--hijau)':'var(--teks-2)'}">
+            ${o} ${o.startsWith(s.jawaban)?'✓':''}</div>`).join('')}
+          ${s.pembahasan?`<div style="margin-top:8px;font-size:11px;color:var(--teks-3);background:var(--emas-light);padding:7px 10px;border-radius:6px;border-left:3px solid var(--emas)">💡 ${s.pembahasan}</div>`:''}
+        </div>`).join('');
+      document.getElementById('ai-hasil').style.display='';
+      notifEl('ai-notif','ok',`✅ Berhasil generate ${arr.length} soal!`);
+    }catch(e){notifEl('ai-notif','err','❌ Gagal: '+e.message);}
+    btn.disabled=false; btn.textContent='✨ Generate dengan AI';
+  };
+
+  window.simpanSatuAI=async function(i){
+    const s=window._aiData[i];
+    await addNew('bank_soal',{mapel:s.mapel,tipe:'pg',pertanyaan:s.pertanyaan,opsi:s.opsi,jawaban:s.jawaban,pembahasan:s.pembahasan||'',sumber:'AI'});
+    alert('✅ Soal '+(i+1)+' tersimpan!');
+  };
+  window.simpanSemuaAI=async function(){
+    if(!window._aiData.length){alert('Belum ada soal.');return;}
+    for(const s of window._aiData) await addNew('bank_soal',{mapel:s.mapel,tipe:'pg',pertanyaan:s.pertanyaan,opsi:s.opsi,jawaban:s.jawaban,pembahasan:s.pembahasan||'',sumber:'AI'});
+    alert('✅ Semua '+window._aiData.length+' soal disimpan!');loadPage('soal');
+  };
+}
+
+// ── KEUANGAN ──
+async function keuangan(el) {
+  const keuAll=await getCol('keuangan_portal');
+  let masuk=0,keluar=0;
+  Object.values(keuAll).forEach(k=>{if(k.jenis==='masuk')masuk+=k.nominal;else keluar+=k.nominal;});
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Keuangan Yayasan</div></div>
+    <div class="g3">
+      <div class="stat"><div class="stat-n" style="color:var(--hijau)">Rp ${fmt(masuk)}</div><div class="stat-l">Total Masuk</div></div>
+      <div class="stat"><div class="stat-n" style="color:var(--merah)">Rp ${fmt(keluar)}</div><div class="stat-l">Total Keluar</div></div>
+      <div class="stat"><div class="stat-n" style="color:${masuk-keluar>=0?'var(--hijau)':'var(--merah)'}">Rp ${fmt(masuk-keluar)}</div><div class="stat-l">Saldo Bersih</div></div>
+    </div>
+    <div class="card"><div class="ct">➕ Catat Transaksi</div>
+      <div class="g3">
+        <div class="fg"><label>Jenis</label><select id="ku-j"><option value="masuk">Pemasukan</option><option value="keluar">Pengeluaran</option></select></div>
+        <div class="fg"><label>Keterangan</label><input type="text" id="ku-k" placeholder="Cth: SPP Bulan Juni"></div>
+        <div class="fg"><label>Nominal (Rp)</label><input type="number" id="ku-n" placeholder="0"></div>
+      </div>
+      <button class="btn h" onclick="simpanKeu()">💾 Catat</button>
+      <div id="ku-notif" style="margin-top:8px"></div>
+    </div>
+    <div class="card"><div class="ct">📋 Riwayat Transaksi</div>
+      <div class="tw"><table><tr><th>Tanggal</th><th>Keterangan</th><th>Jenis</th><th>Nominal</th></tr>
+        ${Object.entries(keuAll).reverse().map(([,k])=>`<tr>
+          <td>${k.tgl||k.createdAt||'—'}</td><td>${k.ket}</td>
+          <td><span class="bd ${k.jenis==='masuk'?'bh':'br'}">${k.jenis==='masuk'?'Masuk':'Keluar'}</span></td>
+          <td style="font-weight:500;color:${k.jenis==='masuk'?'var(--hijau)':'var(--merah)'}">Rp ${fmt(k.nominal)}</td>
+        </tr>`).join('')}
+      </table></div>
+    </div>`;
+
+  window.simpanKeu=async function(){
+    const ket=document.getElementById('ku-k').value.trim();
+    const nom=parseFloat(document.getElementById('ku-n').value)||0;
+    if(!ket||!nom){notifEl('ku-notif','err','❌ Isi semua field!');return;}
+    notifEl('ku-notif','load','⏳ Menyimpan...');
+    try{
+      await addNew('keuangan_portal',{jenis:document.getElementById('ku-j').value,ket,nominal:nom,tgl:today()});
+      notifEl('ku-notif','ok','✅ Transaksi dicatat!');
+      setTimeout(()=>loadPage('keuangan'),1000);
+    }catch(e){notifEl('ku-notif','err','❌ '+e.message);}
+  };
+}
+
+// ── DATA SANTRI ──
+async function santri_list(el) {
+  const santriAll=await getCol('santri_portal');
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Data Santri</div><button class="btn h" onclick="loadPage('tambah_santri')">➕ Tambah</button></div>
+    <div class="card"><div class="tw"><table>
+      <tr><th>#</th><th>Nama</th><th>Kelas</th><th>Wali</th><th>Hafalan</th><th>Login</th><th>Status</th></tr>
+      ${Object.entries(santriAll).map(([id,s],i)=>`<tr>
+        <td style="color:var(--teks-3)">${i+1}</td>
+        <td style="font-weight:500">${s.nama}</td><td>${s.kelas}</td><td style="color:var(--teks-2)">${s.wali||'—'}</td>
+        <td><div style="display:flex;align-items:center;gap:6px"><span>${s.hafalan||0} juz</span>
+          <div style="width:50px;height:5px;background:var(--border);border-radius:999px;overflow:hidden">
+            <div style="height:5px;width:${Math.round((s.hafalan||0)/30*100)}%;background:var(--hijau-mid);border-radius:999px"></div>
+          </div></div>
+        </td>
+        <td>${s.loginMethod==='pi'?'<span class="pi-badge">π Pi</span>':'<span class="bd bg">Email</span>'}</td>
+        <td><span class="bd ${s.status==='aktif'?'bh':'bg'}">${s.status||'aktif'}</span></td>
+      </tr>`).join('')}
+    </table></div></div>`;
+}
+
+// ── TAMBAH SANTRI ──
+// ── PENGUMUMAN ──
+async function pengumuman(el) {
+  const pengAll=await getCol('pengumuman_portal');
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Pengumuman</div></div>
+    <div class="card"><div class="ct">📢 Buat Pengumuman</div>
+      <div class="fg"><label>Judul</label><input type="text" id="pg-jdl" placeholder="Judul pengumuman"></div>
+      <div class="fg"><label>Isi</label><textarea id="pg-isi" rows="3" placeholder="Isi pengumuman..."></textarea></div>
+      <button class="btn h" onclick="simpanPengumuman()">📤 Kirim</button>
+      <div id="pg-notif" style="margin-top:8px"></div>
+    </div>
+    <div class="card"><div class="ct">📋 Daftar Pengumuman</div>
+      ${Object.entries(pengAll).sort((a,b)=>b[1].tgl?.localeCompare(a[1].tgl)).map(([id,p])=>`
+        <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:14px;font-weight:500">${p.judul}</div>
+              <div style="font-size:11px;color:var(--teks-3);margin:3px 0">${p.tgl} — ${p.penulis}</div>
+              <div style="font-size:13px;color:var(--teks-2)">${p.isi}</div>
+            </div>
+            <button class="btn sm r" onclick="hapusPng('${id}')">🗑</button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+
+  window.simpanPengumuman=async function(){
+    const jdl=document.getElementById('pg-jdl').value.trim();
+    const isi=document.getElementById('pg-isi').value.trim();
+    if(!jdl||!isi){notifEl('pg-notif','err','❌ Isi semua field!');return;}
+    notifEl('pg-notif','load','⏳ Mengirim...');
+    try{
+      await addNew('pengumuman_portal',{judul:jdl,isi,tgl:today(),penulis:window._cu.nama});
+      notifEl('pg-notif','ok','✅ Pengumuman terkirim!');
+      setTimeout(()=>loadPage('pengumuman'),1000);
+    }catch(e){notifEl('pg-notif','err','❌ '+e.message);}
+  };
+  window.hapusPng=async function(id){if(!confirm('Hapus?'))return;await delDoc('pengumuman_portal',id);loadPage('pengumuman');};
+}
+
+// ── PESAN ──
+async function pesan(el) {
+  const pesanAll=await getCol('pesan_portal');
+  const uid=window._cu.uid; const nama=window._cu.nama;
+  const msgs=Object.entries(pesanAll).map(([id,m])=>({id,...m})).sort((a,b)=>(a.ts||0)-(b.ts||0));
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Pesan</div></div>
+    <div class="card" style="display:flex;flex-direction:column;max-height:520px">
+      <div id="msg-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-bottom:10px">
+        ${msgs.length?msgs.map(m=>`<div>
+          <div style="padding:10px 13px;border-radius:12px;font-size:13px;max-width:80%;line-height:1.6;
+            background:${m.uid===uid?'var(--hijau)':'var(--abu)'};color:${m.uid===uid?'#fff':'var(--teks)'};
+            align-self:${m.uid===uid?'flex-end':'flex-start'};${m.uid===uid?'margin-left:auto':''}">${m.teks}</div>
+          <div style="font-size:10px;color:var(--teks-3);margin-top:2px;${m.uid===uid?'text-align:right':''}">${m.nama} — ${m.tgl||'—'}</div>
+        </div>`).join(''):'<div class="empty"><div class="ei">💬</div>Belum ada pesan.</div>'}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <input type="text" id="msg-in" placeholder="Tulis pesan..." style="flex:1;font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:8px">
+        <button class="btn h" onclick="kirimPesan()">Kirim →</button>
+      </div>
+    </div>`;
+
+  const ml=document.getElementById('msg-list'); if(ml)ml.scrollTop=99999;
+  window.kirimPesan=async function(){
+    const teks=document.getElementById('msg-in').value.trim();
+    if(!teks)return;
+    try{await addNew('pesan_portal',{uid,nama,teks,tgl:today(),ts:Date.now()});document.getElementById('msg-in').value='';loadPage('pesan');}
+    catch(e){alert('❌ '+e.message);}
+  };
+  document.getElementById('msg-in')?.addEventListener('keydown',e=>{if(e.key==='Enter')window.kirimPesan();});
+}
+
+// ── DONASI ──
+async function donasi(el) {
+  const donasiAll=await getCol('donasi_portal');
+  let total=0; Object.values(donasiAll).forEach(d=>total+=d.nominal||0);
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Donasi & Wakaf</div></div>
+    <div class="g3">
+      <div class="stat"><div class="stat-n" style="color:var(--hijau)">Rp ${fmt(total)}</div><div class="stat-l">Total Terkumpul</div></div>
+      <div class="stat"><div class="stat-n">${Object.keys(donasiAll).length}</div><div class="stat-l">Donatur</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">Program Aktif</div></div>
+    </div>
+    ${[['Beasiswa Santri Dhuafa','Membantu santri kurang mampu.',50000000,28750000],
+       ['Pembangunan Masjid','Perluasan masjid kapasitas 500 jamaah.',300000000,145000000],
+       ['Kitab & Perpustakaan','Melengkapi perpustakaan pesantren.',25000000,12000000]].map(([jdl,dsc,target,terkumpul])=>`
+      <div class="card">
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px">${jdl}</div>
+        <div style="font-size:12px;color:var(--teks-3);margin-bottom:10px">${dsc}</div>
+        <div class="prog"><div class="prog-f" style="width:${Math.round(terkumpul/target*100)}%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--teks-3);margin:5px 0 12px">
+          <span>Terkumpul: <strong style="color:var(--hijau)">Rp ${fmt(terkumpul)}</strong></span><span>Target: Rp ${fmt(target)}</span>
+        </div>
+        <div class="fg"><label>Nama Donatur</label><input type="text" placeholder="Nama Anda"></div>
+        <div class="fg"><label>Nominal (Rp)</label><input type="number" placeholder="Cth: 100000"></div>
+        <button class="btn h" style="width:100%;justify-content:center" onclick="kirimDonasi('${jdl}',this)">💚 Donasi Sekarang</button>
+      </div>`).join('')}`;
+
+  window.kirimDonasi=async function(prog,btn){
+    const card=btn.closest('.card');
+    const nm=card.querySelectorAll('input')[0].value.trim();
+    const nom=parseFloat(card.querySelectorAll('input')[1].value)||0;
+    if(!nm||!nom){alert('Isi nama dan nominal!');return;}
+    btn.disabled=true; btn.textContent='⏳...';
+    try{await addNew('donasi_portal',{program:prog,nama:nm,nominal:nom,tgl:today()});btn.textContent='✅ Terima kasih, '+nm+'!';setTimeout(()=>loadPage('donasi'),2000);}
+    catch(e){btn.disabled=false;btn.textContent='💚 Donasi Sekarang';alert('❌ '+e.message);}
+  };
+}
+
+// ── JADWAL ──
+async function jadwal(el) {
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Jadwal Pelajaran</div></div>
+    <div class="card"><div class="tw"><table>
+      <tr><th>Hari</th><th>07.00–08.30</th><th>08.30–10.00</th><th>10.00–11.30</th><th>13.00–14.30</th></tr>
+      ${[['Senin','Fiqih','Nahwu','Tafsir','Hafalan'],['Selasa','Hadis','Akhlak','Fiqih','Hafalan'],
+         ['Rabu','Nahwu','Tafsir','Hadis','Hafalan'],['Kamis','Akhlak','Fiqih','Nahwu','Hafalan'],
+         ["Jum'at",'Hafalan','—','—','—'],['Sabtu','Tafsir','Hadis','Akhlak','Hafalan']].map(([h,...mp])=>`
+        <tr><td style="font-weight:500;color:var(--hijau)">${h}</td>
+          ${mp.map(m=>`<td>${m!=='—'?`<span class="bd bh">${m}</span>`:'<span style="color:var(--teks-3)">—</span>'}</td>`).join('')}</tr>`).join('')}
+    </table></div></div>
+    <div class="card"><div class="ct">🕌 Jadwal Harian Pondok</div><div class="tw"><table>
+      <tr><th>Waktu</th><th>Kegiatan</th><th>Tempat</th></tr>
+      ${[['03.30','Qiyamul Lail','Masjid'],['04.30','Shalat Subuh Berjamaah','Masjid'],['05.00–06.30','Hafalan Al-Qur\'an','Halaqah'],
+         ['07.00–11.30','Kegiatan Belajar Mengajar','Kelas'],['11.30','Shalat Dzuhur','Masjid'],['13.00–14.30','KBM Sore','Kelas'],
+         ['15.00','Shalat Ashar','Masjid'],['15.30–17.30','Ekstrakurikuler','Lapangan'],['18.00','Shalat Maghrib','Masjid'],
+         ['18.30–19.30','Hafalan Malam','Halaqah'],['19.30','Shalat Isya','Masjid'],['20.00–21.30','Belajar Mandiri','Kelas'],
+         ['22.00','Istirahat','Asrama']].map(([w,k,t])=>`
+        <tr><td style="font-weight:500;color:var(--emas);font-size:12px">${w}</td><td>${k}</td><td style="color:var(--teks-3);font-size:12px">${t}</td></tr>`).join('')}
+    </table></div></div>`;
+}
+
+// ── NILAI SANTRI (view) ──
+async function nilai_santri(el) {
+  const nilaiData=await getDocById('nilai_portal','s001')||{};
+  const santri=await getDocById('santri_portal','s001')||{nama:'Santri'};
+  const mapels=Object.entries(nilaiData).filter(([k])=>!['santriId','updatedAt'].includes(k));
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Nilai Saya — ${santri.nama}</div></div>
+    <div class="card"><div class="tw"><table>
+      <tr><th>Mata Pelajaran</th><th>Harian</th><th>UTS</th><th>UAS</th><th>Rata-rata</th><th>Mutu</th></tr>
+      ${mapels.map(([mp,n])=>{const a=avg(n.harian,n.uts,n.uas);return `<tr>
+        <td style="font-weight:500">${mp[0].toUpperCase()+mp.slice(1)}</td>
+        <td>${n.harian||'—'}</td><td>${n.uts||'—'}</td><td>${n.uas||'—'}</td>
+        <td><strong>${a||'—'}</strong></td>
+        <td><span class="bd ${a>=80?'bh':a>=70?'bb':a>=60?'be':'br'}">${a?mutu(a):'—'}</span></td>
+      </tr>`;}).join('')}
+    </table></div></div>`;
+}
+
+// ── HAFALAN SANTRI (view) ──
+async function hafalan_santri(el) {
+  const s=await getDocById('santri_portal','s001')||{hafalan:0,nama:'Santri'};
+  const logAll=await getCol('hafalan_log');
+  const myLog=Object.entries(logAll).filter(([,h])=>h.santriId==='s001').sort((a,b)=>b[1].createdAt?.localeCompare(a[1].createdAt)).slice(0,8);
+  const pct=Math.round((s.hafalan||0)/30*100);
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Hafalan Saya — ${s.nama}</div></div>
+    <div class="card" style="text-align:center;padding:28px">
+      <div style="font-size:36px;font-weight:700;color:var(--hijau)">${s.hafalan||0}<span style="font-size:18px;color:var(--teks-3)"> / 30 juz</span></div>
+      <div class="prog" style="margin:16px auto;max-width:300px;height:12px"><div class="prog-f" style="width:${pct}%;height:12px"></div></div>
+      <div style="font-size:13px;color:var(--teks-3)">${pct}% dari target 30 juz</div>
+    </div>
+    <div class="card"><div class="ct">📋 Riwayat Setoran</div>
+      ${myLog.length?`<div class="tw"><table><tr><th>Surat</th><th>Halaman</th><th>Catatan Ustadz</th><th>Tanggal</th></tr>
+        ${myLog.map(([,h])=>`<tr><td>${h.surat}</td><td>${h.halaman}</td><td style="color:var(--teks-3)">${h.catatan||'—'}</td><td>${h.tgl||'—'}</td></tr>`).join('')}
+      </table></div>`:'<div class="empty"><div class="ei">📖</div>Belum ada riwayat setoran.</div>'}
+    </div>`;
+}
+
+// ── SPP ──
+async function spp(el) {
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Tagihan SPP</div></div>
+    <div class="g2">
+      <div class="card"><div class="ct">💳 Tagihan Bulan Ini</div>
+        ${[['Syahriah / SPP','500000','belum'],['Makan','300000','lunas'],['Laundry','75000','lunas']].map(([l,n,s])=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px">${l}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:13px;font-weight:500">Rp ${fmt(n)}</span>
+              <span class="bd ${s==='lunas'?'bh':'be'}">${s}</span>
+            </div>
+          </div>`).join('')}
+        <button class="btn h" style="width:100%;justify-content:center;margin-top:14px" onclick="alert('Transfer ke:\\nBRI 1234-5678-9012\\na.n. Yayasan Hidayatul Amin\\n\\nKonfirmasi via WhatsApp 08xx.')">💳 Bayar Sekarang</button>
+      </div>
+      <div class="card"><div class="ct">📋 Riwayat</div>
+        ${[['Mei 2025','875000'],['April 2025','875000'],['Maret 2025','875000']].map(([b,n])=>`
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+            <span style            <span style="font-size:13px">${b}</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="font-size:13px;font-weight:500">Rp ${fmt(n)}</span>
+              <span class="bd bh">lunas</span>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ── PROFIL ──
+async function profil(el) {
+  const u = window._cu;
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Profil Saya</div></div>
+    <div class="g2">
+      <div class="card" style="text-align:center;padding:28px">
+        <div style="width:68px;height:68px;border-radius:50%;background:var(--hijau);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin:0 auto 12px">${u.nama.slice(0,2).toUpperCase()}</div>
+        <div style="font-size:16px;font-weight:600">${u.nama}</div>
+        <div style="font-size:12px;color:var(--teks-3);margin-top:4px">${u.email}</div>
+        <div style="margin-top:8px;display:flex;gap:6px;justify-content:center">
+          <span class="bd bh">${{admin:'Pimpinan',ustadz:'Ustadz',santri:'Santri'}[u.role]||u.role}</span>
+          ${u.isPi?'<span class="pi-badge">π Pi Network</span>':''}
+        </div>
+      </div>
+      <div class="card"><div class="ct">✏️ Edit Profil</div>
+        <div class="fg"><label>Nama Tampilan</label><input type="text" id="pr-nm" value="${u.nama}"></div>
+        <div class="fg"><label>Email</label><input type="text" value="${u.email}" disabled style="opacity:.6"></div>
+        <div class="fg"><label>No. WhatsApp</label><input type="tel" id="pr-wa" placeholder="08xx-xxxx-xxxx"></div>
+        ${u.role==='ustadz'?'<div class="fg"><label>Bidang Studi</label><input type="text" id="pr-bd" placeholder="Fiqih, Nahwu..."></div>':''}
+        <button class="btn h" onclick="simpanProfil()">💾 Simpan</button>
+        <div id="pr-notif" style="margin-top:8px"></div>
+      </div>
+    </div>`;
+
+  window.simpanProfil = async function() {
+    const nm = document.getElementById('pr-nm').value.trim();
+    if(!nm){notifEl('pr-notif','err','❌ Nama tidak boleh kosong!');return;}
+    notifEl('pr-notif','load','⏳ Menyimpan...');
+    try {
+      await saveDoc('users', u.uid, {
+        nama: nm,
+        wa: document.getElementById('pr-wa')?.value||'',
+        bidang: document.getElementById('pr-bd')?.value||''
+      });
+      window._cu.nama = nm;
+      document.getElementById('ap-name').textContent = nm;
+      document.getElementById('av').textContent = nm.slice(0,2).toUpperCase();
+      notifEl('pr-notif','ok','✅ Profil diperbarui!');
+    } catch(e){ notifEl('pr-notif','err','❌ '+e.message); }
+  };
+}
+
+// ── PENGATURAN ──
+async function pengaturan(el) {
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Pengaturan Portal</div></div>
+    <div class="g2">
+      <div class="card"><div class="ct">🏫 Identitas Pesantren</div>
+        <div class="fg"><label>Nama Pesantren</label><input type="text" id="st-nm" value="Hidayatul Amin"></div>
+        <div class="fg"><label>Alamat</label><textarea id="st-al" rows="2" placeholder="Alamat lengkap"></textarea></div>
+        <div class="fg"><label>No. Telepon</label><input type="tel" id="st-tp" placeholder="08xx"></div>
+        <div class="fg"><label>Email</label><input type="email" id="st-em" placeholder="info@pesantren.id"></div>
+        <button class="btn h" onclick="simpanPengaturan()">💾 Simpan</button>
+        <div id="st-notif" style="margin-top:8px"></div>
+      </div>
+      <div class="card"><div class="ct">🗂️ Data & Export</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+          <button class="btn" style="width:100%;justify-content:center" onclick="exportSantri()">📤 Export Data Santri (CSV)</button>
+          <button class="btn" style="width:100%;justify-content:center" onclick="exportNilai()">📤 Export Nilai (CSV)</button>
+        </div>
+        <div style="padding:12px;background:var(--biru-light);border-radius:var(--r);font-size:12px;color:var(--biru);line-height:1.6">
+          <strong>ℹ️ Integrasi Pi Network</strong><br>
+          Portal ini terhubung penuh dengan sistem Pi Network Hidayatul Amin. Santri yang login via Pi otomatis muncul di data santri dan saldo SGT mereka tetap aman.
+        </div>
+        <div style="margin-top:12px;padding:12px;background:var(--hijau-light);border-radius:var(--r);font-size:12px;color:var(--hijau);line-height:1.6">
+          <strong>🔒 Keamanan Firestore</strong><br>
+          Semua data menggunakan Firestore dengan rules yang sudah dikonfigurasi. Admin & ustadz akses via email login. Santri Pi Network via signInAnonymously.
+        </div>
+      </div>
+    </div>`;
+
+  window.simpanPengaturan = async function() {
+    notifEl('st-notif','load','⏳ Menyimpan...');
+    try {
+      await saveDoc('config','portal',{
+        namaPesantren: document.getElementById('st-nm').value,
+        alamat: document.getElementById('st-al').value,
+        telp: document.getElementById('st-tp').value,
+        email: document.getElementById('st-em').value,
+      });
+      notifEl('st-notif','ok','✅ Pengaturan disimpan!');
+    } catch(e){ notifEl('st-notif','err','❌ '+e.message); }
+  };
+
+  window.exportSantri = async function() {
+    const data = await getCol('santri_portal');
+    const rows = [['ID','Nama','Kelas','Wali','Hafalan','Login','Status'],
+      ...Object.entries(data).map(([id,s])=>[id,s.nama,s.kelas,s.wali||'',s.hafalan||0,s.loginMethod||'email',s.status||'aktif'])];
+    const csv = rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download = 'santri-hidayatulamin.csv'; a.click();
+  };
+
+  window.exportNilai = async function() {
+    const [sData,nData] = await Promise.all([getCol('santri_portal'),getCol('nilai_portal')]);
+    const mapels = ['fiqih','nahwu','tafsir','hadis','akhlak'];
+    const header = ['ID','Nama',...mapels.flatMap(m=>[m+'_harian',m+'_uts',m+'_uas',m+'_avg'])];
+    const rows = [header];
+    Object.entries(sData).forEach(([id,s])=>{
+      const n = nData[id]||{};
+      rows.push([id, s.nama, ...mapels.flatMap(m=>{
+        const v = n[m]||{}; const a = avg(v.harian,v.uts,v.uas);
+        return [v.harian||0, v.uts||0, v.uas||0, a];
+      })]);
+    });
+    const csv = rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download = 'nilai-hidayatulamin.csv'; a.click();
+  };
+}
+
+// ── TAMBAH SANTRI ──
+async function tambah_santri(el) {
+  el.innerHTML=`
+    <div class="sh"><div class="sh-t">Tambah Santri Baru</div>
+      <button class="btn" onclick="loadPage('santri_list')">← Kembali</button>
+    </div>
+    <div class="card"><div class="ct">📝 Data Santri</div>
+      <div class="g2">
+        <div class="fg"><label>Nama Lengkap *</label><input type="text" id="ts-nm" placeholder="Nama sesuai ijazah"></div>
+        <div class="fg"><label>Tempat, Tanggal Lahir</label><input type="text" id="ts-ttl" placeholder="Cth: Bandung, 10-03-2012"></div>
+        <div class="fg"><label>Kelas *</label>
+          <select id="ts-kls"><option>1A</option><option>1B</option><option>2A</option><option>2B</option><option>3A</option></select>
+        </div>
+        <div class="fg"><label>Jenis Kelamin</label>
+          <select id="ts-jk"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
+        </div>
+        <div class="fg"><label>Nama Wali *</label><input type="text" id="ts-wl" placeholder="Nama orang tua / wali"></div>
+        <div class="fg"><label>WhatsApp Wali</label><input type="tel" id="ts-wa" placeholder="08xx-xxxx-xxxx"></div>
+        <div class="fg"><label>Asal Daerah</label><input type="text" id="ts-asl" placeholder="Kab/Kota, Provinsi"></div>
+        <div class="fg"><label>Tanggal Masuk</label><input type="date" id="ts-tgl" value="${today()}"></div>
+      </div>
+      <div class="fg"><label>Catatan Khusus</label>
+        <textarea id="ts-cat" placeholder="Kondisi kesehatan, kebutuhan khusus, dll."></textarea>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn h" onclick="simpanSantri()">💾 Simpan Santri</button>
+        <button class="btn" onclick="loadPage('santri_list')">Batal</button>
+      </div>
+      <div id="ts-notif" style="margin-top:10px"></div>
+    </div>`;
+
+  window.simpanSantri = async function() {
+    const nm  = document.getElementById('ts-nm').value.trim();
+    const wl  = document.getElementById('ts-wl').value.trim();
+    if(!nm||!wl){ notifEl('ts-notif','err','❌ Nama dan wali wajib diisi!'); return; }
+    notifEl('ts-notif','load','⏳ Menyimpan ke Firestore...');
+    try {
+      await addNew('santri_portal',{
+        nama: nm,
+        ttl:  document.getElementById('ts-ttl').value,
+        kelas:document.getElementById('ts-kls').value,
+        jk:   document.getElementById('ts-jk').value,
+        wali: wl,
+        wa:   document.getElementById('ts-wa').value,
+        asal: document.getElementById('ts-asl').value,
+        tglMasuk: document.getElementById('ts-tgl').value,
+        catatan:  document.getElementById('ts-cat').value,
+        hafalan: 0, status:'aktif', loginMethod:'email',
+      });
+      notifEl('ts-notif','ok','✅ Santri berhasil ditambahkan!');
+      setTimeout(()=>loadPage('santri_list'), 1200);
+    } catch(e){ notifEl('ts-notif','err','❌ '+e.message); }
+  };
+}
+
+// ─────────────────────────────────────────────
+// FIRESTORE RULES HELPER — tambahkan koleksi
+// portal ke rules yang sudah ada di Firestore
+// (instruksi ditampilkan di console)
+// ─────────────────────────────────────────────
+console.info(`
+╔══════════════════════════════════════════════╗
+║  PORTAL HIDAYATUL AMIN — Firestore Setup     ║
+╠══════════════════════════════════════════════╣
+║  Tambahkan rules berikut ke Firestore        ║
+║  di bawah rule terakhir (sebelum } terakhir) ║
+╠══════════════════════════════════════════════╣
+║                                              ║
+║  // ── PORTAL PESANTREN ──                   ║
+║  match /santri_portal/{d} {                  ║
+║    allow read,write: if isLoggedIn();        ║
+║  }                                           ║
+║  match /nilai_portal/{d} {                   ║
+║    allow read: if isLoggedIn();              ║
+║    allow write: if isAdminOrPiAdmin()        ║
+║              || isUstadzOrPiUstadz();        ║
+║  }                                           ║
+║  match /absensi_portal/{d} {                 ║
+║    allow read,write: if isAdminOrPiAdmin()   ║
+║                   || isUstadzOrPiUstadz();   ║
+║  }                                           ║
+║  match /hafalan_log/{d} {                    ║
+║    allow read,write: if isLoggedIn();        ║
+║  }                                           ║
+║  match /bank_soal/{d} {                      ║
+║    allow read: if isLoggedIn();              ║
+║    allow write: if isAdminOrPiAdmin()        ║
+║              || isUstadzOrPiUstadz();        ║
+║  }                                           ║
+║  match /pengumuman_portal/{d} {              ║
+║    allow read: if isLoggedIn();              ║
+║    allow write: if isAdminOrPiAdmin();       ║
+║  }                                           ║
+║  match /keuangan_portal/{d} {                ║
+║    allow read,write: if isAdminOrPiAdmin();  ║
+║  }                                           ║
+║  match /pesan_portal/{d} {                   ║
+║    allow read,write: if isLoggedIn();        ║
+║  }                                           ║
+║  match /donasi_portal/{d} {                  ║
+║    allow create: if true;                    ║
+║    allow read,write: if isAdminOrPiAdmin();  ║
+║  }                                           ║
+╚══════════════════════════════════════════════╝
+`);
+
+</script>
+</body>
+</html>
