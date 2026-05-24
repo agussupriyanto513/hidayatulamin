@@ -1663,7 +1663,7 @@ function jadwal(el){
       <div class="tw"><table>
         <thead><tr><th>Waktu</th><th>Kegiatan</th><th>Tempat</th>${_cu.role==='admin'?'<th>Aksi</th>':''}</tr></thead>
         <tbody id="tbody-harian">
-        ${(DB.all('jadwal_harian')||defaultJadwalHarian()).map((r,i)=>`
+        ${(Array.isArray(DB.all('jadwal_harian'))?DB.all('jadwal_harian'):defaultJadwalHarian()).map((r,i)=>`
           <tr>
             <td style="font-weight:600;color:var(--em);font-size:12px;white-space:nowrap">${r.waktu}</td>
             <td style="font-weight:500">${r.kegiatan}</td>
@@ -1699,7 +1699,8 @@ function jadwal(el){
   }
 
   function getJadwalHarian(){
-    return DB.all('jadwal_harian') || defaultJadwalHarian();
+    const d = DB.all('jadwal_harian');
+    return Array.isArray(d) ? d : defaultJadwalHarian();
   }
 
   function formJadwalHarian(data={}){
