@@ -1261,7 +1261,7 @@ function hafalan(el){
             <td>${h.halaman} hal</td>
             <td style="color:var(--t3);font-size:12px">${h.catatan||'—'}</td>
             <td style="font-size:12px;color:var(--t4)">${h.tgl||'—'}</td>
-            <td><button class="btn xs r" onclick="hapusHafalan('${id}')">🗑</button></td>
+            <td>${_cu.role==='admin'?`<button class="btn xs r" onclick="hapusHafalan('${id}')">🗑</button>`:''}</td>
           </tr>`).join('')}
         </tbody>
       </table></div>`:'<div class="empty-state" style="padding:24px"><div class="empty-icon">📝</div><div class="empty-title">Belum ada riwayat</div></div>'}
@@ -1321,8 +1321,8 @@ function santri_list(el){
             </td>
             <td><span class="badge ${s.status==='aktif'?'g':'gr'}">${s.status||'aktif'}</span></td>
             <td><div class="td-actions">
-              <button class="btn xs" onclick="editSantri('${id}')">✏️ Edit</button>
-              <button class="btn xs r" onclick="hapusSantri('${id}')">🗑</button>
+              ${_cu.role==='admin'?`<button class="btn xs" onclick="editSantri('${id}')">✏️ Edit</button>`:''}
+              ${_cu.role==='admin'?`<button class="btn xs r" onclick="hapusSantri('${id}')">🗑</button>`:''}
             </div></td>
           </tr>`).join('')}
         </tbody>
@@ -1540,7 +1540,7 @@ function pengumuman(el){
 
   el.innerHTML=`<div class="fade-in">
     <div class="ph"><div class="ph-l"><div class="ph-title">Pengumuman</div><div class="ph-sub">${daftarPeng.length} pengumuman aktif</div></div></div>
-    ${_cu.role!=='santri'?`
+    ${_cu.role==='admin'?`
     <div class="card">
       <div class="card-hd"><span>📢</span> Buat Pengumuman Baru</div>
       <div class="row2">
@@ -1566,7 +1566,7 @@ function pengumuman(el){
               <div style="font-size:11px;color:var(--t4);margin-bottom:6px">${p.tgl} · ${p.penulis}</div>
               <div style="font-size:13px;color:var(--t2);line-height:1.6">${p.isi}</div>
             </div>
-            ${_cu.role!=='santri'?`<div class="td-actions">
+            ${_cu.role==='admin'?`<div class="td-actions">
               <button class="btn xs" onclick="editPengumuman('${id}')">✏️</button>
               <button class="btn xs r" onclick="hapusPengumuman('${id}')">🗑</button>
             </div>`:''}
@@ -1647,8 +1647,8 @@ function jadwal(el){
             <td style="font-weight:600;color:var(--g);white-space:nowrap">${h}</td>
             ${(jadwalDB[h]||['—','—','—','—']).map((mp,idx)=>`
               <td style="text-align:center;padding:8px">
-                ${mp!=='—'?`<div class="jadwal-cell" style="cursor:pointer;color:#fff;background:${warna[mp]||'var(--g)'}" onclick="editJadwalSlot('${h}',${idx},'${mp}')">${mp}</div>`
-                :`<div class="jadwal-empty" style="cursor:pointer" onclick="editJadwalSlot('${h}',${idx},'—')">+ Isi</div>`}
+                ${mp!=='—'?`<div class="jadwal-cell" style="color:#fff;background:${warna[mp]||'var(--g)'}${_cu.role==='admin'?';cursor:pointer':''}" ${_cu.role==='admin'?`onclick="editJadwalSlot('${h}',${idx},'${mp}')"`:''}>${mp}</div>`
+                :_cu.role==='admin'?`<div class="jadwal-empty" style="cursor:pointer" onclick="editJadwalSlot('${h}',${idx},'—')">+ Isi</div>`:'<div class="jadwal-empty">—</div>'}
               </td>`).join('')}
           </tr>`).join('')}
           </tbody>
@@ -1656,27 +1656,132 @@ function jadwal(el){
       </div>
     </div>
     <div class="card">
-      <div class="card-hd"><span>🕌</span> Jadwal Harian Pondok</div>
+      <div class="card-hd" style="justify-content:space-between">
+        <span><span>🕌</span> Jadwal Harian Pondok</span>
+        ${_cu.role==='admin'?`<button class="btn sm g" onclick="tambahJadwalHarian()">➕ Tambah</button>`:''}
+      </div>
       <div class="tw"><table>
-        <thead><tr><th>Waktu</th><th>Kegiatan</th><th>Tempat</th></tr></thead>
-        <tbody>
-        ${[['03.30','Qiyamul Lail','Masjid'],['04.30','Shalat Subuh Berjamaah','Masjid'],['05.00–06.30','Hafalan Al-Qur\'an','Halaqah'],
-           ['07.00–11.30','Kegiatan Belajar Mengajar','Kelas'],['11.30','Shalat Dzuhur Berjamaah','Masjid'],['13.00–14.30','KBM Sore','Kelas'],
-           ['15.00','Shalat Ashar Berjamaah','Masjid'],['15.30–17.30','Ekstrakurikuler','Lapangan'],['18.00','Shalat Maghrib','Masjid'],
-           ['18.30–19.30','Hafalan Malam','Halaqah'],['19.30','Shalat Isya Berjamaah','Masjid'],['20.00–21.30','Belajar Mandiri','Kelas'],
-           ['22.00','Istirahat','Asrama']].map(([w,k,t])=>`
+        <thead><tr><th>Waktu</th><th>Kegiatan</th><th>Tempat</th>${_cu.role==='admin'?'<th>Aksi</th>':''}</tr></thead>
+        <tbody id="tbody-harian">
+        ${(DB.all('jadwal_harian')||defaultJadwalHarian()).map((r,i)=>`
           <tr>
-            <td style="font-weight:600;color:var(--em);font-size:12px;white-space:nowrap">${w}</td>
-            <td style="font-weight:500">${k}</td>
-            <td style="font-size:12px;color:var(--t3)">${t}</td>
+            <td style="font-weight:600;color:var(--em);font-size:12px;white-space:nowrap">${r.waktu}</td>
+            <td style="font-weight:500">${r.kegiatan}</td>
+            <td style="font-size:12px;color:var(--t3)">${r.tempat}</td>
+            ${_cu.role==='admin'?`<td><div class="td-actions">
+              <button class="btn xs" onclick="editJadwalHarian(${i})">✏️</button>
+              <button class="btn xs r" onclick="hapusJadwalHarian(${i})">🗑</button>
+            </div></td>`:''}
           </tr>`).join('')}
         </tbody>
       </table></div>
     </div>
   </div>`;
 
+  function defaultJadwalHarian(){
+    const def=[
+      {waktu:'03.30',kegiatan:'Qiyamul Lail',tempat:'Masjid'},
+      {waktu:'04.30',kegiatan:'Shalat Subuh Berjamaah',tempat:'Masjid'},
+      {waktu:'05.00–06.30',kegiatan:"Hafalan Al-Qur'an",tempat:'Halaqah'},
+      {waktu:'07.00–11.30',kegiatan:'Kegiatan Belajar Mengajar',tempat:'Kelas'},
+      {waktu:'11.30',kegiatan:'Shalat Dzuhur Berjamaah',tempat:'Masjid'},
+      {waktu:'13.00–14.30',kegiatan:'KBM Sore',tempat:'Kelas'},
+      {waktu:'15.00',kegiatan:'Shalat Ashar Berjamaah',tempat:'Masjid'},
+      {waktu:'15.30–17.30',kegiatan:'Ekstrakurikuler',tempat:'Lapangan'},
+      {waktu:'18.00',kegiatan:'Shalat Maghrib',tempat:'Masjid'},
+      {waktu:'18.30–19.30',kegiatan:'Hafalan Malam',tempat:'Halaqah'},
+      {waktu:'19.30',kegiatan:'Shalat Isya Berjamaah',tempat:'Masjid'},
+      {waktu:'20.00–21.30',kegiatan:'Belajar Mandiri',tempat:'Kelas'},
+      {waktu:'22.00',kegiatan:'Istirahat',tempat:'Asrama'},
+    ];
+    DB.set('jadwal_harian', def);
+    return def;
+  }
+
+  function getJadwalHarian(){
+    return DB.all('jadwal_harian') || defaultJadwalHarian();
+  }
+
+  function formJadwalHarian(data={}){
+    return `
+      <div class="fg"><label>Waktu *</label>
+        <input type="text" id="jh-wkt" value="${data.waktu||''}" placeholder="Cth: 04.30 atau 05.00–06.30">
+      </div>
+      <div class="fg"><label>Kegiatan *</label>
+        <input type="text" id="jh-kgt" value="${data.kegiatan||''}" placeholder="Cth: Shalat Subuh Berjamaah">
+      </div>
+      <div class="fg"><label>Tempat *</label>
+        <input type="text" id="jh-tmp" value="${data.tempat||''}" placeholder="Cth: Masjid, Kelas, Halaqah">
+      </div>`;
+  }
+
+  window.tambahJadwalHarian=function(){
+    if(_cu.role!=='admin'){alert('Hanya admin yang dapat mengubah jadwal harian.');return;}
+    document.getElementById('modal-jadwal-body').innerHTML=`
+      <div class="card-hd" style="margin-bottom:16px"><span>➕</span> Tambah Kegiatan</div>
+      ${formJadwalHarian()}
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn g" onclick="simpanTambahJH()">💾 Simpan</button>
+        <button class="btn" onclick="tutupModal('modal-jadwal')">Batal</button>
+      </div>
+      <div id="jh-notif" style="margin-top:8px"></div>`;
+    abraModal('modal-jadwal');
+  };
+
+  window.simpanTambahJH=function(){
+    const wkt=document.getElementById('jh-wkt').value.trim();
+    const kgt=document.getElementById('jh-kgt').value.trim();
+    const tmp=document.getElementById('jh-tmp').value.trim();
+    if(!wkt||!kgt||!tmp){notifEl('jh-notif','err','❌ Semua field wajib diisi!');return;}
+    const list=getJadwalHarian();
+    list.push({waktu:wkt,kegiatan:kgt,tempat:tmp});
+    // Urutkan berdasarkan waktu
+    list.sort((a,b)=>a.waktu.localeCompare(b.waktu));
+    DB.set('jadwal_harian',list);
+    tutupModal('modal-jadwal');
+    loadPage('jadwal');
+  };
+
+  window.editJadwalHarian=function(idx){
+    if(_cu.role!=='admin'){alert('Hanya admin yang dapat mengubah jadwal harian.');return;}
+    const list=getJadwalHarian();
+    const r=list[idx];
+    if(!r) return;
+    document.getElementById('modal-jadwal-body').innerHTML=`
+      <div class="card-hd" style="margin-bottom:16px"><span>✏️</span> Edit Kegiatan</div>
+      ${formJadwalHarian(r)}
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn g" onclick="simpanEditJH(${idx})">💾 Simpan</button>
+        <button class="btn" onclick="tutupModal('modal-jadwal')">Batal</button>
+      </div>
+      <div id="jh-notif" style="margin-top:8px"></div>`;
+    abraModal('modal-jadwal');
+  };
+
+  window.simpanEditJH=function(idx){
+    const wkt=document.getElementById('jh-wkt').value.trim();
+    const kgt=document.getElementById('jh-kgt').value.trim();
+    const tmp=document.getElementById('jh-tmp').value.trim();
+    if(!wkt||!kgt||!tmp){notifEl('jh-notif','err','❌ Semua field wajib diisi!');return;}
+    const list=getJadwalHarian();
+    list[idx]={waktu:wkt,kegiatan:kgt,tempat:tmp};
+    list.sort((a,b)=>a.waktu.localeCompare(b.waktu));
+    DB.set('jadwal_harian',list);
+    tutupModal('modal-jadwal');
+    loadPage('jadwal');
+  };
+
+  window.hapusJadwalHarian=function(idx){
+    if(_cu.role!=='admin'){return;}
+    if(!confirm('Hapus kegiatan ini dari jadwal harian?')) return;
+    const list=getJadwalHarian();
+    list.splice(idx,1);
+    DB.set('jadwal_harian',list);
+    loadPage('jadwal');
+  };
+
   window.editJadwalSlot=function(hari,idx,cur){
-    if(_cu.role==='santri') return;
+    if(_cu.role!=='admin') return;
     const mapels=['Fiqih','Nahwu','Tafsir','Hadis','Akhlak','Hafalan','—'];
     document.getElementById('modal-jadwal-body').innerHTML=`
       <div class="fg"><label>${hari} — Slot ${idx+1}: ${slots[idx]}</label>
@@ -1748,7 +1853,7 @@ function soal(el){
               <span class="badge gr">${s.tipe==='pg'?'Pilihan Ganda':'Essay'}</span>
               ${s.sumber==='AI'?'<span class="badge pu">🤖 AI</span>':''}
             </div>
-            ${_cu.role!=='santri'?`<button class="btn xs r" onclick="hapusSoal('${id}')">🗑</button>`:''}
+            ${_cu.role==='admin'?`<button class="btn xs r" onclick="hapusSoal('${id}')">🗑</button>`:''}
           </div>
           <div style="font-size:13px;font-weight:500;margin-bottom:8px;color:var(--t)">${s.pertanyaan}</div>
           ${s.tipe==='pg'&&s.opsi?.length?`<div style="display:flex;flex-direction:column;gap:3px">
