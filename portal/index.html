@@ -266,6 +266,42 @@ tbody tr:hover td{background:var(--gl)}
 .ab-sel[data-v="sakit"]{background:var(--bl);border-color:#b0c8e8;color:var(--b)}
 .ab-sel[data-v="alfa"]{background:var(--rl);border-color:#f0b0a8;color:var(--r)}
 </style>
+<script type="module">
+  // ══ FIREBASE CONFIG ══
+  // Ganti dengan konfigurasi Firebase project Anda
+  // Ambil dari: Firebase Console → Project Settings → Your Apps
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+    GoogleAuthProvider, signInWithPopup }
+    from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, collection,
+    getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit }
+    from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
+    authDomain: "hidayatulamin-e6f22.firebaseapp.com",
+    databaseURL: "https://hidayatulamin-e6f22-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "hidayatulamin-e6f22",
+    storageBucket: "hidayatulamin-e6f22.firebasestorage.app",
+    messagingSenderId: "80743607267",
+    appId: "1:80743607267:web:f5f94165de021759958ed6"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // ── EXPOSE ke window agar script lama bisa akses ──
+  const googleProvider = new GoogleAuthProvider();
+  window._fb = { auth, db, signInWithEmailAndPassword, signOut,
+    onAuthStateChanged, doc, getDoc, setDoc, collection,
+    getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit,
+    GoogleAuthProvider, signInWithPopup, googleProvider };
+  window._fbReady = true;
+  document.dispatchEvent(new Event('fbReady'));
+</script>
+
 </head>
 <body>
 
@@ -323,16 +359,24 @@ tbody tr:hover td{background:var(--gl)}
     <h3>Masuk ke Portal</h3>
     <div class="li-fg"><label>Email / Username</label><input type="email" id="li-email" placeholder="email@pesantren.id" autocomplete="email"></div>
     <div class="li-fg"><label>Password</label><input type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password"></div>
-    <div class="li-fg"><label>Masuk sebagai</label>
-      <select id="li-role">
-        <option value="admin">👑 Pimpinan / Admin</option>
-        <option value="ustadz">📚 Ustadz / Guru</option>
-        <option value="santri">🎓 Santri</option>
-      </select>
+    <!-- Role tidak bisa dipilih manual — ditentukan dari database -->
+    <div class="li-fg" style="background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.15);border-radius:10px;padding:10px 14px">
+      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">ℹ️ Role ditentukan otomatis dari sistem</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.65)">Admin · Ustadz · Santri</div>
     </div>
     <button class="btn-masuk" id="btn-li" onclick="doLogin()">Masuk →</button>
+    <div style="display:flex;align-items:center;gap:10px;margin:10px 0">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.12)"></div>
+      <span style="font-size:11px;color:rgba(255,255,255,.3)">atau</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.12)"></div>
+    </div>
+    <button class="btn-masuk" id="btn-google" onclick="doLoginGoogle()"
+      style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;gap:10px">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.8 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8H6.2C9.6 37.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41.2 36.1 44 30.5 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+      Masuk dengan Google
+    </button>
     <div class="li-err" id="li-err"></div>
-    <div class="demo-hint">Demo: email apapun &amp; password minimal 4 karakter<br><b>admin</b> · <b>ustadz</b> · <b>santri</b></div>
+    <div class="demo-hint">Gunakan email &amp; password yang telah didaftarkan admin<br>Lupa password? Hubungi <b>admin pesantren</b></div>
   </div>
 </div>
 
@@ -366,29 +410,106 @@ tbody tr:hover td{background:var(--gl)}
 // ══════════════════════════════════════════════════
 // DATABASE: localStorage dengan seed data bawaan
 // ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// DATABASE LAYER — Firestore (dengan fallback localStorage)
+// Jika Firebase belum dikonfigurasi, tetap pakai localStorage
+// ══════════════════════════════════════════════════
+
+// Map nama koleksi portal ke nama Firestore
+const COL_MAP = {
+  santri:'santri_portal', nilai:'nilai_portal', absensi:'absensi_portal',
+  hafalan_log:'hafalan_log', bank_soal:'bank_soal', keuangan:'keuangan_portal',
+  pengumuman:'pengumuman_portal', donasi:'donasi_portal', pesan:'pesan_portal',
+  jadwal:'jadwal', config:'config', spp:'spp', users:'users',
+};
+
+function fsCol(col){ return COL_MAP[col]||col; }
+
+// Cache in-memory untuk performa
+const _cache = {};
+
 const DB = {
-  get(col){
+  // ── localStorage (fallback & cache) ──
+  _lsGet(col){
     try{ const d=localStorage.getItem('ha_'+col); return d?JSON.parse(d):null; }
     catch{return null;}
   },
-  set(col,data){ localStorage.setItem('ha_'+col,JSON.stringify(data)); },
-  all(col){ return this.get(col)||{}; },
+  _lsSet(col,data){ try{localStorage.setItem('ha_'+col,JSON.stringify(data));}catch(e){} },
+
+  get(col){ return this._lsGet(col); },
+  set(col,data){
+    this._lsSet(col,data);
+    _cache[col]=data;
+    // Sync ke Firestore jika tersedia (fire & forget)
+    if(window._fb) this._syncToFs(col,data);
+  },
+  all(col){ return _cache[col]||this._lsGet(col)||{}; },
+
   save(col,id,obj){
     const d=this.all(col);
     d[id]={...d[id],...obj,_upd:today()};
     this.set(col,d);
+    // Granular Firestore update
+    if(window._fb) this._fsUpdate(col,id,{...obj,_upd:today()}).catch(()=>{});
   },
+
   add(col,obj){
     const d=this.all(col);
     const id=col.slice(0,2)+'_'+Date.now();
     d[id]={...obj,_id:id,_ts:Date.now()};
     this.set(col,d);
+    // Firestore add
+    if(window._fb) this._fsAdd(col,{...obj,_id:id,_ts:Date.now()}).catch(()=>{});
     return id;
   },
+
   del(col,id){
     const d=this.all(col);
     delete d[id];
     this.set(col,d);
+    // Firestore delete
+    if(window._fb) this._fsDel(col,id).catch(()=>{});
+  },
+
+  // ── Firestore helpers ──
+  async _syncToFs(col,data){
+    if(!window._fb) return;
+    const {db,doc,setDoc}=window._fb;
+    try{
+      await setDoc(doc(db,fsCol(col),'_snapshot'),{...data,_synced:Date.now()},{merge:true});
+    }catch(e){}
+  },
+
+  async _fsUpdate(col,id,obj){
+    if(!window._fb) return;
+    const {db,doc,updateDoc,serverTimestamp}=window._fb;
+    await updateDoc(doc(db,fsCol(col),id),{...obj,updatedAt:serverTimestamp()});
+  },
+
+  async _fsAdd(col,obj){
+    if(!window._fb) return;
+    const {db,collection,addDoc,serverTimestamp}=window._fb;
+    await addDoc(collection(db,fsCol(col)),{...obj,createdAt:serverTimestamp()});
+  },
+
+  async _fsDel(col,id){
+    if(!window._fb) return;
+    const {db,doc,deleteDoc}=window._fb;
+    await deleteDoc(doc(db,fsCol(col),id));
+  },
+
+  // ── Load data dari Firestore ke cache ──
+  async loadFromFirestore(col){
+    if(!window._fb) return this.all(col);
+    const {db,collection,getDocs}=window._fb;
+    try{
+      const snap=await getDocs(collection(db,fsCol(col)));
+      const data={};
+      snap.forEach(d=>{ data[d.id]={...d.data(),_id:d.id}; });
+      _cache[col]=data;
+      this._lsSet(col,data); // update local cache
+      return data;
+    }catch(e){ return this.all(col); }
   },
 };
 
@@ -508,30 +629,182 @@ function seedData(){
 // ══════════════════════════════════════════════════
 let _cu=null; // current user
 
-window.doLogin=function(){
+// ══════════════════════════════════════════════════
+// AUTH — Firebase (role diverifikasi dari Firestore)
+// ══════════════════════════════════════════════════
+
+function waitFbReady(cb){
+  if(window._fbReady) cb();
+  else document.addEventListener('fbReady',cb,{once:true});
+}
+
+window.doLogin=async function(){
   const email=document.getElementById('li-email').value.trim();
   const pass=document.getElementById('li-pass').value;
-  const role=document.getElementById('li-role').value;
+  const rolePilihan=document.getElementById('li-role').value; // role yang diklaim user
   const errEl=document.getElementById('li-err');
   errEl.textContent='';
+
   if(!email||!pass){errEl.textContent='Email dan password wajib diisi.';return;}
-  if(pass.length<4){errEl.textContent='Password minimal 4 karakter.';return;}
+  if(pass.length<6){errEl.textContent='Password minimal 6 karakter.';return;}
+
   const btn=document.getElementById('btn-li');
-  btn.disabled=true; btn.textContent='Memproses...';
-  setTimeout(()=>{
-    const namaMap={admin:'Ust. Ahmad Fauzan',ustadz:'Ust. Agus Salim',santri:'Ahmad Fauzi'};
-    _cu={uid:'user_'+Date.now(),email,role,nama:namaMap[role]||email.split('@')[0],isPi:false};
-    showApp();
+  btn.disabled=true; btn.textContent='⏳ Memproses...';
+
+  try{
+    waitFbReady(async()=>{
+      const {auth,db,signInWithEmailAndPassword,doc,getDoc}=window._fb;
+
+      // 1. Login ke Firebase Auth
+      let userCred;
+      try{
+        userCred=await signInWithEmailAndPassword(auth,email,pass);
+      }catch(e){
+        const pesanErr={
+          'auth/user-not-found':'Email tidak terdaftar.',
+          'auth/wrong-password':'Password salah.',
+          'auth/invalid-credential':'Email atau password salah.',
+          'auth/invalid-email':'Format email tidak valid.',
+          'auth/too-many-requests':'Terlalu banyak percobaan. Coba lagi nanti.',
+          'auth/user-disabled':'Akun ini dinonaktifkan.'
+        };
+        errEl.textContent=pesanErr[e.code]||('Gagal login: '+e.message);
+        btn.disabled=false; btn.textContent='Masuk →';
+        return;
+      }
+
+      // 2. Ambil data user dari Firestore (users/{uid})
+      const uid=userCred.user.uid;
+      const userSnap=await getDoc(doc(db,'users',uid));
+
+      if(!userSnap.exists()){
+        errEl.textContent='Akun belum terdaftar di sistem pesantren. Hubungi admin.';
+        await auth.signOut();
+        btn.disabled=false; btn.textContent='Masuk →';
+        return;
+      }
+
+      const userData=userSnap.data();
+
+      // 3. ✅ VALIDASI ROLE — role dari Firestore, bukan dari dropdown!
+      const roleAsli=userData.role; // 'admin', 'ustadz', atau 'santri'
+
+      if(!['admin','ustadz','santri'].includes(roleAsli)){
+        errEl.textContent='Role akun tidak valid. Hubungi admin.';
+        await auth.signOut();
+        btn.disabled=false; btn.textContent='Masuk →';
+        return;
+      }
+
+      // 4. Cek isActive
+      if(userData.isActive===false){
+        errEl.textContent='Akun Anda dinonaktifkan. Hubungi admin.';
+        await auth.signOut();
+        btn.disabled=false; btn.textContent='Masuk →';
+        return;
+      }
+
+      // ✅ LOGIN BERHASIL — gunakan role dari database, bukan pilihan dropdown
+      _cu={
+        uid,
+        email:userCred.user.email,
+        role:roleAsli,            // ← dari Firestore, bukan dari input user
+        nama:userData.nama||userCred.user.displayName||email.split('@')[0],
+        santriId:userData.santriId||null,
+        isPi:userData.loginMethod==='pi',
+      };
+
+      showApp();
+      btn.disabled=false; btn.textContent='Masuk →';
+    });
+  }catch(e){
+    errEl.textContent='Terjadi kesalahan: '+e.message;
     btn.disabled=false; btn.textContent='Masuk →';
-  },600);
+  }
 };
 
-window.doLogout=function(){
-  _cu=null;
-  document.getElementById('app').classList.remove('on');
-  document.getElementById('app').style.display='none';
-  document.getElementById('splash').classList.remove('out');
+window.doLogout=async function(){
+  waitFbReady(async()=>{
+    const {auth}=window._fb;
+    await auth.signOut().catch(()=>{});
+    _cu=null;
+    document.getElementById('app').classList.remove('on');
+    document.getElementById('app').style.display='none';
+    document.getElementById('splash').classList.remove('out');
+  });
 };
+
+window.doLoginGoogle=async function(){
+  const errEl=document.getElementById('li-err');
+  const btn=document.getElementById('btn-google');
+  errEl.textContent='';
+  btn.disabled=true; btn.textContent='⏳ Membuka Google...';
+
+  waitFbReady(async()=>{
+    const {auth,db,signInWithPopup,googleProvider,doc,getDoc}=window._fb;
+    try{
+      const result=await signInWithPopup(auth,googleProvider);
+      const user=result.user;
+      const uid=user.uid;
+
+      // Cek dokumen users/{uid} di Firestore
+      const snap=await getDoc(doc(db,'users',uid));
+
+      if(!snap.exists()){
+        // Akun Google belum terdaftar di sistem pesantren
+        errEl.textContent='Akun Google ini belum terdaftar. Hubungi admin untuk didaftarkan.';
+        await auth.signOut();
+        btn.disabled=false; btn.innerHTML='<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.8 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8H6.2C9.6 37.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41.2 36.1 44 30.5 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg> Masuk dengan Google';
+        return;
+      }
+
+      const userData=snap.data();
+      if(userData.isActive===false){
+        errEl.textContent='Akun Anda dinonaktifkan. Hubungi admin.';
+        await auth.signOut();
+        btn.disabled=false;
+        return;
+      }
+
+      _cu={
+        uid,
+        email:user.email,
+        role:userData.role,
+        nama:userData.nama||user.displayName||user.email.split('@')[0],
+        santriId:userData.santriId||null,
+        isPi:false,
+      };
+
+      showApp();
+    }catch(e){
+      if(e.code==='auth/popup-closed-by-user'){
+        errEl.textContent='';
+      } else {
+        errEl.textContent='Gagal login Google: '+(e.message||e.code);
+      }
+      btn.disabled=false;
+      btn.innerHTML='<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.8 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8H6.2C9.6 37.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41.2 36.1 44 30.5 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg> Masuk dengan Google';
+    }
+  });
+};
+
+// Auto-restore session jika user sudah login sebelumnya
+waitFbReady(()=>{
+  const {auth,db,onAuthStateChanged,doc,getDoc}=window._fb;
+  onAuthStateChanged(auth,async(user)=>{
+    if(user&&!_cu){
+      // Ada sesi aktif, restore
+      const snap=await getDoc(doc(db,'users',user.uid)).catch(()=>null);
+      if(snap&&snap.exists()&&snap.data().isActive!==false){
+        const d=snap.data();
+        _cu={uid:user.uid,email:user.email,role:d.role,
+          nama:d.nama||user.displayName||user.email.split('@')[0],
+          santriId:d.santriId||null,isPi:d.loginMethod==='pi'};
+        showApp();
+      }
+    }
+  });
+});
 
 // ══════════════════════════════════════════════════
 // APP SHELL
