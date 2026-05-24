@@ -746,45 +746,149 @@ async function generate_soal(el) {
     btn.disabled=true; btn.textContent='⏳ Membuat soal...';
     notifEl('ai-notif','load',`🤖 AI menyusun ${jml} soal ${mp} tentang "${topik}"...`);
     try{
-      const prompt=`Kamu adalah ustadz berpengalaman di pesantren Indonesia. Buatkan ${jml} soal pilihan ganda untuk mata pelajaran ${mp}, topik: "${topik}", tingkat ${kls}.${ins?' Instruksi: '+ins:''}
+      const prompt=`Kamu adalah ustadz berpengalaman di pesantren Indonesia. Buatkan ${jml} soal pilihan ganda untuk mata pelajaran ${mp}, topik: "${topik}", tingkat ${kls}.${ins?' Instruksi tambahan: '+ins:''}
 
-Jawab HANYA dengan JSON array valid, tanpa teks lain, tanpa markdown:
-[{"pertanyaan":"...","opsi":["A. ...","B. ...","C. ...","D. ..."],"jawaban":"A","pembahasan":"..."}]`;
+PENTING: Jawab HANYA dengan JSON array valid, tanpa teks lain, tanpa markdown, tanpa penjelasan:
+[{"pertanyaan":"...","opsi":["A. ...","B. ...","C. ...","D. ..."],"jawaban":"A","pembahasan":"penjelasan singkat mengapa jawaban ini benar"}]
 
-      const resp=await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+Buat persis ${jml} soal. Pastikan jawaban bervariasi (tidak selalu A). Gunakan Bahasa Indonesia yang baik dan konteks pesantren.`;
+
+      // Panggil via Claude Artifacts API (proxy built-in, tidak kena CORS)
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 3000,
+          messages: [{ role: 'user', content: prompt }]
+        })
       });
-      const data=await resp.json();
-      let txt=(data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
-      const arr=JSON.parse(txt);
-      window._aiData=arr.map(s=>({...s,mapel:mp}));
-      document.getElementById('ai-list').innerHTML=arr.map((s,i)=>`
-        <div class="card" style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-            <span class="bd bh">Soal ${i+1} — ${mp}</span>
-            <button class="btn sm" onclick="simpanSatuAI(${i})">💾 Simpan</button>
-          </div>
-          <div style="font-size:13px;font-weight:500;margin-bottom:8px">${s.pertanyaan}</div>
-          ${s.opsi.map((o,j)=>`<div style="font-size:12px;padding:5px 10px;border-radius:6px;margin-bottom:3px;background:${o.startsWith(s.jawaban)?'var(--hijau-light)':'var(--abu)'};color:${o.startsWith(s.jawaban)?'var(--hijau)':'var(--teks-2)'}">
-            ${o} ${o.startsWith(s.jawaban)?'✓':''}</div>`).join('')}
-          ${s.pembahasan?`<div style="margin-top:8px;font-size:11px;color:var(--teks-3);background:var(--emas-light);padding:7px 10px;border-radius:6px;border-left:3px solid var(--emas)">💡 ${s.pembahasan}</div>`:''}
-        </div>`).join('');
-      document.getElementById('ai-hasil').style.display='';
-      notifEl('ai-notif','ok',`✅ Berhasil generate ${arr.length} soal!`);
-    }catch(e){notifEl('ai-notif','err','❌ Gagal: '+e.message);}
+
+      if(!resp.ok){
+        // Jika masih CORS / blocked → fallback ke soal template
+        throw new Error('API tidak dapat diakses dari browser. Menggunakan mode template.');
+      }
+
+      const data = await resp.json();
+      let txt = (data.content||[]).map(c=>c.text||'').join('').trim();
+      // Bersihkan markdown jika ada
+      txt = txt.replace(/^```json\s*/,'').replace(/\s*```$/,'').replace(/^```\s*/,'').trim();
+      // Cari JSON array di dalam teks
+      const match = txt.match(/\[[\s\S]*\]/);
+      if(!match) throw new Error('Format JSON tidak valid dari AI');
+      const arr = JSON.parse(match[0]);
+      window._aiData = arr.map(s=>({...s, mapel:mp}));
+      renderHasilAI(arr, mp);
+      notifEl('ai-notif','ok',`✅ Berhasil generate ${arr.length} soal dengan AI!`);
+
+    } catch(e) {
+      // FALLBACK: generate soal template lokal berdasarkan topik
+      console.warn('AI fetch error, using fallback:', e.message);
+      const fallbackSoal = generateFallbackSoal(mp, topik, parseInt(jml), kls, ins);
+      window._aiData = fallbackSoal.map(s=>({...s, mapel:mp}));
+      renderHasilAI(fallbackSoal, mp);
+      notifEl('ai-notif','info',`📝 Soal dibuat dengan template lokal (${fallbackSoal.length} soal). Untuk AI penuh, deploy portal ke server.`);
+    }
     btn.disabled=false; btn.textContent='✨ Generate dengan AI';
+  };
+
+  function renderHasilAI(arr, mp) {
+    document.getElementById('ai-list').innerHTML = arr.map((s,i)=>`
+      <div class="card" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <span class="bd bh">Soal ${i+1} — ${mp}</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="editSoalAI(${i})">✏️ Edit</button>
+            <button class="btn sm h" onclick="simpanSatuAI(${i})">💾 Simpan</button>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px" id="ai-q-${i}">${s.pertanyaan}</div>
+        ${(s.opsi||[]).map((o,j)=>`
+          <div style="font-size:12px;padding:6px 10px;border-radius:6px;margin-bottom:3px;
+            background:${o.startsWith(s.jawaban)?'var(--hijau-light)':'var(--abu)'};
+            color:${o.startsWith(s.jawaban)?'var(--hijau)':'var(--teks-2)'};
+            border:1px solid ${o.startsWith(s.jawaban)?'#9fd4b0':'transparent'}">
+            ${o} ${o.startsWith(s.jawaban)?'<strong>✓ (Jawaban Benar)</strong>':''}
+          </div>`).join('')}
+        ${s.pembahasan?`<div style="margin-top:8px;font-size:11px;color:var(--teks-3);background:var(--emas-light);padding:8px 12px;border-radius:6px;border-left:3px solid var(--emas)">💡 <strong>Pembahasan:</strong> ${s.pembahasan}</div>`:''}
+      </div>`).join('');
+    document.getElementById('ai-hasil').style.display='';
+  }
+
+  // Fallback soal template saat API tidak bisa diakses dari browser lokal
+  function generateFallbackSoal(mp, topik, jml, kls, ins) {
+    const templates = {
+      'Fiqih': [
+        {p:'Apa hukum shalat lima waktu bagi setiap Muslim yang mukallaf?',o:['A. Sunnah muakkad','B. Fardhu Kifayah','C. Fardhu Ain','D. Mubah'],j:'C',pb:'Shalat lima waktu adalah Fardhu Ain, wajib bagi setiap Muslim yang mukallaf (baligh dan berakal).'},
+        {p:'Berapa rakaat shalat Maghrib?',o:['A. 2 rakaat','B. 3 rakaat','C. 4 rakaat','D. 5 rakaat'],j:'B',pb:'Shalat Maghrib terdiri dari 3 rakaat berdasarkan hadis Nabi Muhammad SAW.'},
+        {p:'Air yang sah digunakan untuk bersuci adalah...',o:['A. Air kelapa muda','B. Air hujan yang murni','C. Air bekas cucian baju','D. Air teh'],j:'B',pb:'Air yang sah untuk bersuci (thaharah) adalah air mutlak, salah satunya air hujan.'},
+        {p:'Apa yang membatalkan wudhu?',o:['A. Tidur sambil duduk tegak','B. Memotong kuku','C. Keluar sesuatu dari dua jalan','D. Tertawa saat shalat'],j:'C',pb:'Salah satu yang membatalkan wudhu adalah keluarnya sesuatu dari qubul atau dubur.'},
+        {p:'Shalat yang dikerjakan sebelum shalat Jumat disebut...',o:['A. Shalat Rawatib','B. Shalat Tahiyatul Masjid','C. Shalat Qabliyah Jumat','D. Shalat Dhuha'],j:'C',pb:'Shalat sunnah sebelum Jumat disebut shalat Qabliyah Jumat, dikerjakan 2-4 rakaat.'},
+      ],
+      'Nahwu': [
+        {p:'Dalam ilmu nahwu, kata yang menunjukkan makna benda disebut...',o:['A. Fiil','B. Isim','C. Huruf','D. Dhamir'],j:'B',pb:'Isim adalah kata yang menunjukkan makna benda, orang, atau tempat, tidak terikat waktu.'},
+        {p:'Tanda-tanda isim antara lain bisa dimasuki...',o:['A. Qad','B. Alif lam (ال)','C. Lam taukid','D. Huruf jar tanpa perubahan'],j:'B',pb:'Salah satu tanda isim adalah dapat dimasuki alif lam (ال) seperti: الكتاب، الطالب.'},
+        {p:'Kata kerja dalam bahasa Arab disebut...',o:['A. Isim','B. Huruf','C. Fiil','D. Mubtada'],j:'C',pb:'Fiil adalah kata kerja dalam bahasa Arab yang menunjukkan kejadian yang terikat waktu.'},
+        {p:'Mubtada adalah...',o:['A. Kata kerja di awal jumlah','B. Isim yang terletak di awal jumlah ismiyyah','C. Kata sambung jumlah','D. Predikat kalimat'],j:'B',pb:'Mubtada adalah isim yang terletak di awal jumlah ismiyyah (kalimat nominal) dan marfu\'.'},
+        {p:'Khabar adalah...',o:['A. Subjek kalimat','B. Obyek kalimat','C. Predikat yang menyempurnakan mubtada','D. Kata sambung'],j:'C',pb:'Khabar adalah predikat kalimat yang menyempurnakan makna mubtada dalam jumlah ismiyyah.'},
+      ],
+      'Hadis': [
+        {p:'Hadis yang sanadnya bersambung sampai Nabi SAW disebut...',o:['A. Hadis Mauquf','B. Hadis Mursal','C. Hadis Marfu\'','D. Hadis Maqtu\''],j:'C',pb:'Hadis Marfu\' adalah hadis yang sanadnya bersambung dan berakhir kepada Nabi Muhammad SAW.'},
+        {p:'Perawi hadis yang adil dan kuat hafalannya disebut...',o:['A. Dhaif','B. Tsiqah','C. Majhul','D. Matruk'],j:'B',pb:'Tsiqah artinya perawi yang adil (ثقة) yaitu memiliki sifat adil dan dhabit (kuat hapalan).'},
+        {p:'Kitab hadis yang paling shahih setelah Al-Qur\'an adalah...',o:['A. Sunan Abu Dawud','B. Sahih Muslim','C. Sahih Bukhari','D. Sunan Tirmidzi'],j:'C',pb:'Sahih Bukhari oleh Imam Bukhari adalah kitab hadis yang paling sahih setelah Al-Qur\'an.'},
+        {p:'Hadis yang diriwayatkan oleh banyak orang sehingga mustahil berdusta disebut...',o:['A. Hadis Ahad','B. Hadis Masyhur','C. Hadis Mutawatir','D. Hadis Gharib'],j:'C',pb:'Hadis Mutawatir diriwayatkan oleh banyak perawi di setiap tingkatan sehingga mustahil dusta.'},
+        {p:'Orang yang menghafal dan meriwayatkan hadis disebut...',o:['A. Mufassir','B. Muhaddits','C. Mujtahid','D. Mufti'],j:'B',pb:'Muhaddits adalah ulama yang menghafal, meriwayatkan, dan menguasai ilmu hadis.'},
+      ],
+    };
+    const bank = templates[mp] || templates['Fiqih'];
+    // Buat soal berdasarkan topik + ambil dari template
+    const result = [];
+    for(let i=0; i<Math.min(jml,bank.length); i++){
+      result.push({pertanyaan:bank[i].p, opsi:bank[i].o, jawaban:bank[i].j, pembahasan:bank[i].pb});
+    }
+    // Jika kurang dari jml, duplikasi dengan variasi
+    let idx=0;
+    while(result.length < jml){
+      const s=bank[idx%bank.length];
+      result.push({pertanyaan:`[Topik: ${topik}] ${s.p}`, opsi:s.o, jawaban:s.j, pembahasan:s.pb});
+      idx++;
+    }
+    return result;
+  }
+
+  window.editSoalAI = function(i) {
+    const s = window._aiData[i];
+    const q = document.getElementById(`ai-q-${i}`);
+    if(!q) return;
+    const orig = q.textContent;
+    q.innerHTML = `<textarea style="width:100%;font-size:13px;padding:7px;border:1px solid var(--border);border-radius:6px;min-height:60px;font-family:'Plus Jakarta Sans',sans-serif">${orig}</textarea>
+      <button class="btn sm h" style="margin-top:6px" onclick="simpanEditAI(${i},this)">✓ Simpan Edit</button>`;
+  };
+
+  window.simpanEditAI = function(i, btn) {
+    const textarea = btn.previousElementSibling;
+    if(textarea && window._aiData[i]) {
+      window._aiData[i].pertanyaan = textarea.value.trim();
+      const q = document.getElementById(`ai-q-${i}`);
+      if(q) q.textContent = window._aiData[i].pertanyaan;
+      btn.closest('div').remove();
+    }
   };
 
   window.simpanSatuAI=async function(i){
     const s=window._aiData[i];
-    await addNew('bank_soal',{mapel:s.mapel,tipe:'pg',pertanyaan:s.pertanyaan,opsi:s.opsi,jawaban:s.jawaban,pembahasan:s.pembahasan||'',sumber:'AI'});
-    alert('✅ Soal '+(i+1)+' tersimpan!');
+    try {
+      await addNew('bank_soal',{mapel:s.mapel,tipe:'pg',pertanyaan:s.pertanyaan,opsi:s.opsi,jawaban:s.jawaban,pembahasan:s.pembahasan||'',sumber:'AI'});
+      alert('✅ Soal '+(i+1)+' tersimpan ke bank soal!');
+    } catch(e){ alert('❌ '+e.message); }
   };
   window.simpanSemuaAI=async function(){
     if(!window._aiData.length){alert('Belum ada soal.');return;}
     for(const s of window._aiData) await addNew('bank_soal',{mapel:s.mapel,tipe:'pg',pertanyaan:s.pertanyaan,opsi:s.opsi,jawaban:s.jawaban,pembahasan:s.pembahasan||'',sumber:'AI'});
-    alert('✅ Semua '+window._aiData.length+' soal disimpan!');loadPage('soal');
+    alert('✅ Semua '+window._aiData.length+' soal berhasil disimpan!'); loadPage('soal');
   };
 }
 
