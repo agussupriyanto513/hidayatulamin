@@ -4,7 +4,8 @@
   "rewrites": [
     { "source": "/api/payments/approve", "destination": "/api/payments/approve.js" },
     { "source": "/api/payments/complete", "destination": "/api/payments/complete.js" },
-    { "source": "/api/payments/cancel", "destination": "/api/payments/cancel.js" }
+    { "source": "/api/payments/cancel",  "destination": "/api/payments/cancel.js" },
+    { "source": "/pesantren", "destination": "/pesantren/index.html" }
   ],
   "redirects": [
     { "source": "/", "destination": "/login.html", "permanent": false }
