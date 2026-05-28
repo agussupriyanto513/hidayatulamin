@@ -42,9 +42,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(
 .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
 .back-btn{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;transition:var(--tr)}
 .back-btn:hover{color:var(--p)}
-.testnet-badge{display:flex;align-items:center;gap:6px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#fbbf24;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700}
-.testnet-badge span{width:6px;height:6px;background:#fbbf24;border-radius:50%;animation:blink 1s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* HERO */
 .hero{text-align:center;margin-bottom:28px}
@@ -121,9 +118,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(
 .empty-state{text-align:center;padding:24px;color:rgba(255,255,255,.25);font-size:13px}
 
 /* SANDBOX NOTICE */
-.sandbox-notice{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--rdm);padding:12px 14px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start}
-.sandbox-notice i{color:#fbbf24;margin-top:2px;flex-shrink:0}
-.sandbox-notice p{font-size:11px;color:rgba(255,255,255,.5);line-height:1.6}
 
 /* ERROR NOTICE */
 .error-notice{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--rdm);padding:12px 14px;margin-bottom:16px;display:none;gap:10px;align-items:flex-start}
@@ -155,7 +149,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(
   .result-box{padding:20px 16px}
   .result-title{font-size:16px}
   .don-row{flex-wrap:wrap}
-  .sandbox-notice p{font-size:10px}
 }
 @media(max-width:380px){
   .stats-row{gap:4px}
@@ -176,7 +169,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(
   <!-- TOP BAR -->
   <div class="top-bar">
     <a href="login.html" class="back-btn"><i class="fas fa-arrow-left"></i> Kembali</a>
-    <div class="testnet-badge"><span></span> PI TESTNET</div>
   </div>
 
   <!-- HERO -->
@@ -200,12 +192,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(
       <div class="stat-val" id="statDonors">—</div>
       <div class="stat-lbl">Donatur</div>
     </div>
-  </div>
-
-  <!-- SANDBOX NOTICE -->
-  <div class="sandbox-notice">
-    <i class="fas fa-flask"></i>
-    <p><b style="color:#fbbf24">Mode Testnet</b> — Transaksi ini menggunakan Pi testnet. Tidak ada Pi asli yang digunakan. Cocok untuk pengujian dan pengembangan.</p>
   </div>
 
   <!-- ERROR NOTICE -->
@@ -300,7 +286,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(
 
   <!-- FOOTER -->
   <p style="text-align:center;font-size:11px;color:rgba(255,255,255,.2);margin-top:8px">
-    Yayasan Hidayatulamin · Powered by Pi Network Testnet · Tahap 10
+    Yayasan Hidayatulamin · Powered by Pi Network
   </p>
 </div>
 
@@ -319,9 +305,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--ink);color:var(
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-// ═══════════════════════════════════════════════
 // FIREBASE CONFIG
-// ═══════════════════════════════════════════════
 const firebaseConfig = {
   apiKey:            "AIzaSyCVKeCAJ6_IitpZfu-tF2QaT0esFbbNCAM",
   authDomain:        "hidayatulamin-e6f22.firebaseapp.com",
@@ -334,18 +318,14 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// ═══════════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════════
 let selectedProg      = 'beasiswa';
 let selectedProgLabel = 'Beasiswa Santri';
 let selectedAmt       = 5;
 let piUser            = null;    // { uid, username }
 let piSDKReady        = false;
 
-// ═══════════════════════════════════════════════
 // INIT PI SDK — Wajib dipanggil sebelum apapun
-// ═══════════════════════════════════════════════
 function initPiSDK() {
   if (!window.Pi) {
     showErr('Pi SDK tidak ditemukan. Pastikan halaman ini dibuka di Pi Browser.');
@@ -356,7 +336,6 @@ function initPiSDK() {
     const isSandbox = window.location.hostname === 'localhost';
     window.Pi.init({ version: '2.0', sandbox: isSandbox });
     piSDKReady = true;
-    console.log('✅ Pi SDK siap | sandbox:', isSandbox);
     return true;
   } catch(e) {
     showErr('Gagal init Pi SDK: ' + e.message);
@@ -364,9 +343,7 @@ function initPiSDK() {
   }
 }
 
-// ═══════════════════════════════════════════════
 // PROGRAM & AMOUNT SELECT
-// ═══════════════════════════════════════════════
 function selectProg(el, prog, ico, label) {
   document.querySelectorAll('.prog-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
@@ -386,9 +363,7 @@ function onCustomAmt(el) {
   selectedAmt = parseFloat(el.value) || 0;
 }
 
-// ═══════════════════════════════════════════════
 // PI LOGIN
-// ═══════════════════════════════════════════════
 async function doPiLogin() {
   if (!piSDKReady && !initPiSDK()) return;
 
@@ -424,11 +399,8 @@ function piLogout() {
   document.getElementById('piUserArea').style.display  = 'none';
 }
 
-// ═══════════════════════════════════════════════
 // INCOMPLETE PAYMENT HANDLER (wajib untuk Pi SDK)
-// ═══════════════════════════════════════════════
 async function handleIncompletePiPayment(payment) {
-  console.warn('⚠️ Incomplete payment ditemukan:', payment.identifier);
   try {
     // Update status di Firestore jadi cancelled
     const snap = await db.collection('pi_donations')
@@ -451,10 +423,8 @@ async function handleIncompletePiPayment(payment) {
   }
 }
 
-// ═══════════════════════════════════════════════
 // SUBMIT DONASI
 // Approve & complete via backend server (/api/payments/approve, /api/payments/complete)
-// ═══════════════════════════════════════════════
 async function submitDonasi() {
   if (!piUser) { showToast('error', 'Login dengan Pi dulu'); return; }
   if (!selectedAmt || selectedAmt < 0.01) { showToast('error', 'Masukkan jumlah donasi yang valid'); return; }
@@ -485,7 +455,6 @@ async function submitDonasi() {
         {
           // ── Step 1: Simpan ke Firestore LALU approve ke backend server ──
           onReadyForServerApproval: async (paymentId) => {
-            console.log('📋 onReadyForServerApproval:', paymentId);
             try {
               // Simpan dulu ke Firestore
               docRef = await db.collection('pi_donations').add({
@@ -500,7 +469,6 @@ async function submitDonasi() {
                 status:        'pending',
                 createdAt:     firebase.firestore.FieldValue.serverTimestamp()
               });
-              console.log('✅ Donasi pending tersimpan');
 
               // Approve ke backend server — WAJIB agar Pi SDK tidak timeout
               const approveRes = await fetch('/api/payments/approve', {
@@ -510,7 +478,6 @@ async function submitDonasi() {
               });
               const approveData = await approveRes.json();
               if (!approveRes.ok) throw new Error(approveData.error || 'Approve gagal');
-              console.log('✅ Donasi approved oleh server');
 
             } catch(e) {
               console.error('onReadyForServerApproval error:', e);
@@ -519,7 +486,6 @@ async function submitDonasi() {
 
           // ── Step 2: Blockchain confirm → complete ke backend server ──
           onReadyForServerCompletion: async (paymentId, txid) => {
-            console.log('✅ onReadyForServerCompletion:', paymentId, txid);
             try {
               // Complete ke backend — WAJIB agar Pi tahu transaksi selesai di server
               const completeRes = await fetch('/api/payments/complete', {
@@ -529,7 +495,6 @@ async function submitDonasi() {
               });
               const completeData = await completeRes.json();
               if (!completeRes.ok) throw new Error(completeData.error || 'Complete gagal');
-              console.log('✅ Donasi completed oleh server');
 
               resolve({ success: true, txid });
             } catch(e) {
@@ -539,7 +504,6 @@ async function submitDonasi() {
 
           // ── Dibatalkan / timeout ──
           onCancel: async (paymentId) => {
-            console.log('❌ Payment dibatalkan:', paymentId);
             try {
               await fetch('/api/payments/cancel', {
                 method:  'POST',
@@ -551,7 +515,7 @@ async function submitDonasi() {
           },
 
           onError: (error, payment) => {
-            console.error('❌ Pi payment error:', error);
+            console.error('Pi payment error:', error);
             reject(new Error(error?.message || 'Terjadi kesalahan pembayaran Pi'));
           }
         }
@@ -573,9 +537,7 @@ async function submitDonasi() {
 
 
 
-// ═══════════════════════════════════════════════
 // RESULT MODAL
-// ═══════════════════════════════════════════════
 function showResult(type, errMsg, txid) {
   const overlay = document.getElementById('resultOverlay');
   if (type === 'success') {
@@ -599,9 +561,7 @@ function closeResult() {
   document.getElementById('resultOverlay').classList.remove('show');
 }
 
-// ═══════════════════════════════════════════════
 // LOAD STATS
-// ═══════════════════════════════════════════════
 async function loadStats() {
   try {
     const snap = await db.collection('pi_donations').where('status','==','completed').get();
@@ -617,9 +577,7 @@ async function loadStats() {
   }
 }
 
-// ═══════════════════════════════════════════════
 // LOAD RECENT DONATIONS
-// ═══════════════════════════════════════════════
 async function loadRecentDonations() {
   const list = document.getElementById('donList');
   try {
@@ -654,9 +612,7 @@ async function loadRecentDonations() {
   }
 }
 
-// ═══════════════════════════════════════════════
 // HELPERS
-// ═══════════════════════════════════════════════
 function timeAgo(date) {
   const diff = (Date.now() - date.getTime()) / 1000;
   if (diff < 60)    return 'Baru saja';
@@ -685,9 +641,7 @@ function showToast(type, msg) {
   setTimeout(() => { div.classList.remove('show'); setTimeout(() => div.remove(), 400); }, 3500);
 }
 
-// ═══════════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   // Init Pi SDK segera
   initPiSDK();
