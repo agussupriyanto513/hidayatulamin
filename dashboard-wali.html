@@ -197,11 +197,13 @@ tr:hover td{background:var(--g50)}
 .t-msg p{font-size:11px;color:var(--g500)}
 
 /* BOTTOM NAV */
-.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--g200);z-index:150;padding:6px 0}
-.bn-row{display:flex;justify-content:space-around}
-.bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border-radius:var(--rdm);color:var(--g400);text-decoration:none;font-size:10px;font-weight:600;transition:var(--tr);cursor:pointer;border:none;background:none;font-family:inherit}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--g200);z-index:150;padding:6px 0 max(6px,env(safe-area-inset-bottom))}
+.bn-row{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 2px}
+.bn-row::-webkit-scrollbar{display:none}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 8px;border-radius:var(--rdm);color:var(--g400);text-decoration:none;font-size:9px;font-weight:600;transition:var(--tr);cursor:pointer;border:none;background:none;font-family:inherit;flex:1;min-width:50px;white-space:nowrap}
 .bn-item.active{color:var(--p)}
-.bn-item i{font-size:18px}
+.bn-item i{font-size:17px}
+.bn-item .bn-ico-sgt{font-size:16px;font-weight:900;line-height:1.2}
 
 /* RESPONSIVE */
 @media(max-width:900px){
@@ -211,12 +213,23 @@ tr:hover td{background:var(--g50)}
   .menu-btn{display:flex}
   .stats-row{grid-template-columns:1fr 1fr}
   .two-col{grid-template-columns:1fr}
-  .content{padding:12px 12px 80px}
+  .content{padding:12px 12px 90px}
   .bottom-nav{display:block}
 }
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr}
   .sgt-grid{grid-template-columns:1fr 1fr}
+  .greeting{flex-direction:column;align-items:flex-start;gap:10px;padding:16px}
+  .gr-date{text-align:left}
+  .gd-num{font-size:28px}
+  .topbar{padding:8px 12px}
+  .pg-ttl h2{font-size:15px}
+  .content{padding:10px 10px 90px}
+  .modal-bg{padding:4px}
+  .modal{border-radius:18px 18px 0 0;max-height:92vh;margin:0}
+  .modal-bg.open{align-items:flex-end}
+  .modal-body{max-height:calc(92vh - 130px)}
+  .santri-cards{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -843,9 +856,11 @@ tr:hover td{background:var(--g50)}
     <button class="bn-item active" id="bn-dashboard" onclick="go('dashboard',null);setBn('dashboard')"><i class="fas fa-th-large"></i><span>Beranda</span></button>
     <button class="bn-item" id="bn-santri" onclick="go('santri',null);setBn('santri')"><i class="fas fa-user-graduate"></i><span>Santri</span></button>
     <button class="bn-item" id="bn-hafalan" onclick="go('hafalan',null);setBn('hafalan')"><i class="fas fa-book-open"></i><span>Hafalan</span></button>
+    <button class="bn-item" id="bn-nilai" onclick="go('nilai',null);setBn('nilai')"><i class="fas fa-star"></i><span>Nilai</span></button>
+    <button class="bn-item" id="bn-absensi" onclick="go('absensi',null);setBn('absensi')"><i class="fas fa-calendar-check"></i><span>Absensi</span></button>
     <button class="bn-item" id="bn-pembayaran" onclick="go('pembayaran',null);setBn('pembayaran')"><i class="fas fa-wallet"></i><span>Bayar</span></button>
     <button class="bn-item" id="bn-notifikasi" onclick="go('notifikasi',null);setBn('notifikasi')"><i class="fas fa-bell"></i><span>Notif</span></button>
-    <a href="pi-donasi.html" target="_blank" class="bn-item" style="text-decoration:none;color:inherit"><span style="font-size:18px;font-weight:900;color:inherit">π</span><span>Donasi</span></a>
+    <button class="bn-item" id="bn-sgt" onclick="go('sgt',null);setBn('sgt')" style="color:var(--g400)"><span class="bn-ico-sgt">₴</span><span>SGT</span></button>
   </div>
 </nav>
 
@@ -1339,10 +1354,18 @@ function go(name, navEl) {
   if (name === 'absensi') renderAbsensi();
   if (name === 'pembayaran') { renderPembayaran(); loadPiPayHistory(); }
   if (name === 'notifikasi') renderNotif();
+  setBn(name);
   closeSb();
 }
 
-function setBn(n){document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));const el=document.getElementById('bn-'+n);if(el)el.classList.add('active')}
+function setBn(n){
+  document.querySelectorAll('.bn-item').forEach(b=>{b.classList.remove('active');b.style.color='';});
+  const el=document.getElementById('bn-'+n);
+  if(el){
+    el.classList.add('active');
+    if(n==='sgt') el.style.color='#d97706';
+  }
+}
 
 // ════ DOWNLOAD RAPORT ════
 function downloadRaport(){showToast('info','Menyiapkan Raport','File raport akan segera diunduh...')}
