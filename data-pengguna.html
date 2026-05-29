@@ -64,8 +64,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .content{flex:1;padding:20px}
 
 /* TABS */
-.tab-bar{display:flex;gap:4px;background:var(--white);border:1px solid var(--g200);border-radius:var(--rd);padding:6px;margin-bottom:20px;box-shadow:var(--sh-sm);flex-wrap:wrap}
-.tab-btn{flex:1;min-width:0;padding:10px 16px;border:none;border-radius:var(--rdm);font-family:inherit;font-size:13px;font-weight:600;color:var(--g500);background:transparent;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;overflow:hidden}
+.tab-bar{display:flex;gap:4px;background:var(--white);border:1px solid var(--g200);border-radius:var(--rd);padding:6px;margin-bottom:20px;box-shadow:var(--sh-sm);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{flex-shrink:0;min-width:0;padding:10px 14px;border:none;border-radius:var(--rdm);font-family:inherit;font-size:13px;font-weight:600;color:var(--g500);background:transparent;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
 .tab-btn:hover{background:var(--g50);color:var(--ink2)}
 .tab-btn.active{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;box-shadow:0 2px 8px rgba(13,184,122,.3)}
 .tab-btn.active.blue{background:linear-gradient(135deg,var(--b),#1a5fbb);box-shadow:0 2px 8px rgba(45,126,245,.3)}
@@ -81,8 +82,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .tbl-title h4{font-size:14px;font-weight:700;color:var(--ink2)}
 .tbl-title p{font-size:11px;color:var(--g500)}
 .tbl-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.search-box{position:relative}
-.search-box input{padding:8px 12px 8px 32px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit;transition:var(--tr);width:200px;background:var(--white)}
+.search-box{position:relative;flex:1;min-width:0}
+.search-box input{padding:8px 12px 8px 32px;border:1.5px solid var(--g200);border-radius:var(--rdm);font-size:12px;font-family:inherit;transition:var(--tr);width:100%;background:var(--white)}
 .search-box input:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(13,184,122,.1)}
 .search-box i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--g400);font-size:11px}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -123,14 +124,14 @@ tr:hover td{background:var(--g50)}
 .u-det .u-em{font-size:11px;color:var(--g500)}
 
 /* STAT CARDS */
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
-.stat-card{background:var(--white);border-radius:var(--rd);padding:18px;box-shadow:var(--sh-sm);border:1px solid var(--g100);display:flex;align-items:center;gap:14px}
-.sc-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--white);border-radius:var(--rd);padding:14px 16px;box-shadow:var(--sh-sm);border:1px solid var(--g100);display:flex;align-items:center;gap:12px}
+.sc-ico{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .sc-ico.g{background:var(--pl);color:var(--p)}
 .sc-ico.b{background:var(--bl);color:var(--b)}
 .sc-ico.a{background:var(--wl);color:var(--w)}
-.sc-val{font-size:26px;font-weight:900;color:var(--ink2);line-height:1}
-.sc-lbl{font-size:12px;color:var(--g500);margin-top:2px}
+.sc-val{font-size:22px;font-weight:900;color:var(--ink2);line-height:1}
+.sc-lbl{font-size:11px;color:var(--g500);margin-top:2px}
 
 /* FILTER ROW */
 .filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -187,26 +188,29 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
   .sidebar.on{transform:translateX(0)}
   .main{margin-left:0!important}
   .menu-btn{display:flex!important}
-  .stats-row{grid-template-columns:1fr 1fr}
   .field-row{grid-template-columns:1fr}
   .topbar{padding:8px 14px;gap:8px}
   .tb-l{flex:1;min-width:0}
   .tb-r .btn-p{font-size:12px;padding:7px 10px}
   .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
-  .tab-btn{font-size:11px;padding:8px 6px;min-width:0;flex:1;gap:4px}
-  .tab-btn .tab-label{display:none}
-  .tab-btn i{display:inline-block!important;font-size:13px}
+  /* Tab: icon + label kecil, scroll horizontal */
+  .tab-btn{font-size:11px;padding:8px 10px;gap:4px}
+  .tab-btn .tab-label{font-size:10px}
+  .tab-count{font-size:10px;padding:1px 5px}
   .tbl-head{flex-direction:column;align-items:flex-start;gap:10px}
   .tbl-acts{width:100%;flex-wrap:wrap;gap:6px}
-  .search-box{flex:1;min-width:0}
-  .search-box input{width:100%}
   .filter-sel{flex:1}
   .toast-wrap{left:12px;right:12px;bottom:12px}
   .toast{min-width:0;width:100%}
-  .content{padding:14px 12px calc(20px + env(safe-area-inset-bottom))}
-  /* Profile header: susun vertikal di mobile */
+  .content{padding:12px 12px calc(20px + env(safe-area-inset-bottom))}
+  /* Profile header: susun vertikal */
   .profile-header{flex-direction:column;text-align:center;gap:12px;padding:18px}
-  .profile-header > div:first-child{margin:0 auto}
+  .profile-header>div:first-child{margin:0 auto}
+  /* Stats: tetap 3 kolom tapi lebih compact */
+  .stat-card{padding:12px 10px;gap:8px}
+  .sc-ico{width:34px;height:34px;font-size:14px}
+  .sc-val{font-size:18px}
+  .sc-lbl{font-size:10px}
 }
 @media(min-width:769px){
   .sidebar{transform:translateX(0)!important}
@@ -214,15 +218,20 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 }
 @media(max-width:480px){
   .content{padding:10px 10px calc(16px + env(safe-area-inset-bottom))}
-  .stats-row{grid-template-columns:1fr}
   .pg-ttl h2{font-size:15px}
-  .tab-btn span.tab-label{display:none}
-  .tab-btn{padding:8px 6px}
-  .tab-btn i{display:inline!important}
+  /* Tab: sembunyikan label, icon saja */
+  .tab-btn .tab-label{display:none}
+  .tab-btn{padding:9px 10px}
+  /* Stats 3 kolom sangat compact */
+  .stats-row{gap:6px}
+  .stat-card{flex-direction:column;text-align:center;padding:10px 6px;gap:4px}
+  .sc-ico{width:30px;height:30px;font-size:13px}
+  .sc-val{font-size:16px}
 }
 @media(max-width:400px){
   .content{padding:8px 8px calc(14px + env(safe-area-inset-bottom))}
   .tab-bar{gap:2px}
+  .tab-btn{padding:8px 8px}
 }
 </style>
 </head>
