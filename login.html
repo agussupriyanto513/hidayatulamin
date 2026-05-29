@@ -521,10 +521,13 @@ body {
 // ═══════════════════════════════════════════════
 // STATE & INIT
 // ═══════════════════════════════════════════════
-const inPiBrowser = !!window.Pi || 
-  navigator.userAgent.includes('PiBrowser') || 
+const inPiBrowser =
+  navigator.userAgent.includes('PiBrowser') ||
+  navigator.userAgent.includes('Pi App') ||
   window.location.hostname.includes('pinet.pi') ||
-  window.location.hostname.includes('minepi.com');
+  window.location.hostname.includes('minepi.com') ||
+  (typeof window.Pi !== 'undefined' && typeof window.Pi.authenticate === 'function' && navigator.userAgent.includes('Mobile') && !navigator.userAgent.includes('Chrome'));
+
 let piReady       = false;
 let emailShown    = false;
 let _redirecting  = false;
