@@ -545,6 +545,9 @@ document.addEventListener('DOMContentLoaded', () => {
       '<i class="fas fa-ban" style="opacity:.6;margin-right:4px;"></i>Hanya tersedia di Pi Browser';
   } else {
     initPiSdk();
+    // Sembunyikan opsi email saat di Pi Browser — fokus ke Pi login
+    document.getElementById('toggleEmailBtn').style.display = 'none';
+    document.querySelector('.divider').style.display = 'none';
   }
 });
 
