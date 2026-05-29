@@ -178,14 +178,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
   .topbar>div:last-child{flex-wrap:wrap;gap:6px}
   .topbar .btn-p{font-size:12px;padding:7px 10px}
   .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
+  .content{padding:14px 12px calc(20px + env(safe-area-inset-bottom))}
 }
 @media(max-width:480px){
-  .content{padding:10px}
+  .content{padding:10px 10px calc(16px + env(safe-area-inset-bottom))}
   .schedule-grid{grid-template-columns:1fr}
   .pg-ttl h2{font-size:15px}
+  /* Tab: perkecil font, sembunyikan teks, tampilkan icon saja */
+  .tab-btn{font-size:11px;padding:9px 10px;gap:5px}
+  .tab-btn .tab-text{display:none}
 }
 @media(max-width:400px){
-  .content{padding:8px}
+  .content{padding:8px 8px calc(14px + env(safe-area-inset-bottom))}
 }
 </style>
 </head>
@@ -240,8 +244,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
   <div class="content">
     <!-- TABS -->
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('jadwal',this)"><i class="fas fa-calendar-week"></i> Jadwal Pelajaran</button>
-      <button class="tab-btn orange" onclick="switchTab('pengumuman',this)"><i class="fas fa-bullhorn"></i> Pengumuman</button>
+      <button class="tab-btn active" onclick="switchTab('jadwal',this)"><i class="fas fa-calendar-week"></i> <span class="tab-text">Jadwal Pelajaran</span></button>
+      <button class="tab-btn orange" onclick="switchTab('pengumuman',this)"><i class="fas fa-bullhorn"></i> <span class="tab-text">Pengumuman</span></button>
     </div>
 
     <!-- TAB JADWAL -->

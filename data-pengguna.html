@@ -183,49 +183,37 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 
 /* RESPONSIVE */
 @media(max-width:768px){
-  /* Sidebar: sembunyikan secara default, tampilkan dengan class .on */
   .sidebar{transform:translateX(-100%)}
   .sidebar.on{transform:translateX(0)}
   .main{margin-left:0!important}
   .menu-btn{display:flex!important}
-
-  /* Stats: 2 kolom di tablet */
   .stats-row{grid-template-columns:1fr 1fr}
-
-  /* Form modal: 1 kolom */
   .field-row{grid-template-columns:1fr}
-
-  /* Topbar */
   .topbar{padding:8px 14px;gap:8px}
   .tb-l{flex:1;min-width:0}
   .tb-r .btn-p{font-size:12px;padding:7px 10px}
-
-  /* Modal */
   .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
-
-  /* Tab bar: semua tab muat, ikon tampil, label teks disembunyikan */
   .tab-btn{font-size:11px;padding:8px 6px;min-width:0;flex:1;gap:4px}
   .tab-btn .tab-label{display:none}
   .tab-btn i{display:inline-block!important;font-size:13px}
-
-  /* Table header: susun vertikal */
   .tbl-head{flex-direction:column;align-items:flex-start;gap:10px}
   .tbl-acts{width:100%;flex-wrap:wrap;gap:6px}
   .search-box{flex:1;min-width:0}
   .search-box input{width:100%}
   .filter-sel{flex:1}
-
-  /* Toast */
   .toast-wrap{left:12px;right:12px;bottom:12px}
   .toast{min-width:0;width:100%}
+  .content{padding:14px 12px calc(20px + env(safe-area-inset-bottom))}
+  /* Profile header: susun vertikal di mobile */
+  .profile-header{flex-direction:column;text-align:center;gap:12px;padding:18px}
+  .profile-header > div:first-child{margin:0 auto}
 }
 @media(min-width:769px){
   .sidebar{transform:translateX(0)!important}
   .sidebar.off{transform:translateX(0)!important}
 }
 @media(max-width:480px){
-  .content{padding:10px}
-  /* Stats: 1 kolom di HP kecil */
+  .content{padding:10px 10px calc(16px + env(safe-area-inset-bottom))}
   .stats-row{grid-template-columns:1fr}
   .pg-ttl h2{font-size:15px}
   .tab-btn span.tab-label{display:none}
@@ -233,7 +221,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
   .tab-btn i{display:inline!important}
 }
 @media(max-width:400px){
-  .content{padding:8px}
+  .content{padding:8px 8px calc(14px + env(safe-area-inset-bottom))}
   .tab-bar{gap:2px}
 }
 </style>

@@ -194,6 +194,7 @@ tr:hover td{background:var(--g50)}
 .back-btn:hover{background:var(--pl);color:var(--p);border-color:var(--p)}
 
 /* ── RESPONSIVE ── */
+.spp-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
 @media(max-width:900px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
@@ -202,6 +203,7 @@ tr:hover td{background:var(--g50)}
   .stats-row{grid-template-columns:1fr 1fr}
   .two-col{grid-template-columns:1fr}
   .fh-grid{grid-template-columns:1fr}
+  .sgt-f-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:768px){
   .topbar{padding:8px 14px;flex-wrap:wrap;gap:8px}
@@ -210,20 +212,25 @@ tr:hover td{background:var(--g50)}
   .tb-r .btn-p{font-size:12px;padding:7px 12px}
   .modal{margin:0 8px;max-width:calc(100% - 16px)!important}
   .field-row{grid-template-columns:1fr}
+  .content{padding:14px 12px calc(20px + env(safe-area-inset-bottom))}
 }
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr}
-  .content{padding:10px}
+  .content{padding:10px 10px calc(16px + env(safe-area-inset-bottom))}
   .pg-ttl h2{font-size:15px}
   .pg-ttl p{font-size:10px}
   .finance-hero{padding:16px}
+  .sgt-f-grid{grid-template-columns:1fr 1fr}
+  .spp-summary-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:400px){
   .stats-row{grid-template-columns:1fr}
   .topbar{padding:8px 10px}
-  .content{padding:8px}
+  .content{padding:8px 8px calc(14px + env(safe-area-inset-bottom))}
   .btn-p,.btn-sec{font-size:12px;padding:7px 10px}
   .field-row{grid-template-columns:1fr}
+  .sgt-f-grid{grid-template-columns:1fr}
+  .spp-summary-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -383,7 +390,7 @@ tr:hover td{background:var(--g50)}
             <button class="btn-p" onclick="tagihSPP()"><i class="fas fa-bell"></i> Tagih Belum Bayar</button>
           </div>
         </div>
-        <div id="sppSummary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px"></div>
+        <div id="sppSummary" class="spp-summary-grid"></div>
       </div>
       <div class="tbl-section">
         <div class="tbl-wrap">
