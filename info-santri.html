@@ -364,14 +364,10 @@ let allJadwal=[], allAnn=[];
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('pgDate').textContent = new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  auth.onAuthStateChanged(async user => {
-    if (!user) { location.href='login.html'; return; }
-    const doc = await db.collection('users').doc(user.uid).get().catch(()=>null);
-    if (!doc?.exists || !['admin','ustadz'].includes(doc.data().role)) { auth.signOut(); location.href='login.html'; return; }
-    const d = doc.data();
-    const name = d.displayName||d.namaLengkap||user.email;
+  HA.requireAuth(['admin', 'ustadz'], (user, data) => {
+    const name = data.nama || data.displayName || data.namaLengkap || data.username || 'Admin';
     document.getElementById('uName').textContent = name;
-    document.getElementById('uAv').textContent = name[0]?.toUpperCase()||'A';
+    document.getElementById('uAv').textContent = name[0]?.toUpperCase() || 'A';
     loadAll();
   });
 });
@@ -509,7 +505,7 @@ function toast(type, msg) {
 }
 function toggleSb(){ document.getElementById('sidebar').classList.toggle('off'); document.getElementById('sbOv').classList.toggle('show'); }
 function closeSb(){ document.getElementById('sidebar').classList.add('off'); document.getElementById('sbOv').classList.remove('show'); }
-async function handleLogout(){ await auth.signOut().catch(()=>{}); sessionStorage.removeItem('currentUser'); location.href='login.html'; }
+async function handleLogout(){ await HA.logout(); }
 </script>
 </body>
 </html>

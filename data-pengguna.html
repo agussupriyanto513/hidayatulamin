@@ -460,74 +460,11 @@ function bootDashboard(user, data) {
   loadAll();
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   updateDate();
   document.body.style.visibility = 'hidden';
-
-  if (typeof HA !== 'undefined') {
-    HA.requireAuth('admin', (user, data) => { bootDashboard(user, data); });
-    return;
-  }
-
-  // Beri waktu Firebase Auth restore session dari IndexedDB persistence
-  await new Promise(r => setTimeout(r, 600));
-
-  auth.onAuthStateChanged(async user => {
-    if (user) {
-      if (dashboardReady && user.uid === currentUidVerified) return;
-
-      // Cek localStorage dulu (hindari round-trip Firestore)
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          if (sess.role === 'admin' && sess.uid === user.uid && Date.now() - (sess.ts||0) < 8*3600*1000) {
-            bootDashboard(user, null); return;
-          }
-        } catch(e) {}
-      }
-
-      // Verifikasi Firestore
-      try {
-        await ensureFreshToken();
-        const doc = await db.collection('users').doc(user.uid).get();
-        if (doc.exists && doc.data().role === 'admin') {
-          localStorage.setItem('currentUser', JSON.stringify({uid:user.uid,role:'admin',ts:Date.now()}));
-          bootDashboard(user, doc.data());
-        } else {
-          await auth.signOut();
-          localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
-          document.body.style.visibility = '';
-          location.href = 'login.html';
-        }
-      } catch(e) {
-        console.warn('Firestore verify:', e.code, e.message);
-        bootDashboard(user, null); // permission-denied atau network → tetap lanjut
-      }
-      return;
-    }
-
-    // user null
-    if (dashboardReady) {
-      await new Promise(r => setTimeout(r, 800));
-      if (auth.currentUser) return;
-    } else {
-      const raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-      if (raw) {
-        try {
-          const sess = JSON.parse(raw);
-          if (sess.role === 'admin' && Date.now() - (sess.ts||0) < 8*3600*1000) {
-            await new Promise(r => setTimeout(r, 1200));
-            if (auth.currentUser) return;
-          }
-        } catch(e) {}
-      }
-    }
-    if (!auth.currentUser) {
-      localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser');
-      document.body.style.visibility = '';
-      location.href = 'login.html';
-    }
+  HA.requireAuth('admin', (user, data) => {
+    bootDashboard(user, data);
   });
 });
 
@@ -775,11 +712,7 @@ function closeSb() {
 }
 
 async function handleLogout() {
-  await auth.signOut().catch(()=>{});
-  sessionStorage.removeItem('currentUser');
-  localStorage.removeItem('currentUser');
-  localStorage.removeItem('piAuthUser');
-  location.href='login.html';
+  await HA.logout();
 }
 </script>
 </body>
