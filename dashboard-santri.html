@@ -347,11 +347,13 @@ tr:hover td{background:var(--g50)}
 .t-msg p{font-size:11px;color:var(--g500)}
 
 /* BOTTOM NAV */
-.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--g200);z-index:150;padding:6px 0}
-.bn-row{display:flex;justify-content:space-around}
-.bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border-radius:var(--rdm);color:var(--g400);font-size:10px;font-weight:600;transition:var(--tr);cursor:pointer;border:none;background:none;font-family:inherit}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--g200);z-index:150;padding:6px 0 max(6px,env(safe-area-inset-bottom))}
+.bn-row{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 2px}
+.bn-row::-webkit-scrollbar{display:none}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 8px;border-radius:var(--rdm);color:var(--g400);font-size:9px;font-weight:600;transition:var(--tr);cursor:pointer;border:none;background:none;font-family:inherit;flex:1;min-width:48px;white-space:nowrap}
 .bn-item.active{color:var(--p)}
-.bn-item i{font-size:18px}
+.bn-item i{font-size:17px}
+.bn-ico-sgt{font-size:16px;font-weight:900;line-height:1.2}
 
 /* RESPONSIVE */
 @media(min-width:901px){
@@ -365,7 +367,7 @@ tr:hover td{background:var(--g50)}
   .menu-btn{display:flex!important}
   .stats-row{grid-template-columns:1fr 1fr}
   .two-col{grid-template-columns:1fr}
-  .content{padding:12px 12px calc(80px + env(safe-area-inset-bottom))}
+  .content{padding:12px 12px calc(90px + env(safe-area-inset-bottom))}
   .bottom-nav{display:block}
   .juz-grid{grid-template-columns:repeat(6,1fr)}
   .greeting{flex-direction:column;gap:12px}
@@ -1120,9 +1122,12 @@ tr:hover td{background:var(--g50)}
     <button class="bn-item active" id="bn-dashboard" onclick="go('dashboard',null);setBn('dashboard')"><i class="fas fa-th-large"></i><span>Beranda</span></button>
     <button class="bn-item" id="bn-hafalan" onclick="go('hafalan',null);setBn('hafalan')"><i class="fas fa-book-open"></i><span>Hafalan</span></button>
     <button class="bn-item" id="bn-jadwal" onclick="go('jadwal',null);setBn('jadwal')"><i class="fas fa-calendar-alt"></i><span>Jadwal</span></button>
-    <button class="bn-item" id="bn-nilai" onclick="go('nilai',null);setBn('nilai')"><i class="fas fa-star"></i><span>Nilai</span></button>
-    <button class="bn-item" id="bn-sgt" onclick="go('sgt',null);setBn('sgt')"><span style="font-size:18px;font-weight:900;color:inherit">₴</span><span>SGT</span></button>
+    <button class="bn-item" id="bn-nilai" onclick="go('nilai',null);setBn('nilai')"><i class="fas fa-graduation-cap"></i><span>Nilai</span></button>
+    <button class="bn-item" id="bn-absensi" onclick="go('absensi',null);setBn('absensi')"><i class="fas fa-calendar-check"></i><span>Absensi</span></button>
+    <button class="bn-item" id="bn-pengumuman" onclick="go('pengumuman',null);setBn('pengumuman')"><i class="fas fa-bullhorn"></i><span>Pengumuman</span></button>
+    <button class="bn-item" id="bn-perizinan" onclick="go('perizinan',null);setBn('perizinan')"><i class="fas fa-file-signature"></i><span>Izin</span></button>
     <button class="bn-item" id="bn-pembayaran" onclick="go('pembayaran',null);setBn('pembayaran')"><i class="fas fa-credit-card"></i><span>Bayar</span></button>
+    <button class="bn-item" id="bn-sgt" onclick="go('sgt',null);setBn('sgt')"><span class="bn-ico-sgt">₴</span><span>SGT</span></button>
   </div>
 </nav>
 
@@ -1850,10 +1855,18 @@ function go(name,navEl){
   if(name==='pengumuman')renderPengumuman();
   if(name==='perizinan')loadIznHistory();
   if(name==='pembayaran')loadTagihan();
+  setBn(name);
   closeSb();
 }
 
-function setBn(n){document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));const el=document.getElementById('bn-'+n);if(el)el.classList.add('active');}
+function setBn(n){
+  document.querySelectorAll('.bn-item').forEach(b=>{b.classList.remove('active');b.style.color='';});
+  const el=document.getElementById('bn-'+n);
+  if(el){
+    el.classList.add('active');
+    if(n==='sgt') el.style.color='var(--sgt)';
+  }
+}
 
 // ════ SIDEBAR ════
 function toggleSb(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOv').classList.toggle('show');}

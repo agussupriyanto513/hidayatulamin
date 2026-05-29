@@ -348,10 +348,12 @@ tr:hover td{background:var(--g50)}
   .alloc-grid{grid-template-columns:1fr}
   .topbar{padding:8px 14px;flex-wrap:wrap}
   .tb-right{flex-wrap:wrap;gap:4px}
+  .content{padding:12px 12px calc(90px + env(safe-area-inset-bottom)) !important}
+  .admin-bottom-nav{display:block}
 }
 @media(max-width:540px){
   .stats-row{grid-template-columns:1fr 1fr}
-  .content{padding:10px}
+  .content{padding:10px 10px calc(88px + env(safe-area-inset-bottom)) !important}
   .field-row{grid-template-columns:1fr}
   .alloc-grid{grid-template-columns:1fr}
   .sgt-stats{grid-template-columns:1fr 1fr}
@@ -367,12 +369,20 @@ tr:hover td{background:var(--g50)}
 }
 @media(max-width:400px){
   .stats-row{grid-template-columns:1fr}
-  .content{padding:8px}
+  .content{padding:8px 8px calc(85px + env(safe-area-inset-bottom)) !important}
   .pg-title h2{font-size:15px}
   .welcome-txt h3{font-size:16px}
   .wd-num{font-size:28px}
   .qa-row{grid-template-columns:1fr}
 }
+/* ═══ ADMIN BOTTOM NAV ═══ */
+.admin-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--g200);z-index:150;padding:6px 0 max(6px,env(safe-area-inset-bottom))}
+.abn-row{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 2px}
+.abn-row::-webkit-scrollbar{display:none}
+.abn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 8px;border-radius:var(--rdm);color:var(--g400);font-size:9px;font-weight:600;transition:var(--tr);cursor:pointer;border:none;background:none;font-family:inherit;flex:1;min-width:52px;white-space:nowrap;text-decoration:none;position:relative}
+.abn-item.active{color:var(--p)}
+.abn-item i{font-size:17px}
+.abn-badge{position:absolute;top:2px;right:calc(50% - 18px);background:var(--r);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:10px;min-width:14px;text-align:center;line-height:14px}
 /* ═══ PI DONATIONS PANEL ═══ */
 .pi-prog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
 .pi-prog-name{font-size:12px;font-weight:600;color:var(--g700)}
@@ -1105,6 +1115,19 @@ tr:hover td{background:var(--g50)}
     <!-- ════ END PI RATE SECTION ════ -->
 </div><!-- /main -->
 
+<!-- ADMIN BOTTOM NAV -->
+<nav class="admin-bottom-nav" id="adminBottomNav">
+  <div class="abn-row">
+    <button class="abn-item active" id="abn-dashboard" onclick="switchSection('dashboard',this);setAbn('dashboard')"><i class="fas fa-th-large"></i><span>Dashboard</span></button>
+    <button class="abn-item" id="abn-users" onclick="switchSection('users',this);setAbn('users')"><i class="fas fa-users-cog"></i><span>User</span></button>
+    <button class="abn-item" id="abn-sgt" onclick="switchSection('sgt',this);setAbn('sgt')" style="color:var(--g400)"><span style="font-size:16px;font-weight:900;line-height:1.2">₴</span><span>SGT</span></button>
+    <button class="abn-item" id="abn-pencairan" onclick="switchSection('pencairan',this);setAbn('pencairan')"><i class="fas fa-hand-holding-usd"></i><span>Cair</span><span class="abn-badge" id="abn-badge-pencairan" style="display:none">0</span></button>
+    <button class="abn-item" id="abn-earnreq" onclick="switchSection('earnreq',this);setAbn('earnreq')"><i class="fas fa-paper-plane"></i><span>Reward</span><span class="abn-badge" id="abn-badge-earnreq" style="display:none;background:var(--acc)">0</span></button>
+    <button class="abn-item" id="abn-pi-donations" onclick="switchSection('pi-donations',this);setAbn('pi-donations')"><span style="font-size:17px;font-weight:900;line-height:1.2">π</span><span>Donasi</span><span class="abn-badge" id="abn-badge-pi" style="display:none;background:var(--acc)">0</span></button>
+    <button class="abn-item" id="abn-whitelist" onclick="switchSection('whitelist',this);setAbn('whitelist')"><i class="fas fa-shield-alt"></i><span>Whitelist</span></button>
+  </div>
+</nav>
+
 <!-- MODAL BUAT USER -->
 <div class="modal-bg" id="modalBg" onclick="closeModalOutside(event)">
   <div class="modal">
@@ -1219,13 +1242,37 @@ function switchSection(name, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-' + name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if (el) el.classList.add('active');
-  const titles = {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token',pencairan:'Pencairan SGT',earnreq:'Pengajuan Reward SGT','pi-donations':'Manajemen Donasi Pi'};
+  if (el && el.classList.contains('nav-item')) el.classList.add('active');
+  const titles = {dashboard:'Dashboard Admin',users:'Kelola User',sgt:'Manajemen SGT Token',pencairan:'Pencairan SGT',earnreq:'Pengajuan Reward SGT','pi-donations':'Manajemen Donasi Pi',whitelist:'Whitelist Pi','pi-rate':'Harga Pi (Rate)'};
   setEl('pgTitle', titles[name] || 'Dashboard');
   if (name === 'users') loadAllUsers();
   if (name === 'sgt') { renderAllocGrid(); loadMartStats(); renderDistLog(); }
   if (name === 'pi-donations') loadPiDonations();
+  setAbn(name);
   closeSidebar();
+}
+
+function setAbn(name) {
+  document.querySelectorAll('.abn-item').forEach(b => { b.classList.remove('active'); b.style.color = ''; });
+  const el = document.getElementById('abn-' + name);
+  if (el) {
+    el.classList.add('active');
+    if (name === 'sgt') el.style.color = 'var(--sgtd)';
+    else if (name === 'pi-donations') el.style.color = '#8b5cf6';
+  }
+}
+
+// Sync badge counts ke bottom nav
+function syncAbnBadges() {
+  const pencairanBadge = document.getElementById('pendingBadge');
+  const earnBadge = document.getElementById('earnBadge');
+  const piDonBadge = document.getElementById('piDonBadge');
+  const abnPencairan = document.getElementById('abn-badge-pencairan');
+  const abnEarn = document.getElementById('abn-badge-earnreq');
+  const abnPi = document.getElementById('abn-badge-pi');
+  if (pencairanBadge && abnPencairan) { abnPencairan.textContent = pencairanBadge.textContent; abnPencairan.style.display = pencairanBadge.style.display; }
+  if (earnBadge && abnEarn) { abnEarn.textContent = earnBadge.textContent; abnEarn.style.display = earnBadge.style.display; }
+  if (piDonBadge && abnPi) { abnPi.textContent = piDonBadge.textContent; abnPi.style.display = piDonBadge.style.display; }
 }
 
 // ════ LOAD DATA ════
@@ -1836,6 +1883,7 @@ function updatePendingBadge() {
   if (!badge) return;
   if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline-flex'; }
   else badge.style.display = 'none';
+  syncAbnBadges();
 }
 
 function wdFilter(f) {
@@ -2267,6 +2315,7 @@ function updateEarnBadge() {
   if (!badge) return;
   if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline-flex'; }
   else badge.style.display = 'none';
+  syncAbnBadges();
 }
 
 function earnFilter(f) {
