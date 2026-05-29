@@ -265,7 +265,9 @@ class HidayatulaminAuth {
 
   async _piAuth() {
     try {
-      const scopes     = ['username', 'payments', 'wallet_address'];
+      // Scope hanya 'username' untuk lulus CT review Mainnet.
+      // Tambah 'payments','wallet_address' hanya di halaman donasi/payment.
+      const scopes     = ['username'];
       const authResult = await this.Pi.authenticate(scopes, this._handleIncompletePiPayment.bind(this));
       const { user, accessToken } = authResult;
       this._piAccessToken = accessToken;
@@ -274,7 +276,6 @@ class HidayatulaminAuth {
       const userSnap = await userRef.get();
       const baseData = {
         uid: user.uid, username: user.username, displayName: user.username,
-        wallet_address: user.wallet_address || null,
         loginMethod: 'pi',
         lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),

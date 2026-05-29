@@ -589,8 +589,10 @@ async function doPiLogin() {
   showLoader('Autentikasi Pi Network...');
 
   try {
+    // Scope hanya 'username' untuk lulus CT review Pi Browser Mainnet.
+    // Scope 'payments' & 'wallet_address' diminta terpisah saat fitur donasi/payment dipakai.
     const authResult = await window.Pi.authenticate(
-      ['username', 'payments', 'wallet_address'],
+      ['username'],
       handleIncompletePayment
     );
 
@@ -680,7 +682,7 @@ async function doPiLogin() {
       // ── User sudah terdaftar ──
       if (userDoc.isActive === false) {
         hideLoader();
-        setLoading('piBtn', 'piBtnText', false);
+        setLoading('piBtn', 'piBtnText', false, 'Masuk dengan Pi Network');
         showAlert('error', 'Akun Anda telah dinonaktifkan. Hubungi administrator.');
         return;
       }
@@ -694,7 +696,6 @@ async function doPiLogin() {
       const updatePayload = {
         piUid,
         piUsername: piUser,
-        wallet_address: user.wallet_address || userDoc.wallet_address || null,
         lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
       };
       // Sinkron role jika whitelist bilang beda (misal admin set role di dashboard)
@@ -717,62 +718,52 @@ async function doPiLogin() {
       }
 
     } else {
-      // ── User belum terdaftar sama sekali ──
+      // ── User belum punya dokumen di Firestore ──
+      // Buat dokumen baru dengan role dari whitelist (admin/ustadz)
+      // atau santri jika tidak ada di whitelist
+      const finalRole = whitelistRole || 'santri';
 
-      // Jika ada di whitelist tapi belum punya akun
-      // (admin daftarkan username saja, belum bikin akun Firebase)
-      // → TOLAK, minta admin lengkapi dulu
-      if (whitelistRole && (whitelistRole === 'admin' || whitelistRole === 'ustadz')) {
-        hideLoader();
-        setLoading('piBtn', 'piBtnText', false);
-        showAlert('warning',
-          `Username <strong>@${piUser}</strong> terdaftar sebagai <strong>${whitelistRole}</strong> ` +
-          `tapi akun belum dibuat lengkap. Hubungi administrator untuk menyelesaikan pendaftaran.`
-        );
-        return;
-      }
+      showLoader('Membuat akun...', '@' + piUser + ' sebagai ' + finalRole);
 
-      // Buat akun santri baru (user umum, bukan privileged)
-      showLoader('Membuat akun baru...');
       const newData = {
-        uid: piUid,
+        uid:             piUid,
         piUid,
-        piUsername: piUser,
-        username: piUser,
-        displayName: piUser,
-        nama: piUser,
-        email: piUser + '@pi.hidayatulamin.id',
-        wallet_address: user.wallet_address || null,
-        role: 'santri',
-        isActive: true,
-        loginMethod: 'pi',
+        piUsername:      piUser,
+        username:        piUser,
+        displayName:     piUser,
+        nama:            piUser,
+        email:           piUser + '@pi.hidayatulamin.id',
+        role:            finalRole,
+        isActive:        true,
+        loginMethod:     'pi',
         profileComplete: false,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt:       firebase.firestore.FieldValue.serverTimestamp(),
+        lastLogin:       firebase.firestore.FieldValue.serverTimestamp(),
       };
 
       try {
         await _db.collection('users').doc(piUid).set(newData);
+        console.log('✅ Akun dibuat: @' + piUser + ' role=' + finalRole);
       } catch(e) {
         hideLoader();
-        setLoading('piBtn', 'piBtnText', false);
-        console.error('❌ Gagal buat akun baru:', e.code, e.message);
-        showAlert('error', 'Gagal membuat akun: ' + (e.message || 'Permission denied. Hubungi administrator.'));
+        setLoading('piBtn', 'piBtnText', false, 'Masuk dengan Pi Network');
+        console.error('❌ Gagal buat akun:', e.code, e.message);
+        showAlert('error', 'Gagal membuat akun: ' + (e.message || 'Hubungi administrator.'));
         _redirecting = false;
         return;
       }
 
-      saveSession(piUid, piUser, 'santri');
+      saveSession(piUid, piUser, finalRole);
       if (!_redirecting) {
         _redirecting = true;
-        showLoader('Akun baru berhasil dibuat!', 'Mengalihkan ke dashboard...');
-        setTimeout(() => redirectByRole('santri'), 1400);
+        showLoader('Selamat datang!', 'Mengalihkan ke dashboard ' + finalRole + '...');
+        setTimeout(() => redirectByRole(finalRole), 1400);
       }
     }
 
   } catch(err) {
     hideLoader();
-    setLoading('piBtn', 'piBtnText', false);
+    setLoading('piBtn', 'piBtnText', false, 'Masuk dengan Pi Network');
     console.error('❌ Pi login error:', err);
     const msg = err.message || 'Gagal login dengan Pi Network.';
     showAlert('error', msg.includes('cancelled') ? 'Login dibatalkan.' : msg);
@@ -906,10 +897,16 @@ function setLoading(btnId, textId, loading, text) {
   const span = document.getElementById(textId);
   if (!btn) return;
   btn.disabled = loading;
-  if (span && text) {
+  // Default teks tombol jika tidak ada parameter text
+  const defaults = {
+    piBtnText:    'Masuk dengan Pi Network',
+    emailBtnText: 'Masuk',
+  };
+  const finalText = text || (!loading ? defaults[textId] : null);
+  if (span && finalText) {
     span.innerHTML = loading
-      ? `<i class="spin-icon fas fa-circle-notch"></i> ${text}`
-      : text;
+      ? `<i class="spin-icon fas fa-circle-notch fa-spin"></i> ${finalText}`
+      : finalText;
   }
 }
 </script>
