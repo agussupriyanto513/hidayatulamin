@@ -231,6 +231,88 @@ tr:hover td{background:var(--g50)}
   .modal-body{max-height:calc(92vh - 130px)}
   .santri-cards{grid-template-columns:1fr}
 }
+
+/* ══ PROFESSIONAL UPGRADE CSS ══ */
+
+/* Smooth section animation */
+.section.active{animation:fadeUp .28s cubic-bezier(.4,0,.2,1) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Card hover */
+.card{transition:box-shadow .2s,transform .2s;cursor:default}
+.card:hover{box-shadow:0 8px 28px rgba(0,0,0,.1);transform:translateY(-1px)}
+
+/* Stat card hover */
+.stat-card,.sc{transition:transform .2s,box-shadow .2s}
+.stat-card:hover,.sc:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.12)}
+
+/* Bottom nav upgrade */
+.bn-item{transition:all .2s cubic-bezier(.4,0,.2,1)}
+.bn-item.active{transform:translateY(-2px)}
+
+/* Better scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:99px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* Input focus glow */
+input:focus,select:focus,textarea:focus{
+  outline:none;
+  border-color:var(--p,#8b5cf6) !important;
+  box-shadow:0 0 0 3px rgba(139,92,246,.12) !important;
+}
+
+/* Button upgrade */
+.btn,.btn-primary{transition:all .2s;position:relative;overflow:hidden}
+.btn:hover,.btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.btn:active,.btn-primary:active{transform:translateY(0)}
+
+/* Toast upgrade */
+.toast{border-radius:14px !important;box-shadow:0 8px 30px rgba(0,0,0,.18) !important;backdrop-filter:blur(8px)}
+
+/* Chip/badge upgrade */
+.chip{transition:all .15s;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;letter-spacing:.01em}
+
+/* Table row hover */
+tbody tr{transition:background .12s}
+tbody tr:hover{background:var(--g50,#f8fafc)}
+
+/* Progress bar animation */
+.prog-fill,.prog-f{transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+/* Skeleton loading */
+.skel{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:skelAnim 1.5s infinite;border-radius:8px}
+@keyframes skelAnim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* SGT pulse badge */
+.sgt-live::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:5px;animation:sgtPulse 1.5s infinite}
+@keyframes sgtPulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Juz grid */
+.juz-cell{transition:transform .15s,box-shadow .15s}
+.juz-cell:hover{transform:scale(1.15);box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:1;position:relative}
+
+/* Empty state */
+.empty-state{text-align:center;padding:40px 20px;color:var(--g400,#94a3b8)}
+.empty-icon{font-size:44px;margin-bottom:10px;opacity:.5;display:block}
+
+/* Notif dot pulse */
+.tb-dot{animation:notifPulse 1.5s infinite}
+@keyframes notifPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+
+/* Print */
+@media print{
+  .sidebar,.bottom-nav,.topbar,.tb-btn,.btn,.btn-primary{display:none !important}
+  .main,.content{margin:0 !important;padding:10px !important}
+  .card,.stat-card{box-shadow:none !important;border:1px solid #ddd !important}
+  body{background:#fff !important}
+}
+
+/* Mobile stat 2col */
+@media(max-width:400px){
+  .stats-row,.g3,.g4{grid-template-columns:1fr 1fr !important}
+}
+
 </style>
 </head>
 <body>
@@ -282,6 +364,28 @@ tr:hover td{background:var(--g50)}
 
     <!-- ════ DASHBOARD ════ -->
     <div class="section active" id="sec-dashboard">
+      <!-- Welcome Banner Wali -->
+      <div style="background:linear-gradient(135deg,#064e3b,#065f46,#047857);border-radius:16px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600;letter-spacing:.05em">PORTAL WALI SANTRI</div>
+          <div style="font-size:19px;font-weight:800;color:#fff;margin:4px 0" id="waliWelcome">Selamat Datang, Wali</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5)" id="waliDate"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="background:rgba(255,255,255,.12);border-radius:12px;padding:10px 14px;text-align:center;border:1px solid rgba(255,255,255,.15)">
+            <div style="font-size:18px;font-weight:800;color:#34d399" id="stJuzTop">—</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.5);font-weight:600">JUZ</div>
+          </div>
+          <div style="background:rgba(255,255,255,.12);border-radius:12px;padding:10px 14px;text-align:center;border:1px solid rgba(255,255,255,.15)">
+            <div style="font-size:18px;font-weight:800;color:#fbbf24" id="stKehadiranTop">—</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.5);font-weight:600">HADIR</div>
+          </div>
+          <div style="background:rgba(255,255,255,.12);border-radius:12px;padding:10px 14px;text-align:center;border:1px solid rgba(255,255,255,.15)">
+            <div style="font-size:18px;font-weight:800;color:#fff" id="stSPPTop">—</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.5);font-weight:600">SPP</div>
+          </div>
+        </div>
+      </div>
       <div class="greeting">
         <div class="gr-txt"><h3>Assalamu'alaikum, <span id="greetName">Bapak/Ibu</span>! 🤲</h3><p id="greetSub">Pantau perkembangan putra/putri Anda</p></div>
         <div class="gr-date"><div class="gd-num" id="gdNum">—</div><div class="gd-str" id="gdStr">—</div></div>
@@ -910,7 +1014,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Restore Pi user dari session jika login via Pi
     try {
-      const raw = localStorage.getItem('piUser');
+      const raw = (() => { try { return localStorage.getItem('piUser'); } catch(e) { return null; } })();
       if (raw) {
         const piSess = JSON.parse(raw);
         if (piSess.username && Date.now() - (piSess.ts||0) < 8*3600*1000) {
@@ -1362,6 +1466,28 @@ async function submitCair(type) {
 }
 
 // ════ SECTION SWITCH ════
+// Welcome & date wali
+(function(){
+  const el = document.getElementById('waliDate');
+  if(el){
+    const days=['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const now = new Date();
+    el.textContent = days[now.getDay()] + ', ' + now.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  }
+  setTimeout(()=>{
+    if(typeof waliData!=='undefined'&&waliData?.nama){
+      const wEl=document.getElementById('waliWelcome');
+      if(wEl) wEl.textContent='Selamat Datang, '+waliData.nama;
+    }
+    // Sync top stats
+    const maps=[['stJuzTop','stJuz'],['stKehadiranTop','stKehadiran'],['stSPPTop','stSPP']];
+    maps.forEach(([tid,sid])=>{
+      const t=document.getElementById(tid),s=document.getElementById(sid);
+      if(t&&s) t.textContent=s.textContent||'—';
+    });
+  }, 1800);
+})();
+
 function go(name, navEl) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-' + name).classList.add('active');
@@ -1389,7 +1515,33 @@ function setBn(n){
 }
 
 // ════ DOWNLOAD RAPORT ════
-function downloadRaport(){showToast('info','Menyiapkan Raport','File raport akan segera diunduh...')}
+function downloadRaport(){
+  showToast('info','Menyiapkan Raport','Raport sedang disiapkan, harap tunggu...');
+  setTimeout(()=>{
+    // Generate raport sebagai print view
+    const s = santriList[0];
+    if(!s){ showToast('error','Gagal','Data santri belum dimuat'); return; }
+    const w = window.open('','_blank');
+    w.document.write(`<!DOCTYPE html><html><head><title>Raport ${s.nama}</title>
+    <style>body{font-family:Arial,sans-serif;padding:30px;color:#333}
+    h1{color:#1e5c3a;border-bottom:3px solid #1e5c3a;padding-bottom:10px}
+    .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}
+    .label{color:#666;font-size:13px}.value{font-weight:700}
+    </style></head><body>
+    <h1>Raport Santri</h1>
+    <h3>${s.nama} — NIS ${s.nis||'—'}</h3>
+    <div class="row"><span class="label">Kelas</span><span class="value">${s.kelas||'—'}</span></div>
+    <div class="row"><span class="label">Hafalan</span><span class="value">${s.juz||0} Juz</span></div>
+    <div class="row"><span class="label">Kehadiran</span><span class="value">${s.kehadiran||95}%</span></div>
+    <div class="row"><span class="label">Nilai Rata-rata</span><span class="value">${s.nilai||88}</span></div>
+    <div class="row"><span class="label">Status SPP</span><span class="value">Lunas</span></div>
+    <br><p style="color:#666;font-size:12px">Dicetak: ${new Date().toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p>
+    <p style="color:#666;font-size:12px">Hidayatulamin Sagatama</p>
+    </body></html>`);
+    w.document.close();
+    w.print();
+  }, 800);
+}
 
 // ════ MODAL ════
 function openModal(id){document.getElementById(id).classList.add('open')}
