@@ -38,7 +38,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .sidebar{width:256px;min-width:256px;background:var(--ink);display:flex;flex-direction:column;position:fixed;left:0;top:0;height:100vh;z-index:200;overflow-y:auto;transition:transform .3s ease;scrollbar-width:none;padding-top:env(safe-area-inset-top)}
 .sidebar::-webkit-scrollbar{display:none}
 .sidebar.hidden-mobile{transform:translateX(-100%)}
-@media(min-width:769px){
+@media(min-width:901px){
   .sidebar{transform:translateX(0) !important}
   .sb-overlay{display:none !important}
 }
@@ -338,7 +338,7 @@ tr:hover td{background:var(--g50)}
   body{background:#fff !important}
 }
 
-@media(max-width:768px){
+@media(max-width:900px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
   .main{margin-left:0}
@@ -402,7 +402,7 @@ tr:hover td{background:var(--g50)}
 /* ═══ PI RATE SECTION ═══ */
 .pi-rate-shortcut{padding:6px 10px;border:1.5px solid rgba(139,92,246,.3);background:rgba(139,92,246,.06);border-radius:8px;font-size:11px;font-weight:700;color:#8b5cf6;cursor:pointer;transition:var(--tr);font-family:inherit}
 .pi-rate-shortcut:hover{background:rgba(139,92,246,.18);transform:translateY(-1px)}
-@media(max-width:768px){#sec-pi-rate .two-col-rate{grid-template-columns:1fr !important}}
+@media(max-width:900px){#sec-pi-rate .two-col-rate{grid-template-columns:1fr !important}}
 
 /* ══ PROFESSIONAL UPGRADES ══ */
 /* Smooth page load */
@@ -455,7 +455,7 @@ input:focus,select:focus,textarea:focus{
 .toast-box{border-radius:14px !important;box-shadow:0 8px 30px rgba(0,0,0,.15) !important}
 
 /* Mobile menu overlay */
-@media(max-width:768px){
+@media(max-width:900px){
   .sidebar-overlay{display:block}
   .stat-card .sc-val{font-size:26px}
 }
