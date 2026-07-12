@@ -1211,18 +1211,24 @@ async function bootDashboard(user, data) {
   loadDashPiRate();
   // Load Pi donation stats (fire and forget)
   setTimeout(() => loadMyPiDonations(user.uid), 1000);
-  // Real-time listener for data santri (SGT, nilai, dll)
+  // Real-time listener for data santri (nilai, absensi, dll — TIDAK termasuk SGT)
   if(currentUid && typeof db!=='undefined'){
     db.collection('users').doc(currentUid).onSnapshot(snap=>{
       if(snap.exists){
         const d=snap.data();
-        if(typeof d.sgt==='number'){
-          santriData={...santriData,...d};
-          localStorage.setItem('sgt_bal_'+currentUid,d.sgt.toString());
-          const el=document.getElementById('stSGT');
-          if(el && d.sgt) el.textContent=fmtSGT(d.sgt);
-        }
+        santriData={...santriData,...d};
       }
+    },()=>{});
+    // Real-time listener KHUSUS saldo SGT — dengerin sgt/{uid}.balance,
+    // satu-satunya sumber kebenaran yang juga dipakai dashboard admin.
+    db.collection('sgt').doc(currentUid).onSnapshot(snap=>{
+      const bal = snap.exists ? (snap.data().balance||0) : 0;
+      _sgtServerBal = bal;
+      localStorage.setItem('sgt_bal_'+currentUid,bal.toString());
+      const el=document.getElementById('stSGT');
+      if(el) el.textContent=fmtSGT(bal);
+      const big=document.getElementById('sgtBalBig');
+      if(big) big.textContent=bal.toLocaleString('id-ID')+' SGT';
     },()=>{});
   }
 }
@@ -1512,20 +1518,20 @@ const MISSIONS=[
   {id:'m4',ico:'fa-comments',bg:'#fef3c7',clr:'#f59e0b',title:'Konsultasi Ustadz',desc:'Chat dengan ustadz pembimbing',reward:20,done:false},
 ];
 
+let _sgtServerBal = null; // saldo asli dari Firestore (sgt/{uid}.balance) — inilah sumber kebenaran
 async function loadSGT(){
   const uid=currentUid||'demo';
-  // Prioritize Firestore data for SGT balance
-  if(currentUid && typeof db!=='undefined' && santriData){
+  // Sumber kebenaran saldo SGT SEKARANG SATU: koleksi sgt/{uid}.balance
+  // (field ini juga yang dipakai admin waktu distribute/reward/refund, jadi selalu sinkron)
+  if(currentUid && typeof db!=='undefined'){
     try{
-      const snap=await db.collection('users').doc(currentUid).get();
-      if(snap.exists){
-        const d=snap.data();
-        if(typeof d.sgt==='number'){ santriData.sgt=d.sgt; localStorage.setItem('sgt_bal_'+uid,d.sgt.toString()); }
-      }
+      const snap=await db.collection('sgt').doc(currentUid).get();
+      const bal = snap.exists ? (snap.data().balance||0) : 0;
+      _sgtServerBal = bal;
+      localStorage.setItem('sgt_bal_'+uid,bal.toString()); // cache buat tampilan instan, BUKAN buat validasi
     }catch(e){ console.warn('SGT Firestore:',e.message); }
   }
-  let bal=parseInt(localStorage.getItem('sgt_bal_'+uid)||'0');
-  if(!bal&&santriData?.sgt){bal=santriData.sgt;localStorage.setItem('sgt_bal_'+uid,bal.toString());}
+  let bal=(_sgtServerBal!==null) ? _sgtServerBal : parseInt(localStorage.getItem('sgt_bal_'+uid)||'0');
   const txs=JSON.parse(localStorage.getItem('sgt_transactions_'+uid)||'[]');
   const earned=txs.filter(t=>t.type==='earn').reduce((s,t)=>s+(t.amount||0),0)||bal;
   const spent=txs.filter(t=>t.type==='spend').reduce((s,t)=>s+(t.amount||0),0);
@@ -1548,6 +1554,9 @@ const W_SGT_PER_PI=500, W_IDR_PER_SGT=100;
 let wActiveTab='idr', wPendingTx=null, wHistFilter='all';
 
 function wGetBal(){
+  // Pakai saldo server (Firestore) kalau sudah ke-load; localStorage cuma fallback tampilan
+  // sebelum data Firestore datang. Validasi FINAL tetap dilakukan di server saat submit (transaction).
+  if(_sgtServerBal!==null) return _sgtServerBal;
   const uid=currentUid||'demo';
   return parseInt(localStorage.getItem('sgt_bal_'+uid)||'0');
 }
@@ -1664,16 +1673,22 @@ async function wExecConvert(){
   const btn=document.getElementById('wmConfirmBtn');
   btn.disabled=true; btn.innerHTML='<div style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin360 .7s linear infinite;margin-right:6px"></div> Menyimpan…';
 
-  try {
-    const uid=currentUid||'demo';
-    const bal=wGetBal();
-    if(bal<wPendingTx.sgtUsed) throw new Error('Saldo SGT tidak cukup');
-    const newBal=bal-wPendingTx.sgtUsed;
-    localStorage.setItem('sgt_bal_'+uid,newBal.toString());
+  const uid=currentUid;
+  if(!uid || typeof db==='undefined'){
+    showToast('error','Tidak Bisa Memproses','Kamu harus login untuk melakukan pencairan.');
+    btn.disabled=false; btn.innerHTML='<i class="fas fa-check-circle"></i> Konfirmasi Pencairan';
+    return;
+  }
 
+  try {
     const now=new Date();
+    const sgtRef = db.collection('sgt').doc(uid);
+    const wdRef  = db.collection('withdrawals').doc();
+    const santriName = santriData?.nama || santriData?.displayName || 'Santri';
+    const santriNis  = santriData?.nis || '—';
+
     const txRecord={
-      id:'WTX'+Date.now(),
+      id:wdRef.id,
       type:wPendingTx.type,
       dest, note:note||'',
       sgtUsed:wPendingTx.sgtUsed,
@@ -1684,48 +1699,58 @@ async function wExecConvert(){
     if(wPendingTx.type==='sgt-pi')  txRecord.piReceived=wPendingTx.piReceived;
     if(wPendingTx.type==='sgt-idr') txRecord.rpReceived=wPendingTx.rpReceived;
 
+    // ── Transaction: cek saldo ASLI di server dan potong secara atomic. ──
+    // Kalau saldo server nggak cukup (misalnya localStorage dimanipulasi), ini akan GAGAL
+    // dan tidak ada withdrawal yang tercipta, apapun angka yang ditampilkan di browser.
+    await db.runTransaction(async (t) => {
+      const sgtDoc = await t.get(sgtRef);
+      const currentBal = sgtDoc.exists ? (sgtDoc.data().balance||0) : 0;
+      if (currentBal < wPendingTx.sgtUsed) {
+        throw new Error('Saldo SGT tidak cukup (saldo server saat ini: '+currentBal.toLocaleString('id-ID')+' SGT)');
+      }
+      t.update(sgtRef, {
+        balance: firebase.firestore.FieldValue.increment(-wPendingTx.sgtUsed),
+        transactions: firebase.firestore.FieldValue.arrayUnion({
+          amount: -wPendingTx.sgtUsed,
+          note: 'Diajukan untuk pencairan',
+          date: now.toISOString()
+        }),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      t.set(wdRef, {
+        uid, santriName, santriNis,
+        ...txRecord,
+        status: 'pending',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    });
+
+    // Update cache tampilan lokal (bukan sumber kebenaran)
+    _sgtServerBal = Math.max(0, (_sgtServerBal||0) - wPendingTx.sgtUsed);
+    localStorage.setItem('sgt_bal_'+uid,_sgtServerBal.toString());
+
     const wtxs=JSON.parse(localStorage.getItem('wallet_history_'+uid)||'[]');
     wtxs.unshift(txRecord);
     localStorage.setItem('wallet_history_'+uid,JSON.stringify(wtxs.slice(0,100)));
 
-    // Also add to SGT transactions
     const stxs=JSON.parse(localStorage.getItem('sgt_transactions_'+uid)||'[]');
     stxs.unshift({type:'spend',amount:wPendingTx.sgtUsed,desc:wPendingTx.type==='sgt-idr'?'Cairkan ke Rupiah':'Cairkan ke Pi',date:now.toISOString()});
     localStorage.setItem('sgt_transactions_'+uid,JSON.stringify(stxs.slice(0,50)));
 
-    // Try save to Firestore
-    if(currentUid && typeof db!=='undefined'){
-      try {
-        await db.collection('users').doc(currentUid).update({
-          walletHistory: firebase.firestore.FieldValue.arrayUnion({...txRecord, status:'pending'}),
-          sgt: newBal
-        });
-        // Submit ke koleksi withdrawals agar admin bisa lihat & approve
-        const santriName = santriData?.nama || santriData?.displayName || 'Santri';
-        const santriNis  = santriData?.nis || '—';
-        await db.collection('withdrawals').add({
-          uid: currentUid,
-          santriName, santriNis,
-          ...txRecord,
-          status: 'pending',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
-        // Kirim notif WA ke admin via Fonnte (ambil config dari localStorage yg diset admin)
-        const fonnteToken = localStorage.getItem('fonnte_token');
-        const adminWaNum  = localStorage.getItem('admin_wa_num');
-        if(fonnteToken && adminWaNum){
-          const isIdr = txRecord.type === 'sgt-idr';
-          const hasil = isIdr
-            ? 'Rp '+(txRecord.rpReceived||0).toLocaleString('id-ID')
-            : (txRecord.piReceived||0).toFixed(4)+' π';
-          const waMsg = `🔔 *Permintaan Pencairan SGT Baru*\n\n👤 Santri: ${santriName}\n💰 SGT: ${(txRecord.sgtUsed||0).toLocaleString()} SGT\n🎯 Tujuan: ${isIdr?'Rupiah':'Pi Coin'}\n💵 Hasil: ${hasil}\n📍 Ke: ${txRecord.dest||'—'}\n🕐 Waktu: ${new Date().toLocaleString('id-ID')}\n\nBuka dashboard admin untuk approve/tolak.`;
-          fetch('https://api.fonnte.com/send',{
-            method:'POST',
-            headers:{'Authorization':fonnteToken,'Content-Type':'application/json'},
-            body:JSON.stringify({target:adminWaNum,message:waMsg,countryCode:'62'})
-          }).catch(()=>{});
-        }
-      } catch(e){ console.warn('Firestore wallet update:', e.message); }
+    // Kirim notif WA ke admin via Fonnte (ambil config dari localStorage yg diset admin)
+    const fonnteToken = localStorage.getItem('fonnte_token');
+    const adminWaNum  = localStorage.getItem('admin_wa_num');
+    if(fonnteToken && adminWaNum){
+      const isIdr = txRecord.type === 'sgt-idr';
+      const hasil = isIdr
+        ? 'Rp '+(txRecord.rpReceived||0).toLocaleString('id-ID')
+        : (txRecord.piReceived||0).toFixed(4)+' π';
+      const waMsg = `🔔 *Permintaan Pencairan SGT Baru*\n\n👤 Santri: ${santriName}\n💰 SGT: ${(txRecord.sgtUsed||0).toLocaleString()} SGT\n🎯 Tujuan: ${isIdr?'Rupiah':'Pi Coin'}\n💵 Hasil: ${hasil}\n📍 Ke: ${txRecord.dest||'—'}\n🕐 Waktu: ${new Date().toLocaleString('id-ID')}\n\nBuka dashboard admin untuk approve/tolak.`;
+      fetch('https://api.fonnte.com/send',{
+        method:'POST',
+        headers:{'Authorization':fonnteToken,'Content-Type':'application/json'},
+        body:JSON.stringify({target:adminWaNum,message:waMsg,countryCode:'62'})
+      }).catch(()=>{});
     }
 
     const msg=wPendingTx.type==='sgt-idr'

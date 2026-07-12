@@ -1528,7 +1528,6 @@ function fmtSGT(n) { if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return
 
 function renderAllocGrid() {
   const alloc = getSGTAlloc();
-  const issued = parseInt(localStorage.getItem('sgt_issued')||'0');
   const grid = document.getElementById('allocGrid');
   if (!grid) return;
   ['member','ustadz','mart','reserve'].forEach(k => { const el = document.getElementById('alloc'+cap(k)); if(el) el.value = alloc[k].pct; });
@@ -1541,9 +1540,31 @@ function renderAllocGrid() {
       <p style="font-size:10px;color:var(--g500);font-weight:700">${a.pct}% dari total supply</p>
     </div>`;
   }).join('');
-  setEl('sgtCirculating', fmtSGT(issued)+' SGT');
-  setEl('sgtIssued',      fmtSGT(issued)+' SGT');
-  setEl('sgtReserve',     fmtSGT(SGT_SUPPLY-issued)+' SGT');
+  // Angka supply diambil live dari Firestore (koleksi 'sgt'), BUKAN localStorage,
+  // supaya akurat walau saldo berubah lewat distribute, reward, atau refund pencairan.
+  setEl('sgtCirculating', '…'); setEl('sgtIssued', '…'); setEl('sgtReserve', '…');
+  refreshSGTSupplyStats();
+}
+
+let _sgtSupplyLoading = false;
+async function refreshSGTSupplyStats() {
+  if (_sgtSupplyLoading) return; // cegah tumpang tindih kalau dipanggil berkali-kali cepat
+  _sgtSupplyLoading = true;
+  try {
+    // Total SGT yang beredar = jumlah balance semua wallet santri/ustadz saat ini.
+    // Ini otomatis benar walau ada reward, distribusi manual, atau refund pencairan,
+    // karena semua sumber itu sekarang menulis ke field yang sama: sgt/{uid}.balance
+    let total = 0;
+    const snap = await db.collection('sgt').get();
+    snap.forEach(doc => { total += (doc.data().balance || 0); });
+    setEl('sgtCirculating', fmtSGT(total)+' SGT');
+    setEl('sgtIssued',      fmtSGT(total)+' SGT');
+    setEl('sgtReserve',     fmtSGT(Math.max(0, SGT_SUPPLY-total))+' SGT');
+  } catch(e) {
+    setEl('sgtCirculating', 'Error'); setEl('sgtIssued', 'Error'); setEl('sgtReserve', 'Error');
+  } finally {
+    _sgtSupplyLoading = false;
+  }
 }
 
 function calcTotal() {
@@ -1585,13 +1606,7 @@ async function doDistribute() {
     const userData = userDoc.data();
     const uid      = userDoc.id;
 
-    // ── 1. Update sgtBalance di /users (untuk tampilan di data-pengguna) ──
-    await db.collection('users').doc(uid).update({
-      sgtBalance: firebase.firestore.FieldValue.increment(amount),
-      updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    // ── 2. Update /sgt/{uid} (yang dibaca dashboard ustadz/santri) ──
+    // ── 1. Update /sgt/{uid} — SATU-SATUNYA sumber kebenaran saldo SGT (dibaca dashboard ustadz/santri) ──
     const sgtRef  = db.collection('sgt').doc(uid);
     const sgtSnap = await sgtRef.get();
     const txEntry = { amount, note, date: new Date().toISOString(), type: 'distribute' };
@@ -1611,7 +1626,7 @@ async function doDistribute() {
       });
     }
 
-    // ── 3. Log ke sgt_transactions ──
+    // ── 2. Log ke sgt_transactions ──
     await db.collection('sgt_transactions').add({
       type:      'distribute',
       fromUid:   currentAdminUid || 'admin',
@@ -1624,9 +1639,7 @@ async function doDistribute() {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // ── 4. Update log localStorage (untuk tampilan log distribusi) ──
-    const issued = parseInt(localStorage.getItem('sgt_issued')||'0');
-    localStorage.setItem('sgt_issued', (issued+amount).toString());
+    // ── 3. Update log localStorage (untuk tampilan log distribusi di browser admin ini saja) ──
     const log = JSON.parse(localStorage.getItem('sgt_log')||'[]');
     log.unshift({ target, toName: userData.displayName||target, amount, note, date: new Date().toISOString() });
     localStorage.setItem('sgt_log', JSON.stringify(log.slice(0,100)));
@@ -2000,10 +2013,21 @@ async function confirmReject(wdId) {
             hist[idx] = {...hist[idx], status:'rejected', rejectedAt: now.toISOString(), rejectReason: reason, rejectedBy: currentAdminUid||'admin'};
             await db.collection('users').doc(wd.uid).update({ walletHistory: hist });
           }
-          // Kembalikan saldo SGT santri
-          const currentSgt = userDoc.data().sgt || 0;
-          await db.collection('users').doc(wd.uid).update({ sgt: currentSgt + (wd.sgtUsed||0) });
         }
+      } catch(e) { }
+
+      // Kembalikan saldo SGT santri — pakai increment() ke sumber kebenaran sgt/{uid}.balance
+      // (bukan users.sgt) supaya konsisten dengan doDistribute() & confirmEarnApprove(), dan aman dari race condition
+      try {
+        await db.collection('sgt').doc(wd.uid).update({
+          balance:      firebase.firestore.FieldValue.increment(wd.sgtUsed||0),
+          transactions: firebase.firestore.FieldValue.arrayUnion({
+            amount: wd.sgtUsed||0,
+            note:   `Refund pencairan ditolak: ${reason}`,
+            date:   new Date().toISOString()
+          }),
+          updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+        });
       } catch(e) { }
     }
 
@@ -2013,7 +2037,7 @@ async function confirmReject(wdId) {
     await sendWaToSantri(wd, 'rejected', reason);
 
     closeWdDetailModal();
-    renderWithdrawals(); updateWdStats(); updatePendingBadge();
+    renderWithdrawals(); updateWdStats(); updatePendingBadge(); refreshSGTSupplyStats();
     showToast('success','Ditolak','Pencairan ditolak & SGT santri dikembalikan');
   } catch(e) {
     showToast('error','Gagal', e.message);
@@ -2373,10 +2397,11 @@ async function confirmEarnApprove(id) {
 
     const sgtRef = db.collection('sgt').doc(r.uid);
 
-    // Step 1: Baca wallet dulu SEBELUM batch (read di luar batch, write di dalam)
+    // Step 1: Cek dulu apakah dokumen wallet sudah ada (hanya untuk menentukan set vs update)
     const sgtDoc = await sgtRef.get();
 
-    // Step 2: Jalankan semua write dalam satu batch
+    // Step 2: Jalankan semua write dalam satu batch, SELALU pakai increment()
+    // supaya aman dari race condition (dua approval hampir bersamaan tidak akan saling menimpa)
     const batch = db.batch();
 
     // 2a. Update status pengajuan reward
@@ -2388,19 +2413,17 @@ async function confirmEarnApprove(id) {
       approvedBy:  currentAdminUid || 'admin',
     });
 
-    // 2b. Kreditkan SGT ke wallet user
+    // 2b. Kreditkan SGT ke wallet user — SATU-SATUNYA sumber kebenaran saldo: sgt/{uid}.balance
     const txEntry = {
       amount: sgtAmt,
       note:   `Reward ${EARN_TYPE_LABEL[r.type]||r.type} — disetujui admin`,
       date:   new Date().toISOString()
     };
     if (sgtDoc.exists) {
-      const cur = sgtDoc.data();
-      const txs = Array.isArray(cur.transactions) ? [...cur.transactions] : [];
-      txs.push(txEntry);
       batch.update(sgtRef, {
-        balance:      (cur.balance || 0) + sgtAmt,
-        transactions: txs,
+        balance:      firebase.firestore.FieldValue.increment(sgtAmt),
+        transactions: firebase.firestore.FieldValue.arrayUnion(txEntry),
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
       });
     } else {
       batch.set(sgtRef, {
@@ -2408,6 +2431,7 @@ async function confirmEarnApprove(id) {
         balance:      sgtAmt,
         transactions: [txEntry],
         createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
       });
     }
 
@@ -2418,7 +2442,7 @@ async function confirmEarnApprove(id) {
     if (local) { local.status = 'approved'; local.sgtCredited = sgtAmt; local.adminNote = note; }
 
     closeEarnModal();
-    renderEarnRequests(); updateEarnStats(); updateEarnBadge();
+    renderEarnRequests(); updateEarnStats(); updateEarnBadge(); refreshSGTSupplyStats();
     showToast('success','✅ SGT Dikreditkan',`${sgtAmt.toLocaleString('id-ID')} SGT berhasil dikirim ke wallet ${r.userName||'user'}`);
   } catch(e) {
     showToast('error','Gagal', e.message);
@@ -2605,15 +2629,47 @@ function closePiApproveModal() {
 async function confirmPiApprove(docId) {
   const btn = document.getElementById('piApproveConfirmBtn');
   if (!btn) return;
+  const x = piDonAllData.find(d => d.id === docId);
+  if (!x) return;
+  const paymentId = x.paymentId || x.id;
   btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memverifikasi ke Pi...';
   try {
+    // ── Verifikasi ke Pi Platform API dulu — jangan cuma percaya data Firestore/client ──
+    const verifyResp = await fetch('/api/payments/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paymentId })
+    });
+    const pi = await verifyResp.json();
+    if (!verifyResp.ok) {
+      showToast('error', 'Verifikasi Gagal', pi.error || 'Tidak bisa mengambil data dari Pi Platform API');
+      btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Ya, Approve Sekarang';
+      return;
+    }
+    const declaredAmount = parseFloat(x.amount) || 0;
+    const actualAmount   = parseFloat(pi.amount) || 0;
+    const isVerifiedOnChain = !!(pi.transaction && pi.transaction.verified);
+    const isCompleted       = !!(pi.status && pi.status.developer_completed);
+    if (!isVerifiedOnChain && !isCompleted) {
+      showToast('error', 'Belum Terverifikasi', 'Pi Platform belum mengonfirmasi transaksi ini selesai/terverifikasi di blockchain. Jangan approve dulu.');
+      btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Ya, Approve Sekarang';
+      return;
+    }
+    if (Math.abs(actualAmount - declaredAmount) > 0.0001) {
+      showToast('error', 'Nominal Tidak Cocok', `Data donasi: ${declaredAmount} π, tapi Pi Platform mencatat: ${actualAmount} π. Approve dibatalkan.`);
+      btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Ya, Approve Sekarang';
+      return;
+    }
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
     await ensureFreshToken();
     await db.collection('pi_donations').doc(docId).update({
-      status:      'completed',
-      approvedBy:  currentAdminUid || 'admin',
-      approvedAt:  firebase.firestore.FieldValue.serverTimestamp(),
-      completedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      status:        'completed',
+      approvedBy:    currentAdminUid || 'admin',
+      approvedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      completedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+      verifiedTxid:  (pi.transaction && pi.transaction.txid) || null,
+      verifiedAmount: actualAmount,
     });
     // Update local cache
     const local = piDonAllData.find(d => d.id === docId);

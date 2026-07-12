@@ -1227,24 +1227,46 @@ async function submitCair(type) {
   const piReceived = !isIdr ? parseFloat((amt / SGT_PER_PI).toFixed(4)) : 0;
 
   try {
-    await db.collection('withdrawals').add({
-      uid:          currentUid,
-      santriName:   document.getElementById('uName')?.textContent || '—',
-      santriNis:    '—',
-      role:         'ustadz',
-      type:         isIdr ? 'sgt-idr' : 'sgt-pi',
-      sgtUsed:      amt,
-      rpReceived,
-      piReceived,
-      dest,
-      status:       'pending',
-      createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    const sgtRef = db.collection('sgt').doc(currentUid);
+    const wdRef  = db.collection('withdrawals').doc();
+    // Transaction: cek ulang saldo ASLI di server dan potong secara atomic dalam satu langkah.
+    // Ini mencegah saldo yang sama dipakai buat beberapa pengajuan pencairan sekaligus
+    // (misal submit berkali-kali dengan cepat sebelum request pertama diproses admin).
+    await db.runTransaction(async (t) => {
+      const freshSnap = await t.get(sgtRef);
+      const freshBal  = freshSnap.exists ? (freshSnap.data().balance || 0) : 0;
+      if (amt > freshBal) {
+        throw new Error(`Saldo Anda hanya ${freshBal.toLocaleString('id-ID')} SGT`);
+      }
+      t.update(sgtRef, {
+        balance: firebase.firestore.FieldValue.increment(-amt),
+        transactions: firebase.firestore.FieldValue.arrayUnion({
+          amount: -amt,
+          note: 'Diajukan untuk pencairan',
+          date: new Date().toISOString()
+        }),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      t.set(wdRef, {
+        uid:          currentUid,
+        santriName:   document.getElementById('uName')?.textContent || '—',
+        santriNis:    '—',
+        role:         'ustadz',
+        type:         isIdr ? 'sgt-idr' : 'sgt-pi',
+        sgtUsed:      amt,
+        rpReceived,
+        piReceived,
+        dest,
+        status:       'pending',
+        createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      });
     });
     showToast('success','Berhasil Diajukan','Permintaan pencairan sedang diproses admin');
     closeModal(isIdr ? 'mdlCairIdr' : 'mdlCairPi');
     if (amtEl) amtEl.value = '';
     if (destEl) destEl.value = '';
     await loadWdHistory(currentUid);
+    await loadSGT(currentUid);
   } catch(e) {
     showToast('error','Gagal',e.message);
   }
