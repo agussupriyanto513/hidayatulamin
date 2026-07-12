@@ -183,7 +183,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
 .back-btn:hover{background:var(--pl);color:var(--p);border-color:var(--p)}
 
 /* RESPONSIVE */
-@media(max-width:768px){
+@media(max-width:900px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.on{transform:translateX(0)}
   .main{margin-left:0!important}
@@ -212,7 +212,7 @@ select.filter-sel:focus{outline:none;border-color:var(--p)}
   .sc-val{font-size:18px}
   .sc-lbl{font-size:10px}
 }
-@media(min-width:769px){
+@media(min-width:901px){
   .sidebar{transform:translateX(0)!important}
   .sidebar.off{transform:translateX(0)!important}
 }
@@ -701,7 +701,7 @@ function toast(type, msg) {
 
 // ════ SIDEBAR ════
 function toggleSb() {
-  if (window.innerWidth <= 768) {
+  if (window.innerWidth <= 900) {
     document.getElementById('sidebar').classList.toggle('on');
     document.getElementById('sbOv').classList.toggle('show');
   }
