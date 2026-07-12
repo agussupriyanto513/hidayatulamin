@@ -51,14 +51,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .sb-ov.show{display:block}
 
 /* MAIN */
-.main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh}
+.main{flex:1;min-width:0;margin-left:256px;display:flex;flex-direction:column;min-height:100vh}
 .topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .tb-l{display:flex;align-items:center;gap:10px}
 .menu-btn{width:36px;height:36px;border:none;background:var(--white);border-radius:var(--rdm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);box-shadow:var(--sh-sm);transition:var(--tr);display:none}
 .menu-btn:hover{background:var(--pl);color:var(--p)}
 .pg-ttl h2{font-size:17px;font-weight:700;color:var(--ink2)}
 .pg-ttl p{font-size:11px;color:var(--g500)}
-.content{flex:1;padding:20px}
+.content{flex:1;min-width:0;padding:20px}
 
 /* TAB BAR */
 .tab-bar{display:flex;gap:4px;background:var(--white);border:1px solid var(--g200);border-radius:var(--rd);padding:6px;margin-bottom:20px;box-shadow:var(--sh-sm)}
@@ -167,7 +167,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 
 /* RESPONSIVE */
 @media(max-width:900px){.schedule-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:768px){
+@media(max-width:900px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.on{transform:translateX(0)}
   .main{margin-left:0}
@@ -503,8 +503,8 @@ function toast(type, msg) {
   document.getElementById('toastWrap').appendChild(el);
   setTimeout(()=>el.remove(),4000);
 }
-function toggleSb(){ document.getElementById('sidebar').classList.toggle('off'); document.getElementById('sbOv').classList.toggle('show'); }
-function closeSb(){ document.getElementById('sidebar').classList.add('off'); document.getElementById('sbOv').classList.remove('show'); }
+function toggleSb(){ document.getElementById('sidebar').classList.toggle('on'); document.getElementById('sbOv').classList.toggle('show'); }
+function closeSb(){ document.getElementById('sidebar').classList.remove('on'); document.getElementById('sbOv').classList.remove('show'); }
 async function handleLogout(){ await HA.logout(); }
 </script>
 </body>
