@@ -455,10 +455,10 @@ body {
     </button>
 
     <!-- Divider -->
-    <div class="divider"><span>atau</span></div>
+    <div class="divider" id="loginDivider" style="display:none"><span>atau</span></div>
 
     <!-- Toggle Email -->
-    <div class="toggle-wrap">
+    <div class="toggle-wrap" id="toggleWrap" style="display:none">
       <button class="toggle-btn" onclick="toggleEmail()" id="toggleEmailBtn">
         <i class="fas fa-envelope fa-sm"></i>
         <span id="toggleEmailText">Masuk dengan Email</span>
@@ -532,6 +532,16 @@ let piReady       = false;
 let emailShown    = false;
 let _redirecting  = false;
 
+// ── Login Email: khusus Admin ──────────────────────────────
+// Sembunyi dari publik. Admin buka via: login.html?admin=1
+const _isAdminAccess = new URLSearchParams(window.location.search).get('admin') === '1';
+if (_isAdminAccess) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('loginDivider').style.display = '';
+    document.getElementById('toggleWrap').style.display = '';
+  });
+}
+
 // Bersihkan Pi session lama saat halaman login dibuka
 localStorage.removeItem('piUser');
 sessionStorage.removeItem('currentUser');
@@ -541,22 +551,16 @@ const _auth = firebase.auth();
 const _db   = firebase.firestore();
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (!inPiBrowser) {
-    document.getElementById('piNotice').classList.add('show');
-    document.getElementById('piBtn').disabled = true;
-    document.getElementById('piBtnText').innerHTML =
-      '<i class="fas fa-ban" style="opacity:.6;margin-right:4px;"></i>Hanya tersedia di Pi Browser';
-  } else {
-    initPiSdk();
-    // Sembunyikan opsi email saat di Pi Browser — fokus ke Pi login
-    document.getElementById('toggleEmailBtn').style.display = 'none';
-    document.querySelector('.divider').style.display = 'none';
-  }
+  // Jangan langsung vonis "bukan Pi Browser" cuma dari user agent.
+  // Tunggu window.Pi benar-benar dicoba beberapa kali dulu — itu syarat
+  // fungsional yang sebenarnya, bukan tebakan dari teks UA yang bisa beda-beda
+  // tergantung versi/device Pi Browser.
+  initPiSdk();
 });
 
 function initPiSdk() {
-  if (!inPiBrowser) return;
   let attempts = 0;
+  const maxAttempts = 15; // ~6 detik percobaan sebelum menyerah
   const tryInit = () => {
     attempts++;
     try {
@@ -564,9 +568,23 @@ function initPiSdk() {
       window.Pi.init({ version: '2.0', sandbox: false });
       piReady = true;
       console.log('✅ Pi SDK ready');
+      // SDK berhasil dimuat → ini beneran Pi Browser, apapun user agent-nya.
+      // Sembunyikan opsi email, fokus ke Pi login.
+      document.getElementById('toggleEmailBtn').style.display = 'none';
+      document.querySelector('.divider').style.display = 'none';
+      document.getElementById('piNotice').classList.remove('show');
+      document.getElementById('piBtn').disabled = false;
     } catch(e) {
-      if (attempts < 15) setTimeout(tryInit, 400);
-      else console.warn('Pi SDK gagal init setelah beberapa percobaan');
+      if (attempts < maxAttempts) {
+        setTimeout(tryInit, 400);
+      } else {
+        console.warn('Pi SDK gagal init setelah beberapa percobaan — kemungkinan memang bukan Pi Browser');
+        // Baru di titik ini kita anggap bukan Pi Browser (SDK memang tidak pernah tersedia)
+        document.getElementById('piNotice').classList.add('show');
+        document.getElementById('piBtn').disabled = true;
+        document.getElementById('piBtnText').innerHTML =
+          '<i class="fas fa-ban" style="opacity:.6;margin-right:4px;"></i>Hanya tersedia di Pi Browser';
+      }
     }
   };
   tryInit();
@@ -576,7 +594,7 @@ function initPiSdk() {
 // PI LOGIN — FIXED v2: role dari pi_whitelist + piUsername lookup
 // ═══════════════════════════════════════════════
 async function doPiLogin() {
-  if (!inPiBrowser) {
+  if (typeof window.Pi === 'undefined') {
     showAlert('warning', 'Buka halaman ini di <strong>Pi Browser</strong> untuk login dengan Pi Network.');
     return;
   }

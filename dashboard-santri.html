@@ -58,7 +58,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .sb-ov.show{display:block}
 
 /* MAIN */
-.main{flex:1;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
+.main{flex:1;min-width:0;margin-left:256px;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .3s}
 
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;background:rgba(248,250,252,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--g200);padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
@@ -73,7 +73,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--g50);color:var(
 .tb-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--r);border-radius:50%;border:2px solid var(--white)}
 
 /* CONTENT */
-.content{flex:1;padding:20px}
+.content{flex:1;min-width:0;padding:20px}
 .section{display:none}
 .section.active{display:block;animation:fadeUp .3s ease}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
