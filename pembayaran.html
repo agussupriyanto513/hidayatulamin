@@ -857,11 +857,16 @@ function setStatusBelum() {
 // ════════════════════════════════════════
 async function loadSGTBalance() {
   try {
-    // PENTING: pakai koleksi 'sgt' — sumber kebenaran yang sama dipakai
-    // dashboard santri/ustadz/wali/admin. Sebelumnya baca dari 'sgt_wallets'
-    // yang terpisah sendiri, jadi bonus SGT dari pembayaran nggak pernah nyambung ke wallet asli.
-    const snap = await db.collection('sgt').doc(currentUid).get();
-    const bal  = snap.exists ? (snap.data().balance || 0) : 0;
+    // Saldo SGT sekarang berasal dari ledger TERPUSAT (dikelola backend
+    // Mart), bukan collection lokal 'sgt' lagi — supaya nilainya sama
+    // persis dengan yang dilihat di Sagatama Mart & Sagatama Games.
+    const res = await fetch('/api/sgt-balance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: currentUid })
+    });
+    const data = await res.json();
+    const bal = data.sgtBalance || 0;
     document.getElementById('topSGTBal').textContent = bal.toLocaleString('id-ID') + ' SGT';
   } catch(e) {
     document.getElementById('topSGTBal').textContent = '— SGT';
@@ -1128,8 +1133,11 @@ async function submitPiPayment() {
                 });
               }
 
-              // Kredit SGT bonus
-              await creditSGT(totalSgt, type, paymentId);
+              // Kredit SGT bonus sekarang dilakukan di SERVER (api/payments/complete.js)
+              // segera setelah payment Pi dikonfirmasi selesai — bukan dari sini lagi.
+              // Ini supaya jumlah bonus tidak bisa dipalsukan lewat browser, dan
+              // langsung masuk ke ledger SGT terpusat yang sama dipakai Mart & Games.
+              await loadSGTBalance(); // refresh angka di header setelah server selesai kredit
 
               resolve({ txid, sgt: totalSgt });
             } catch(e) { reject(e); }
@@ -1330,40 +1338,10 @@ async function submitTransfer() {
 // ════════════════════════════════════════
 // SGT CREDIT
 // ════════════════════════════════════════
-async function creditSGT(amount, type, ref) {
-  if (!amount || amount <= 0) return;
-  try {
-    // PENTING: kredit ke koleksi 'sgt' (sumber kebenaran yang sama dipakai semua dashboard),
-    // bukan 'sgt_wallets' — supaya bonus SGT dari pembayaran SPP langsung nambah ke wallet
-    // yang sama dibaca/dipakai santri/ustadz/wali buat pencairan.
-    const walletRef = db.collection('sgt').doc(currentUid);
-    const txEntry = {
-      amount,
-      note: `Bonus pembayaran (${type})`,
-      date: new Date().toISOString()
-    };
-    const walletSnap = await walletRef.get();
-    if (walletSnap.exists) {
-      await walletRef.update({
-        balance:      firebase.firestore.FieldValue.increment(amount),
-        transactions: firebase.firestore.FieldValue.arrayUnion(txEntry),
-        updatedAt:    firebase.firestore.FieldValue.serverTimestamp()
-      });
-    } else {
-      await walletRef.set({
-        uid: currentUid, balance: amount, transactions: [txEntry],
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-    // Log transaksi SGT (tetap di koleksi sgt_transactions untuk audit)
-    await db.collection('sgt_transactions').add({
-      uid: currentUid, type: 'earn', subtype: 'payment_bonus',
-      amount, ref, paymentType: type,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  } catch(e) { console.warn('[creditSGT] error:', e.message); }
-}
+// creditSGT() lama sudah DIHAPUS — sekarang kredit SGT dilakukan server-side
+// di api/payments/complete.js langsung setelah payment Pi dikonfirmasi selesai.
+// Ini lebih aman (jumlah bonus tidak bisa dipalsukan dari browser) dan
+// otomatis konsisten dengan ledger SGT terpusat yang dipakai Mart & Games.
 
 // ════════════════════════════════════════
 // RIWAYAT
