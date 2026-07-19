@@ -2,6 +2,7 @@
   "version": 2,
   "outputDirectory": ".",
   "rewrites": [
+    { "source": "/validation-key.txt", "destination": "/public/validation-key.txt" },
     { "source": "/api/payments/approve", "destination": "/api/payments/approve.js" },
     { "source": "/api/payments/complete", "destination": "/api/payments/complete.js" },
     { "source": "/api/payments/cancel",  "destination": "/api/payments/cancel.js" },
