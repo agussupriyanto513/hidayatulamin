@@ -19,8 +19,28 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="auth.js"></script>
-<!-- Pi Network SDK -->
-<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<!-- Pi Network SDK — retry loader dengan 2 alamat cadangan (sama seperti Mart) -->
+<script>
+(function loadPiSDK() {
+    var urls = ['https://sdk.minepi.com/pi-sdk.js', 'https://cdn.minepi.com/pi-sdk.js'];
+    var attempts = 0;
+    function tryLoad(i) {
+        if (i >= urls.length || attempts >= 3) {
+            console.error('[Pi SDK] Gagal dimuat dari semua alamat cadangan');
+            window._piSdkLoadFailed = true;
+            return;
+        }
+        attempts++;
+        var s = document.createElement('script');
+        s.src = urls[i];
+        s.async = true;
+        s.onload = function() { window._piSdkLoaded = true; };
+        s.onerror = function() { setTimeout(function(){ tryLoad(i+1); }, 500); };
+        document.head.appendChild(s);
+    }
+    tryLoad(0);
+})();
+</script>
 
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -621,31 +641,19 @@ async function doPiLogin() {
   try {
     // Scope hanya 'username' untuk lulus CT review Pi Browser Mainnet.
     // Scope 'payments' & 'wallet_address' diminta terpisah saat fitur donasi/payment dipakai.
-    const authResult = await window.Pi.authenticate(
-      ['username'],
-      handleIncompletePayment
+    //
+    // Dibungkus timeout 25 detik — kalau Pi.authenticate() macet tanpa respons
+    // (pernah terjadi, kemungkinan isu sesaat di sisi Pi Network), user dapat
+    // pesan error yang jelas & bisa coba lagi, bukan loading tanpa akhir.
+    const authPromise = window.Pi.authenticate(['username'], handleIncompletePayment);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('TIMEOUT_PI_AUTH')), 25000)
     );
+    const authResult = await Promise.race([authPromise, timeoutPromise]);
 
     const { user } = authResult;
     const piUid  = user.uid;
     const piUser = user.username.toLowerCase().trim();
-
-    // ── WAJIB: sign-in anonymous ke Firebase Auth ──
-    // Pi.authenticate() cuma autentikasi ke server Pi Network, BUKAN ke Firebase.
-    // Firestore rules kita butuh request.auth != null, jadi tanpa langkah ini
-    // semua query/write di bawah akan gagal permission-denied.
-    if (!_auth.currentUser) {
-      try {
-        await _auth.signInAnonymously();
-      } catch(e) {
-        console.error('❌ Anonymous sign-in gagal:', e.code, e.message);
-        hideLoader();
-        setLoading('piBtn', 'piBtnText', false, 'Masuk dengan Pi Network');
-        showAlert('error', 'Gagal menghubungkan ke server. Coba lagi.');
-        _redirecting = false;
-        return;
-      }
-    }
 
     showLoader('Mencari data akun...', '@' + piUser);
 
@@ -813,7 +821,11 @@ async function doPiLogin() {
     setLoading('piBtn', 'piBtnText', false, 'Masuk dengan Pi Network');
     console.error('❌ Pi login error:', err);
     const msg = err.message || 'Gagal login dengan Pi Network.';
-    showAlert('error', msg.includes('cancelled') ? 'Login dibatalkan.' : msg);
+    if (msg === 'TIMEOUT_PI_AUTH') {
+      showAlert('error', 'Pi Network tidak merespons (lebih dari 25 detik). Coba tutup & buka ulang Pi Browser, lalu login lagi. Kalau masih gagal, ini kemungkinan gangguan sementara dari Pi Network.');
+    } else {
+      showAlert('error', msg.includes('cancelled') ? 'Login dibatalkan.' : msg);
+    }
     _redirecting = false;
   }
 }
