@@ -241,7 +241,7 @@ class HidayatulaminAuth {
 
     if (!this.Pi) { console.warn('⚠️ Pi SDK tidak ditemukan'); return; }
     try {
-      this.Pi.init({ version: "2.0", sandbox: false });
+      this.Pi.init({ version: "2.0", sandbox: true });
       this.piReady = true;
       console.log("✅ Pi SDK siap (sandbox: false - mainnet)");
     } catch(e) { console.error('❌ Pi SDK gagal init:', e); }
