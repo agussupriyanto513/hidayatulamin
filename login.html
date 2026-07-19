@@ -630,6 +630,23 @@ async function doPiLogin() {
     const piUid  = user.uid;
     const piUser = user.username.toLowerCase().trim();
 
+    // ── WAJIB: sign-in anonymous ke Firebase Auth ──
+    // Pi.authenticate() cuma autentikasi ke server Pi Network, BUKAN ke Firebase.
+    // Firestore rules kita butuh request.auth != null, jadi tanpa langkah ini
+    // semua query/write di bawah akan gagal permission-denied.
+    if (!_auth.currentUser) {
+      try {
+        await _auth.signInAnonymously();
+      } catch(e) {
+        console.error('❌ Anonymous sign-in gagal:', e.code, e.message);
+        hideLoader();
+        setLoading('piBtn', 'piBtnText', false, 'Masuk dengan Pi Network');
+        showAlert('error', 'Gagal menghubungkan ke server. Coba lagi.');
+        _redirecting = false;
+        return;
+      }
+    }
+
     showLoader('Mencari data akun...', '@' + piUser);
 
     let userDoc = null, userRef = null;
