@@ -571,7 +571,7 @@ function initPiSdk() {
     attempts++;
     try {
       if (typeof window.Pi === 'undefined') throw new Error('Pi not defined');
-      window.Pi.init({ version: '2.0', sandbox: false });
+      window.Pi.init({ version: '2.0', sandbox: true });
       piReady = true;
       console.log('✅ Pi SDK ready');
       // SDK berhasil dimuat → ini beneran Pi Browser, apapun user agent-nya.
@@ -606,7 +606,7 @@ async function doPiLogin() {
   }
   if (!piReady) {
     try {
-      window.Pi.init({ version: '2.0', sandbox: false });
+      window.Pi.init({ version: '2.0', sandbox: true });
       piReady = true;
     } catch(e) {
       showAlert('error', 'Pi SDK belum siap. Pastikan kamu membuka halaman ini di Pi Browser.');
