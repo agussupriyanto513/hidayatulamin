@@ -576,6 +576,15 @@ sessionStorage.removeItem('currentUser');
 const _auth = firebase.auth();
 const _db   = firebase.firestore();
 
+// ── Bungkus promise Firestore dengan batas waktu, supaya koneksi lambat/macet
+//    di Pi Browser tidak membuat loading menggantung tanpa akhir ──
+function _withTimeout(promise, ms) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('TIMEOUT_FIRESTORE')), ms);
+    promise.then(v => { clearTimeout(timer); resolve(v); }, e => { clearTimeout(timer); reject(e); });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Jangan langsung vonis "bukan Pi Browser" cuma dari user agent.
   // Tunggu window.Pi benar-benar dicoba beberapa kali dulu — itu syarat
@@ -663,7 +672,7 @@ async function doPiLogin() {
     // Berlaku untuk user yang sudah pernah login sebelumnya
     // (piUid sudah tersimpan sebagai doc ID)
     try {
-      const snap1 = await _db.collection('users').doc(piUid).get();
+      const snap1 = await _withTimeout(_db.collection('users').doc(piUid).get(), 8000);
       if (snap1.exists) {
         userDoc = snap1.data();
         userRef = _db.collection('users').doc(piUid);
@@ -677,7 +686,7 @@ async function doPiLogin() {
     // Berlaku jika doc ID bukan piUid tapi field piUid sudah diisi
     if (!userDoc) {
       try {
-        const snap2 = await _db.collection('users').where('piUid', '==', piUid).limit(1).get();
+        const snap2 = await _withTimeout(_db.collection('users').where('piUid', '==', piUid).limit(1).get(), 8000);
         if (!snap2.empty) {
           userDoc = snap2.docs[0].data();
           userRef = snap2.docs[0].ref;
@@ -693,7 +702,7 @@ async function doPiLogin() {
     // karena doc ID mereka = Firebase UID, bukan piUid
     if (!userDoc) {
       try {
-        const snap3 = await _db.collection('users').where('piUsername', '==', piUser).limit(1).get();
+        const snap3 = await _withTimeout(_db.collection('users').where('piUsername', '==', piUser).limit(1).get(), 8000);
         if (!snap3.empty) {
           userDoc = snap3.docs[0].data();
           userRef = snap3.docs[0].ref;
@@ -710,7 +719,7 @@ async function doPiLogin() {
     let whitelistRole = null;
     let isBlocked     = false;
     try {
-      const wlSnap = await _db.collection('pi_whitelist').doc(piUser).get();
+      const wlSnap = await _withTimeout(_db.collection('pi_whitelist').doc(piUser).get(), 6000);
       if (wlSnap.exists) {
         const wlData = wlSnap.data();
         isBlocked    = wlData.isBlocked === true;
@@ -823,6 +832,8 @@ async function doPiLogin() {
     const msg = err.message || 'Gagal login dengan Pi Network.';
     if (msg === 'TIMEOUT_PI_AUTH') {
       showAlert('error', 'Pi Network tidak merespons (lebih dari 25 detik). Coba tutup & buka ulang Pi Browser, lalu login lagi. Kalau masih gagal, ini kemungkinan gangguan sementara dari Pi Network.');
+    } else if (msg === 'TIMEOUT_FIRESTORE') {
+      showAlert('error', 'Koneksi ke server terlalu lambat. Cek koneksi internet kamu, lalu coba login lagi.');
     } else {
       showAlert('error', msg.includes('cancelled') ? 'Login dibatalkan.' : msg);
     }

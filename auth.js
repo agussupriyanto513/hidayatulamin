@@ -31,6 +31,17 @@ db.enablePersistence({ synchronizeTabs: true }).catch(err => {
   }
 });
 
+// ── Helper: bungkus promise dengan batas waktu, supaya tidak pernah menggantung selamanya ──
+function _withTimeout(promise, ms, label) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`TIMEOUT:${label || 'operasi'}`)), ms);
+    promise.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); }
+    );
+  });
+}
+
 const ROLE_DASHBOARD = {
   admin:  'dashboard-admin.html',
   ustadz: 'dashboard-ustadz.html',
@@ -52,6 +63,25 @@ window.HA = {
     const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
     let resolved = false;
+
+    // ── Pengaman utama: apapun yang terjadi, jangan pernah menggantung selamanya.
+    //    Kalau dalam 12 detik belum ada keputusan (berhasil / redirect), paksa
+    //    kembali ke login supaya user tidak stuck di "Memuat..." tanpa akhir. ──
+    const masterTimeout = setTimeout(() => {
+      if (resolved) return;
+      resolved = true;
+      try { unsub(); } catch(e) {}
+      console.warn('⏱️ HA.requireAuth timeout — proses auth terlalu lama, kembali ke login');
+      window.location.href = 'login.html';
+    }, 12000);
+
+    // Helper: tandai selesai & matikan master timeout, dipanggil di SETIAP jalur keluar
+    const finish = () => {
+      resolved = true;
+      clearTimeout(masterTimeout);
+      try { unsub(); } catch(e) {}
+    };
+
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (resolved) return;
 
@@ -63,32 +93,30 @@ window.HA = {
           const piSess   = _getPiSession();
           const lookupUid = (user.isAnonymous && piSess?.uid) ? piSess.uid : user.uid;
 
-          const snap = await db.collection('users').doc(lookupUid).get();
+          const snap = await _withTimeout(
+            db.collection('users').doc(lookupUid).get(), 8000, 'baca data user'
+          );
           const data = snap.exists ? snap.data() : null;
           const role = data?.role;
 
           if (data && roles.includes(role)) {
-            resolved = true;
-            unsub();
+            finish();
             _saveSession(lookupUid, role, data);
             // Kembalikan uid asli Pi (bukan anonymous UID) ke callback
             if (typeof onSuccess === 'function') onSuccess({ uid: lookupUid, isAnonymous: user.isAnonymous }, data);
           } else {
             // Role tidak cocok → arahkan ke dashboard yang sesuai
-            resolved = true;
-            unsub();
+            finish();
             window.location.href = ROLE_DASHBOARD[role] || 'login.html';
           }
         } catch (e) {
-          console.warn('HA.requireAuth Firestore error:', e.code, e.message);
+          console.warn('HA.requireAuth Firestore error:', e.code || e.message);
           const sess = _getSession();
           if (sess && roles.includes(sess.role)) {
-            resolved = true;
-            unsub();
+            finish();
             if (typeof onSuccess === 'function') onSuccess({ uid: sess.uid }, sess);
           } else {
-            resolved = true;
-            unsub();
+            finish();
             window.location.href = 'login.html';
           }
         }
@@ -97,6 +125,7 @@ window.HA = {
 
       // ── user null — tunggu dulu, mungkin Firebase Auth masih restore ──
       await new Promise(r => setTimeout(r, 2500));
+      if (resolved) return;
       if (auth.currentUser) return; // sudah restore, biarkan callback fire lagi
 
       // ── Tidak ada Firebase session — cek Pi session ──
@@ -106,38 +135,37 @@ window.HA = {
         // Ini penting karena Firestore rules butuh request.auth != null
         try {
           console.log('🔑 Pi session ditemukan, sign in anonymous untuk Firestore access...');
-          await auth.signInAnonymously();
+          await _withTimeout(auth.signInAnonymously(), 6000, 'sign-in anonymous');
           // onAuthStateChanged akan fire lagi dengan user anonymous
           // dan akan dihandle di blok `if (user)` di atas
           return;
         } catch (e) {
-          console.warn('⚠️ Anonymous sign-in gagal:', e.code);
+          console.warn('⚠️ Anonymous sign-in gagal/timeout:', e.code || e.message);
           // Fallback: coba panggil callback langsung dengan data dari Firestore
           // (bisa karena rules sudah allow read loginMethod==pi tanpa auth)
           try {
-            const snap = await db.collection('users').doc(piSess.uid).get();
+            const snap = await _withTimeout(
+              db.collection('users').doc(piSess.uid).get(), 6000, 'fallback baca user'
+            );
             const data = snap.exists ? snap.data() : piSess;
             const role = data?.role || piSess.role;
             if (roles.includes(role)) {
-              resolved = true;
-              unsub();
+              finish();
               if (typeof onSuccess === 'function') onSuccess({ uid: piSess.uid }, data);
               return;
             }
           } catch(e2) {
-            console.warn('⚠️ Fallback Firestore read gagal:', e2.code);
+            console.warn('⚠️ Fallback Firestore read gagal/timeout:', e2.code || e2.message);
           }
           // Jika semua gagal, redirect login
-          resolved = true;
-          unsub();
+          finish();
           window.location.href = 'login.html';
         }
         return;
       }
 
       // Benar-benar tidak ada session
-      resolved = true;
-      unsub();
+      finish();
       window.location.href = 'login.html';
     });
   },
