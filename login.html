@@ -19,29 +19,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="auth.js"></script>
-<!-- Pi Network SDK — retry loader dengan 2 alamat cadangan (sama seperti Mart) -->
-<script>
-(function loadPiSDK() {
-    var _cacheBust = '?cb=' + Date.now();
-    var urls = ['https://sdk.minepi.com/pi-sdk.js' + _cacheBust, 'https://cdn.minepi.com/pi-sdk.js' + _cacheBust];
-    var attempts = 0;
-    function tryLoad(i) {
-        if (i >= urls.length || attempts >= 3) {
-            console.error('[Pi SDK] Gagal dimuat dari semua alamat cadangan');
-            window._piSdkLoadFailed = true;
-            return;
-        }
-        attempts++;
-        var s = document.createElement('script');
-        s.src = urls[i];
-        s.async = true;
-        s.onload = function() { window._piSdkLoaded = true; };
-        s.onerror = function() { setTimeout(function(){ tryLoad(i+1); }, 500); };
-        document.head.appendChild(s);
-    }
-    tryLoad(0);
-})();
-</script>
+<!-- Pi Network SDK -->
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
 
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
