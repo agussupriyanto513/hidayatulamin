@@ -275,10 +275,11 @@ class HidayatulaminAuth {
       return;
     }
     try {
-      this.Pi.init({ version: "2.0", sandbox: false });
+      const sandboxMode = window._forceSandbox === true; // diagnostik via ?sandbox=1, default mainnet
+      this.Pi.init({ version: "2.0", sandbox: sandboxMode });
       window._piSdkInited = true;
       this.piReady = true;
-      console.log("✅ Pi SDK siap (sandbox: false - mainnet)");
+      console.log(`✅ Pi SDK siap (sandbox: ${sandboxMode})`);
     } catch(e) { console.error('❌ Pi SDK gagal init:', e); }
   }
 

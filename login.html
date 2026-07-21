@@ -506,6 +506,12 @@ const inPiBrowser =
 let piReady       = false;
 let _redirecting  = false;
 
+// ── Mode diagnostik: buka dengan ?sandbox=1 untuk memaksa Pi SDK jalan di
+//    Sandbox (butuh akun testnet Pi Browser). Default tetap mainnet. ──
+const _forceSandbox = new URLSearchParams(window.location.search).get('sandbox') === '1';
+window._forceSandbox = _forceSandbox;
+if (_forceSandbox) console.warn('⚠️ MODE SANDBOX AKTIF (diagnostik) — bukan akun mainnet asli');
+
 // Bersihkan Pi session lama saat halaman login dibuka
 localStorage.removeItem('piUser');
 sessionStorage.removeItem('currentUser');
@@ -523,6 +529,9 @@ function _withTimeout(promise, ms) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (_forceSandbox) {
+    showAlert('warning', '🧪 MODE SANDBOX (diagnostik) — gunakan akun testnet Pi Browser, bukan akun mainnet asli.');
+  }
   // Jangan langsung vonis "bukan Pi Browser" cuma dari user agent.
   // Tunggu window.Pi benar-benar dicoba beberapa kali dulu — itu syarat
   // fungsional yang sebenarnya, bukan tebakan dari teks UA yang bisa beda-beda
@@ -538,7 +547,7 @@ function initPiSdk() {
     try {
       if (typeof window.Pi === 'undefined') throw new Error('Pi not defined');
       if (!window._piSdkInited) {
-        window.Pi.init({ version: '2.0', sandbox: false });
+        window.Pi.init({ version: '2.0', sandbox: _forceSandbox });
         window._piSdkInited = true;
       }
       piReady = true;
@@ -572,7 +581,7 @@ async function doPiLogin() {
   }
   if (!piReady) {
     try {
-      window.Pi.init({ version: '2.0', sandbox: false });
+      window.Pi.init({ version: '2.0', sandbox: _forceSandbox });
       piReady = true;
     } catch(e) {
       showAlert('error', 'Pi SDK belum siap. Pastikan kamu membuka halaman ini di Pi Browser.');
@@ -802,14 +811,25 @@ function saveSession(uid, username, role) {
 }
 
 async function handleIncompletePayment(payment) {
-  console.warn('⚠️ Incomplete payment:', payment.identifier);
+  console.warn('⚠️ Incomplete payment ditemukan:', payment.identifier);
+  // ── PENTING: Pi SDK memanggil callback ini SEBAGAI BAGIAN dari proses
+  //    authenticate(), dan tampaknya menunggu callback selesai sebelum
+  //    login rampung. Kalau fetch ke server kita lambat/macet, seluruh
+  //    login ikut macet. Maka dari itu callback ini WAJIB dibatasi waktu
+  //    ketat & tidak boleh pernah throw / menggantung. ──
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
     await fetch('/api/payments/cancel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paymentId: payment.identifier })
-    });
-  } catch(e) {}
+      body: JSON.stringify({ paymentId: payment.identifier }),
+      signal: controller.signal,
+    }).catch(() => {}); // diamkan error apa pun (network/abort) — jangan sampai menghambat login
+    clearTimeout(timer);
+  } catch(e) {
+    console.warn('⚠️ Gagal proses incomplete payment (diabaikan agar login tetap lanjut):', e.message);
+  }
 }
 
 function showAlert(type, html) {
