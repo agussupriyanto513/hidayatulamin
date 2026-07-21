@@ -268,8 +268,15 @@ class HidayatulaminAuth {
     } else { this.Pi = window.Pi; }
 
     if (!this.Pi) { console.warn('⚠️ Pi SDK tidak ditemukan'); return; }
+    // ── Jangan init dua kali: kalau halaman lain (mis. login.html) sudah
+    //    memanggil Pi.init() duluan, cukup tandai siap tanpa init ulang ──
+    if (window._piSdkInited) {
+      this.piReady = true;
+      return;
+    }
     try {
       this.Pi.init({ version: "2.0", sandbox: false });
+      window._piSdkInited = true;
       this.piReady = true;
       console.log("✅ Pi SDK siap (sandbox: false - mainnet)");
     } catch(e) { console.error('❌ Pi SDK gagal init:', e); }

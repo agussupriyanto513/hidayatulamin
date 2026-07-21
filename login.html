@@ -22,7 +22,8 @@
 <!-- Pi Network SDK — retry loader dengan 2 alamat cadangan (sama seperti Mart) -->
 <script>
 (function loadPiSDK() {
-    var urls = ['https://sdk.minepi.com/pi-sdk.js', 'https://cdn.minepi.com/pi-sdk.js'];
+    var _cacheBust = '?cb=' + Date.now();
+    var urls = ['https://sdk.minepi.com/pi-sdk.js' + _cacheBust, 'https://cdn.minepi.com/pi-sdk.js' + _cacheBust];
     var attempts = 0;
     function tryLoad(i) {
         if (i >= urls.length || attempts >= 3) {
@@ -471,7 +472,7 @@ body {
 
     <!-- Pi Notice -->
     <div class="pi-notice" id="piNotice">
-      <p><i class="fas fa-info-circle"></i> &nbsp;Login Pi Network hanya tersedia di <strong>Pi Browser</strong>. Gunakan login email atau buka melalui Pi Browser.</p>
+      <p><i class="fas fa-info-circle"></i> &nbsp;Login hanya tersedia di <strong>Pi Browser</strong>. Buka halaman ini lewat aplikasi Pi Browser untuk masuk.</p>
     </div>
 
     <!-- Pi Button -->
@@ -479,58 +480,6 @@ body {
       <span class="pi-badge">π</span>
       <span id="piBtnText">Masuk dengan Pi Network</span>
     </button>
-
-    <!-- Divider -->
-    <div class="divider" id="loginDivider" style="display:none"><span>atau</span></div>
-
-    <!-- Toggle Email -->
-    <div class="toggle-wrap" id="toggleWrap" style="display:none">
-      <button class="toggle-btn" onclick="toggleEmail()" id="toggleEmailBtn">
-        <i class="fas fa-envelope fa-sm"></i>
-        <span id="toggleEmailText">Masuk dengan Email</span>
-      </button>
-    </div>
-
-    <!-- Email Section -->
-    <div class="email-section" id="emailSection">
-      <div style="margin-top: 20px;">
-
-        <div class="form-group">
-          <label class="form-label">
-            <i class="fas fa-at fa-xs"></i> Email
-          </label>
-          <div class="input-wrap">
-            <input
-              type="email" id="emailInput" class="form-input"
-              placeholder="admin@hidayatulamin.id"
-              autocomplete="email"
-              onkeydown="if(event.key==='Enter') doEmailLogin()">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">
-            <i class="fas fa-lock fa-xs"></i> Password
-          </label>
-          <div class="input-wrap">
-            <input
-              type="password" id="passInput" class="form-input has-icon"
-              placeholder="••••••••"
-              autocomplete="current-password"
-              onkeydown="if(event.key==='Enter') doEmailLogin()">
-            <button class="input-action" onclick="togglePass()" title="Lihat password">
-              <i class="fas fa-eye" id="passEyeIcon"></i>
-            </button>
-          </div>
-        </div>
-
-        <button class="btn-submit" id="emailBtn" onclick="doEmailLogin()">
-          <i class="fas fa-sign-in-alt"></i>
-          <span id="emailBtnText">Masuk</span>
-        </button>
-
-      </div>
-    </div>
 
     <!-- Footer badges -->
     <div class="footer">
@@ -555,26 +504,14 @@ const inPiBrowser =
   (typeof window.Pi !== 'undefined' && typeof window.Pi.authenticate === 'function' && navigator.userAgent.includes('Mobile') && !navigator.userAgent.includes('Chrome'));
 
 let piReady       = false;
-let emailShown    = false;
 let _redirecting  = false;
-
-// ── Login Email: khusus Admin ──────────────────────────────
-// Sembunyi dari publik. Admin buka via: login.html?admin=1
-const _isAdminAccess = new URLSearchParams(window.location.search).get('admin') === '1';
-if (_isAdminAccess) {
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('loginDivider').style.display = '';
-    document.getElementById('toggleWrap').style.display = '';
-  });
-}
 
 // Bersihkan Pi session lama saat halaman login dibuka
 localStorage.removeItem('piUser');
 sessionStorage.removeItem('currentUser');
 
 // Referensi Firebase dari auth.js
-const _auth = firebase.auth();
-const _db   = firebase.firestore();
+const _db = firebase.firestore();
 
 // ── Bungkus promise Firestore dengan batas waktu, supaya koneksi lambat/macet
 //    di Pi Browser tidak membuat loading menggantung tanpa akhir ──
@@ -600,13 +537,13 @@ function initPiSdk() {
     attempts++;
     try {
       if (typeof window.Pi === 'undefined') throw new Error('Pi not defined');
-      window.Pi.init({ version: '2.0', sandbox: false });
+      if (!window._piSdkInited) {
+        window.Pi.init({ version: '2.0', sandbox: false });
+        window._piSdkInited = true;
+      }
       piReady = true;
       console.log('✅ Pi SDK ready');
-      // SDK berhasil dimuat → ini beneran Pi Browser, apapun user agent-nya.
-      // Sembunyikan opsi email, fokus ke Pi login.
-      document.getElementById('toggleEmailBtn').style.display = 'none';
-      document.querySelector('.divider').style.display = 'none';
+      // SDK berhasil dimuat → ini beneran Pi Browser.
       document.getElementById('piNotice').classList.remove('show');
       document.getElementById('piBtn').disabled = false;
     } catch(e) {
@@ -654,9 +591,10 @@ async function doPiLogin() {
     // Dibungkus timeout 25 detik — kalau Pi.authenticate() macet tanpa respons
     // (pernah terjadi, kemungkinan isu sesaat di sisi Pi Network), user dapat
     // pesan error yang jelas & bisa coba lagi, bukan loading tanpa akhir.
+    console.log('🔑 Memanggil Pi.authenticate()... versi SDK termuat:', !!window.Pi, 'piReady:', piReady);
     const authPromise = window.Pi.authenticate(['username'], handleIncompletePayment);
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('TIMEOUT_PI_AUTH')), 25000)
+      setTimeout(() => reject(new Error('TIMEOUT_PI_AUTH')), 20000)
     );
     const authResult = await Promise.race([authPromise, timeoutPromise]);
 
@@ -831,63 +769,17 @@ async function doPiLogin() {
     console.error('❌ Pi login error:', err);
     const msg = err.message || 'Gagal login dengan Pi Network.';
     if (msg === 'TIMEOUT_PI_AUTH') {
-      showAlert('error', 'Pi Network tidak merespons (lebih dari 25 detik). Coba tutup & buka ulang Pi Browser, lalu login lagi. Kalau masih gagal, ini kemungkinan gangguan sementara dari Pi Network.');
+      // Reset flag init supaya percobaan berikutnya melakukan Pi.init() dari awal,
+      // siapa tahu state SDK sebelumnya yang bikin macet.
+      window._piSdkInited = false;
+      piReady = false;
+      showAlert('error', 'Pi Network tidak merespons. Ini biasanya karena: (1) koneksi internet Pi Browser terputus/lambat, (2) sesi Pi Browser perlu di-refresh, atau (3) sedang ada gangguan dari Pi Network. Coba: tutup paksa Pi Browser lalu buka lagi, atau tekan tombol muat ulang di address bar.');
     } else if (msg === 'TIMEOUT_FIRESTORE') {
       showAlert('error', 'Koneksi ke server terlalu lambat. Cek koneksi internet kamu, lalu coba login lagi.');
     } else {
       showAlert('error', msg.includes('cancelled') ? 'Login dibatalkan.' : msg);
     }
     _redirecting = false;
-  }
-}
-
-// ═══════════════════════════════════════════════
-// EMAIL LOGIN
-// ═══════════════════════════════════════════════
-async function doEmailLogin() {
-  const email = document.getElementById('emailInput').value.trim();
-  const pass  = document.getElementById('passInput').value;
-  if (!email || !pass) { showAlert('error', 'Email dan password wajib diisi.'); return; }
-
-  setLoading('emailBtn', 'emailBtnText', true, 'Memverifikasi...');
-  clearAlert();
-  showLoader('Memverifikasi akun...');
-
-  try {
-    const cred = await _auth.signInWithEmailAndPassword(email, pass);
-    const snap = await _db.collection('users').doc(cred.user.uid).get();
-
-    let role = 'santri';
-    if (snap.exists) {
-      const data = snap.data();
-      if (data.isActive === false) {
-        await _auth.signOut();
-        hideLoader();
-        setLoading('emailBtn', 'emailBtnText', false, 'Masuk');
-        showAlert('error', 'Akun Anda telah dinonaktifkan. Hubungi administrator.');
-        return;
-      }
-      role = data.role || 'santri';
-      await _db.collection('users').doc(cred.user.uid).update({
-        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(() => {});
-    }
-
-    showLoader('Selamat datang!', 'Mengalihkan ke dashboard ' + role + '...');
-    setTimeout(() => redirectByRole(role), 900);
-
-  } catch(err) {
-    hideLoader();
-    setLoading('emailBtn', 'emailBtnText', false, 'Masuk');
-    const msgs = {
-      'auth/user-not-found':     'Email tidak terdaftar.',
-      'auth/wrong-password':     'Password salah.',
-      'auth/invalid-email':      'Format email tidak valid.',
-      'auth/too-many-requests':  'Terlalu banyak percobaan. Coba lagi nanti.',
-      'auth/invalid-credential': 'Email atau password salah.',
-      'auth/user-disabled':      'Akun ini dinonaktifkan.',
-    };
-    showAlert('error', msgs[err.code] || err.message || 'Login gagal. Coba lagi.');
   }
 }
 
@@ -920,29 +812,6 @@ async function handleIncompletePayment(payment) {
   } catch(e) {}
 }
 
-function toggleEmail() {
-  emailShown = !emailShown;
-  const section = document.getElementById('emailSection');
-  const text    = document.getElementById('toggleEmailText');
-  if (emailShown) {
-    section.classList.add('show');
-    text.textContent = 'Sembunyikan';
-    document.getElementById('toggleEmailBtn').querySelector('i').className = 'fas fa-times fa-sm';
-    setTimeout(() => document.getElementById('emailInput').focus(), 120);
-  } else {
-    section.classList.remove('show');
-    text.textContent = 'Masuk dengan Email';
-    document.getElementById('toggleEmailBtn').querySelector('i').className = 'fas fa-envelope fa-sm';
-  }
-}
-
-function togglePass() {
-  const inp  = document.getElementById('passInput');
-  const icon = document.getElementById('passEyeIcon');
-  inp.type   = inp.type === 'password' ? 'text' : 'password';
-  icon.className = inp.type === 'text' ? 'fas fa-eye-slash' : 'fas fa-eye';
-}
-
 function showAlert(type, html) {
   const box = document.getElementById('alertBox');
   const txt = document.getElementById('alertMsg');
@@ -969,8 +838,7 @@ function setLoading(btnId, textId, loading, text) {
   btn.disabled = loading;
   // Default teks tombol jika tidak ada parameter text
   const defaults = {
-    piBtnText:    'Masuk dengan Pi Network',
-    emailBtnText: 'Masuk',
+    piBtnText: 'Masuk dengan Pi Network',
   };
   const finalText = text || (!loading ? defaults[textId] : null);
   if (span && finalText) {
