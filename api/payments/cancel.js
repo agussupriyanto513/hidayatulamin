@@ -17,6 +17,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
     const response = await fetch(
       `https://api.minepi.com/v2/payments/${paymentId}/cancel`,
       {
@@ -25,8 +27,10 @@ export default async function handler(req, res) {
           Authorization: `Key ${PI_API_KEY}`,
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
       }
     );
+    clearTimeout(timer);
     const data = await response.json().catch(() => ({}));
     console.log('[cancel] STATUS:', response.status);
     console.log('[cancel] RESPONSE:', JSON.stringify(data));
