@@ -1,6 +1,7 @@
 {
   "version": 2,
   "outputDirectory": ".",
+  "buildCommand": "node scripts/write-validation-key.js",
   "rewrites": [
     { "source": "/validation-key.txt", "destination": "/public/validation-key.txt" },
     { "source": "/api/payments/approve", "destination": "/api/payments/approve.js" },
