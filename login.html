@@ -460,6 +460,14 @@ body {
       <span id="piBtnText">Masuk dengan Pi Network</span>
     </button>
 
+    <!-- Alternatif: Masuk dengan Email — untuk yang membuka lewat browser biasa
+         (bukan Pi Browser), atau untuk admin/ustadz/santri yang tidak pakai Pi Network -->
+    <a href="/portal" id="emailLoginLink"
+       style="display:block;text-align:center;margin-top:14px;font-size:13px;
+              color:var(--muted,#8b9199);text-decoration:none;">
+      atau <span style="color:var(--emerald,#34d399);font-weight:600;">Masuk dengan Email →</span>
+    </a>
+
     <!-- Footer badges -->
     <div class="footer">
       <span class="badge badge-green">Firebase</span>
@@ -511,10 +519,30 @@ document.addEventListener('DOMContentLoaded', () => {
   if (_forceSandbox) {
     showAlert('warning', '🧪 MODE SANDBOX (diagnostik) — gunakan akun testnet Pi Browser, bukan akun mainnet asli.');
   }
-  // Jangan langsung vonis "bukan Pi Browser" cuma dari user agent.
-  // Tunggu window.Pi benar-benar dicoba beberapa kali dulu — itu syarat
-  // fungsional yang sebenarnya, bukan tebakan dari teks UA yang bisa beda-beda
-  // tergantung versi/device Pi Browser.
+
+  // ── PENTING: script SDK Pi (sdk.minepi.com/pi-sdk.js) adalah file JS biasa
+  //    yang BISA dimuat sukses di browser APA PUN (Chrome, Samsung Internet, dst),
+  //    bukan cuma di Pi Browser. Jadi `window.Pi` bisa saja terdefinisi walau
+  //    kita sedang TIDAK berada di dalam Pi Browser — dan Pi.authenticate()
+  //    akan menggantung lalu timeout, karena jembatan native-nya tidak ada.
+  //    Makanya di sini kita pakai deteksi user-agent (`inPiBrowser`) sebagai
+  //    penjaga awal: kalau jelas-jelas bukan Pi Browser, langsung matikan
+  //    tombol & tampilkan notice — jangan biarkan user menekan tombol yang
+  //    dijamin gagal/menggantung. ──
+  if (!inPiBrowser) {
+    // Sengaja TIDAK memanggil initPiSdk() sama sekali di sini: SDK Pi bisa saja
+    // tetap berhasil "init" walau kita bukan di Pi Browser (karena itu cuma
+    // objek JS biasa, tidak memverifikasi native bridge) — kalau kita tetap
+    // panggil initPiSdk(), tombol bisa ter-enable lagi dan user balik terjebak
+    // menekan tombol yang pasti menggantung. Jadi begitu UA jelas bukan
+    // Pi Browser, langsung kunci ke jalur "Masuk dengan Email".
+    document.getElementById('piNotice').classList.add('show');
+    document.getElementById('piBtn').disabled = true;
+    document.getElementById('piBtnText').innerHTML =
+      '<i class="fas fa-ban" style="opacity:.6;margin-right:4px;"></i>Hanya tersedia di Pi Browser';
+    return;
+  }
+
   initPiSdk();
 });
 
