@@ -638,9 +638,39 @@ let _cu=null; // current user
 // AUTH — Firebase (role diverifikasi dari Firestore)
 // ══════════════════════════════════════════════════
 
-function waitFbReady(cb){
-  if(window._fbReady) cb();
-  else document.addEventListener('fbReady',cb,{once:true});
+// ── Tunggu modul Firebase siap, TAPI jangan tunggu selamanya.
+//    Kalau script module gagal load (CDN diblok, ad-blocker, offline, dll)
+//    event 'fbReady' tidak akan pernah nyala — tanpa timeout ini, tombol
+//    login akan spin selama-lamanya. ──
+function waitFbReady(cb, onTimeout, ms = 10000){
+  if(window._fbReady){ cb(); return; }
+  let done = false;
+  const timer = setTimeout(() => {
+    if(done) return;
+    done = true;
+    document.removeEventListener('fbReady', onReady);
+    if(typeof onTimeout === 'function') onTimeout();
+  }, ms);
+  function onReady(){
+    if(done) return;
+    done = true;
+    clearTimeout(timer);
+    cb();
+  }
+  document.addEventListener('fbReady', onReady, {once:true});
+}
+
+// ── Bungkus promise apa pun dengan batas waktu, supaya operasi Firestore
+//    yang macet (mis. permission-denied yang lambat, koneksi lemot, atau
+//    security rules yang salah) tidak membuat login menggantung selamanya. ──
+function _withTimeout(promise, ms, label){
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`TIMEOUT:${label||'operasi'}`)), ms);
+    promise.then(
+      v => { clearTimeout(t); resolve(v); },
+      e => { clearTimeout(t); reject(e); }
+    );
+  });
 }
 
 window.doLogin=async function(){
@@ -655,14 +685,24 @@ window.doLogin=async function(){
   const btn=document.getElementById('btn-li');
   btn.disabled=true; btn.textContent='⏳ Memproses...';
 
-  try{
-    waitFbReady(async()=>{
+  // ── Helper: kembalikan tombol ke keadaan normal. Dipanggil di SETIAP jalur keluar,
+  //    supaya tombol tidak pernah tersangkut di "⏳ Memproses..." ──
+  const resetBtn = () => { btn.disabled=false; btn.textContent='Masuk →'; };
+
+  waitFbReady(async () => {
+    // Semua langkah dibungkus SATU try/catch besar — sebelumnya hanya
+    // langkah signIn yang punya try/catch, sehingga error dari getDoc()
+    // (misalnya permission-denied dari Firestore Rules) tidak pernah
+    // tertangkap dan tombol login berputar selamanya.
+    try{
       const {auth,db,signInWithEmailAndPassword,doc,getDoc}=window._fb;
 
       // 1. Login ke Firebase Auth
       let userCred;
       try{
-        userCred=await signInWithEmailAndPassword(auth,email,pass);
+        userCred = await _withTimeout(
+          signInWithEmailAndPassword(auth,email,pass), 15000, 'login ke Firebase Auth'
+        );
       }catch(e){
         const pesanErr={
           'auth/user-not-found':'Email tidak terdaftar.',
@@ -670,21 +710,45 @@ window.doLogin=async function(){
           'auth/invalid-credential':'Email atau password salah.',
           'auth/invalid-email':'Format email tidak valid.',
           'auth/too-many-requests':'Terlalu banyak percobaan. Coba lagi nanti.',
-          'auth/user-disabled':'Akun ini dinonaktifkan.'
+          'auth/user-disabled':'Akun ini dinonaktifkan.',
+          'auth/network-request-failed':'Cek koneksi internet kamu.'
         };
-        errEl.textContent=pesanErr[e.code]||('Gagal login: '+e.message);
-        btn.disabled=false; btn.textContent='Masuk →';
+        if(e.message === 'TIMEOUT:login ke Firebase Auth'){
+          errEl.textContent = 'Server Firebase tidak merespons. Cek koneksi internet, lalu coba lagi.';
+        } else {
+          errEl.textContent = pesanErr[e.code] || ('Gagal login: ' + (e.message||e.code));
+        }
+        resetBtn();
         return;
       }
 
-      // 2. Ambil data user dari Firestore (users/{uid})
-      const uid=userCred.user.uid;
-      const userSnap=await getDoc(doc(db,'users',uid));
+      // 2. Ambil data user dari Firestore (users/{uid}) — kini dengan timeout & catch
+      const uid = userCred.user.uid;
+      let userSnap;
+      try{
+        userSnap = await _withTimeout(
+          getDoc(doc(db,'users',uid)), 10000, 'ambil data user'
+        );
+      }catch(e){
+        console.error('Gagal ambil data user dari Firestore:', e.code || e.message, e);
+        if(e.message === 'TIMEOUT:ambil data user'){
+          errEl.textContent = 'Koneksi ke database terlalu lambat. Coba lagi.';
+        } else if(e.code === 'permission-denied'){
+          // Ini penyebab paling umum "login berputar terus": Firestore
+          // Security Rules belum mengizinkan user membaca dokumennya sendiri.
+          errEl.textContent = 'Akses data ditolak oleh server (periksa Firestore Security Rules). Hubungi admin.';
+        } else {
+          errEl.textContent = 'Gagal mengambil data akun: ' + (e.message || e.code);
+        }
+        await auth.signOut().catch(()=>{});
+        resetBtn();
+        return;
+      }
 
       if(!userSnap.exists()){
         errEl.textContent='Akun belum terdaftar di sistem pesantren. Hubungi admin.';
-        await auth.signOut();
-        btn.disabled=false; btn.textContent='Masuk →';
+        await auth.signOut().catch(()=>{});
+        resetBtn();
         return;
       }
 
@@ -695,16 +759,16 @@ window.doLogin=async function(){
 
       if(!['admin','ustadz','santri'].includes(roleAsli)){
         errEl.textContent='Role akun tidak valid. Hubungi admin.';
-        await auth.signOut();
-        btn.disabled=false; btn.textContent='Masuk →';
+        await auth.signOut().catch(()=>{});
+        resetBtn();
         return;
       }
 
       // 4. Cek isActive
       if(userData.isActive===false){
         errEl.textContent='Akun Anda dinonaktifkan. Hubungi admin.';
-        await auth.signOut();
-        btn.disabled=false; btn.textContent='Masuk →';
+        await auth.signOut().catch(()=>{});
+        resetBtn();
         return;
       }
 
@@ -719,12 +783,19 @@ window.doLogin=async function(){
       };
 
       showApp();
-      btn.disabled=false; btn.textContent='Masuk →';
-    });
-  }catch(e){
-    errEl.textContent='Terjadi kesalahan: '+e.message;
-    btn.disabled=false; btn.textContent='Masuk →';
-  }
+      resetBtn();
+    }catch(e){
+      // Jaring pengaman terakhir — menangkap error tak terduga apa pun
+      // supaya tombol tidak pernah tersangkut di "⏳ Memproses...".
+      console.error('doLogin: error tak terduga:', e);
+      errEl.textContent = 'Terjadi kesalahan: ' + (e.message || e);
+      resetBtn();
+    }
+  }, () => {
+    // ── Firebase modul tidak pernah siap dalam 10 detik ──
+    errEl.textContent = 'Gagal memuat layanan Firebase. Cek koneksi internet atau nonaktifkan ad-blocker, lalu muat ulang halaman.';
+    resetBtn();
+  });
 };
 
 window.doLogout=async function(){
@@ -797,17 +868,26 @@ waitFbReady(()=>{
   const {auth,db,onAuthStateChanged,doc,getDoc}=window._fb;
   onAuthStateChanged(auth,async(user)=>{
     if(user&&!_cu){
-      // Ada sesi aktif, restore
-      const snap=await getDoc(doc(db,'users',user.uid)).catch(()=>null);
-      if(snap&&snap.exists()&&snap.data().isActive!==false){
-        const d=snap.data();
-        _cu={uid:user.uid,email:user.email,role:d.role,
-          nama:d.nama||user.displayName||user.email.split('@')[0],
-          santriId:d.santriId||null,isPi:d.loginMethod==='pi'};
-        showApp();
+      // Ada sesi aktif, restore — dibungkus timeout supaya splash screen
+      // tidak nyangkut kalau Firestore lambat/rules menolak.
+      try{
+        const snap = await _withTimeout(getDoc(doc(db,'users',user.uid)), 10000, 'restore sesi');
+        if(snap && snap.exists() && snap.data().isActive!==false){
+          const d=snap.data();
+          _cu={uid:user.uid,email:user.email,role:d.role,
+            nama:d.nama||user.displayName||user.email.split('@')[0],
+            santriId:d.santriId||null,isPi:d.loginMethod==='pi'};
+          showApp();
+        }
+        // Kalau dokumen tidak ada / isActive:false, biarkan tetap di layar login
+        // (jangan otomatis signOut di sini supaya tidak mengganggu proses login manual yang sedang jalan).
+      }catch(e){
+        console.warn('Auto-restore sesi gagal (diabaikan, user tetap bisa login manual):', e.code || e.message);
       }
     }
   });
+}, () => {
+  console.warn('Auto-restore sesi dibatalkan: modul Firebase gagal dimuat dalam 10 detik.');
 });
 
 // ══════════════════════════════════════════════════
