@@ -277,10 +277,10 @@ tbody tr:hover td{background:var(--gl)}
   // Ambil dari: Firebase Console → Project Settings → Your Apps
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
-    GoogleAuthProvider, signInWithPopup }
+    GoogleAuthProvider, signInWithPopup, signInAnonymously }
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, collection,
-    getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit }
+    getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, where, orderBy, limit }
     from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -301,11 +301,12 @@ tbody tr:hover td{background:var(--gl)}
   const googleProvider = new GoogleAuthProvider();
   window._fb = { auth, db, signInWithEmailAndPassword, signOut,
     onAuthStateChanged, doc, getDoc, setDoc, collection,
-    getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit,
-    GoogleAuthProvider, signInWithPopup, googleProvider };
+    getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, where, orderBy, limit,
+    GoogleAuthProvider, signInWithPopup, googleProvider, signInAnonymously };
   window._fbReady = true;
   document.dispatchEvent(new Event('fbReady'));
 </script>
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
 
 </head>
 <body>
@@ -380,6 +381,16 @@ tbody tr:hover td{background:var(--gl)}
       <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.8 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8H6.2C9.6 37.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41.2 36.1 44 30.5 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
       Masuk dengan Google
     </button>
+
+    <!-- Pi Network — hanya ditampilkan/aktif kalau dibuka lewat Pi Browser -->
+    <div id="pi-notice" style="display:none;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:11.5px;color:#fcd34d;text-align:center;line-height:1.6">
+      ℹ️ Login Pi Network hanya tersedia di aplikasi <b>Pi Browser</b>.
+    </div>
+    <button class="btn-masuk" id="btn-pi" onclick="doPiLoginPortal()"
+      style="display:none;background:#6b46c1;color:#fff;margin-top:10px;align-items:center;justify-content:center;gap:8px">
+      <span style="font-weight:800">π</span> <span id="pi-btn-text">Masuk dengan Pi Network</span>
+    </button>
+
     <div class="li-err" id="li-err"></div>
     <div class="demo-hint">Gunakan email &amp; password yang telah didaftarkan admin<br>Lupa password? Hubungi <b>admin pesantren</b></div>
   </div>
@@ -860,6 +871,168 @@ window.doLoginGoogle=async function(){
       btn.disabled=false;
       btn.innerHTML='<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.8 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8H6.2C9.6 37.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41.2 36.1 44 30.5 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg> Masuk dengan Google';
     }
+  });
+};
+
+// ══════════════════════════════════════════════════
+// PI NETWORK LOGIN (Portal) — versi modular, disatukan dari login.html
+// ══════════════════════════════════════════════════
+const inPiBrowser =
+  navigator.userAgent.includes('PiBrowser') ||
+  navigator.userAgent.includes('Pi App') ||
+  window.location.hostname.includes('pinet.pi') ||
+  window.location.hostname.includes('minepi.com');
+
+let _piReady = false;
+const _forceSandbox = new URLSearchParams(window.location.search).get('sandbox') === '1';
+
+// ── Tampilkan tombol Pi HANYA kalau UA menunjukkan ini Pi Browser.
+//    Di browser biasa, SDK Pi tetap bisa "berhasil dimuat" walau tidak ada
+//    jembatan native-nya — kalau tombol tetap ditampilkan, user browser biasa
+//    akan menekannya dan authenticate() akan menggantung/timeout tanpa guna. ──
+function _initPiUi(){
+  if(!inPiBrowser){
+    document.getElementById('pi-notice').style.display = 'block';
+    document.getElementById('btn-pi').style.display = 'none';
+    return;
+  }
+  document.getElementById('btn-pi').style.display = 'flex';
+  let attempts = 0;
+  const tryInit = () => {
+    attempts++;
+    try{
+      if(typeof window.Pi === 'undefined') throw new Error('Pi not defined');
+      if(!window._piSdkInited){
+        window.Pi.init({ version:'2.0', sandbox:_forceSandbox });
+        window._piSdkInited = true;
+      }
+      _piReady = true;
+    }catch(e){
+      if(attempts < 15) setTimeout(tryInit, 400);
+      else {
+        document.getElementById('pi-notice').style.display = 'block';
+        document.getElementById('btn-pi').style.display = 'none';
+      }
+    }
+  };
+  tryInit();
+}
+_initPiUi();
+
+window.doPiLoginPortal = async function(){
+  const errEl = document.getElementById('li-err');
+  errEl.textContent = '';
+  if(typeof window.Pi === 'undefined' || !_piReady){
+    errEl.textContent = 'Pi SDK belum siap. Pastikan kamu membuka halaman ini di Pi Browser.';
+    return;
+  }
+
+  const btn = document.getElementById('btn-pi');
+  const btnText = document.getElementById('pi-btn-text');
+  btn.disabled = true; btnText.textContent = 'Menghubungkan ke Pi...';
+
+  waitFbReady(async () => {
+    try{
+      const {auth,db,doc,getDoc,setDoc,updateDoc,collection,query,where,limit,getDocs,serverTimestamp,signInAnonymously}=window._fb;
+
+      const authPromise = window.Pi.authenticate(['username'], () => {});
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT_PI_AUTH')), 20000));
+      const { user } = await Promise.race([authPromise, timeoutPromise]);
+      const piUid = user.uid;
+      const piUser = user.username.toLowerCase().trim();
+
+      btnText.textContent = 'Mencari data akun...';
+
+      // ── Cari user existing: by doc(piUid) → by field piUid → by piUsername ──
+      let userDoc = null, userRef = null;
+      try{
+        const s1 = await _withTimeout(getDoc(doc(db,'users',piUid)), 8000, 'baca user');
+        if(s1.exists()){ userDoc = s1.data(); userRef = doc(db,'users',piUid); }
+      }catch(e){}
+      if(!userDoc){
+        try{
+          const s2 = await _withTimeout(getDocs(query(collection(db,'users'), where('piUid','==',piUid), limit(1))), 8000, 'query piUid');
+          if(!s2.empty){ userDoc = s2.docs[0].data(); userRef = s2.docs[0].ref; }
+        }catch(e){}
+      }
+      if(!userDoc){
+        try{
+          const s3 = await _withTimeout(getDocs(query(collection(db,'users'), where('piUsername','==',piUser), limit(1))), 8000, 'query piUsername');
+          if(!s3.empty){ userDoc = s3.docs[0].data(); userRef = s3.docs[0].ref; }
+        }catch(e){}
+      }
+
+      // ── Cek whitelist untuk role resmi (admin/ustadz) ──
+      let whitelistRole = null, isBlocked = false;
+      try{
+        const wl = await _withTimeout(getDoc(doc(db,'pi_whitelist',piUser)), 6000, 'baca whitelist');
+        if(wl.exists()){
+          const d = wl.data();
+          isBlocked = d.isBlocked === true;
+          const roles = d.allowedRoles || [];
+          if(roles.includes('admin')) whitelistRole = 'admin';
+          else if(roles.includes('ustadz')) whitelistRole = 'ustadz';
+          else if(roles.length) whitelistRole = roles[0];
+        }
+      }catch(e){}
+
+      if(isBlocked){
+        errEl.textContent = 'Akun Pi Anda diblokir. Hubungi administrator.';
+        btn.disabled=false; btnText.textContent='Masuk dengan Pi Network';
+        return;
+      }
+
+      // ── Firestore Rules mensyaratkan request.auth != null untuk baca/tulis
+      //    dokumen users — jadi kita perlu sign-in anonymous dulu di Firebase Auth. ──
+      try{ await _withTimeout(signInAnonymously(auth), 6000, 'sign-in anonymous'); }catch(e){}
+
+      let finalRole, userData;
+      if(userDoc){
+        if(userDoc.isActive === false){
+          errEl.textContent = 'Akun Anda telah dinonaktifkan. Hubungi administrator.';
+          btn.disabled=false; btnText.textContent='Masuk dengan Pi Network';
+          return;
+        }
+        finalRole = whitelistRole || userDoc.role || 'santri';
+        const payload = { piUid, piUsername:piUser, lastLogin: serverTimestamp() };
+        if(whitelistRole && whitelistRole !== userDoc.role) payload.role = whitelistRole;
+        try{ await updateDoc(userRef, payload); }catch(e){}
+        userData = { ...userDoc, ...payload };
+      } else {
+        finalRole = whitelistRole || 'santri';
+        userData = {
+          uid: piUid, piUid, piUsername: piUser, username: piUser,
+          displayName: piUser, nama: piUser,
+          email: piUser + '@pi.hidayatulamin.id',
+          role: finalRole, isActive: true, loginMethod: 'pi', profileComplete: false,
+          createdAt: serverTimestamp(), lastLogin: serverTimestamp(),
+        };
+        try{ await setDoc(doc(db,'users',piUid), userData); }
+        catch(e){
+          errEl.textContent = 'Gagal membuat akun: ' + (e.message || 'Hubungi administrator.');
+          btn.disabled=false; btnText.textContent='Masuk dengan Pi Network';
+          return;
+        }
+      }
+
+      _cu = { uid: piUid, email: userData.email, role: finalRole,
+        nama: userData.nama || piUser, santriId: userData.santriId || null, isPi: true };
+      showApp();
+      btn.disabled=false; btnText.textContent='Masuk dengan Pi Network';
+
+    }catch(err){
+      console.error('Pi login error:', err);
+      if(err.message === 'TIMEOUT_PI_AUTH'){
+        window._piSdkInited = false; _piReady = false;
+        errEl.textContent = 'Pi Network tidak merespons. Coba tutup paksa Pi Browser lalu buka lagi, atau coba beberapa saat lagi.';
+      } else {
+        errEl.textContent = (err.message||'').includes('cancelled') ? 'Login dibatalkan.' : ('Gagal login dengan Pi: ' + (err.message||err));
+      }
+      btn.disabled=false; btnText.textContent='Masuk dengan Pi Network';
+    }
+  }, () => {
+    errEl.textContent = 'Gagal memuat layanan Firebase. Cek koneksi internet, lalu muat ulang halaman.';
+    btn.disabled=false; btnText.textContent='Masuk dengan Pi Network';
   });
 };
 
