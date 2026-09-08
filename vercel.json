@@ -6,17 +6,6 @@
     { "source": "/validation-key.txt", "destination": "/public/validation-key.txt" },
     { "source": "/api/payments/approve", "destination": "/api/payments/approve.js" },
     { "source": "/api/payments/complete", "destination": "/api/payments/complete.js" },
-    { "source": "/api/payments/cancel",  "destination": "/api/payments/cancel.js" },
-    { "source": "/portal", "destination": "/portal/index.html" }
-  ],
-  "redirects": [
-    { "source": "/", "destination": "/portal", "permanent": false },
-    { "source": "/login.html", "destination": "/portal", "permanent": false },
-    { "source": "/login", "destination": "/portal", "permanent": false },
-    { "source": "/dashboard-admin.html", "destination": "/portal", "permanent": false },
-    { "source": "/dashboard_admin.html", "destination": "/portal", "permanent": false },
-    { "source": "/dashboard-ustadz.html", "destination": "/portal", "permanent": false },
-    { "source": "/dashboard-santri.html", "destination": "/portal", "permanent": false },
-    { "source": "/dashboard-wali.html", "destination": "/portal", "permanent": false }
+    { "source": "/api/payments/cancel",  "destination": "/api/payments/cancel.js" }
   ]
 }
