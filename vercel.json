@@ -10,6 +10,13 @@
     { "source": "/portal", "destination": "/portal/index.html" }
   ],
   "redirects": [
-    { "source": "/", "destination": "/login.html", "permanent": false }
+    { "source": "/", "destination": "/portal", "permanent": false },
+    { "source": "/login.html", "destination": "/portal", "permanent": false },
+    { "source": "/login", "destination": "/portal", "permanent": false },
+    { "source": "/dashboard-admin.html", "destination": "/portal", "permanent": false },
+    { "source": "/dashboard_admin.html", "destination": "/portal", "permanent": false },
+    { "source": "/dashboard-ustadz.html", "destination": "/portal", "permanent": false },
+    { "source": "/dashboard-santri.html", "destination": "/portal", "permanent": false },
+    { "source": "/dashboard-wali.html", "destination": "/portal", "permanent": false }
   ]
 }
