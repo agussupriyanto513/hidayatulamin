@@ -1,4 +1,6 @@
 export default async function handler(req, res) {
+  console.log('APPROVE_BUILD_MARKER_v2_CEK_INI');
+
   // CORS — wajib agar bisa dipanggil dari Pi Browser
   res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -16,15 +18,13 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'PI_API_KEY tidak di-set' });
   }
 
-  // ── DEBUG SEMENTARA: tidak membocorkan key asli, hanya memastikan key
-  //    yang kebaca di server persis seperti yang kamu paste di Vercel.
-  //    Hapus blok ini lagi setelah masalah selesai. ──
   const keyTrimmed = PI_API_KEY.trim();
-  console.log('[approve][DEBUG] key length (raw):', PI_API_KEY.length);
-  console.log('[approve][DEBUG] key length (trimmed):', keyTrimmed.length);
-  console.log('[approve][DEBUG] ada whitespace nyangkut?:', PI_API_KEY !== keyTrimmed);
-  console.log('[approve][DEBUG] awal:', PI_API_KEY.slice(0, 4), '...akhir:', PI_API_KEY.slice(-4));
-  console.log('[approve][DEBUG] paymentId yang mau di-approve:', paymentId);
+  console.log('APPROVE_BUILD_MARKER_v2 | keyLenRaw=' + PI_API_KEY.length +
+              ' keyLenTrim=' + keyTrimmed.length +
+              ' hasWhitespace=' + (PI_API_KEY !== keyTrimmed) +
+              ' start=' + PI_API_KEY.slice(0, 4) +
+              ' end=' + PI_API_KEY.slice(-4) +
+              ' paymentId=' + paymentId);
 
   try {
     const response = await fetch(
