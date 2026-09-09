@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<title>Masuk | Yayasan Hidayatulamin</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="auth.js"></script>
+<!-- Pi Network SDK -->
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold:    #c9a84c;
+  --gold2:   #f0d080;
+  --emerald: #0d9e6e;
+  --em-dark: #0a7a55;
+  --em-glow: rgba(13,158,110,.4);
+  --pi:      #7c3aed;
+  --pi-glow: rgba(124,58,237,.4);
+  --bg:      #080c10;
+  --bg2:     #0d1218;
+  --surface: rgba(255,255,255,.04);
+  --border:  rgba(255,255,255,.08);
+  --text:    #e8edf2;
+  --muted:   rgba(255,255,255,.38);
+  --danger:  #f87171;
+  --success: #34d399;
+}
+
+html { font-size: 16px; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  padding: 20px;
+  overflow-x: hidden;
+  color: var(--text);
+}
+
+/* ── Animated background ── */
+.bg-layer {
+  position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0;
+}
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .12;
+  animation: float 12s ease-in-out infinite;
+}
+.bg-blob:nth-child(1) {
+  width: 500px; height: 500px;
+  background: var(--emerald);
+  top: -100px; left: -120px;
+  animation-delay: 0s;
+}
+.bg-blob:nth-child(2) {
+  width: 400px; height: 400px;
+  background: var(--pi);
+  bottom: -80px; right: -100px;
+  animation-delay: -4s;
+}
+.bg-blob:nth-child(3) {
+  width: 300px; height: 300px;
+  background: var(--gold);
+  top: 40%; left: 50%;
+  transform: translate(-50%,-50%);
+  animation-delay: -8s;
+  opacity: .06;
+}
+@keyframes float {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(30px,-20px) scale(1.05); }
+  66%      { transform: translate(-15px,25px) scale(.97); }
+}
+
+/* Grid lines */
+.bg-grid {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+}
+
+/* ── Layout ── */
+.login-wrapper {
+  position: relative; z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 100%;
+  max-width: 440px;
+  gap: 0;
+}
+
+/* ── Card ── */
+.card {
+  background: rgba(13,18,24,.85);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 44px 40px 36px;
+  backdrop-filter: blur(24px);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.04),
+    0 32px 64px rgba(0,0,0,.6),
+    0 0 120px rgba(13,158,110,.04);
+  animation: slideUp .6s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes slideUp {
+  from { opacity:0; transform: translateY(32px) scale(.98); }
+  to   { opacity:1; transform: translateY(0) scale(1); }
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+.mosque-icon {
+  width: 80px; height: 80px;
+  margin: 0 auto 20px;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.mosque-icon::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: conic-gradient(from 0deg, var(--emerald), var(--em-dark), var(--emerald));
+  border-radius: 22px;
+  animation: rotateBorder 6s linear infinite;
+  padding: 2px;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+@keyframes rotateBorder {
+  to { transform: rotate(360deg); }
+}
+.mosque-icon::after {
+  content: '🕌';
+  position: absolute;
+  font-size: 34px;
+  filter: drop-shadow(0 4px 12px rgba(13,158,110,.5));
+}
+.mosque-bg {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, #0d2a1e, #0a1a12);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(13,158,110,.15);
+}
+
+.arabic-title {
+  font-family: 'Amiri', serif;
+  font-size: 22px;
+  color: var(--gold2);
+  direction: rtl;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  text-shadow: 0 0 40px rgba(240,208,128,.25);
+}
+.brand-name {
+  font-family: 'Amiri', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.brand-tagline {
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+/* ── Divider ── */
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 24px 0;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+}
+.divider span {
+  font-size: 10.5px; color: var(--muted);
+  letter-spacing: .8px; text-transform: uppercase;
+}
+
+/* ── Pi Button ── */
+.btn-pi {
+  width: 100%; padding: 15px 20px;
+  background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 50%, #8b5cf6 100%);
+  border: 1px solid rgba(139,92,246,.3);
+  border-radius: 14px;
+  color: #fff;
+  font-size: 14.5px; font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 11px;
+  transition: all .25s ease;
+  box-shadow: 0 4px 20px rgba(109,40,217,.35), 0 1px 0 rgba(255,255,255,.1) inset;
+  position: relative; overflow: hidden;
+  margin-bottom: 10px;
+}
+.btn-pi::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.1), transparent);
+  opacity: 0; transition: opacity .25s;
+}
+.btn-pi:hover:not(:disabled)::before { opacity: 1; }
+.btn-pi:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(109,40,217,.5), 0 1px 0 rgba(255,255,255,.1) inset;
+}
+.btn-pi:active:not(:disabled) { transform: translateY(0); }
+.btn-pi:disabled { opacity: .45; cursor: not-allowed; }
+
+.pi-badge {
+  width: 26px; height: 26px;
+  background: rgba(255,255,255,.15);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 900;
+  border: 1px solid rgba(255,255,255,.2);
+  flex-shrink: 0;
+}
+
+/* ── Email section ── */
+.email-section {
+  display: none;
+  animation: fadeIn .3s ease both;
+}
+.email-section.show { display: block; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+.form-group { margin-bottom: 14px; }
+
+.form-label {
+  font-size: 11.5px; font-weight: 600;
+  color: var(--muted);
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 7px; letter-spacing: .3px;
+  text-transform: uppercase;
+}
+
+.input-wrap { position: relative; }
+
+.form-input {
+  width: 100%; padding: 13px 16px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all .2s;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--emerald);
+  background: rgba(13,158,110,.06);
+  box-shadow: 0 0 0 3px rgba(13,158,110,.12);
+}
+.form-input::placeholder { color: rgba(255,255,255,.18); }
+.form-input.has-icon { padding-right: 44px; }
+
+.input-action {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--muted); cursor: pointer;
+  padding: 4px; border-radius: 6px;
+  transition: color .2s;
+}
+.input-action:hover { color: var(--text); }
+
+/* ── Submit button ── */
+.btn-submit {
+  width: 100%; padding: 14px 20px; margin-top: 6px;
+  background: linear-gradient(135deg, var(--em-dark) 0%, var(--emerald) 100%);
+  border: 1px solid rgba(13,158,110,.3);
+  border-radius: 14px;
+  color: #fff;
+  font-size: 14.5px; font-weight: 600;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .25s;
+  box-shadow: 0 4px 16px rgba(13,158,110,.3), 0 1px 0 rgba(255,255,255,.1) inset;
+  position: relative; overflow: hidden;
+}
+.btn-submit::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.08), transparent);
+  opacity: 0; transition: opacity .25s;
+}
+.btn-submit:hover:not(:disabled)::before { opacity: 1; }
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(13,158,110,.45);
+}
+.btn-submit:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── Toggle link ── */
+.toggle-wrap {
+  text-align: center; margin-top: 18px;
+}
+.toggle-btn {
+  background: none; border: none;
+  color: var(--muted); font-size: 12.5px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  cursor: pointer; padding: 6px 12px;
+  border-radius: 8px; transition: all .2s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.toggle-btn:hover {
+  color: var(--emerald);
+  background: rgba(13,158,110,.08);
+}
+
+/* ── Alert ── */
+.alert {
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px; line-height: 1.55;
+  margin-bottom: 18px;
+  display: none; align-items: flex-start; gap: 10px;
+}
+.alert.show { display: flex; animation: fadeIn .25s ease both; }
+.alert-icon { margin-top: 1px; flex-shrink: 0; }
+.alert.error   { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.2); color: #fca5a5; }
+.alert.success { background: rgba(52,211,153,.1);  border: 1px solid rgba(52,211,153,.2);  color: #6ee7b7; }
+.alert.info    { background: rgba(124,58,237,.1);  border: 1px solid rgba(124,58,237,.2);  color: #c4b5fd; }
+.alert.warning { background: rgba(245,158,11,.1);  border: 1px solid rgba(245,158,11,.2);  color: #fcd34d; }
+
+/* ── Notice ── */
+.pi-notice {
+  background: rgba(245,158,11,.07);
+  border: 1px solid rgba(245,158,11,.18);
+  border-radius: 12px; padding: 12px 14px;
+  margin-bottom: 18px; display: none;
+}
+.pi-notice.show { display: block; }
+.pi-notice p {
+  font-size: 12px; color: rgba(253,211,77,.8);
+  line-height: 1.65; text-align: center;
+}
+
+/* ── Loading overlay ── */
+.loader {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,12,16,.88);
+  z-index: 999;
+  flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  backdrop-filter: blur(10px);
+}
+.loader.show { display: flex; animation: fadeIn .2s ease both; }
+.loader-ring {
+  width: 52px; height: 52px;
+  border: 2.5px solid rgba(255,255,255,.08);
+  border-top-color: var(--emerald);
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { color: rgba(255,255,255,.65); font-size: 13.5px; font-weight: 500; }
+.loader-sub  { color: rgba(255,255,255,.3);  font-size: 11.5px; }
+
+/* ── Footer ── */
+.footer {
+  display: flex; justify-content: center;
+  gap: 6px; margin-top: 28px; flex-wrap: wrap;
+}
+.badge {
+  padding: 4px 11px; border-radius: 20px;
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: .6px; text-transform: uppercase;
+}
+.badge-green  { background: rgba(13,158,110,.12); color: #34d399; border: 1px solid rgba(13,158,110,.2); }
+.badge-purple { background: rgba(124,58,237,.12); color: #a78bfa; border: 1px solid rgba(124,58,237,.2); }
+.badge-gold   { background: rgba(201,168,76,.12); color: #fbbf24; border: 1px solid rgba(201,168,76,.2); }
+.badge-blue   { background: rgba(59,130,246,.12); color: #60a5fa; border: 1px solid rgba(59,130,246,.2); }
+
+/* ── Spinner helper ── */
+.spin-icon { display: inline-block; animation: spin .75s linear infinite; }
+
+/* ── Responsive ── */
+@media (max-width: 460px) {
+  .card { padding: 36px 28px 28px; border-radius: 22px; }
+  .brand-name { font-size: 21px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-layer">
+  <div class="bg-blob"></div>
+  <div class="bg-blob"></div>
+  <div class="bg-blob"></div>
+</div>
+<div class="bg-grid"></div>
+
+<!-- Loader -->
+<div class="loader" id="loader">
+  <div class="loader-ring"></div>
+  <p class="loader-text" id="loaderText">Memverifikasi akun...</p>
+  <p class="loader-sub" id="loaderSub"></p>
+</div>
+
+<!-- Card -->
+<div class="login-wrapper">
+  <div class="card">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="mosque-icon">
+        <div class="mosque-bg"></div>
+      </div>
+      <p class="arabic-title">الهداية الأمين</p>
+      <h1 class="brand-name">Yayasan Hidayatulamin</h1>
+      <p class="brand-tagline">Pesantren Modern · Pi Network · SGT Token</p>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert" id="alertBox">
+      <i class="alert-icon fas fa-exclamation-circle"></i>
+      <span id="alertMsg"></span>
+    </div>
+
+    <!-- Pi Notice -->
+    <div class="pi-notice" id="piNotice">
+      <p><i class="fas fa-info-circle"></i> &nbsp;Login Pi Network hanya tersedia di <strong>Pi Browser</strong>. Gunakan login email atau buka melalui Pi Browser.</p>
+    </div>
+
+    <!-- Pi Button -->
+    <button class="btn-pi" id="piBtn" onclick="doPiLogin()">
+      <span class="pi-badge">π</span>
+      <span id="piBtnText">Masuk dengan Pi Network</span>
+    </button>
+
+    <!-- Divider -->
+    <div class="divider" id="loginDivider" style="display:none"><span>atau</span></div>
+
+    <!-- Toggle Email -->
+    <div class="toggle-wrap" id="toggleWrap" style="display:none">
+      <button class="toggle-btn" onclick="toggleEmail()" id="toggleEmailBtn">
+        <i class="fas fa-envelope fa-sm"></i>
+        <span id="toggleEmailText">Masuk dengan Email</span>
+      </button>
+    </div>
+
+    <!-- Email Section -->
+    <div class="email-section" id="emailSection">
+      <div style="margin-top: 20px;">
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-at fa-xs"></i> Email
+          </label>
+          <div class="input-wrap">
+            <input
+              type="email" id="emailInput" class="form-input"
+              placeholder="admin@hidayatulamin.id"
+              autocomplete="email"
+              onkeydown="if(event.key==='Enter') doEmailLogin()">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-lock fa-xs"></i> Password
+          </label>
+          <div class="input-wrap">
+            <input
+              type="password" id="passInput" class="form-input has-icon"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              onkeydown="if(event.key==='Enter') doEmailLogin()">
+            <button class="input-action" onclick="togglePass()" title="Lihat password">
+              <i class="fas fa-eye" id="passEyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button class="btn-submit" id="emailBtn" onclick="doEmailLogin()">
+          <i class="fas fa-sign-in-alt"></i>
+          <span id="emailBtnText">Masuk</span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Footer badges -->
+    <div class="footer">
+      <span class="badge badge-green">Firebase</span>
+      <span class="badge badge-purple">Pi Network</span>
+      <span class="badge badge-gold">SGT Token</span>
+      <span class="badge badge-blue">Mainnet</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// STATE & INIT
+// ═══════════════════════════════════════════════
+const inPiBrowser =
+  navigator.userAgent.includes('PiBrowser') ||
+  navigator.userAgent.includes('Pi App') ||
+  window.location.hostname.includes('pinet.pi') ||
+  window.location.hostname.includes('minepi.com') ||
+  (typeof window.Pi !== 'undefined' && typeof window.Pi.authenticate === 'function' && navigator.userAgent.includes('Mobile') && !navigator.userAgent.includes('Chrome'));
+
+let piReady       = false;
+let emailShown    = false;
+let _redirecting  = false;
+
+// ── Login Email: khusus Admin ──────────────────────────────
+// Sembunyi dari publik. Admin buka via: login.html?admin=1
+const _isAdminAccess = new URLSearchParams(window.location.search).get('admin') === '1';
+if (_isAdminAccess) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('loginDivider').style.display = '';
+    document.getElementById('toggleWrap').style.display = '';
+  });
+}
+
+// Bersihkan Pi session lama saat halaman login dibuka
+localStorage.removeItem('piUser');
+sessionStorage.removeItem('currentUser');
+
+// Referensi Firebase dari auth.js
+const _auth = firebase.auth();
+const _db   = firebase.firestore();
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Jangan langsung vonis "bukan Pi Browser" cuma dari user agent.
+  // Tunggu window.Pi benar-benar dicoba beberapa kali dulu — itu syarat
+  // fungsional yang sebenarnya, bukan tebakan dari teks UA yang bisa beda-beda
+  // tergantung versi/device Pi Browser.
+  initPiSdk();
+});
+
+function initPiSdk() {
+  let attempts = 0;
+  const maxAttempts = 15; // ~6 detik percobaan sebelum menyerah
+  const tryInit = () => {
+    attempts++;
+    try {
+      if (typeof window.Pi === 'undefined') throw new Error('Pi not defined');
+      window.Pi.init({ version: '2.0', sandbox: false });
+      piReady = true;
+      console.log('✅ Pi SDK ready');
+      // SDK berhasil dimuat → ini beneran Pi Browser, apapun user agent-nya.
+      // Sembunyikan opsi email, fokus ke Pi login.
+      document.getElementById('toggleEmailBtn').style.display = 'none';
+      document.querySelector('.divider').style.display = 'none';
+      document.getElementById('piNotice').classList.remove('show');
+      document.getElementById('piBtn').disabled = false;
+    } catch(e) {
+      if (attempts < maxAttempts) {
+        setTimeout(tryInit, 400);
+      } else {
+        console.warn('Pi SDK gagal init setelah beberapa percobaan — kemungkinan memang bukan Pi Browser');
+        // Baru di titik ini kita anggap bukan Pi Browser (SDK memang tidak pernah tersedia)
+        document.getElementById('piNotice').classList.add('show');
+        document.getElementById('piBtn').disabled = true;
+        document.getElementById('piBtnText').innerHTML =
+          '<i class="fas fa-ban" style="opacity:.6;margin-right:4px;"></i>Hanya tersedia di Pi Browser';
+      }
+    }
+  };
+  tryInit();
+}
+
+// ═══════════════════════════════════════════════
+// PI LOGIN — FIXED v2: role dari pi_whitelist + piUsername lookup
+// ═══════════════════════════════════════════════
+async function doPiLogin() {
+  if (typeof window.Pi === 'undefined') {
+    showAlert('warning', 'Buka halaman ini di <strong>Pi Browser</strong> untuk login dengan Pi Network.');
+    return;
+  }
+  if (!piReady) {
+    try {
+      window.Pi.init({ version: '2.0', sandbox: false });
+      piReady = true;
+    } catch(e) {
+      showAlert('error', 'Pi SDK belum siap. Pastikan kamu membuka halaman ini di Pi Browser.');
+      return;
+    }
+  }
+
+  setLoading('piBtn', 'piBtnText', true, 'Menghubungkan ke Pi...');
+  clearAlert();
+  showLoader('Autentikasi Pi Network...');
+
+  try {
+    // Scope hanya 'username' untuk lulus CT review Pi Browser Mainnet.
+    // Scope 'payments' & 'wallet_address' diminta terpisah saat fitur donasi/payment dipakai.
+    const authResult = await window.Pi.authenticate(
+      ['username'],
+      handleIncompletePayment
+    );
+
+    const { user } = authResult;
+    const piUid  = user.uid;
+    const piUser = user.username.toLowerCase().trim();
+
+    showLoader('Mencari data akun...', '@' + piUser);
+
+    let userDoc = null, userRef = null;
+
+    // ── LANGKAH 1: Cari by doc(piUid) ──
+    // Berlaku untuk user yang sudah pernah login sebelumnya
+    // (piUid sudah tersimpan sebagai doc ID)
+    try {
+      const snap1 = await _db.collection('users').doc(piUid).get();
+      if (snap1.exists) {
+        userDoc = snap1.data();
+        userRef = _db.collection('users').doc(piUid);
+        console.log('✅ User ditemukan via doc(piUid)');
+      }
+    } catch(e) {
+      console.warn('⚠️ Gagal baca doc(piUid):', e.code);
+    }
+
+    // ── LANGKAH 2: Cari by field piUid ──
+    // Berlaku jika doc ID bukan piUid tapi field piUid sudah diisi
+    if (!userDoc) {
+      try {
+        const snap2 = await _db.collection('users').where('piUid', '==', piUid).limit(1).get();
+        if (!snap2.empty) {
+          userDoc = snap2.docs[0].data();
+          userRef = snap2.docs[0].ref;
+          console.log('✅ User ditemukan via where(piUid)');
+        }
+      } catch(e) {
+        console.warn('⚠️ Query piUid gagal:', e.code);
+      }
+    }
+
+    // ── LANGKAH 3: Cari by piUsername ──
+    // PENTING: ini jalur utama untuk admin/ustadz yang didaftarkan lewat dashboard
+    // karena doc ID mereka = Firebase UID, bukan piUid
+    if (!userDoc) {
+      try {
+        const snap3 = await _db.collection('users').where('piUsername', '==', piUser).limit(1).get();
+        if (!snap3.empty) {
+          userDoc = snap3.docs[0].data();
+          userRef = snap3.docs[0].ref;
+          console.log('✅ User ditemukan via where(piUsername)');
+        }
+      } catch(e) {
+        console.warn('⚠️ Query piUsername gagal:', e.code);
+      }
+    }
+
+    // ── LANGKAH 4: Cek pi_whitelist ──
+    // Ambil role resmi dari whitelist (lebih dipercaya dari userDoc.role)
+    // Doc ID whitelist = piUsername
+    let whitelistRole = null;
+    let isBlocked     = false;
+    try {
+      const wlSnap = await _db.collection('pi_whitelist').doc(piUser).get();
+      if (wlSnap.exists) {
+        const wlData = wlSnap.data();
+        isBlocked    = wlData.isBlocked === true;
+        const roles  = wlData.allowedRoles || [];
+        // Ambil role tertinggi: admin > ustadz > santri
+        if (roles.includes('admin'))  whitelistRole = 'admin';
+        else if (roles.includes('ustadz')) whitelistRole = 'ustadz';
+        else if (roles.length > 0)    whitelistRole = roles[0];
+        console.log('✅ Whitelist ditemukan, role:', whitelistRole, 'blocked:', isBlocked);
+      }
+    } catch(e) {
+      console.warn('⚠️ Gagal baca pi_whitelist:', e.code);
+    }
+
+    // Blokir jika ada di whitelist tapi isBlocked = true
+    if (isBlocked) {
+      hideLoader();
+      setLoading('piBtn', 'piBtnText', false);
+      showAlert('error', 'Akun Pi Anda diblokir. Hubungi administrator.');
+      return;
+    }
+
+    if (userDoc) {
+      // ── User sudah terdaftar ──
+      if (userDoc.isActive === false) {
+        hideLoader();
+        setLoading('piBtn', 'piBtnText', false, 'Masuk dengan Pi Network');
+        showAlert('error', 'Akun Anda telah dinonaktifkan. Hubungi administrator.');
+        return;
+      }
+
+      // Tentukan role final:
+      // Prioritaskan whitelist (lebih terpercaya) jika ada,
+      // fallback ke userDoc.role
+      const role = whitelistRole || userDoc.role || 'santri';
+
+      // Update doc: simpan piUid, sinkron role dari whitelist jika berubah
+      const updatePayload = {
+        piUid,
+        piUsername: piUser,
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      // Sinkron role jika whitelist bilang beda (misal admin set role di dashboard)
+      if (whitelistRole && whitelistRole !== userDoc.role) {
+        updatePayload.role = whitelistRole;
+        console.log(`🔄 Role disinkron: ${userDoc.role} → ${whitelistRole}`);
+      }
+
+      try {
+        await userRef.update(updatePayload);
+      } catch(e) {
+        console.warn('⚠️ Update user gagal:', e.code);
+      }
+
+      saveSession(piUid, piUser, role);
+      if (!_redirecting) {
+        _redirecting = true;
+        showLoader('Selamat datang! Mengalihkan...', '@' + piUser + ' · ' + role);
+        setTimeout(() => redirectByRole(role), 1200);
+      }
+
+    } else {
+      // ── User belum punya dokumen di Firestore ──
+      // Buat dokumen baru dengan role dari whitelist (admin/ustadz)
+      // atau santri jika tidak ada di whitelist
+      const finalRole = whitelistRole || 'santri';
+
+      showLoader('Membuat akun...', '@' + piUser + ' sebagai ' + finalRole);
+
+      const newData = {
+        uid:             piUid,
+        piUid,
+        piUsername:      piUser,
+        username:        piUser,
+        displayName:     piUser,
+        nama:            piUser,
+        email:           piUser + '@pi.hidayatulamin.id',
+        role:            finalRole,
+        isActive:        true,
+        loginMethod:     'pi',
+        profileComplete: false,
+        createdAt:       firebase.firestore.FieldValue.serverTimestamp(),
+        lastLogin:       firebase.firestore.FieldValue.serverTimestamp(),
+      };
+
+      try {
+        await _db.collection('users').doc(piUid).set(newData);
+        console.log('✅ Akun dibuat: @' + piUser + ' role=' + finalRole);
+      } catch(e) {
+        hideLoader();
+        setLoading('piBtn', 'piBtnText', false, 'Masuk dengan Pi Network');
+        console.error('❌ Gagal buat akun:', e.code, e.message);
+        showAlert('error', 'Gagal membuat akun: ' + (e.message || 'Hubungi administrator.'));
+        _redirecting = false;
+        return;
+      }
+
+      saveSession(piUid, piUser, finalRole);
+      if (!_redirecting) {
+        _redirecting = true;
+        showLoader('Selamat datang!', 'Mengalihkan ke dashboard ' + finalRole + '...');
+        setTimeout(() => redirectByRole(finalRole), 1400);
+      }
+    }
+
+  } catch(err) {
+    hideLoader();
+    setLoading('piBtn', 'piBtnText', false, 'Masuk dengan Pi Network');
+    console.error('❌ Pi login error:', err);
+    const msg = err.message || 'Gagal login dengan Pi Network.';
+    showAlert('error', msg.includes('cancelled') ? 'Login dibatalkan.' : msg);
+    _redirecting = false;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// EMAIL LOGIN
+// ═══════════════════════════════════════════════
+async function doEmailLogin() {
+  const email = document.getElementById('emailInput').value.trim();
+  const pass  = document.getElementById('passInput').value;
+  if (!email || !pass) { showAlert('error', 'Email dan password wajib diisi.'); return; }
+
+  setLoading('emailBtn', 'emailBtnText', true, 'Memverifikasi...');
+  clearAlert();
+  showLoader('Memverifikasi akun...');
+
+  try {
+    const cred = await _auth.signInWithEmailAndPassword(email, pass);
+    const snap = await _db.collection('users').doc(cred.user.uid).get();
+
+    let role = 'santri';
+    if (snap.exists) {
+      const data = snap.data();
+      if (data.isActive === false) {
+        await _auth.signOut();
+        hideLoader();
+        setLoading('emailBtn', 'emailBtnText', false, 'Masuk');
+        showAlert('error', 'Akun Anda telah dinonaktifkan. Hubungi administrator.');
+        return;
+      }
+      role = data.role || 'santri';
+      await _db.collection('users').doc(cred.user.uid).update({
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(() => {});
+    }
+
+    showLoader('Selamat datang!', 'Mengalihkan ke dashboard ' + role + '...');
+    setTimeout(() => redirectByRole(role), 900);
+
+  } catch(err) {
+    hideLoader();
+    setLoading('emailBtn', 'emailBtnText', false, 'Masuk');
+    const msgs = {
+      'auth/user-not-found':     'Email tidak terdaftar.',
+      'auth/wrong-password':     'Password salah.',
+      'auth/invalid-email':      'Format email tidak valid.',
+      'auth/too-many-requests':  'Terlalu banyak percobaan. Coba lagi nanti.',
+      'auth/invalid-credential': 'Email atau password salah.',
+      'auth/user-disabled':      'Akun ini dinonaktifkan.',
+    };
+    showAlert('error', msgs[err.code] || err.message || 'Login gagal. Coba lagi.');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+const ROLE_MAP = {
+  admin:  'dashboard-admin.html',
+  ustadz: 'dashboard-ustadz.html',
+  santri: 'dashboard-santri.html',
+  wali:   'dashboard-wali.html',
+};
+
+function redirectByRole(role) {
+  window.location.href = ROLE_MAP[role] || 'dashboard-santri.html';
+}
+
+function saveSession(uid, username, role) {
+  localStorage.setItem('piUser', JSON.stringify({ uid, username, role, ts: Date.now() }));
+}
+
+async function handleIncompletePayment(payment) {
+  console.warn('⚠️ Incomplete payment:', payment.identifier);
+  try {
+    await fetch('/api/payments/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paymentId: payment.identifier })
+    });
+  } catch(e) {}
+}
+
+function toggleEmail() {
+  emailShown = !emailShown;
+  const section = document.getElementById('emailSection');
+  const text    = document.getElementById('toggleEmailText');
+  if (emailShown) {
+    section.classList.add('show');
+    text.textContent = 'Sembunyikan';
+    document.getElementById('toggleEmailBtn').querySelector('i').className = 'fas fa-times fa-sm';
+    setTimeout(() => document.getElementById('emailInput').focus(), 120);
+  } else {
+    section.classList.remove('show');
+    text.textContent = 'Masuk dengan Email';
+    document.getElementById('toggleEmailBtn').querySelector('i').className = 'fas fa-envelope fa-sm';
+  }
+}
+
+function togglePass() {
+  const inp  = document.getElementById('passInput');
+  const icon = document.getElementById('passEyeIcon');
+  inp.type   = inp.type === 'password' ? 'text' : 'password';
+  icon.className = inp.type === 'text' ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+
+function showAlert(type, html) {
+  const box = document.getElementById('alertBox');
+  const txt = document.getElementById('alertMsg');
+  box.className = `alert ${type} show`;
+  txt.innerHTML = html;
+  const icon = box.querySelector('.alert-icon');
+  const icons = { error: 'fa-exclamation-circle', success: 'fa-check-circle', info: 'fa-info-circle', warning: 'fa-triangle-exclamation' };
+  if (icon) icon.className = `alert-icon fas ${icons[type] || 'fa-info-circle'}`;
+}
+
+function clearAlert() { document.getElementById('alertBox').className = 'alert'; }
+
+function showLoader(text, sub) {
+  document.getElementById('loaderText').textContent = text || 'Memuat...';
+  document.getElementById('loaderSub').textContent  = sub || '';
+  document.getElementById('loader').classList.add('show');
+}
+function hideLoader() { document.getElementById('loader').classList.remove('show'); }
+
+function setLoading(btnId, textId, loading, text) {
+  const btn  = document.getElementById(btnId);
+  const span = document.getElementById(textId);
+  if (!btn) return;
+  btn.disabled = loading;
+  // Default teks tombol jika tidak ada parameter text
+  const defaults = {
+    piBtnText:    'Masuk dengan Pi Network',
+    emailBtnText: 'Masuk',
+  };
+  const finalText = text || (!loading ? defaults[textId] : null);
+  if (span && finalText) {
+    span.innerHTML = loading
+      ? `<i class="spin-icon fas fa-circle-notch fa-spin"></i> ${finalText}`
+      : finalText;
+  }
+}
+</script>
+</body>
+</html>
