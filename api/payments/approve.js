@@ -16,13 +16,23 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'PI_API_KEY tidak di-set' });
   }
 
+  // ── DEBUG SEMENTARA: tidak membocorkan key asli, hanya memastikan key
+  //    yang kebaca di server persis seperti yang kamu paste di Vercel.
+  //    Hapus blok ini lagi setelah masalah selesai. ──
+  const keyTrimmed = PI_API_KEY.trim();
+  console.log('[approve][DEBUG] key length (raw):', PI_API_KEY.length);
+  console.log('[approve][DEBUG] key length (trimmed):', keyTrimmed.length);
+  console.log('[approve][DEBUG] ada whitespace nyangkut?:', PI_API_KEY !== keyTrimmed);
+  console.log('[approve][DEBUG] awal:', PI_API_KEY.slice(0, 4), '...akhir:', PI_API_KEY.slice(-4));
+  console.log('[approve][DEBUG] paymentId yang mau di-approve:', paymentId);
+
   try {
     const response = await fetch(
       `https://api.minepi.com/v2/payments/${paymentId}/approve`,
       {
         method: 'POST',
         headers: {
-          Authorization: `Key ${PI_API_KEY}`,
+          Authorization: `Key ${keyTrimmed}`,
           'Content-Type': 'application/json',
         },
       }
