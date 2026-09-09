@@ -271,6 +271,47 @@ function _clearSession() {
 }
 
 // ══════════════════════════════════════════════════════
+// Pi SDK — SATU-SATUNYA tempat yang boleh memanggil Pi.init().
+// Pi Network SDK TIDAK boleh di-init lebih dari sekali per halaman —
+// kalau dipanggil dua kali, SDK bisa masuk ke state rusak dan lempar
+// error "SDK was not initialized" walau sebenarnya sudah pernah siap.
+// Semua kode lain (login, donasi) WAJIB lewat ensurePiInit(), bukan
+// memanggil window.Pi.init() sendiri-sendiri.
+// ══════════════════════════════════════════════════════
+window._piInitPromise = window._piInitPromise || null;
+function ensurePiInit() {
+  if (window._piInitPromise) return window._piInitPromise;
+
+  window._piInitPromise = new Promise((resolve) => {
+    let attempts = 0;
+    const maxAttempts = 15; // ~6 detik percobaan sebelum menyerah
+    const tryInit = () => {
+      attempts++;
+      if (typeof window.Pi === 'undefined') {
+        if (attempts < maxAttempts) { setTimeout(tryInit, 400); return; }
+        console.warn('⚠️ Pi SDK tidak pernah tersedia — kemungkinan bukan Pi Browser');
+        resolve(false);
+        return;
+      }
+      if (window._piSdkInited) { resolve(true); return; }
+      try {
+        const sandboxMode = window._forceSandbox === true; // diagnostik via ?sandbox=1, default mainnet
+        window.Pi.init({ version: '2.0', sandbox: sandboxMode });
+        window._piSdkInited = true;
+        console.log(`✅ Pi SDK siap (sandbox: ${sandboxMode})`);
+        resolve(true);
+      } catch(e) {
+        console.error('❌ Pi SDK gagal init:', e);
+        resolve(false);
+      }
+    };
+    tryInit();
+  });
+
+  return window._piInitPromise;
+}
+
+// ══════════════════════════════════════════════════════
 // CLASS HidayatulaminAuth (untuk Pi Network & fitur lain)
 // ══════════════════════════════════════════════════════
 class HidayatulaminAuth {
@@ -286,31 +327,8 @@ class HidayatulaminAuth {
   }
 
   async _initPiSDK() {
-    if (!window.Pi) {
-      await new Promise(resolve => {
-        let attempts = 0;
-        const interval = setInterval(() => {
-          attempts++;
-          if (window.Pi) { clearInterval(interval); this.Pi = window.Pi; resolve(); }
-          else if (attempts >= 10) { clearInterval(interval); resolve(); }
-        }, 200);
-      });
-    } else { this.Pi = window.Pi; }
-
-    if (!this.Pi) { console.warn('⚠️ Pi SDK tidak ditemukan'); return; }
-    // ── Jangan init dua kali: kalau halaman lain (mis. login.html) sudah
-    //    memanggil Pi.init() duluan, cukup tandai siap tanpa init ulang ──
-    if (window._piSdkInited) {
-      this.piReady = true;
-      return;
-    }
-    try {
-      const sandboxMode = window._forceSandbox === true; // diagnostik via ?sandbox=1, default mainnet
-      this.Pi.init({ version: "2.0", sandbox: sandboxMode });
-      window._piSdkInited = true;
-      this.piReady = true;
-      console.log(`✅ Pi SDK siap (sandbox: ${sandboxMode})`);
-    } catch(e) { console.error('❌ Pi SDK gagal init:', e); }
+    this.piReady = await ensurePiInit();
+    this.Pi = window.Pi || null;
   }
 
   // ── CATATAN: loginWithPi()/_piAuth() sudah dihapus dari sini (v4.2). ──
@@ -924,42 +942,26 @@ document.addEventListener('DOMContentLoaded', () => {
     showAlert('warning', '🧪 MODE SANDBOX (diagnostik) — gunakan akun testnet Pi Browser, bukan akun mainnet asli.');
   }
   // Jangan langsung vonis "bukan Pi Browser" cuma dari user agent.
-  // Tunggu window.Pi benar-benar dicoba beberapa kali dulu — itu syarat
-  // fungsional yang sebenarnya, bukan tebakan dari teks UA yang bisa beda-beda
-  // tergantung versi/device Pi Browser.
+  // ensurePiInit() sendiri sudah mencoba beberapa kali sebelum menyerah —
+  // itu syarat fungsional yang sebenarnya, bukan tebakan dari teks UA yang
+  // bisa beda-beda tergantung versi/device Pi Browser.
   initPiSdk();
 });
 
-function initPiSdk() {
-  let attempts = 0;
-  const maxAttempts = 15; // ~6 detik percobaan sebelum menyerah
-  const tryInit = () => {
-    attempts++;
-    try {
-      if (typeof window.Pi === 'undefined') throw new Error('Pi not defined');
-      if (!window._piSdkInited) {
-        window.Pi.init({ version: '2.0', sandbox: _forceSandbox });
-        window._piSdkInited = true;
-      }
-      piReady = true;
-      console.log('✅ Pi SDK ready');
-      // SDK berhasil dimuat → ini beneran Pi Browser.
-      document.getElementById('piNotice').classList.remove('show');
-      document.getElementById('piBtn').disabled = false;
-    } catch(e) {
-      if (attempts < maxAttempts) {
-        setTimeout(tryInit, 400);
-      } else {
-        console.warn('Pi SDK gagal init setelah beberapa percobaan — kemungkinan memang bukan Pi Browser');
-        // Baru di titik ini kita anggap bukan Pi Browser (SDK memang tidak pernah tersedia)
-        document.getElementById('piNotice').classList.add('show');
-        document.getElementById('piBtn').disabled = true;
-        document.getElementById('piBtnText').innerHTML =
-          '<i class="fas fa-ban" style="opacity:.6;margin-right:4px;"></i>Hanya tersedia di Pi Browser';
-      }
-    }
-  };
-  tryInit();
+async function initPiSdk() {
+  piReady = await ensurePiInit();
+  if (piReady) {
+    console.log('✅ Pi SDK ready');
+    // SDK berhasil dimuat → ini beneran Pi Browser.
+    document.getElementById('piNotice').classList.remove('show');
+    document.getElementById('piBtn').disabled = false;
+  } else {
+    console.warn('Pi SDK gagal init — kemungkinan memang bukan Pi Browser');
+    document.getElementById('piNotice').classList.add('show');
+    document.getElementById('piBtn').disabled = true;
+    document.getElementById('piBtnText').innerHTML =
+      '<i class="fas fa-ban" style="opacity:.6;margin-right:4px;"></i>Hanya tersedia di Pi Browser';
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -971,10 +973,8 @@ async function doPiLogin() {
     return;
   }
   if (!piReady) {
-    try {
-      window.Pi.init({ version: '2.0', sandbox: _forceSandbox });
-      piReady = true;
-    } catch(e) {
+    piReady = await ensurePiInit();
+    if (!piReady) {
       showAlert('error', 'Pi SDK belum siap. Pastikan kamu membuka halaman ini di Pi Browser.');
       return;
     }
@@ -1169,10 +1169,12 @@ async function doPiLogin() {
     console.error('❌ Pi login error:', err);
     const msg = err.message || 'Gagal login dengan Pi Network.';
     if (msg === 'TIMEOUT_PI_AUTH') {
-      // Reset flag init supaya percobaan berikutnya melakukan Pi.init() dari awal,
-      // siapa tahu state SDK sebelumnya yang bikin macet.
-      window._piSdkInited = false;
-      piReady = false;
+      // PENTING: jangan reset window._piSdkInited / panggil Pi.init() lagi di sini.
+      // Pi SDK tidak boleh di-init dua kali dalam satu halaman — kalau dipaksa
+      // init ulang, SDK bisa masuk state rusak dan lempar error "SDK was not
+      // initialized" di fitur lain (mis. donasi), padahal sebelumnya normal.
+      // Timeout ini murni soal Pi.authenticate() tidak merespons, bukan soal
+      // status init SDK — jadi cukup minta user coba lagi / reload halaman.
       showAlert('error', 'Pi Network tidak merespons. Ini biasanya karena: (1) koneksi internet Pi Browser terputus/lambat, (2) sesi Pi Browser perlu di-refresh, atau (3) sedang ada gangguan dari Pi Network. Coba: tutup paksa Pi Browser lalu buka lagi, atau tekan tombol muat ulang di address bar.');
     } else if (msg === 'TIMEOUT_FIRESTORE') {
       showAlert('error', 'Koneksi ke server terlalu lambat. Cek koneksi internet kamu, lalu coba login lagi.');
